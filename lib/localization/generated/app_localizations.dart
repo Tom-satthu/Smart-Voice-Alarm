@@ -855,6 +855,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Crystal Bell'**
   String get ringtoneCrystalBell;
+
+  /// No description provided for @alarmStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get alarmStop;
+
+  /// No description provided for @alarmStopAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop All'**
+  String get alarmStopAll;
+
+  /// No description provided for @alarmQueueWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 alarm waiting} other{{count} alarms waiting}}'**
+  String alarmQueueWaiting(int count);
+
+  /// No description provided for @settingsVoiceSpeech.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice & Speech'**
+  String get settingsVoiceSpeech;
+
+  /// No description provided for @settingsVoiceSpeechSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System voices for text to speech'**
+  String get settingsVoiceSpeechSubtitle;
+
+  /// No description provided for @voiceSpeechTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice & Speech'**
+  String get voiceSpeechTitle;
+
+  /// No description provided for @voiceSpeechSystemVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'System voices'**
+  String get voiceSpeechSystemVoices;
+
+  /// No description provided for @voiceSpeechDownloadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Download more voices'**
+  String get voiceSpeechDownloadMore;
+
+  /// No description provided for @voiceSpeechRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh voice list'**
+  String get voiceSpeechRefresh;
+
+  /// No description provided for @voiceSpeechOfflineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer offline voices so alarms still speak without a network connection.'**
+  String get voiceSpeechOfflineHint;
+
+  /// No description provided for @voiceSpeechIosGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Install voices on iPhone'**
+  String get voiceSpeechIosGuideTitle;
+
+  /// No description provided for @voiceSpeechIosGuideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings → Accessibility → Spoken Content → Voices, download the voices you need, then return here and tap Refresh.'**
+  String get voiceSpeechIosGuideBody;
+
+  /// No description provided for @voiceSpeechAndroidGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens the system TTS data installer. Smart Voice Alarm does not download or host voice packages.'**
+  String get voiceSpeechAndroidGuide;
+
+  /// No description provided for @voiceSpeechWebUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Browsers manage their own voices. Download packs are not available on web.'**
+  String get voiceSpeechWebUnavailable;
+
+  /// No description provided for @voiceSpeechEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No usable voices found yet'**
+  String get voiceSpeechEmpty;
+
+  /// No description provided for @voiceSpeechEmptyCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Download more voices'**
+  String get voiceSpeechEmptyCta;
+
+  /// No description provided for @voiceQualityDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get voiceQualityDefault;
+
+  /// No description provided for @voiceQualityEnhanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Enhanced'**
+  String get voiceQualityEnhanced;
+
+  /// No description provided for @voiceQualityPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get voiceQualityPremium;
+
+  /// No description provided for @voiceAvailabilityOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get voiceAvailabilityOffline;
+
+  /// No description provided for @voiceAvailabilityNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs network'**
+  String get voiceAvailabilityNetwork;
+
+  /// No description provided for @voiceAvailabilityMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not installed'**
+  String get voiceAvailabilityMissing;
+
+  /// No description provided for @ttsNoVoicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No usable voices'**
+  String get ttsNoVoicesTitle;
+
+  /// No description provided for @ttsNoVoicesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Download system voices, then refresh the list.'**
+  String get ttsNoVoicesBody;
+
+  /// No description provided for @ttsOpenVoiceSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Download more voices'**
+  String get ttsOpenVoiceSettings;
+
+  /// No description provided for @ttsVoiceFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected voice is unavailable. Using a default voice instead.'**
+  String get ttsVoiceFallback;
 }
 
 class _AppLocalizationsDelegate

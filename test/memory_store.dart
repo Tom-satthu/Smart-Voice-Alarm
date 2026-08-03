@@ -110,6 +110,24 @@ class MemorySettingsRepository extends SettingsRepository {
 
   @override
   Future<void> clearSeedFlag() async => _didSeed = false;
+
+  @override
+  String? loadPreferredVoiceId() => _preferredVoiceId;
+
+  @override
+  String? loadPreferredVoiceLocale() => _preferredVoiceLocale;
+
+  @override
+  Future<void> savePreferredVoice({
+    required String? voiceId,
+    required String? localeId,
+  }) async {
+    _preferredVoiceId = voiceId;
+    _preferredVoiceLocale = localeId;
+  }
+
+  String? _preferredVoiceId;
+  String? _preferredVoiceLocale;
 }
 
 /// Sample data matching the product seed, for tests.

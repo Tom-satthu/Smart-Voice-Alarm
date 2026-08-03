@@ -132,6 +132,8 @@ class SettingsRepository {
   static const _reminderHourKey = 'reminderHour';
   static const _reminderMinuteKey = 'reminderMinute';
   static const _seededKey = 'didSeed';
+  static const _preferredVoiceIdKey = 'preferredVoiceId';
+  static const _preferredVoiceLocaleKey = 'preferredVoiceLocale';
 
   ThemeMode loadThemeMode() {
     final raw = LocalDatabase.settingsBox.get(_themeKey) as String?;
@@ -188,5 +190,27 @@ class SettingsRepository {
 
   Future<void> clearSeedFlag() async {
     await LocalDatabase.settingsBox.delete(_seededKey);
+  }
+
+  String? loadPreferredVoiceId() =>
+      LocalDatabase.settingsBox.get(_preferredVoiceIdKey) as String?;
+
+  String? loadPreferredVoiceLocale() =>
+      LocalDatabase.settingsBox.get(_preferredVoiceLocaleKey) as String?;
+
+  Future<void> savePreferredVoice({
+    required String? voiceId,
+    required String? localeId,
+  }) async {
+    if (voiceId == null) {
+      await LocalDatabase.settingsBox.delete(_preferredVoiceIdKey);
+    } else {
+      await LocalDatabase.settingsBox.put(_preferredVoiceIdKey, voiceId);
+    }
+    if (localeId == null) {
+      await LocalDatabase.settingsBox.delete(_preferredVoiceLocaleKey);
+    } else {
+      await LocalDatabase.settingsBox.put(_preferredVoiceLocaleKey, localeId);
+    }
   }
 }

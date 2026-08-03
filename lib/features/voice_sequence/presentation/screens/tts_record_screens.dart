@@ -25,18 +25,75 @@ class TtsScreen extends ConsumerStatefulWidget {
   ConsumerState<TtsScreen> createState() => _TtsScreenState();
 }
 
-class _TtsScreenState extends ConsumerState<TtsScreen> {
+class _TtsScreenState extends ConsumerState<TtsScreen>
+    with WidgetsBindingObserver {
   final _controller = TextEditingController();
   String? _selectedVoiceId;
   String? _selectedLocale;
   bool _previewing = false;
+  bool _hydratedVoice = false;
 
   String get _sequenceId => widget.sequenceId ?? defaultSequenceId;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(usableTtsVoicesProvider);
+      ref.invalidate(ttsVoicesProvider);
+    }
+  }
+
+  Future<void> _ensureVoiceSelection(List<TtsVoiceUiModel> voices) async {
+    if (_hydratedVoice || voices.isEmpty) return;
+    _hydratedVoice = true;
+    final preferred = ref.read(preferredVoiceProvider);
+    final resolved = _pickVoice(
+      voices,
+      preferredId: _selectedVoiceId ?? preferred.id,
+      preferredLocale: _selectedLocale ?? preferred.locale,
+    );
+    if (!mounted) return;
+    setState(() {
+      _selectedVoiceId = resolved.id;
+      _selectedLocale = resolved.locale;
+    });
+    if (preferred.id != null && preferred.id != resolved.id) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).ttsVoiceFallback),
+        ),
+      );
+    }
+  }
+
+  TtsVoiceUiModel _pickVoice(
+    List<TtsVoiceUiModel> voices, {
+    String? preferredId,
+    String? preferredLocale,
+  }) {
+    if (preferredId != null) {
+      for (final voice in voices) {
+        if (voice.id == preferredId) return voice;
+      }
+    }
+    final locale = preferredLocale ?? 'en-US';
+    for (final voice in voices) {
+      if (voice.locale.toLowerCase() == locale.toLowerCase()) return voice;
+    }
+    return voices.first;
   }
 
   Future<void> _preview() async {
@@ -59,6 +116,19 @@ class _TtsScreenState extends ConsumerState<TtsScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
+    final voices = await ref.read(usableTtsVoicesProvider.future);
+    final resolved = voices.isEmpty
+        ? const TtsVoiceUiModel(
+            id: 'default|en-US',
+            name: 'System Default',
+            locale: 'en-US',
+          )
+        : _pickVoice(
+            voices,
+            preferredId: _selectedVoiceId,
+            preferredLocale: _selectedLocale,
+          );
+
     await ref.read(voiceSequenceProvider(_sequenceId).notifier).add(
           VoiceSegmentUiModel(
             id: const Uuid().v4(),
@@ -71,9 +141,14 @@ class _TtsScreenState extends ConsumerState<TtsScreen> {
                   ),
             ),
             text: text,
-            voiceId: _selectedVoiceId,
-            localeId: _selectedLocale ?? 'en-US',
+            voiceId: resolved.id,
+            localeId: resolved.locale,
           ),
+        );
+
+    await ref.read(preferredVoiceProvider.notifier).setVoice(
+          id: resolved.id,
+          locale: resolved.locale,
         );
 
     if (!mounted) return;
@@ -87,10 +162,29 @@ class _TtsScreenState extends ConsumerState<TtsScreen> {
     }
   }
 
+  String _qualityLabel(AppLocalizations l10n, TtsVoiceQuality quality) {
+    return switch (quality) {
+      TtsVoiceQuality.defaultQuality => l10n.voiceQualityDefault,
+      TtsVoiceQuality.enhanced => l10n.voiceQualityEnhanced,
+      TtsVoiceQuality.premium => l10n.voiceQualityPremium,
+    };
+  }
+
+  String _availabilityLabel(
+    AppLocalizations l10n,
+    TtsVoiceAvailability availability,
+  ) {
+    return switch (availability) {
+      TtsVoiceAvailability.installedOffline => l10n.voiceAvailabilityOffline,
+      TtsVoiceAvailability.networkRequired => l10n.voiceAvailabilityNetwork,
+      TtsVoiceAvailability.notInstalled => l10n.voiceAvailabilityMissing,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final voicesAsync = ref.watch(ttsVoicesProvider);
+    final voicesAsync = ref.watch(usableTtsVoicesProvider);
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return AppScaffold(
@@ -100,10 +194,23 @@ class _TtsScreenState extends ConsumerState<TtsScreen> {
       body: ResponsiveCenter(
         child: voicesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => Center(child: Text(l10n.ttsVoices)),
+          error: (_, __) => Center(child: Text(l10n.ttsNoVoicesTitle)),
           data: (voices) {
-            _selectedVoiceId ??= voices.first.id;
-            _selectedLocale ??= voices.first.locale;
+            if (voices.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(AppConstants.spaceXl),
+                child: EmptyStateView(
+                  icon: Icons.record_voice_over_outlined,
+                  title: l10n.ttsNoVoicesTitle,
+                  subtitle: l10n.ttsNoVoicesBody,
+                  actionLabel: l10n.ttsOpenVoiceSettings,
+                  onAction: () => context.push(AppRoutes.voiceSpeech),
+                ),
+              );
+            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _ensureVoiceSelection(voices);
+            });
             return Column(
               children: [
                 Expanded(
@@ -160,7 +267,7 @@ class _TtsScreenState extends ConsumerState<TtsScreen> {
                                         style: context.textTheme.titleSmall,
                                       ),
                                       Text(
-                                        voice.locale,
+                                        '${voice.locale} · ${_qualityLabel(l10n, voice.quality)} · ${_availabilityLabel(l10n, voice.availability)}',
                                         style: context.textTheme.bodySmall,
                                       ),
                                     ],
@@ -170,6 +277,10 @@ class _TtsScreenState extends ConsumerState<TtsScreen> {
                             ),
                           ),
                         ),
+                      TextButton(
+                        onPressed: () => context.push(AppRoutes.voiceSpeech),
+                        child: Text(l10n.ttsOpenVoiceSettings),
+                      ),
                     ],
                   ),
                 ),

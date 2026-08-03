@@ -425,4 +425,96 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ringtoneCrystalBell => 'Crystal Bell';
+
+  @override
+  String get alarmStop => 'Stop';
+
+  @override
+  String get alarmStopAll => 'Stop All';
+
+  @override
+  String alarmQueueWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alarms waiting',
+      one: '1 alarm waiting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsVoiceSpeech => 'Voice & Speech';
+
+  @override
+  String get settingsVoiceSpeechSubtitle => 'System voices for text to speech';
+
+  @override
+  String get voiceSpeechTitle => 'Voice & Speech';
+
+  @override
+  String get voiceSpeechSystemVoices => 'System voices';
+
+  @override
+  String get voiceSpeechDownloadMore => 'Download more voices';
+
+  @override
+  String get voiceSpeechRefresh => 'Refresh voice list';
+
+  @override
+  String get voiceSpeechOfflineHint =>
+      'Prefer offline voices so alarms still speak without a network connection.';
+
+  @override
+  String get voiceSpeechIosGuideTitle => 'Install voices on iPhone';
+
+  @override
+  String get voiceSpeechIosGuideBody =>
+      'Open Settings → Accessibility → Spoken Content → Voices, download the voices you need, then return here and tap Refresh.';
+
+  @override
+  String get voiceSpeechAndroidGuide =>
+      'Opens the system TTS data installer. Smart Voice Alarm does not download or host voice packages.';
+
+  @override
+  String get voiceSpeechWebUnavailable =>
+      'Browsers manage their own voices. Download packs are not available on web.';
+
+  @override
+  String get voiceSpeechEmpty => 'No usable voices found yet';
+
+  @override
+  String get voiceSpeechEmptyCta => 'Download more voices';
+
+  @override
+  String get voiceQualityDefault => 'Default';
+
+  @override
+  String get voiceQualityEnhanced => 'Enhanced';
+
+  @override
+  String get voiceQualityPremium => 'Premium';
+
+  @override
+  String get voiceAvailabilityOffline => 'Offline';
+
+  @override
+  String get voiceAvailabilityNetwork => 'Needs network';
+
+  @override
+  String get voiceAvailabilityMissing => 'Not installed';
+
+  @override
+  String get ttsNoVoicesTitle => 'No usable voices';
+
+  @override
+  String get ttsNoVoicesBody =>
+      'Download system voices, then refresh the list.';
+
+  @override
+  String get ttsOpenVoiceSettings => 'Download more voices';
+
+  @override
+  String get ttsVoiceFallback =>
+      'Selected voice is unavailable. Using a default voice instead.';
 }
