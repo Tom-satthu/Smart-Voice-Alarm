@@ -18,7 +18,7 @@ const RESOURCES = {"canvaskit/canvaskit.wasm": "7a3f4ae7d65fc1de6a6e7ddd3224bc93
 "404.html": "8a42b2cc2785132a8b473fd287bee313",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796",
 "main.dart.js": "396e7ae7a4f5dd541ea753f9ea9ba7f2",
-"flutter_bootstrap.js": "4143c7f5e66d6a3640fb28de2c821a18",
+"flutter_bootstrap.js": "fa3d04f4863b553a8d71043bdc0885a1",
 "assets/fonts/MaterialIcons-Regular.otf": "f87d8508b0d098bc1cd3c53798e41654",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "33b7d9392238c04c131b6ce224e13711",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",

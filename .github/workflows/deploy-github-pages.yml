@@ -40,7 +40,7 @@ jobs:
         run: flutter analyze
 
       - name: Build web release
-        run: flutter build web --release --base-href "./"
+        run: flutter build web --release --base-href "/Smart-Voice-Alarm/"
 
       - name: Prepare Pages artifacts
         run: |
