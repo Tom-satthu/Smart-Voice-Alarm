@@ -47,12 +47,6 @@ jobs:
           touch build/web/.nojekyll
           cp build/web/index.html build/web/404.html
 
-      - name: Sync docs/ for branch-based Pages option
-        run: |
-          rm -rf docs
-          mkdir -p docs
-          cp -a build/web/. docs/
-
       - name: Publish to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -66,7 +60,7 @@ jobs:
         with:
           path: build/web
 
-  deploy:
+  deploy-pages:
     name: Deploy to GitHub Pages
     needs: build-and-publish
     runs-on: ubuntu-latest
@@ -77,3 +71,4 @@ jobs:
       - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
