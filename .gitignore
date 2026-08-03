@@ -52,3 +52,4 @@ android/keystore.properties
 **/AuthKey_*.p8
 *.mobileprovision
 *.p12
+smart-voice-alarm-screenshots/
