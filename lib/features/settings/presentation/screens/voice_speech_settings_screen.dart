@@ -4,12 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/localization/locale_display_names.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../localization/generated/app_localizations.dart';
-import '../../../../shared/models/ui_models.dart';
 import '../../../../shared/providers/prototype_providers.dart';
 import '../../../../shared/widgets/app_widgets.dart';
+import '../../../../shared/widgets/voice_browser.dart';
 
 class VoiceSpeechSettingsScreen extends ConsumerStatefulWidget {
   const VoiceSpeechSettingsScreen({super.key});
@@ -93,41 +92,11 @@ class _VoiceSpeechSettingsScreenState
       return;
     }
 
-    final opened = await bridge.openDownloadMoreVoices();
+    await bridge.openDownloadMoreVoices();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(l10n.voicesAndroidGuide)),
     );
-    if (opened) {
-      // User may install packs; refresh when they return via lifecycle.
-    }
-  }
-
-  String? _qualityLabel(AppLocalizations l10n, TtsVoiceQuality? quality) {
-    if (quality == null) return null;
-    return switch (quality) {
-      TtsVoiceQuality.defaultQuality => l10n.voiceQualityDefault,
-      TtsVoiceQuality.enhanced => l10n.voiceQualityEnhanced,
-      TtsVoiceQuality.premium => l10n.voiceQualityPremium,
-    };
-  }
-
-  String _availabilityLabel(
-    AppLocalizations l10n,
-    TtsVoiceAvailability availability,
-  ) {
-    return switch (availability) {
-      TtsVoiceAvailability.installedOffline => l10n.voiceAvailabilityOffline,
-      TtsVoiceAvailability.networkRequired => l10n.voiceAvailabilityNetwork,
-      TtsVoiceAvailability.notInstalled => l10n.voiceAvailabilityMissing,
-    };
-  }
-
-  String _voiceDisplayName(AppLocalizations l10n, TtsVoiceUiModel voice) {
-    if (voice.id.startsWith('default|') || voice.name == 'System Default') {
-      return l10n.voiceSystemDefault;
-    }
-    return voice.name;
   }
 
   @override
@@ -135,7 +104,8 @@ class _VoiceSpeechSettingsScreenState
     final l10n = AppLocalizations.of(context);
     final voicesAsync = ref.watch(ttsVoicesProvider);
     final preferred = ref.watch(preferredVoiceProvider);
-    final canManage = ref.watch(ttsPlatformBridgeProvider).canManageSystemVoicePacks;
+    final canManage =
+        ref.watch(ttsPlatformBridgeProvider).canManageSystemVoicePacks;
 
     return AppScaffold(
       showBack: true,
@@ -199,68 +169,11 @@ class _VoiceSpeechSettingsScreenState
                     onAction: canManage ? _downloadMore : null,
                   );
                 }
-                return Column(
-                  children: [
-                    for (final voice in voices)
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: AppConstants.spaceSm,
-                        ),
-                        child: SurfacePanel(
-                          emphasized: preferred.id == voice.id,
-                          onTap: voice.isUsable
-                              ? () {
-                                  ref
-                                      .read(preferredVoiceProvider.notifier)
-                                      .setVoice(
-                                        id: voice.id,
-                                        locale: voice.locale,
-                                      );
-                                }
-                              : null,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                preferred.id == voice.id
-                                    ? Icons.radio_button_checked_rounded
-                                    : Icons.radio_button_off_rounded,
-                                color: preferred.id == voice.id
-                                    ? context.colors.primary
-                                    : context.colors.onSurfaceVariant,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: VoiceIdentityBlock(
-                                  languageLabel: LocaleDisplayNames.friendly(
-                                    voice.locale,
-                                  ),
-                                  voiceName: _voiceDisplayName(l10n, voice),
-                                  qualityLabel: _qualityLabel(
-                                    l10n,
-                                    voice.quality,
-                                  ),
-                                  availabilityLabel: voice.isUsable
-                                      ? null
-                                      : _availabilityLabel(
-                                          l10n,
-                                          voice.availability,
-                                        ),
-                                ),
-                              ),
-                              if (!voice.isUsable)
-                                Icon(
-                                  Icons.cloud_off_outlined,
-                                  color: context.colors.onSurfaceVariant,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
+                return VoiceBrowser(
+                  voices: voices,
+                  selectedVoiceId: preferred.id,
+                  showAvailability: true,
+                  onSelected: (_) {},
                 );
               },
             ),

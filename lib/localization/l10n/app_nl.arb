@@ -116,31 +116,31 @@
   "settingsAboutSubtitle": "App-info en ondersteuning",
   "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "Premium",
-  "settingsPremiumSubtitle": "Ontgrendel levenslange toegang",
+  "settingsPremiumSubtitle": "Ontgrendel onbeperkte alarmen",
   "settingsVoices": "Stemmen",
   "settingsVoicesSubtitle": "Systeemstemmen voor tekst-naar-spraak",
   "settingsVersion": "Versie",
   "settingsLicenses": "Open-sourcelicenties",
   "settingsPrivacy": "Privacybeleid",
   "settingsTerms": "Gebruiksvoorwaarden",
-  "settingsLegalPlaceholder": "Inhoud volgt binnenkort.",
+  "settingsLegalPlaceholder": "Document bekijken",
   "premiumTitle": "Premium",
-  "premiumHeadline": "Eén aankoop. Voor altijd van jou.",
-  "premiumSubtitle": "Ontgrendel de volledige Smart Voice Alarm-ervaring met één levenslange aankoop. Geen abonnementen.",
+  "premiumHeadline": "Onbeperkte alarmen ontgrendelen",
+  "premiumSubtitle": "De gratis versie bevat tot 3 alarmen. Ontgrendel onbeperkte alarmen met één lifetime-aankoop. Geen abonnementen.",
   "premiumPlanFree": "Gratis",
   "premiumPlanLifetime": "Premium levenslang",
-  "premiumPlanLifetimePrice": "Eenmalige ontgrendeling",
+  "premiumPlanLifetimePrice": "Eenmalige aankoop",
   "premiumBenefitsTitle": "Alles in Premium",
-  "premiumBenefitUnlimited": "Onbeperkte spraakalarms",
-  "premiumBenefitSequences": "Langere spraaksequenties",
-  "premiumBenefitVoices": "Volledige toegang tot stemmen",
-  "premiumBenefitThemes": "Extra weergave-opties",
+  "premiumBenefitUnlimited": "Onbeperkte alarmen",
+  "premiumBenefitSequences": "Spraakreeksen zonder functievergrendelingen",
+  "premiumBenefitVoices": "Alle geïnstalleerde systeemstemmen",
+  "premiumBenefitThemes": "Thema’s, herinneringen en opnemen blijven gratis",
   "premiumBenefitSupport": "Prioritaire ondersteuning",
-  "premiumBenefitNoAds": "Advertentievrije ervaring",
-  "premiumUnlock": "Levenslang ontgrendelen",
+  "premiumBenefitNoAds": "Geen advertenties",
+  "premiumUnlock": "Onbeperkte alarmen ontgrendelen",
   "premiumRestore": "Aankoop herstellen",
-  "premiumThanks": "Aankopen worden beschikbaar in een toekomstige update. Bedankt voor je steun.",
-  "premiumComingSoon": "In-app-aankopen worden voorbereid. Er wordt nog niets in rekening gebracht.",
+  "premiumThanks": "Bedankt voor je steun aan Smart Voice Alarm.",
+  "premiumComingSoon": "Producten moeten worden ingesteld in App Store Connect en Google Play Console.",
   "commonCancel": "Annuleren",
   "commonDone": "Klaar",
   "commonBack": "Terug",
@@ -234,5 +234,36 @@
   "notificationChannelAlarmsDesc": "Spraakalarmmeldingen",
   "notificationChannelReminders": "Herinneringen",
   "notificationChannelRemindersDesc": "Dagelijkse herinnering om morgen’s alarm in te stellen",
-  "alarmDefaultLabel": "Alarm"
+  "alarmDefaultLabel": "Alarm",
+  "premiumBenefitLifetimeBuy": "Koop één keer. Voor altijd van jou.",
+  "premiumStatusLoading": "Winkel controleren…",
+  "premiumStatusPurchasing": "Aankoop starten…",
+  "premiumStatusPurchased": "Premium Lifetime ontgrendeld",
+  "premiumStatusRestored": "Aankoop hersteld",
+  "premiumStatusCancelled": "Aankoop geannuleerd",
+  "premiumStatusPending": "Aankoop in behandeling…",
+  "premiumStatusError": "Aankoop mislukt. Probeer opnieuw.",
+  "premiumWebUnavailable": "In-app aankopen zijn niet beschikbaar in de webdemo.",
+  "premiumStoreUnavailable": "De winkel is niet beschikbaar op dit apparaat.",
+  "premiumLimitExplainFree": "De gratis versie bevat tot 3 alarmen.",
+  "premiumLimitExplainUnlock": "Ontgrendel onbeperkte alarmen met één lifetime-aankoop.",
+  "premiumFreeLimitLabel": "Tot {count} alarmen",
+  "voicesSearchHint": "Zoek talen of stemmen",
+  "voicesLanguages": "Talen",
+  "voicesSelectVoiceHint": "Kies een stem voor deze taal",
+  "voicesLanguageCount": "{count, plural, =1{1 stem} other{{count} stemmen}}",
+  "@premiumFreeLimitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -326,7 +326,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsPremium => 'プレミアム';
 
   @override
-  String get settingsPremiumSubtitle => '生涯アクセスを解除';
+  String get settingsPremiumSubtitle => '無制限のアラームを解除';
 
   @override
   String get settingsVoices => '音声';
@@ -347,17 +347,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsTerms => '利用規約';
 
   @override
-  String get settingsLegalPlaceholder => 'コンテンツは近日公開予定です。';
+  String get settingsLegalPlaceholder => '文書を表示';
 
   @override
   String get premiumTitle => 'プレミアム';
 
   @override
-  String get premiumHeadline => '一度の購入。ずっとあなたのもの。';
+  String get premiumHeadline => '無制限アラームを解除';
 
   @override
-  String get premiumSubtitle =>
-      '一度きりの生涯購入で、Smart Voice Alarmのすべての体験を解除。サブスクリプションはありません。';
+  String get premiumSubtitle => '無料版はアラーム最大3件。買い切り1回で無制限に。サブスクリプションはありません。';
 
   @override
   String get premiumPlanFree => '無料';
@@ -366,40 +365,41 @@ class AppLocalizationsJa extends AppLocalizations {
   String get premiumPlanLifetime => 'プレミアム生涯版';
 
   @override
-  String get premiumPlanLifetimePrice => '一回限りの解除';
+  String get premiumPlanLifetimePrice => '買い切り';
 
   @override
   String get premiumBenefitsTitle => 'プレミアムのすべて';
 
   @override
-  String get premiumBenefitUnlimited => '無制限の音声アラーム';
+  String get premiumBenefitUnlimited => '無制限アラーム';
 
   @override
-  String get premiumBenefitSequences => 'より長い音声シーケンス';
+  String get premiumBenefitSequences => '機能ロックのない音声シーケンス';
 
   @override
-  String get premiumBenefitVoices => '読み上げ音声へのフルアクセス';
+  String get premiumBenefitVoices => 'インストール済みのすべてのシステム音声';
 
   @override
-  String get premiumBenefitThemes => '追加の外観オプション';
+  String get premiumBenefitThemes => 'テーマ・リマインダー・録音は無料のまま';
 
   @override
   String get premiumBenefitSupport => '優先サポート';
 
   @override
-  String get premiumBenefitNoAds => '広告なしの体験';
+  String get premiumBenefitNoAds => '広告なし';
 
   @override
-  String get premiumUnlock => '生涯版を解除';
+  String get premiumUnlock => '無制限アラームを解除';
 
   @override
   String get premiumRestore => '購入を復元';
 
   @override
-  String get premiumThanks => '購入機能は今後のアップデートで利用可能になります。ご支援ありがとうございます。';
+  String get premiumThanks => 'Smart Voice Alarmを応援いただきありがとうございます。';
 
   @override
-  String get premiumComingSoon => 'アプリ内購入を準備中です。現時点では課金されません。';
+  String get premiumComingSoon =>
+      '商品は App Store Connect と Google Play Console で設定してください。';
 
   @override
   String get commonCancel => 'キャンセル';
@@ -647,4 +647,65 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get alarmDefaultLabel => 'アラーム';
+
+  @override
+  String get premiumBenefitLifetimeBuy => '一度の購入。ずっとあなたのもの。';
+
+  @override
+  String get premiumStatusLoading => 'ストアを確認中…';
+
+  @override
+  String get premiumStatusPurchasing => '購入を開始中…';
+
+  @override
+  String get premiumStatusPurchased => 'Premium Lifetime が解除されました';
+
+  @override
+  String get premiumStatusRestored => '購入を復元しました';
+
+  @override
+  String get premiumStatusCancelled => '購入がキャンセルされました';
+
+  @override
+  String get premiumStatusPending => '購入処理中…';
+
+  @override
+  String get premiumStatusError => '購入に失敗しました。もう一度お試しください。';
+
+  @override
+  String get premiumWebUnavailable => 'Webデモではアプリ内課金は利用できません。';
+
+  @override
+  String get premiumStoreUnavailable => 'この端末ではストアを利用できません。';
+
+  @override
+  String get premiumLimitExplainFree => '無料版はアラーム最大3件です。';
+
+  @override
+  String get premiumLimitExplainUnlock => '買い切り1回でアラームを無制限に。';
+
+  @override
+  String premiumFreeLimitLabel(int count) {
+    return '最大 $count 件のアラーム';
+  }
+
+  @override
+  String get voicesSearchHint => '言語や音声を検索';
+
+  @override
+  String get voicesLanguages => '言語';
+
+  @override
+  String get voicesSelectVoiceHint => 'この言語の音声を選択';
+
+  @override
+  String voicesLanguageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '音声 $count',
+      one: '音声 1',
+    );
+    return '$_temp0';
+  }
 }

@@ -76,22 +76,31 @@ class AboutScreen extends StatelessWidget {
             ),
             _InfoTile(
               label: l10n.aboutEmail,
-              value: l10n.aboutEmailValue,
+              value: AppConstants.supportEmail,
               onTap: () async {
                 await Clipboard.setData(
                   ClipboardData(text: AppConstants.supportEmail),
                 );
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.aboutEmailValue)),
+                  SnackBar(content: Text(AppConstants.supportEmail)),
                 );
               },
             ),
             _InfoTile(
               label: l10n.aboutWebsite,
-              value: l10n.aboutWebsiteValue,
-              trailingLabel: l10n.aboutWebsitePlaceholder,
+              value: AppConstants.websiteUrl.replaceFirst('https://', ''),
               onTap: () => _launch(context, AppConstants.websiteUrl),
+            ),
+            _InfoTile(
+              label: l10n.settingsPrivacy,
+              value: l10n.settingsLegalPlaceholder,
+              onTap: () => _launch(context, AppConstants.privacyUrl),
+            ),
+            _InfoTile(
+              label: l10n.settingsTerms,
+              value: l10n.settingsLegalPlaceholder,
+              onTap: () => _launch(context, AppConstants.termsUrl),
             ),
           ],
         ),
@@ -104,13 +113,11 @@ class _InfoTile extends StatelessWidget {
   const _InfoTile({
     required this.label,
     required this.value,
-    this.trailingLabel,
     this.onTap,
   });
 
   final String label;
   final String value;
-  final String? trailingLabel;
   final VoidCallback? onTap;
 
   @override
@@ -133,15 +140,6 @@ class _InfoTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(value, style: context.textTheme.titleSmall),
-                  if (trailingLabel != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      trailingLabel!,
-                      style: context.textTheme.bodySmall?.copyWith(
-                        color: context.colors.primary,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),

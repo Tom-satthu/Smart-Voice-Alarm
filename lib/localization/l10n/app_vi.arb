@@ -116,31 +116,31 @@
   "settingsAboutSubtitle": "Thông tin ứng dụng và hỗ trợ",
   "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "Premium",
-  "settingsPremiumSubtitle": "Mở khóa quyền truy cập trọn đời",
+  "settingsPremiumSubtitle": "Mở khóa báo thức không giới hạn",
   "settingsVoices": "Giọng nói",
   "settingsVoicesSubtitle": "Giọng hệ thống cho chuyển văn bản thành giọng nói",
   "settingsVersion": "Phiên bản",
   "settingsLicenses": "Giấy phép mã nguồn mở",
   "settingsPrivacy": "Chính sách quyền riêng tư",
   "settingsTerms": "Điều khoản sử dụng",
-  "settingsLegalPlaceholder": "Nội dung sắp ra mắt.",
+  "settingsLegalPlaceholder": "Xem tài liệu",
   "premiumTitle": "Premium",
-  "premiumHeadline": "Mua một lần. Của bạn mãi mãi.",
-  "premiumSubtitle": "Mở khóa trải nghiệm đầy đủ của Smart Voice Alarm với một lần mua trọn đời. Không đăng ký.",
+  "premiumHeadline": "Mở khóa báo thức không giới hạn",
+  "premiumSubtitle": "Bản Free gồm tối đa 3 báo thức. Mở khóa báo thức không giới hạn với một lần mua trọn đời. Không có subscription.",
   "premiumPlanFree": "Miễn phí",
   "premiumPlanLifetime": "Premium trọn đời",
-  "premiumPlanLifetimePrice": "Mở khóa một lần",
+  "premiumPlanLifetimePrice": "Mua một lần",
   "premiumBenefitsTitle": "Tất cả trong Premium",
-  "premiumBenefitUnlimited": "Báo thức giọng nói không giới hạn",
-  "premiumBenefitSequences": "Chuỗi giọng nói dài hơn",
-  "premiumBenefitVoices": "Truy cập đầy đủ các giọng đọc",
-  "premiumBenefitThemes": "Tùy chọn giao diện bổ sung",
+  "premiumBenefitUnlimited": "Báo thức không giới hạn",
+  "premiumBenefitSequences": "Chuỗi giọng nói không khóa tính năng",
+  "premiumBenefitVoices": "Toàn bộ giọng hệ thống đã cài",
+  "premiumBenefitThemes": "Theme, reminder và ghi âm vẫn miễn phí",
   "premiumBenefitSupport": "Hỗ trợ ưu tiên",
-  "premiumBenefitNoAds": "Trải nghiệm không quảng cáo",
-  "premiumUnlock": "Mở khóa trọn đời",
-  "premiumRestore": "Khôi phục giao dịch mua",
-  "premiumThanks": "Giao dịch mua sẽ có trong bản cập nhật sau. Cảm ơn bạn đã ủng hộ.",
-  "premiumComingSoon": "Mua hàng trong ứng dụng đang được chuẩn bị. Hiện chưa tính phí.",
+  "premiumBenefitNoAds": "Không quảng cáo",
+  "premiumUnlock": "Mở khóa báo thức không giới hạn",
+  "premiumRestore": "Khôi phục mua hàng",
+  "premiumThanks": "Cảm ơn bạn đã hỗ trợ Smart Voice Alarm.",
+  "premiumComingSoon": "Sản phẩm cần được cấu hình trên App Store Connect và Google Play Console.",
   "commonCancel": "Hủy",
   "commonDone": "Xong",
   "commonBack": "Quay lại",
@@ -234,5 +234,36 @@
   "notificationChannelAlarmsDesc": "Thông báo báo thức giọng nói",
   "notificationChannelReminders": "Nhắc nhở",
   "notificationChannelRemindersDesc": "Nhắc nhở hàng ngày để đặt báo thức ngày mai",
-  "alarmDefaultLabel": "Báo thức"
+  "alarmDefaultLabel": "Báo thức",
+  "premiumBenefitLifetimeBuy": "Mua một lần. Sở hữu mãi mãi.",
+  "premiumStatusLoading": "Đang kiểm tra cửa hàng…",
+  "premiumStatusPurchasing": "Đang bắt đầu mua…",
+  "premiumStatusPurchased": "Đã mở Premium Lifetime",
+  "premiumStatusRestored": "Đã khôi phục mua hàng",
+  "premiumStatusCancelled": "Đã hủy mua hàng",
+  "premiumStatusPending": "Đang chờ mua hàng…",
+  "premiumStatusError": "Mua hàng thất bại. Vui lòng thử lại.",
+  "premiumWebUnavailable": "Mua trong ứng dụng không khả dụng trên bản demo web.",
+  "premiumStoreUnavailable": "Cửa hàng không khả dụng trên thiết bị này.",
+  "premiumLimitExplainFree": "Bản Free gồm tối đa 3 báo thức.",
+  "premiumLimitExplainUnlock": "Mở khóa báo thức không giới hạn với một lần mua trọn đời.",
+  "premiumFreeLimitLabel": "Tối đa {count} báo thức",
+  "voicesSearchHint": "Tìm ngôn ngữ hoặc giọng nói",
+  "voicesLanguages": "Ngôn ngữ",
+  "voicesSelectVoiceHint": "Chọn một giọng cho ngôn ngữ này",
+  "voicesLanguageCount": "{count, plural, =1{1 giọng} other{{count} giọng}}",
+  "@premiumFreeLimitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

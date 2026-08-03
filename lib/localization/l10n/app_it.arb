@@ -116,31 +116,31 @@
   "settingsAboutSubtitle": "Info sull’app e supporto",
   "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "Premium",
-  "settingsPremiumSubtitle": "Sblocca l’accesso a vita",
+  "settingsPremiumSubtitle": "Sblocca sveglie illimitate",
   "settingsVoices": "Voci",
   "settingsVoicesSubtitle": "Voci di sistema per la sintesi vocale",
   "settingsVersion": "Versione",
   "settingsLicenses": "Licenze open source",
   "settingsPrivacy": "Informativa sulla privacy",
   "settingsTerms": "Termini di utilizzo",
-  "settingsLegalPlaceholder": "Contenuto in arrivo.",
+  "settingsLegalPlaceholder": "Visualizza documento",
   "premiumTitle": "Premium",
-  "premiumHeadline": "Un acquisto. Tuo per sempre.",
-  "premiumSubtitle": "Sblocca l’esperienza completa di Smart Voice Alarm con un unico acquisto a vita. Nessun abbonamento.",
+  "premiumHeadline": "Sblocca sveglie illimitate",
+  "premiumSubtitle": "La versione gratuita include fino a 3 sveglie. Sblocca sveglie illimitate con un acquisto a vita. Nessun abbonamento.",
   "premiumPlanFree": "Gratis",
   "premiumPlanLifetime": "Premium a vita",
-  "premiumPlanLifetimePrice": "Sblocco una tantum",
+  "premiumPlanLifetimePrice": "Acquisto unico",
   "premiumBenefitsTitle": "Tutto in Premium",
-  "premiumBenefitUnlimited": "Sveglie vocali illimitate",
-  "premiumBenefitSequences": "Sequenze vocali più lunghe",
-  "premiumBenefitVoices": "Accesso completo alle voci",
-  "premiumBenefitThemes": "Opzioni di aspetto aggiuntive",
+  "premiumBenefitUnlimited": "Sveglie illimitate",
+  "premiumBenefitSequences": "Sequenze vocali senza blocchi",
+  "premiumBenefitVoices": "Tutte le voci di sistema installate",
+  "premiumBenefitThemes": "Temi, promemoria e registrazione restano gratuiti",
   "premiumBenefitSupport": "Supporto prioritario",
-  "premiumBenefitNoAds": "Esperienza senza pubblicità",
-  "premiumUnlock": "Sblocca a vita",
+  "premiumBenefitNoAds": "Senza pubblicità",
+  "premiumUnlock": "Sblocca sveglie illimitate",
   "premiumRestore": "Ripristina acquisto",
-  "premiumThanks": "Gli acquisti saranno disponibili in un aggiornamento futuro. Grazie per il tuo supporto.",
-  "premiumComingSoon": "Gli acquisti in-app sono in preparazione. Non verrà addebitato nulla per ora.",
+  "premiumThanks": "Grazie per supportare Smart Voice Alarm.",
+  "premiumComingSoon": "I prodotti devono essere configurati in App Store Connect e Google Play Console.",
   "commonCancel": "Annulla",
   "commonDone": "Fatto",
   "commonBack": "Indietro",
@@ -234,5 +234,36 @@
   "notificationChannelAlarmsDesc": "Avvisi sveglia vocale",
   "notificationChannelReminders": "Promemoria",
   "notificationChannelRemindersDesc": "Promemoria giornaliero per impostare la sveglia di domani",
-  "alarmDefaultLabel": "Sveglia"
+  "alarmDefaultLabel": "Sveglia",
+  "premiumBenefitLifetimeBuy": "Compra una volta. Tuo per sempre.",
+  "premiumStatusLoading": "Controllo dello store…",
+  "premiumStatusPurchasing": "Avvio acquisto…",
+  "premiumStatusPurchased": "Premium Lifetime sbloccato",
+  "premiumStatusRestored": "Acquisto ripristinato",
+  "premiumStatusCancelled": "Acquisto annullato",
+  "premiumStatusPending": "Acquisto in sospeso…",
+  "premiumStatusError": "Acquisto non riuscito. Riprova.",
+  "premiumWebUnavailable": "Gli acquisti non sono disponibili nella demo web.",
+  "premiumStoreUnavailable": "Lo store non è disponibile su questo dispositivo.",
+  "premiumLimitExplainFree": "La versione gratuita include fino a 3 sveglie.",
+  "premiumLimitExplainUnlock": "Sblocca sveglie illimitate con un acquisto a vita.",
+  "premiumFreeLimitLabel": "Fino a {count} sveglie",
+  "voicesSearchHint": "Cerca lingue o voci",
+  "voicesLanguages": "Lingue",
+  "voicesSelectVoiceHint": "Scegli una voce per questa lingua",
+  "voicesLanguageCount": "{count, plural, =1{1 voce} other{{count} voci}}",
+  "@premiumFreeLimitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

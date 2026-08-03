@@ -16,6 +16,40 @@ import '../widgets/alarm_list_tile.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  Future<void> _openCreate(BuildContext context, WidgetRef ref) async {
+    final entitlement = ref.read(premiumEntitlementProvider);
+    final isPremium = ref.read(isPremiumProvider);
+    final count = ref.read(alarmListProvider).length;
+    if (!isPremium && !entitlement.canCreateAlarm(count)) {
+      final unlocked = await context.push<bool>(
+        '${AppRoutes.premium}?resumeCreate=1',
+      );
+      if (unlocked == true && context.mounted) {
+        context.push(AppRoutes.createAlarm);
+      }
+      return;
+    }
+    context.push(AppRoutes.createAlarm);
+  }
+
+  Future<void> _duplicate(
+    BuildContext context,
+    WidgetRef ref,
+    String alarmId,
+  ) async {
+    final entitlement = ref.read(premiumEntitlementProvider);
+    final isPremium = ref.read(isPremiumProvider);
+    final count = ref.read(alarmListProvider).length;
+    if (!isPremium && !entitlement.canDuplicateAlarm(count)) {
+      await context.push('${AppRoutes.premium}?resumeCreate=1');
+      return;
+    }
+    final newId =
+        await ref.read(alarmListProvider.notifier).duplicate(alarmId);
+    if (!context.mounted) return;
+    context.push(AppRoutes.editAlarmPath(newId));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -31,7 +65,7 @@ class HomeScreen extends ConsumerWidget {
         ),
       ],
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.createAlarm),
+        onPressed: () => _openCreate(context, ref),
         icon: const Icon(Icons.add_rounded),
         label: Text(l10n.homeCreateAlarm),
       ),
@@ -42,7 +76,7 @@ class HomeScreen extends ConsumerWidget {
                 title: l10n.homeEmptyTitle,
                 subtitle: l10n.homeEmptySubtitle,
                 actionLabel: l10n.homeCreateAlarm,
-                onAction: () => context.push(AppRoutes.createAlarm),
+                onAction: () => _openCreate(context, ref),
               )
             : CustomScrollView(
                 slivers: [
@@ -70,13 +104,8 @@ class HomeScreen extends ConsumerWidget {
                               .toggle(alarm.id),
                           onEdit: () =>
                               context.push(AppRoutes.editAlarmPath(alarm.id)),
-                          onDuplicate: () async {
-                            final newId = await ref
-                                .read(alarmListProvider.notifier)
-                                .duplicate(alarm.id);
-                            if (!context.mounted) return;
-                            context.push(AppRoutes.editAlarmPath(newId));
-                          },
+                          onDuplicate: () =>
+                              _duplicate(context, ref, alarm.id),
                           onDelete: () {
                             ref
                                 .read(alarmListProvider.notifier)
@@ -119,19 +148,16 @@ class _HomeHero extends StatelessWidget {
               color: context.colors.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppConstants.spaceSm),
           Text(
             TimeFormatters.formatTime(now),
-            style: context.textTheme.displayMedium?.copyWith(
-              letterSpacing: -1.6,
-              height: 1,
-            ),
+            style: context.textTheme.displayMedium,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppConstants.spaceSm),
           Text(
             l10n.homeAlarmsReady(alarmCount),
-            style: context.textTheme.bodyMedium?.copyWith(
-              color: context.colors.onSurfaceVariant,
+            style: context.textTheme.titleSmall?.copyWith(
+              color: context.colors.primary,
             ),
           ),
         ],

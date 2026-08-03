@@ -1,72 +1,131 @@
 # Smart Voice Alarm
 
-Commercial Flutter app for voice-based alarms. Wake up to your own recordings and text-to-speech sequences.
+Local-first Flutter app that wakes you with your own recordings and system text-to-speech sequences.
 
-## Live demo (GitHub Pages)
+## Live website
 
-**URL:** https://tom-satthu.github.io/Smart-Voice-Alarm/
+- App demo: https://tom-satthu.github.io/Smart-Voice-Alarm/
+- Privacy: https://tom-satthu.github.io/Smart-Voice-Alarm/privacy/
+- Terms: https://tom-satthu.github.io/Smart-Voice-Alarm/terms/
+- Support: https://tom-satthu.github.io/Smart-Voice-Alarm/support/
 
-Deployed via GitHub Actions (`.github/workflows/deploy-github-pages.yml`) on every push to `main`.
+## Product model
 
-## Features
+| Plan | What you get |
+|------|--------------|
+| **Free** | Full features (TTS, recording, voice sequences, themes, reminder). Limit: **3 alarms**. |
+| **Premium Lifetime** | Unlimited alarms. One-time non-consumable purchase. No subscription. |
 
-- Local persistence (Hive) for alarms, voice sequences, theme, language, reminder
+Primary CTA: **Unlock Unlimited Alarms**  
+Product ID: `smart_voice_alarm_unlimited`  
+Target price: **USD 1.99** (UI shows the localized store price when available)
+
+## Main features
+
+- Local Hive persistence for alarms, sequences, settings, and Premium entitlement
 - Voice sequences: recordings + offline system TTS
-- Alarm engine: play sequence → repeat loops → continuous ringtone until Stop
-- Alarm queue with **Stop** (current) and **Stop All**
-- Android: AlarmManager + BroadcastReceiver + foreground service (audio starts without tapping a notification); reschedule after reboot
-- iOS: full voice playback while the app is active; local notification with system sound when the app is killed
-- Settings → Voice & Speech for system voice packs
+- Alarm engine with Stop / Stop All and queueing
+- Android AlarmManager + foreground service for reliable wake-ups
+- iOS local notification fallback when the process is killed
+- Voices browser grouped by language / locale with search
+- 13 UI languages
+- Real In-App Purchase via `in_app_purchase` (disabled safely on web)
 
-## Platform limits
+## Architecture
 
-### Android
+```
+lib/
+  app/                 MaterialApp + locale/theme wiring
+  core/                constants, services (IAP, entitlement, TTS, alarms)
+  features/            splash, home, alarm, voice_sequence, settings, premium
+  shared/              Hive stores, models, providers, widgets
+  localization/        ARB + generated AppLocalizations
+  theme/               colors, typography, Material 3 themes
+  router/              go_router routes
+```
 
-- Exact alarms require the system exact-alarm permission on newer OS versions.
-- Some OEMs aggressively kill background work; AlarmClock + foreground service is used for reliability.
-- Voice packs are installed through the system TTS installer (`INSTALL_TTS_DATA`). This app does not ship or host Google voice packages.
-
-### iOS
-
-- While the app is in the foreground / background (still running), Voice Sequence + TTS playback uses the in-app Alarm Engine.
-- **When iOS has fully killed the app**, TTS and custom recordings cannot continue to run. The system shows a local notification with an appropriate alert sound instead.
-- Additional voices must be downloaded by the user in **Settings → Accessibility → Spoken Content → Voices**. The app cannot install voice packs itself.
-
-### Web
-
-- Demo UI and browser TTS voices work where supported.
-- Microphone recording and system voice-pack install are unavailable in the browser.
+Application / bundle ID: `com.smartvoicealarm.app`  
+Version: `1.0.0` · Build: `1`
 
 ## Run
 
 ```bash
 flutter pub get
-flutter run
+flutter run                 # device / emulator
+flutter run -d chrome       # web demo
 ```
 
-## Analyze & builds
+## Analyze, test, builds
 
 ```bash
 flutter analyze
+flutter test
 flutter build web --release --base-href "/Smart-Voice-Alarm/"
 flutter build apk --debug
+flutter build appbundle --release   # requires release signing (see below)
 ```
 
-## Structure
+## In-App Purchase setup
 
+1. Create a **non-consumable** product with ID `smart_voice_alarm_unlimited` in:
+   - App Store Connect → Features → In-App Purchases
+   - Google Play Console → Monetize → Products → In-app products
+2. Set price near **USD 1.99** (stores localize automatically).
+3. Activate / publish the product for the app package `com.smartvoicealarm.app`.
+4. Use a sandbox / license tester account to verify purchase and restore.
+5. The app loads the store price at runtime and never unlocks Premium from a fake button press.
+
+On **web**, purchase buttons stay disabled and show a safe demo message.
+
+### Manual store checklist
+
+See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
+
+## Android exact alarms
+
+- Manifest already requests `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM`.
+- On Android 12+, users may need to allow **Alarms & reminders** for the app.
+- After reboot, `AlarmReceiver` reschedules persisted alarms.
+
+## iOS limits when the app is killed
+
+While the app process is alive, the Alarm Engine can play voice sequences and TTS.  
+If iOS has **fully terminated** the process, custom audio cannot continue. The scheduled local notification uses a system sound instead.
+
+## Download more system voices
+
+- **Android:** Settings → Voices → Download More Voices (opens system TTS installer), then Refresh Voices.
+- **iOS:** Settings → Accessibility → Spoken Content → Voices, download packs, return to the app, Refresh Voices.
+
+## Release signing (manual — owner only)
+
+Do **not** commit keystores, passwords, or certificates.
+
+### Android
+
+1. Generate a keystore locally (example):
+
+```bash
+keytool -genkey -v -keystore ~/smart-voice-alarm-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
 ```
-lib/
-  app/
-  core/
-  shared/
-  features/
-    splash/
-    home/
-    alarm/
-    voice_sequence/
-    settings/
-    premium/
-  theme/
-  router/
-  localization/
-```
+
+2. Copy `android/keystore.properties.example` to `android/keystore.properties` and fill paths/passwords.
+3. Wire `signingConfigs` in `android/app/build.gradle.kts` to that file (keep the file gitignored).
+4. Build: `flutter build appbundle --release`
+
+### iOS
+
+Requires a **macOS machine with Xcode**.
+
+1. Open `ios/Runner.xcworkspace` in Xcode.
+2. Set Team / signing for bundle ID `com.smartvoicealarm.app`.
+3. Archive and upload to App Store Connect.
+
+## Support email
+
+Configured in `lib/core/constants/app_constants.dart` as `supportEmail`  
+(current temporary owner inbox: `daonguyenduc209@gmail.com` — replace with a dedicated address when ready).
+
+## License
+
+See repository license / open-source licenses screen inside the app.

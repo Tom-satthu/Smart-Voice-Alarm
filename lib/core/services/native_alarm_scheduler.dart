@@ -9,7 +9,7 @@ class NativeAlarmScheduler {
   NativeAlarmScheduler();
 
   static const _channel =
-      MethodChannel('com.smartvoicealarm.smart_voice_alarm/alarms');
+      MethodChannel('com.smartvoicealarm.app/alarms');
 
   /// Disabled under widget tests and non-Android hosts.
   bool get isSupported {

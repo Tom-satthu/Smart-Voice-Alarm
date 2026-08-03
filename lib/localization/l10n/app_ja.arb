@@ -116,31 +116,31 @@
   "settingsAboutSubtitle": "アプリ情報とサポート",
   "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "プレミアム",
-  "settingsPremiumSubtitle": "生涯アクセスを解除",
+  "settingsPremiumSubtitle": "無制限のアラームを解除",
   "settingsVoices": "音声",
   "settingsVoicesSubtitle": "テキスト読み上げ用のシステム音声",
   "settingsVersion": "バージョン",
   "settingsLicenses": "オープンソースライセンス",
   "settingsPrivacy": "プライバシーポリシー",
   "settingsTerms": "利用規約",
-  "settingsLegalPlaceholder": "コンテンツは近日公開予定です。",
+  "settingsLegalPlaceholder": "文書を表示",
   "premiumTitle": "プレミアム",
-  "premiumHeadline": "一度の購入。ずっとあなたのもの。",
-  "premiumSubtitle": "一度きりの生涯購入で、Smart Voice Alarmのすべての体験を解除。サブスクリプションはありません。",
+  "premiumHeadline": "無制限アラームを解除",
+  "premiumSubtitle": "無料版はアラーム最大3件。買い切り1回で無制限に。サブスクリプションはありません。",
   "premiumPlanFree": "無料",
   "premiumPlanLifetime": "プレミアム生涯版",
-  "premiumPlanLifetimePrice": "一回限りの解除",
+  "premiumPlanLifetimePrice": "買い切り",
   "premiumBenefitsTitle": "プレミアムのすべて",
-  "premiumBenefitUnlimited": "無制限の音声アラーム",
-  "premiumBenefitSequences": "より長い音声シーケンス",
-  "premiumBenefitVoices": "読み上げ音声へのフルアクセス",
-  "premiumBenefitThemes": "追加の外観オプション",
+  "premiumBenefitUnlimited": "無制限アラーム",
+  "premiumBenefitSequences": "機能ロックのない音声シーケンス",
+  "premiumBenefitVoices": "インストール済みのすべてのシステム音声",
+  "premiumBenefitThemes": "テーマ・リマインダー・録音は無料のまま",
   "premiumBenefitSupport": "優先サポート",
-  "premiumBenefitNoAds": "広告なしの体験",
-  "premiumUnlock": "生涯版を解除",
+  "premiumBenefitNoAds": "広告なし",
+  "premiumUnlock": "無制限アラームを解除",
   "premiumRestore": "購入を復元",
-  "premiumThanks": "購入機能は今後のアップデートで利用可能になります。ご支援ありがとうございます。",
-  "premiumComingSoon": "アプリ内購入を準備中です。現時点では課金されません。",
+  "premiumThanks": "Smart Voice Alarmを応援いただきありがとうございます。",
+  "premiumComingSoon": "商品は App Store Connect と Google Play Console で設定してください。",
   "commonCancel": "キャンセル",
   "commonDone": "完了",
   "commonBack": "戻る",
@@ -234,5 +234,36 @@
   "notificationChannelAlarmsDesc": "音声アラームの通知",
   "notificationChannelReminders": "リマインダー",
   "notificationChannelRemindersDesc": "明日のアラームを設定する毎日のリマインダー",
-  "alarmDefaultLabel": "アラーム"
+  "alarmDefaultLabel": "アラーム",
+  "premiumBenefitLifetimeBuy": "一度の購入。ずっとあなたのもの。",
+  "premiumStatusLoading": "ストアを確認中…",
+  "premiumStatusPurchasing": "購入を開始中…",
+  "premiumStatusPurchased": "Premium Lifetime が解除されました",
+  "premiumStatusRestored": "購入を復元しました",
+  "premiumStatusCancelled": "購入がキャンセルされました",
+  "premiumStatusPending": "購入処理中…",
+  "premiumStatusError": "購入に失敗しました。もう一度お試しください。",
+  "premiumWebUnavailable": "Webデモではアプリ内課金は利用できません。",
+  "premiumStoreUnavailable": "この端末ではストアを利用できません。",
+  "premiumLimitExplainFree": "無料版はアラーム最大3件です。",
+  "premiumLimitExplainUnlock": "買い切り1回でアラームを無制限に。",
+  "premiumFreeLimitLabel": "最大 {count} 件のアラーム",
+  "voicesSearchHint": "言語や音声を検索",
+  "voicesLanguages": "言語",
+  "voicesSelectVoiceHint": "この言語の音声を選択",
+  "voicesLanguageCount": "{count, plural, =1{音声 1} other{音声 {count}}}",
+  "@premiumFreeLimitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

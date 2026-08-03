@@ -1,4 +1,4 @@
-package com.smartvoicealarm.smart_voice_alarm
+package com.smartvoicealarm.app
 
 import android.app.Activity
 import android.content.Intent
@@ -9,8 +9,8 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val alarmsChannel = "com.smartvoicealarm.smart_voice_alarm/alarms"
-    private val ttsChannel = "com.smartvoicealarm.smart_voice_alarm/tts"
+    private val alarmsChannel = "com.smartvoicealarm.app/alarms"
+    private val ttsChannel = "com.smartvoicealarm.app/tts"
     private var launchAlarmId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {

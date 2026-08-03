@@ -734,7 +734,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPremiumSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlock lifetime access'**
+  /// **'Unlock unlimited alarms'**
   String get settingsPremiumSubtitle;
 
   /// No description provided for @settingsVoices.
@@ -776,7 +776,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLegalPlaceholder.
   ///
   /// In en, this message translates to:
-  /// **'Content coming soon.'**
+  /// **'View document'**
   String get settingsLegalPlaceholder;
 
   /// No description provided for @premiumTitle.
@@ -788,13 +788,13 @@ abstract class AppLocalizations {
   /// No description provided for @premiumHeadline.
   ///
   /// In en, this message translates to:
-  /// **'One purchase. Yours forever.'**
+  /// **'Unlock Unlimited Alarms'**
   String get premiumHeadline;
 
   /// No description provided for @premiumSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlock the complete Smart Voice Alarm experience with a single lifetime purchase. No subscriptions.'**
+  /// **'Free includes up to 3 alarms. Unlock unlimited alarms with one lifetime purchase. No subscriptions.'**
   String get premiumSubtitle;
 
   /// No description provided for @premiumPlanFree.
@@ -812,7 +812,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumPlanLifetimePrice.
   ///
   /// In en, this message translates to:
-  /// **'One-time unlock'**
+  /// **'One-time purchase'**
   String get premiumPlanLifetimePrice;
 
   /// No description provided for @premiumBenefitsTitle.
@@ -824,25 +824,25 @@ abstract class AppLocalizations {
   /// No description provided for @premiumBenefitUnlimited.
   ///
   /// In en, this message translates to:
-  /// **'Unlimited voice alarms'**
+  /// **'Unlimited alarms'**
   String get premiumBenefitUnlimited;
 
   /// No description provided for @premiumBenefitSequences.
   ///
   /// In en, this message translates to:
-  /// **'Longer voice sequences'**
+  /// **'Voice sequences without feature locks'**
   String get premiumBenefitSequences;
 
   /// No description provided for @premiumBenefitVoices.
   ///
   /// In en, this message translates to:
-  /// **'Full access to speaking voices'**
+  /// **'All installed system voices'**
   String get premiumBenefitVoices;
 
   /// No description provided for @premiumBenefitThemes.
   ///
   /// In en, this message translates to:
-  /// **'Extra appearance options'**
+  /// **'Themes, reminders, and recording stay free'**
   String get premiumBenefitThemes;
 
   /// No description provided for @premiumBenefitSupport.
@@ -854,13 +854,13 @@ abstract class AppLocalizations {
   /// No description provided for @premiumBenefitNoAds.
   ///
   /// In en, this message translates to:
-  /// **'Ad-free experience'**
+  /// **'No ads, ever'**
   String get premiumBenefitNoAds;
 
   /// No description provided for @premiumUnlock.
   ///
   /// In en, this message translates to:
-  /// **'Unlock Lifetime'**
+  /// **'Unlock Unlimited Alarms'**
   String get premiumUnlock;
 
   /// No description provided for @premiumRestore.
@@ -872,13 +872,13 @@ abstract class AppLocalizations {
   /// No description provided for @premiumThanks.
   ///
   /// In en, this message translates to:
-  /// **'Purchases will be available in a future update. Thank you for your support.'**
+  /// **'Thank you for supporting Smart Voice Alarm.'**
   String get premiumThanks;
 
   /// No description provided for @premiumComingSoon.
   ///
   /// In en, this message translates to:
-  /// **'In-app purchases are being prepared. Nothing will be charged yet.'**
+  /// **'Store products must be configured in App Store Connect and Google Play Console.'**
   String get premiumComingSoon;
 
   /// No description provided for @commonCancel.
@@ -1318,6 +1318,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Alarm'**
   String get alarmDefaultLabel;
+
+  /// No description provided for @premiumBenefitLifetimeBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy once. Yours forever.'**
+  String get premiumBenefitLifetimeBuy;
+
+  /// No description provided for @premiumStatusLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the store…'**
+  String get premiumStatusLoading;
+
+  /// No description provided for @premiumStatusPurchasing.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting purchase…'**
+  String get premiumStatusPurchasing;
+
+  /// No description provided for @premiumStatusPurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Lifetime unlocked'**
+  String get premiumStatusPurchased;
+
+  /// No description provided for @premiumStatusRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase restored'**
+  String get premiumStatusRestored;
+
+  /// No description provided for @premiumStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase cancelled'**
+  String get premiumStatusCancelled;
+
+  /// No description provided for @premiumStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase pending…'**
+  String get premiumStatusPending;
+
+  /// No description provided for @premiumStatusError.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase failed. Please try again.'**
+  String get premiumStatusError;
+
+  /// No description provided for @premiumWebUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app purchases are not available on the web demo.'**
+  String get premiumWebUnavailable;
+
+  /// No description provided for @premiumStoreUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The store is unavailable on this device.'**
+  String get premiumStoreUnavailable;
+
+  /// No description provided for @premiumLimitExplainFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free includes up to 3 alarms.'**
+  String get premiumLimitExplainFree;
+
+  /// No description provided for @premiumLimitExplainUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock unlimited alarms with one lifetime purchase.'**
+  String get premiumLimitExplainUnlock;
+
+  /// No description provided for @premiumFreeLimitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {count} alarms'**
+  String premiumFreeLimitLabel(int count);
+
+  /// No description provided for @voicesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search languages or voices'**
+  String get voicesSearchHint;
+
+  /// No description provided for @voicesLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get voicesLanguages;
+
+  /// No description provided for @voicesSelectVoiceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a voice for this language'**
+  String get voicesSelectVoiceHint;
+
+  /// No description provided for @voicesLanguageCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 voice} other{{count} voices}}'**
+  String voicesLanguageCount(int count);
 }
 
 class _AppLocalizationsDelegate

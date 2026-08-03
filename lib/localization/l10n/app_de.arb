@@ -116,31 +116,31 @@
   "settingsAboutSubtitle": "App-Infos und Support",
   "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "Premium",
-  "settingsPremiumSubtitle": "Lebenslangen Zugang freischalten",
+  "settingsPremiumSubtitle": "Unbegrenzte Alarme freischalten",
   "settingsVoices": "Stimmen",
   "settingsVoicesSubtitle": "Systemstimmen für Text-zu-Sprache",
   "settingsVersion": "Version",
   "settingsLicenses": "Open-Source-Lizenzen",
   "settingsPrivacy": "Datenschutzrichtlinie",
   "settingsTerms": "Nutzungsbedingungen",
-  "settingsLegalPlaceholder": "Inhalt folgt in Kürze.",
+  "settingsLegalPlaceholder": "Dokument anzeigen",
   "premiumTitle": "Premium",
-  "premiumHeadline": "Ein Kauf. Für immer deins.",
-  "premiumSubtitle": "Schalte das komplette Smart Voice Alarm-Erlebnis mit einem einmaligen Lebenskauf frei. Keine Abos.",
+  "premiumHeadline": "Unbegrenzte Alarme freischalten",
+  "premiumSubtitle": "Die kostenlose Version enthält bis zu 3 Alarme. Schalte unbegrenzte Alarme mit einem Lifetime-Kauf frei. Keine Abos.",
   "premiumPlanFree": "Kostenlos",
   "premiumPlanLifetime": "Premium lebenslang",
-  "premiumPlanLifetimePrice": "Einmalige Freischaltung",
+  "premiumPlanLifetimePrice": "Einmaliger Kauf",
   "premiumBenefitsTitle": "Alles in Premium",
-  "premiumBenefitUnlimited": "Unbegrenzte Sprachalarme",
-  "premiumBenefitSequences": "Längere Sprachsequenzen",
-  "premiumBenefitVoices": "Voller Zugriff auf Stimmen",
-  "premiumBenefitThemes": "Zusätzliche Darstellungsoptionen",
-  "premiumBenefitSupport": "Prioritäts-Support",
-  "premiumBenefitNoAds": "Werbefreies Erlebnis",
-  "premiumUnlock": "Lebenslang freischalten",
+  "premiumBenefitUnlimited": "Unbegrenzte Alarme",
+  "premiumBenefitSequences": "Sprachsequenzen ohne Funktionssperren",
+  "premiumBenefitVoices": "Alle installierten Systemstimmen",
+  "premiumBenefitThemes": "Themes, Erinnerungen und Aufnahme bleiben kostenlos",
+  "premiumBenefitSupport": "Priorisierter Support",
+  "premiumBenefitNoAds": "Keine Werbung",
+  "premiumUnlock": "Unbegrenzte Alarme freischalten",
   "premiumRestore": "Kauf wiederherstellen",
-  "premiumThanks": "Käufe werden in einem zukünftigen Update verfügbar sein. Danke für deine Unterstützung.",
-  "premiumComingSoon": "In-App-Käufe werden vorbereitet. Es wird noch nichts berechnet.",
+  "premiumThanks": "Danke für deine Unterstützung von Smart Voice Alarm.",
+  "premiumComingSoon": "Produkte müssen in App Store Connect und Google Play Console eingerichtet werden.",
   "commonCancel": "Abbrechen",
   "commonDone": "Fertig",
   "commonBack": "Zurück",
@@ -234,5 +234,36 @@
   "notificationChannelAlarmsDesc": "Sprachalarm-Benachrichtigungen",
   "notificationChannelReminders": "Erinnerungen",
   "notificationChannelRemindersDesc": "Tägliche Erinnerung, den morgigen Alarm einzustellen",
-  "alarmDefaultLabel": "Alarm"
+  "alarmDefaultLabel": "Alarm",
+  "premiumBenefitLifetimeBuy": "Einmal kaufen. Für immer deins.",
+  "premiumStatusLoading": "Store wird geprüft…",
+  "premiumStatusPurchasing": "Kauf wird gestartet…",
+  "premiumStatusPurchased": "Premium Lifetime freigeschaltet",
+  "premiumStatusRestored": "Kauf wiederhergestellt",
+  "premiumStatusCancelled": "Kauf abgebrochen",
+  "premiumStatusPending": "Kauf ausstehend…",
+  "premiumStatusError": "Kauf fehlgeschlagen. Bitte erneut versuchen.",
+  "premiumWebUnavailable": "In-App-Käufe sind in der Web-Demo nicht verfügbar.",
+  "premiumStoreUnavailable": "Der Store ist auf diesem Gerät nicht verfügbar.",
+  "premiumLimitExplainFree": "Die kostenlose Version enthält bis zu 3 Alarme.",
+  "premiumLimitExplainUnlock": "Schalte unbegrenzte Alarme mit einem Lifetime-Kauf frei.",
+  "premiumFreeLimitLabel": "Bis zu {count} Alarme",
+  "voicesSearchHint": "Sprachen oder Stimmen suchen",
+  "voicesLanguages": "Sprachen",
+  "voicesSelectVoiceHint": "Wähle eine Stimme für diese Sprache",
+  "voicesLanguageCount": "{count, plural, =1{1 Stimme} other{{count} Stimmen}}",
+  "@premiumFreeLimitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

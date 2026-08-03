@@ -45,7 +45,7 @@
             android:exported="true"
             android:enabled="true">
             <intent-filter>
-                <action android:name="com.smartvoicealarm.smart_voice_alarm.ACTION_FIRE_ALARM"/>
+                <action android:name="com.smartvoicealarm.app.ACTION_FIRE_ALARM"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

@@ -1,4 +1,4 @@
-package com.smartvoicealarm.smart_voice_alarm
+package com.smartvoicealarm.app
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -138,8 +138,8 @@ class AlarmForegroundService : Service() {
     }
 
     companion object {
-        const val ACTION_START = "com.smartvoicealarm.smart_voice_alarm.ACTION_START_ALARM"
-        const val ACTION_STOP = "com.smartvoicealarm.smart_voice_alarm.ACTION_STOP_ALARM"
+        const val ACTION_START = "com.smartvoicealarm.app.ACTION_START_ALARM"
+        const val ACTION_STOP = "com.smartvoicealarm.app.ACTION_STOP_ALARM"
         const val CHANNEL_ID = "smart_voice_alarm_native"
         const val NOTIFICATION_ID = 42001
 

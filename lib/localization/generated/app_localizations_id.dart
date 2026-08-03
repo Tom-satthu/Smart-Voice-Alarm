@@ -330,7 +330,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsPremium => 'Premium';
 
   @override
-  String get settingsPremiumSubtitle => 'Buka akses seumur hidup';
+  String get settingsPremiumSubtitle => 'Buka alarm tanpa batas';
 
   @override
   String get settingsVoices => 'Suara';
@@ -351,17 +351,17 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsTerms => 'Ketentuan Penggunaan';
 
   @override
-  String get settingsLegalPlaceholder => 'Konten segera hadir.';
+  String get settingsLegalPlaceholder => 'Lihat dokumen';
 
   @override
   String get premiumTitle => 'Premium';
 
   @override
-  String get premiumHeadline => 'Satu pembelian. Milik Anda selamanya.';
+  String get premiumHeadline => 'Buka Alarm Tanpa Batas';
 
   @override
   String get premiumSubtitle =>
-      'Buka pengalaman lengkap Smart Voice Alarm dengan satu pembelian seumur hidup. Tanpa langganan.';
+      'Versi gratis mencakup hingga 3 alarm. Buka alarm tanpa batas dengan pembelian seumur hidup. Tanpa langganan.';
 
   @override
   String get premiumPlanFree => 'Gratis';
@@ -370,42 +370,42 @@ class AppLocalizationsId extends AppLocalizations {
   String get premiumPlanLifetime => 'Premium Seumur Hidup';
 
   @override
-  String get premiumPlanLifetimePrice => 'Pembukaan sekali bayar';
+  String get premiumPlanLifetimePrice => 'Pembelian sekali';
 
   @override
   String get premiumBenefitsTitle => 'Semua di Premium';
 
   @override
-  String get premiumBenefitUnlimited => 'Alarm suara tanpa batas';
+  String get premiumBenefitUnlimited => 'Alarm tanpa batas';
 
   @override
-  String get premiumBenefitSequences => 'Urutan suara yang lebih panjang';
+  String get premiumBenefitSequences => 'Urutan suara tanpa kunci fitur';
 
   @override
-  String get premiumBenefitVoices => 'Akses penuh ke suara pengucapan';
+  String get premiumBenefitVoices => 'Semua suara sistem yang terpasang';
 
   @override
-  String get premiumBenefitThemes => 'Opsi tampilan tambahan';
+  String get premiumBenefitThemes =>
+      'Tema, pengingat, dan rekaman tetap gratis';
 
   @override
   String get premiumBenefitSupport => 'Dukungan prioritas';
 
   @override
-  String get premiumBenefitNoAds => 'Pengalaman bebas iklan';
+  String get premiumBenefitNoAds => 'Tanpa iklan';
 
   @override
-  String get premiumUnlock => 'Buka Seumur Hidup';
+  String get premiumUnlock => 'Buka Alarm Tanpa Batas';
 
   @override
   String get premiumRestore => 'Pulihkan Pembelian';
 
   @override
-  String get premiumThanks =>
-      'Pembelian akan tersedia dalam pembaruan mendatang. Terima kasih atas dukungan Anda.';
+  String get premiumThanks => 'Terima kasih telah mendukung Smart Voice Alarm.';
 
   @override
   String get premiumComingSoon =>
-      'Pembelian dalam aplikasi sedang disiapkan. Belum ada yang akan ditagih.';
+      'Produk harus dikonfigurasi di App Store Connect dan Google Play Console.';
 
   @override
   String get commonCancel => 'Batal';
@@ -657,4 +657,67 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get alarmDefaultLabel => 'Alarm';
+
+  @override
+  String get premiumBenefitLifetimeBuy => 'Beli sekali. Milik Anda selamanya.';
+
+  @override
+  String get premiumStatusLoading => 'Memeriksa toko…';
+
+  @override
+  String get premiumStatusPurchasing => 'Memulai pembelian…';
+
+  @override
+  String get premiumStatusPurchased => 'Premium Lifetime terbuka';
+
+  @override
+  String get premiumStatusRestored => 'Pembelian dipulihkan';
+
+  @override
+  String get premiumStatusCancelled => 'Pembelian dibatalkan';
+
+  @override
+  String get premiumStatusPending => 'Pembelian tertunda…';
+
+  @override
+  String get premiumStatusError => 'Pembelian gagal. Coba lagi.';
+
+  @override
+  String get premiumWebUnavailable =>
+      'Pembelian dalam aplikasi tidak tersedia di demo web.';
+
+  @override
+  String get premiumStoreUnavailable => 'Toko tidak tersedia di perangkat ini.';
+
+  @override
+  String get premiumLimitExplainFree => 'Versi gratis mencakup hingga 3 alarm.';
+
+  @override
+  String get premiumLimitExplainUnlock =>
+      'Buka alarm tanpa batas dengan pembelian seumur hidup.';
+
+  @override
+  String premiumFreeLimitLabel(int count) {
+    return 'Hingga $count alarm';
+  }
+
+  @override
+  String get voicesSearchHint => 'Cari bahasa atau suara';
+
+  @override
+  String get voicesLanguages => 'Bahasa';
+
+  @override
+  String get voicesSelectVoiceHint => 'Pilih suara untuk bahasa ini';
+
+  @override
+  String voicesLanguageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suara',
+      one: '1 suara',
+    );
+    return '$_temp0';
+  }
 }

@@ -8,7 +8,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../core/localization/locale_display_names.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
@@ -16,6 +15,7 @@ import '../../../../shared/models/ui_models.dart';
 import '../../../../shared/providers/prototype_providers.dart';
 import '../../../../shared/widgets/app_widgets.dart';
 import '../../../../shared/widgets/visual_widgets.dart';
+import '../../../../shared/widgets/voice_browser.dart';
 
 class TtsScreen extends ConsumerStatefulWidget {
   const TtsScreen({super.key, this.sequenceId});
@@ -94,6 +94,10 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
     for (final voice in voices) {
       if (voice.locale.toLowerCase() == locale.toLowerCase()) return voice;
     }
+    final lang = locale.split(RegExp('[-_]')).first.toLowerCase();
+    for (final voice in voices) {
+      if (voice.locale.toLowerCase().startsWith(lang)) return voice;
+    }
     return voices.first;
   }
 
@@ -163,22 +167,6 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
     }
   }
 
-  String? _qualityLabel(AppLocalizations l10n, TtsVoiceQuality? quality) {
-    if (quality == null) return null;
-    return switch (quality) {
-      TtsVoiceQuality.defaultQuality => l10n.voiceQualityDefault,
-      TtsVoiceQuality.enhanced => l10n.voiceQualityEnhanced,
-      TtsVoiceQuality.premium => l10n.voiceQualityPremium,
-    };
-  }
-
-  String _voiceDisplayName(AppLocalizations l10n, TtsVoiceUiModel voice) {
-    if (voice.id.startsWith('default|') || voice.name == 'System Default') {
-      return l10n.voiceSystemDefault;
-    }
-    return voice.name;
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -230,48 +218,16 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                       ),
                       const SizedBox(height: AppConstants.spaceXl),
                       SectionHeader(title: l10n.ttsVoices),
-                      for (final voice in voices)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: AppConstants.spaceSm,
-                          ),
-                          child: SurfacePanel(
-                            emphasized: _selectedVoiceId == voice.id,
-                            onTap: () => setState(() {
-                              _selectedVoiceId = voice.id;
-                              _selectedLocale = voice.locale;
-                            }),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _selectedVoiceId == voice.id
-                                      ? Icons.radio_button_checked_rounded
-                                      : Icons.radio_button_off_rounded,
-                                  color: _selectedVoiceId == voice.id
-                                      ? context.colors.primary
-                                      : context.colors.onSurfaceVariant,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: VoiceIdentityBlock(
-                                    languageLabel: LocaleDisplayNames.friendly(
-                                      voice.locale,
-                                    ),
-                                    voiceName: _voiceDisplayName(l10n, voice),
-                                    qualityLabel: _qualityLabel(
-                                      l10n,
-                                      voice.quality,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      VoiceBrowser(
+                        voices: voices,
+                        selectedVoiceId: _selectedVoiceId,
+                        onSelected: (voice) {
+                          setState(() {
+                            _selectedVoiceId = voice.id;
+                            _selectedLocale = voice.locale;
+                          });
+                        },
+                      ),
                       TextButton(
                         onPressed: () => context.push(AppRoutes.voiceSpeech),
                         child: Text(l10n.ttsOpenVoiceSettings),

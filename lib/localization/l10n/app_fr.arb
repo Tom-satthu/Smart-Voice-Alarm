@@ -116,31 +116,31 @@
   "settingsAboutSubtitle": "Infos de l’app et assistance",
   "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "Premium",
-  "settingsPremiumSubtitle": "Débloquez l’accès à vie",
+  "settingsPremiumSubtitle": "Débloquez des alarmes illimitées",
   "settingsVoices": "Voix",
   "settingsVoicesSubtitle": "Voix système pour la synthèse vocale",
   "settingsVersion": "Version",
   "settingsLicenses": "Licences open source",
   "settingsPrivacy": "Politique de confidentialité",
   "settingsTerms": "Conditions d’utilisation",
-  "settingsLegalPlaceholder": "Contenu à venir.",
+  "settingsLegalPlaceholder": "Voir le document",
   "premiumTitle": "Premium",
-  "premiumHeadline": "Un achat. À vous pour toujours.",
-  "premiumSubtitle": "Débloquez l’expérience complète de Smart Voice Alarm avec un seul achat à vie. Sans abonnement.",
+  "premiumHeadline": "Débloquer des alarmes illimitées",
+  "premiumSubtitle": "La version gratuite inclut jusqu’à 3 alarmes. Débloquez des alarmes illimitées avec un achat à vie. Sans abonnement.",
   "premiumPlanFree": "Gratuit",
   "premiumPlanLifetime": "Premium à vie",
-  "premiumPlanLifetimePrice": "Déblocage unique",
+  "premiumPlanLifetimePrice": "Achat unique",
   "premiumBenefitsTitle": "Tout dans Premium",
-  "premiumBenefitUnlimited": "Alarmes vocales illimitées",
-  "premiumBenefitSequences": "Séquences vocales plus longues",
-  "premiumBenefitVoices": "Accès complet aux voix",
-  "premiumBenefitThemes": "Options d’apparence supplémentaires",
+  "premiumBenefitUnlimited": "Alarmes illimitées",
+  "premiumBenefitSequences": "Séquences vocales sans verrouillage",
+  "premiumBenefitVoices": "Toutes les voix système installées",
+  "premiumBenefitThemes": "Thèmes, rappels et enregistrement restent gratuits",
   "premiumBenefitSupport": "Assistance prioritaire",
-  "premiumBenefitNoAds": "Expérience sans publicité",
-  "premiumUnlock": "Débloquer à vie",
+  "premiumBenefitNoAds": "Sans publicité",
+  "premiumUnlock": "Débloquer des alarmes illimitées",
   "premiumRestore": "Restaurer l’achat",
-  "premiumThanks": "Les achats seront disponibles dans une future mise à jour. Merci pour votre soutien.",
-  "premiumComingSoon": "Les achats intégrés sont en cours de préparation. Rien ne sera facturé pour le moment.",
+  "premiumThanks": "Merci de soutenir Smart Voice Alarm.",
+  "premiumComingSoon": "Les produits doivent être configurés dans App Store Connect et Google Play Console.",
   "commonCancel": "Annuler",
   "commonDone": "Terminé",
   "commonBack": "Retour",
@@ -234,5 +234,36 @@
   "notificationChannelAlarmsDesc": "Alertes d’alarme vocale",
   "notificationChannelReminders": "Rappels",
   "notificationChannelRemindersDesc": "Rappel quotidien pour régler l’alarme de demain",
-  "alarmDefaultLabel": "Alarme"
+  "alarmDefaultLabel": "Alarme",
+  "premiumBenefitLifetimeBuy": "Achetez une fois. À vous pour toujours.",
+  "premiumStatusLoading": "Vérification de la boutique…",
+  "premiumStatusPurchasing": "Démarrage de l’achat…",
+  "premiumStatusPurchased": "Premium Lifetime débloqué",
+  "premiumStatusRestored": "Achat restauré",
+  "premiumStatusCancelled": "Achat annulé",
+  "premiumStatusPending": "Achat en attente…",
+  "premiumStatusError": "Échec de l’achat. Réessayez.",
+  "premiumWebUnavailable": "Les achats ne sont pas disponibles sur la démo web.",
+  "premiumStoreUnavailable": "La boutique est indisponible sur cet appareil.",
+  "premiumLimitExplainFree": "La version gratuite inclut jusqu’à 3 alarmes.",
+  "premiumLimitExplainUnlock": "Débloquez des alarmes illimitées avec un achat à vie.",
+  "premiumFreeLimitLabel": "Jusqu’à {count} alarmes",
+  "voicesSearchHint": "Rechercher des langues ou des voix",
+  "voicesLanguages": "Langues",
+  "voicesSelectVoiceHint": "Choisissez une voix pour cette langue",
+  "voicesLanguageCount": "{count, plural, =1{1 voix} other{{count} voix}}",
+  "@premiumFreeLimitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

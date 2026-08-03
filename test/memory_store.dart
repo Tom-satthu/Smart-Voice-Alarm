@@ -135,6 +135,24 @@ class MemorySettingsRepository extends SettingsRepository {
 
   String? _preferredVoiceId;
   String? _preferredVoiceLocale;
+  String? _preferredVoiceLanguage;
+  bool _premiumUnlocked = false;
+
+  @override
+  String? loadPreferredVoiceLanguage() => _preferredVoiceLanguage;
+
+  @override
+  Future<void> savePreferredVoiceLanguage(String? languageCode) async {
+    _preferredVoiceLanguage = languageCode;
+  }
+
+  @override
+  bool loadPremiumUnlocked() => _premiumUnlocked;
+
+  @override
+  Future<void> savePremiumUnlocked(bool unlocked) async {
+    _premiumUnlocked = unlocked;
+  }
 }
 
 /// Sample data matching the product seed, for tests.
@@ -194,16 +212,6 @@ abstract final class TestSeedData {
       voiceSequenceId: 'seq-1',
       ringtoneName: 'Ocean Breeze',
       repeatCount: 2,
-    ),
-    AlarmUiModel(
-      id: 'alarm-3',
-      time: TimeOfDay(hour: 22, minute: 0),
-      repeatDays: {},
-      isEnabled: false,
-      type: AlarmType.ringtone,
-      label: 'Wind down',
-      ringtoneName: 'Night Pulse',
-      repeatCount: 1,
     ),
   ];
 }

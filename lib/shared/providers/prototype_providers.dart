@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -6,6 +8,8 @@ import '../../core/localization/app_locale_support.dart';
 import '../../core/services/alarm_engine.dart';
 import '../../core/services/audio_player_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/premium_entitlement_service.dart';
+import '../../core/services/premium_purchase_service.dart';
 import '../../core/services/recording_service.dart';
 import '../../core/services/storage_paths.dart';
 import '../../core/services/tts_platform_bridge.dart';
@@ -29,6 +33,55 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
+});
+
+final premiumEntitlementProvider = Provider<PremiumEntitlementService>((ref) {
+  return PremiumEntitlementService(ref.watch(settingsRepositoryProvider));
+});
+
+final premiumPurchaseServiceProvider = Provider<PremiumPurchaseService>((ref) {
+  final service = PremiumPurchaseService(
+    entitlement: ref.watch(premiumEntitlementProvider),
+  );
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+final premiumPurchaseProvider =
+    StateNotifierProvider<PremiumPurchaseController, PremiumPurchaseState>((
+  ref,
+) {
+  return PremiumPurchaseController(ref.watch(premiumPurchaseServiceProvider));
+});
+
+class PremiumPurchaseController extends StateNotifier<PremiumPurchaseState> {
+  PremiumPurchaseController(this._service)
+      : super(_service.state) {
+    _sub = _service.stream.listen((next) {
+      if (mounted) state = next;
+    });
+    state = _service.state;
+  }
+
+  final PremiumPurchaseService _service;
+  StreamSubscription<PremiumPurchaseState>? _sub;
+
+  Future<void> init() => _service.init();
+  Future<void> buy() => _service.buy();
+  Future<void> restore() => _service.restore();
+  Future<void> refreshProducts() => _service.refreshProducts();
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+}
+
+final isPremiumProvider = Provider<bool>((ref) {
+  final purchase = ref.watch(premiumPurchaseProvider);
+  final local = ref.watch(premiumEntitlementProvider).isPremium;
+  return purchase.isPremium || local;
 });
 
 final audioPlayerServiceProvider = Provider<AudioPlayerService>((ref) {
@@ -270,29 +323,45 @@ final usableTtsVoicesProvider =
   return ref.watch(ttsServiceProvider).loadUsableVoices();
 });
 
-class PreferredVoiceController extends StateNotifier<({String? id, String? locale})> {
+class PreferredVoiceController extends StateNotifier<
+    ({String? id, String? locale, String? language})> {
   PreferredVoiceController([SettingsRepository? repo])
       : _repo = repo ?? SettingsRepository(),
         super((
           id: (repo ?? SettingsRepository()).loadPreferredVoiceId(),
           locale: (repo ?? SettingsRepository()).loadPreferredVoiceLocale(),
+          language: (repo ?? SettingsRepository()).loadPreferredVoiceLanguage(),
         )) {
     state = (
       id: _repo.loadPreferredVoiceId(),
       locale: _repo.loadPreferredVoiceLocale(),
+      language: _repo.loadPreferredVoiceLanguage(),
     );
   }
 
   final SettingsRepository _repo;
 
-  Future<void> setVoice({required String id, required String locale}) async {
-    state = (id: id, locale: locale);
+  Future<void> setVoice({
+    required String id,
+    required String locale,
+    String? language,
+  }) async {
+    final lang = language ?? locale.split(RegExp('[-_]')).first.toLowerCase();
+    state = (id: id, locale: locale, language: lang);
     await _repo.savePreferredVoice(voiceId: id, localeId: locale);
+    await _repo.savePreferredVoiceLanguage(lang);
+  }
+
+  Future<void> setLanguage(String language) async {
+    state = (id: state.id, locale: state.locale, language: language);
+    await _repo.savePreferredVoiceLanguage(language);
   }
 }
 
-final preferredVoiceProvider = StateNotifierProvider<PreferredVoiceController,
-    ({String? id, String? locale})>((ref) {
+final preferredVoiceProvider = StateNotifierProvider<
+    PreferredVoiceController, ({String? id, String? locale, String? language})>((
+  ref,
+) {
   return PreferredVoiceController(ref.watch(settingsRepositoryProvider));
 });
 
@@ -510,16 +579,6 @@ Future<void> seedPrototypeDataIfNeeded({bool force = false}) async {
       voiceSequenceId: 'seq-1',
       ringtoneName: 'Ocean Breeze',
       repeatCount: 2,
-    ),
-    AlarmUiModel(
-      id: 'alarm-3',
-      time: TimeOfDay(hour: 22, minute: 0),
-      repeatDays: {},
-      isEnabled: false,
-      type: AlarmType.ringtone,
-      label: 'Wind down',
-      ringtoneName: 'Night Pulse',
-      repeatCount: 1,
     ),
   ]);
   await settings.markSeeded();

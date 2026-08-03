@@ -116,31 +116,31 @@
   "settingsAboutSubtitle": "App info and support",
   "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "Premium",
-  "settingsPremiumSubtitle": "Unlock lifetime access",
+  "settingsPremiumSubtitle": "Unlock unlimited alarms",
   "settingsVoices": "Voices",
   "settingsVoicesSubtitle": "System voices for text to speech",
   "settingsVersion": "Version",
   "settingsLicenses": "Open Source Licenses",
   "settingsPrivacy": "Privacy Policy",
   "settingsTerms": "Terms of Use",
-  "settingsLegalPlaceholder": "Content coming soon.",
+  "settingsLegalPlaceholder": "View document",
   "premiumTitle": "Premium",
-  "premiumHeadline": "One purchase. Yours forever.",
-  "premiumSubtitle": "Unlock the complete Smart Voice Alarm experience with a single lifetime purchase. No subscriptions.",
+  "premiumHeadline": "Unlock Unlimited Alarms",
+  "premiumSubtitle": "Free includes up to 3 alarms. Unlock unlimited alarms with one lifetime purchase. No subscriptions.",
   "premiumPlanFree": "Free",
   "premiumPlanLifetime": "Premium Lifetime",
-  "premiumPlanLifetimePrice": "One-time unlock",
+  "premiumPlanLifetimePrice": "One-time purchase",
   "premiumBenefitsTitle": "Everything in Premium",
-  "premiumBenefitUnlimited": "Unlimited voice alarms",
-  "premiumBenefitSequences": "Longer voice sequences",
-  "premiumBenefitVoices": "Full access to speaking voices",
-  "premiumBenefitThemes": "Extra appearance options",
+  "premiumBenefitUnlimited": "Unlimited alarms",
+  "premiumBenefitSequences": "Voice sequences without feature locks",
+  "premiumBenefitVoices": "All installed system voices",
+  "premiumBenefitThemes": "Themes, reminders, and recording stay free",
   "premiumBenefitSupport": "Priority support",
-  "premiumBenefitNoAds": "Ad-free experience",
-  "premiumUnlock": "Unlock Lifetime",
+  "premiumBenefitNoAds": "No ads, ever",
+  "premiumUnlock": "Unlock Unlimited Alarms",
   "premiumRestore": "Restore Purchase",
-  "premiumThanks": "Purchases will be available in a future update. Thank you for your support.",
-  "premiumComingSoon": "In-app purchases are being prepared. Nothing will be charged yet.",
+  "premiumThanks": "Thank you for supporting Smart Voice Alarm.",
+  "premiumComingSoon": "Store products must be configured in App Store Connect and Google Play Console.",
   "commonCancel": "Cancel",
   "commonDone": "Done",
   "commonBack": "Back",
@@ -234,5 +234,36 @@
   "notificationChannelAlarmsDesc": "Voice alarm alerts",
   "notificationChannelReminders": "Reminders",
   "notificationChannelRemindersDesc": "Daily reminder to set tomorrow’s alarm",
-  "alarmDefaultLabel": "Alarm"
+  "alarmDefaultLabel": "Alarm",
+  "premiumBenefitLifetimeBuy": "Buy once. Yours forever.",
+  "premiumStatusLoading": "Checking the store…",
+  "premiumStatusPurchasing": "Starting purchase…",
+  "premiumStatusPurchased": "Premium Lifetime unlocked",
+  "premiumStatusRestored": "Purchase restored",
+  "premiumStatusCancelled": "Purchase cancelled",
+  "premiumStatusPending": "Purchase pending…",
+  "premiumStatusError": "Purchase failed. Please try again.",
+  "premiumWebUnavailable": "In-app purchases are not available on the web demo.",
+  "premiumStoreUnavailable": "The store is unavailable on this device.",
+  "premiumLimitExplainFree": "Free includes up to 3 alarms.",
+  "premiumLimitExplainUnlock": "Unlock unlimited alarms with one lifetime purchase.",
+  "premiumFreeLimitLabel": "Up to {count} alarms",
+  "@premiumFreeLimitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voicesSearchHint": "Search languages or voices",
+  "voicesLanguages": "Languages",
+  "voicesSelectVoiceHint": "Choose a voice for this language",
+  "voicesLanguageCount": "{count, plural, =1{1 voice} other{{count} voices}}",
+  "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

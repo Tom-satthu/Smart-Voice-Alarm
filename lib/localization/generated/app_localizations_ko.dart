@@ -326,7 +326,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsPremium => '프리미엄';
 
   @override
-  String get settingsPremiumSubtitle => '평생 이용권 잠금 해제';
+  String get settingsPremiumSubtitle => '무제한 알람 잠금 해제';
 
   @override
   String get settingsVoices => '음성';
@@ -347,17 +347,17 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsTerms => '이용약관';
 
   @override
-  String get settingsLegalPlaceholder => '콘텐츠가 곧 제공됩니다.';
+  String get settingsLegalPlaceholder => '문서 보기';
 
   @override
   String get premiumTitle => '프리미엄';
 
   @override
-  String get premiumHeadline => '한 번의 구매. 영원히 당신의 것.';
+  String get premiumHeadline => '무제한 알람 잠금 해제';
 
   @override
   String get premiumSubtitle =>
-      '한 번의 평생 구매로 Smart Voice Alarm의 완전한 경험을 잠금 해제하세요. 구독은 없습니다.';
+      '무료 버전은 알람 최대 3개입니다. 평생 구매 한 번으로 무제한 알람을 잠금 해제하세요. 구독 없음.';
 
   @override
   String get premiumPlanFree => '무료';
@@ -366,40 +366,41 @@ class AppLocalizationsKo extends AppLocalizations {
   String get premiumPlanLifetime => '프리미엄 평생';
 
   @override
-  String get premiumPlanLifetimePrice => '일회성 잠금 해제';
+  String get premiumPlanLifetimePrice => '일회성 구매';
 
   @override
   String get premiumBenefitsTitle => '프리미엄의 모든 것';
 
   @override
-  String get premiumBenefitUnlimited => '무제한 음성 알람';
+  String get premiumBenefitUnlimited => '무제한 알람';
 
   @override
-  String get premiumBenefitSequences => '더 긴 음성 시퀀스';
+  String get premiumBenefitSequences => '기능 잠금 없는 음성 시퀀스';
 
   @override
-  String get premiumBenefitVoices => '말하기 음성 전체 이용';
+  String get premiumBenefitVoices => '설치된 모든 시스템 음성';
 
   @override
-  String get premiumBenefitThemes => '추가 모양 옵션';
+  String get premiumBenefitThemes => '테마, 알림, 녹음은 계속 무료';
 
   @override
   String get premiumBenefitSupport => '우선 지원';
 
   @override
-  String get premiumBenefitNoAds => '광고 없는 경험';
+  String get premiumBenefitNoAds => '광고 없음';
 
   @override
-  String get premiumUnlock => '평생 잠금 해제';
+  String get premiumUnlock => '무제한 알람 잠금 해제';
 
   @override
   String get premiumRestore => '구매 복원';
 
   @override
-  String get premiumThanks => '구매 기능은 향후 업데이트에서 제공됩니다. 지원해 주셔서 감사합니다.';
+  String get premiumThanks => 'Smart Voice Alarm을 지원해 주셔서 감사합니다.';
 
   @override
-  String get premiumComingSoon => '인앱 구매를 준비 중입니다. 아직 요금이 청구되지 않습니다.';
+  String get premiumComingSoon =>
+      '상품은 App Store Connect와 Google Play Console에서 설정해야 합니다.';
 
   @override
   String get commonCancel => '취소';
@@ -648,4 +649,65 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get alarmDefaultLabel => '알람';
+
+  @override
+  String get premiumBenefitLifetimeBuy => '한 번 구매. 영원히 당신 것.';
+
+  @override
+  String get premiumStatusLoading => '스토어 확인 중…';
+
+  @override
+  String get premiumStatusPurchasing => '구매 시작 중…';
+
+  @override
+  String get premiumStatusPurchased => 'Premium Lifetime 잠금 해제됨';
+
+  @override
+  String get premiumStatusRestored => '구매가 복원됨';
+
+  @override
+  String get premiumStatusCancelled => '구매가 취소됨';
+
+  @override
+  String get premiumStatusPending => '구매 대기 중…';
+
+  @override
+  String get premiumStatusError => '구매에 실패했습니다. 다시 시도하세요.';
+
+  @override
+  String get premiumWebUnavailable => '웹 데모에서는 인앱 결제를 사용할 수 없습니다.';
+
+  @override
+  String get premiumStoreUnavailable => '이 기기에서는 스토어를 사용할 수 없습니다.';
+
+  @override
+  String get premiumLimitExplainFree => '무료 버전은 알람 최대 3개입니다.';
+
+  @override
+  String get premiumLimitExplainUnlock => '평생 구매 한 번으로 무제한 알람을 잠금 해제하세요.';
+
+  @override
+  String premiumFreeLimitLabel(int count) {
+    return '알람 최대 $count개';
+  }
+
+  @override
+  String get voicesSearchHint => '언어 또는 음성 검색';
+
+  @override
+  String get voicesLanguages => '언어';
+
+  @override
+  String get voicesSelectVoiceHint => '이 언어의 음성을 선택하세요';
+
+  @override
+  String voicesLanguageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '음성 $count개',
+      one: '음성 1개',
+    );
+    return '$_temp0';
+  }
 }

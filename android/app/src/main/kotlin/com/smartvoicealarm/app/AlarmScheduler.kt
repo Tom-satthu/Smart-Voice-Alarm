@@ -1,4 +1,4 @@
-package com.smartvoicealarm.smart_voice_alarm
+package com.smartvoicealarm.app
 
 import android.app.AlarmManager
 import android.app.PendingIntent

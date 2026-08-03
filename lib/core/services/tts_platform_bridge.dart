@@ -7,7 +7,7 @@ class TtsPlatformBridge {
   TtsPlatformBridge();
 
   static const _channel =
-      MethodChannel('com.smartvoicealarm.smart_voice_alarm/tts');
+      MethodChannel('com.smartvoicealarm.app/tts');
 
   bool get canManageSystemVoicePacks =>
       !kIsWeb &&

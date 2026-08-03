@@ -326,7 +326,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsPremium => '高级版';
 
   @override
-  String get settingsPremiumSubtitle => '解锁终身访问';
+  String get settingsPremiumSubtitle => '解锁无限闹钟';
 
   @override
   String get settingsVoices => '声音';
@@ -347,16 +347,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTerms => '使用条款';
 
   @override
-  String get settingsLegalPlaceholder => '内容即将推出。';
+  String get settingsLegalPlaceholder => '查看文档';
 
   @override
   String get premiumTitle => '高级版';
 
   @override
-  String get premiumHeadline => '一次购买，永久拥有。';
+  String get premiumHeadline => '解锁无限闹钟';
 
   @override
-  String get premiumSubtitle => '通过一次终身购买，解锁完整的 Smart Voice Alarm 体验。无订阅。';
+  String get premiumSubtitle => '免费版最多 3 个闹钟。一次终身购买即可解锁无限闹钟。无订阅。';
 
   @override
   String get premiumPlanFree => '免费';
@@ -365,40 +365,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get premiumPlanLifetime => '高级终身版';
 
   @override
-  String get premiumPlanLifetimePrice => '一次性解锁';
+  String get premiumPlanLifetimePrice => '一次性购买';
 
   @override
   String get premiumBenefitsTitle => '高级版全部权益';
 
   @override
-  String get premiumBenefitUnlimited => '无限语音闹钟';
+  String get premiumBenefitUnlimited => '无限闹钟';
 
   @override
-  String get premiumBenefitSequences => '更长的语音序列';
+  String get premiumBenefitSequences => '语音序列无功能锁定';
 
   @override
-  String get premiumBenefitVoices => '完整朗读声音访问权限';
+  String get premiumBenefitVoices => '全部已安装的系统语音';
 
   @override
-  String get premiumBenefitThemes => '额外外观选项';
+  String get premiumBenefitThemes => '主题、提醒和录音保持免费';
 
   @override
   String get premiumBenefitSupport => '优先支持';
 
   @override
-  String get premiumBenefitNoAds => '无广告体验';
+  String get premiumBenefitNoAds => '无广告';
 
   @override
-  String get premiumUnlock => '解锁终身版';
+  String get premiumUnlock => '解锁无限闹钟';
 
   @override
   String get premiumRestore => '恢复购买';
 
   @override
-  String get premiumThanks => '购买功能将在后续更新中提供。感谢你的支持。';
+  String get premiumThanks => '感谢支持 Smart Voice Alarm。';
 
   @override
-  String get premiumComingSoon => '应用内购买正在准备中。目前不会产生任何费用。';
+  String get premiumComingSoon =>
+      '需在 App Store Connect 与 Google Play Console 中配置商品。';
 
   @override
   String get commonCancel => '取消';
@@ -645,6 +646,67 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get alarmDefaultLabel => '闹钟';
+
+  @override
+  String get premiumBenefitLifetimeBuy => '买一次，永久拥有。';
+
+  @override
+  String get premiumStatusLoading => '正在检查商店…';
+
+  @override
+  String get premiumStatusPurchasing => '正在开始购买…';
+
+  @override
+  String get premiumStatusPurchased => '已解锁 Premium Lifetime';
+
+  @override
+  String get premiumStatusRestored => '已恢复购买';
+
+  @override
+  String get premiumStatusCancelled => '已取消购买';
+
+  @override
+  String get premiumStatusPending => '购买处理中…';
+
+  @override
+  String get premiumStatusError => '购买失败，请重试。';
+
+  @override
+  String get premiumWebUnavailable => '网页演示不支持应用内购买。';
+
+  @override
+  String get premiumStoreUnavailable => '此设备无法使用商店。';
+
+  @override
+  String get premiumLimitExplainFree => '免费版最多包含 3 个闹钟。';
+
+  @override
+  String get premiumLimitExplainUnlock => '一次终身购买即可解锁无限闹钟。';
+
+  @override
+  String premiumFreeLimitLabel(int count) {
+    return '最多 $count 个闹钟';
+  }
+
+  @override
+  String get voicesSearchHint => '搜索语言或语音';
+
+  @override
+  String get voicesLanguages => '语言';
+
+  @override
+  String get voicesSelectVoiceHint => '为此语言选择语音';
+
+  @override
+  String voicesLanguageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个语音',
+      one: '1 个语音',
+    );
+    return '$_temp0';
+  }
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -969,7 +1031,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get settingsPremium => '進階版';
 
   @override
-  String get settingsPremiumSubtitle => '解鎖終身存取';
+  String get settingsPremiumSubtitle => '解鎖無限鬧鐘';
 
   @override
   String get settingsVoices => '聲音';
@@ -990,16 +1052,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get settingsTerms => '使用條款';
 
   @override
-  String get settingsLegalPlaceholder => '內容即將推出。';
+  String get settingsLegalPlaceholder => '查看文件';
 
   @override
   String get premiumTitle => '進階版';
 
   @override
-  String get premiumHeadline => '一次購買，永久擁有。';
+  String get premiumHeadline => '解鎖無限鬧鐘';
 
   @override
-  String get premiumSubtitle => '透過一次終身購買，解鎖完整的 Smart Voice Alarm 體驗。無訂閱。';
+  String get premiumSubtitle => '免費版最多 3 個鬧鐘。一次終身購買即可解鎖無限鬧鐘。無訂閱。';
 
   @override
   String get premiumPlanFree => '免費';
@@ -1008,40 +1070,41 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get premiumPlanLifetime => '進階終身版';
 
   @override
-  String get premiumPlanLifetimePrice => '一次性解鎖';
+  String get premiumPlanLifetimePrice => '一次購買';
 
   @override
   String get premiumBenefitsTitle => '進階版全部權益';
 
   @override
-  String get premiumBenefitUnlimited => '無限語音鬧鐘';
+  String get premiumBenefitUnlimited => '無限鬧鐘';
 
   @override
-  String get premiumBenefitSequences => '更長的語音序列';
+  String get premiumBenefitSequences => '語音序列無功能鎖定';
 
   @override
-  String get premiumBenefitVoices => '完整朗讀聲音存取權限';
+  String get premiumBenefitVoices => '全部已安裝的系統語音';
 
   @override
-  String get premiumBenefitThemes => '額外外觀選項';
+  String get premiumBenefitThemes => '主題、提醒和錄音保持免費';
 
   @override
   String get premiumBenefitSupport => '優先支援';
 
   @override
-  String get premiumBenefitNoAds => '無廣告體驗';
+  String get premiumBenefitNoAds => '無廣告';
 
   @override
-  String get premiumUnlock => '解鎖終身版';
+  String get premiumUnlock => '解鎖無限鬧鐘';
 
   @override
-  String get premiumRestore => '回復購買';
+  String get premiumRestore => '恢復購買';
 
   @override
-  String get premiumThanks => '購買功能將在後續更新中提供。感謝你的支持。';
+  String get premiumThanks => '感謝支持 Smart Voice Alarm。';
 
   @override
-  String get premiumComingSoon => 'App 內購買正在準備中。目前不會產生任何費用。';
+  String get premiumComingSoon =>
+      '需在 App Store Connect 與 Google Play Console 中設定商品。';
 
   @override
   String get commonCancel => '取消';
@@ -1288,4 +1351,65 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get alarmDefaultLabel => '鬧鐘';
+
+  @override
+  String get premiumBenefitLifetimeBuy => '買一次，永久擁有。';
+
+  @override
+  String get premiumStatusLoading => '正在檢查商店…';
+
+  @override
+  String get premiumStatusPurchasing => '正在開始購買…';
+
+  @override
+  String get premiumStatusPurchased => '已解鎖 Premium Lifetime';
+
+  @override
+  String get premiumStatusRestored => '已恢復購買';
+
+  @override
+  String get premiumStatusCancelled => '已取消購買';
+
+  @override
+  String get premiumStatusPending => '購買處理中…';
+
+  @override
+  String get premiumStatusError => '購買失敗，請再試一次。';
+
+  @override
+  String get premiumWebUnavailable => '網頁示範不支援應用程式內購買。';
+
+  @override
+  String get premiumStoreUnavailable => '此裝置無法使用商店。';
+
+  @override
+  String get premiumLimitExplainFree => '免費版最多包含 3 個鬧鐘。';
+
+  @override
+  String get premiumLimitExplainUnlock => '一次終身購買即可解鎖無限鬧鐘。';
+
+  @override
+  String premiumFreeLimitLabel(int count) {
+    return '最多 $count 個鬧鐘';
+  }
+
+  @override
+  String get voicesSearchHint => '搜尋語言或語音';
+
+  @override
+  String get voicesLanguages => '語言';
+
+  @override
+  String get voicesSelectVoiceHint => '為此語言選擇語音';
+
+  @override
+  String voicesLanguageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 個語音',
+      one: '1 個語音',
+    );
+    return '$_temp0';
+  }
 }

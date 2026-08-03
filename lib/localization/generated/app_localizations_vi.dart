@@ -330,7 +330,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get settingsPremium => 'Premium';
 
   @override
-  String get settingsPremiumSubtitle => 'Mở khóa quyền truy cập trọn đời';
+  String get settingsPremiumSubtitle => 'Mở khóa báo thức không giới hạn';
 
   @override
   String get settingsVoices => 'Giọng nói';
@@ -352,17 +352,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get settingsTerms => 'Điều khoản sử dụng';
 
   @override
-  String get settingsLegalPlaceholder => 'Nội dung sắp ra mắt.';
+  String get settingsLegalPlaceholder => 'Xem tài liệu';
 
   @override
   String get premiumTitle => 'Premium';
 
   @override
-  String get premiumHeadline => 'Mua một lần. Của bạn mãi mãi.';
+  String get premiumHeadline => 'Mở khóa báo thức không giới hạn';
 
   @override
   String get premiumSubtitle =>
-      'Mở khóa trải nghiệm đầy đủ của Smart Voice Alarm với một lần mua trọn đời. Không đăng ký.';
+      'Bản Free gồm tối đa 3 báo thức. Mở khóa báo thức không giới hạn với một lần mua trọn đời. Không có subscription.';
 
   @override
   String get premiumPlanFree => 'Miễn phí';
@@ -371,42 +371,41 @@ class AppLocalizationsVi extends AppLocalizations {
   String get premiumPlanLifetime => 'Premium trọn đời';
 
   @override
-  String get premiumPlanLifetimePrice => 'Mở khóa một lần';
+  String get premiumPlanLifetimePrice => 'Mua một lần';
 
   @override
   String get premiumBenefitsTitle => 'Tất cả trong Premium';
 
   @override
-  String get premiumBenefitUnlimited => 'Báo thức giọng nói không giới hạn';
+  String get premiumBenefitUnlimited => 'Báo thức không giới hạn';
 
   @override
-  String get premiumBenefitSequences => 'Chuỗi giọng nói dài hơn';
+  String get premiumBenefitSequences => 'Chuỗi giọng nói không khóa tính năng';
 
   @override
-  String get premiumBenefitVoices => 'Truy cập đầy đủ các giọng đọc';
+  String get premiumBenefitVoices => 'Toàn bộ giọng hệ thống đã cài';
 
   @override
-  String get premiumBenefitThemes => 'Tùy chọn giao diện bổ sung';
+  String get premiumBenefitThemes => 'Theme, reminder và ghi âm vẫn miễn phí';
 
   @override
   String get premiumBenefitSupport => 'Hỗ trợ ưu tiên';
 
   @override
-  String get premiumBenefitNoAds => 'Trải nghiệm không quảng cáo';
+  String get premiumBenefitNoAds => 'Không quảng cáo';
 
   @override
-  String get premiumUnlock => 'Mở khóa trọn đời';
+  String get premiumUnlock => 'Mở khóa báo thức không giới hạn';
 
   @override
-  String get premiumRestore => 'Khôi phục giao dịch mua';
+  String get premiumRestore => 'Khôi phục mua hàng';
 
   @override
-  String get premiumThanks =>
-      'Giao dịch mua sẽ có trong bản cập nhật sau. Cảm ơn bạn đã ủng hộ.';
+  String get premiumThanks => 'Cảm ơn bạn đã hỗ trợ Smart Voice Alarm.';
 
   @override
   String get premiumComingSoon =>
-      'Mua hàng trong ứng dụng đang được chuẩn bị. Hiện chưa tính phí.';
+      'Sản phẩm cần được cấu hình trên App Store Connect và Google Play Console.';
 
   @override
   String get commonCancel => 'Hủy';
@@ -658,4 +657,68 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get alarmDefaultLabel => 'Báo thức';
+
+  @override
+  String get premiumBenefitLifetimeBuy => 'Mua một lần. Sở hữu mãi mãi.';
+
+  @override
+  String get premiumStatusLoading => 'Đang kiểm tra cửa hàng…';
+
+  @override
+  String get premiumStatusPurchasing => 'Đang bắt đầu mua…';
+
+  @override
+  String get premiumStatusPurchased => 'Đã mở Premium Lifetime';
+
+  @override
+  String get premiumStatusRestored => 'Đã khôi phục mua hàng';
+
+  @override
+  String get premiumStatusCancelled => 'Đã hủy mua hàng';
+
+  @override
+  String get premiumStatusPending => 'Đang chờ mua hàng…';
+
+  @override
+  String get premiumStatusError => 'Mua hàng thất bại. Vui lòng thử lại.';
+
+  @override
+  String get premiumWebUnavailable =>
+      'Mua trong ứng dụng không khả dụng trên bản demo web.';
+
+  @override
+  String get premiumStoreUnavailable =>
+      'Cửa hàng không khả dụng trên thiết bị này.';
+
+  @override
+  String get premiumLimitExplainFree => 'Bản Free gồm tối đa 3 báo thức.';
+
+  @override
+  String get premiumLimitExplainUnlock =>
+      'Mở khóa báo thức không giới hạn với một lần mua trọn đời.';
+
+  @override
+  String premiumFreeLimitLabel(int count) {
+    return 'Tối đa $count báo thức';
+  }
+
+  @override
+  String get voicesSearchHint => 'Tìm ngôn ngữ hoặc giọng nói';
+
+  @override
+  String get voicesLanguages => 'Ngôn ngữ';
+
+  @override
+  String get voicesSelectVoiceHint => 'Chọn một giọng cho ngôn ngữ này';
+
+  @override
+  String voicesLanguageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giọng',
+      one: '1 giọng',
+    );
+    return '$_temp0';
+  }
 }

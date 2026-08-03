@@ -96,7 +96,10 @@ GoRouter createAppRouter({String? initialLocation}) {
       GoRoute(
         path: AppRoutes.premium,
         name: 'premium',
-        builder: (context, state) => const PremiumScreen(),
+        builder: (context, state) {
+          final resume = state.uri.queryParameters['resumeCreate'] == '1';
+          return PremiumScreen(resumeCreateAfterPurchase: resume);
+        },
       ),
       GoRoute(
         path: AppRoutes.ringing,

@@ -134,6 +134,8 @@ class SettingsRepository {
   static const _seededKey = 'didSeed';
   static const _preferredVoiceIdKey = 'preferredVoiceId';
   static const _preferredVoiceLocaleKey = 'preferredVoiceLocale';
+  static const _preferredVoiceLanguageKey = 'preferredVoiceLanguage';
+  static const _premiumUnlockedKey = 'premiumLifetimeUnlocked';
 
   ThemeMode loadThemeMode() {
     final raw = LocalDatabase.settingsBox.get(_themeKey) as String?;
@@ -225,5 +227,26 @@ class SettingsRepository {
     } else {
       await LocalDatabase.settingsBox.put(_preferredVoiceLocaleKey, localeId);
     }
+  }
+
+  String? loadPreferredVoiceLanguage() =>
+      LocalDatabase.settingsBox.get(_preferredVoiceLanguageKey) as String?;
+
+  Future<void> savePreferredVoiceLanguage(String? languageCode) async {
+    if (languageCode == null || languageCode.isEmpty) {
+      await LocalDatabase.settingsBox.delete(_preferredVoiceLanguageKey);
+    } else {
+      await LocalDatabase.settingsBox.put(
+        _preferredVoiceLanguageKey,
+        languageCode,
+      );
+    }
+  }
+
+  bool loadPremiumUnlocked() =>
+      LocalDatabase.settingsBox.get(_premiumUnlockedKey) as bool? ?? false;
+
+  Future<void> savePremiumUnlocked(bool unlocked) async {
+    await LocalDatabase.settingsBox.put(_premiumUnlockedKey, unlocked);
   }
 }

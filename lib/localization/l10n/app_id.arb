@@ -116,31 +116,31 @@
   "settingsAboutSubtitle": "Info aplikasi dan dukungan",
   "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "Premium",
-  "settingsPremiumSubtitle": "Buka akses seumur hidup",
+  "settingsPremiumSubtitle": "Buka alarm tanpa batas",
   "settingsVoices": "Suara",
   "settingsVoicesSubtitle": "Suara sistem untuk teks ke ucapan",
   "settingsVersion": "Versi",
   "settingsLicenses": "Lisensi Sumber Terbuka",
   "settingsPrivacy": "Kebijakan Privasi",
   "settingsTerms": "Ketentuan Penggunaan",
-  "settingsLegalPlaceholder": "Konten segera hadir.",
+  "settingsLegalPlaceholder": "Lihat dokumen",
   "premiumTitle": "Premium",
-  "premiumHeadline": "Satu pembelian. Milik Anda selamanya.",
-  "premiumSubtitle": "Buka pengalaman lengkap Smart Voice Alarm dengan satu pembelian seumur hidup. Tanpa langganan.",
+  "premiumHeadline": "Buka Alarm Tanpa Batas",
+  "premiumSubtitle": "Versi gratis mencakup hingga 3 alarm. Buka alarm tanpa batas dengan pembelian seumur hidup. Tanpa langganan.",
   "premiumPlanFree": "Gratis",
   "premiumPlanLifetime": "Premium Seumur Hidup",
-  "premiumPlanLifetimePrice": "Pembukaan sekali bayar",
+  "premiumPlanLifetimePrice": "Pembelian sekali",
   "premiumBenefitsTitle": "Semua di Premium",
-  "premiumBenefitUnlimited": "Alarm suara tanpa batas",
-  "premiumBenefitSequences": "Urutan suara yang lebih panjang",
-  "premiumBenefitVoices": "Akses penuh ke suara pengucapan",
-  "premiumBenefitThemes": "Opsi tampilan tambahan",
+  "premiumBenefitUnlimited": "Alarm tanpa batas",
+  "premiumBenefitSequences": "Urutan suara tanpa kunci fitur",
+  "premiumBenefitVoices": "Semua suara sistem yang terpasang",
+  "premiumBenefitThemes": "Tema, pengingat, dan rekaman tetap gratis",
   "premiumBenefitSupport": "Dukungan prioritas",
-  "premiumBenefitNoAds": "Pengalaman bebas iklan",
-  "premiumUnlock": "Buka Seumur Hidup",
+  "premiumBenefitNoAds": "Tanpa iklan",
+  "premiumUnlock": "Buka Alarm Tanpa Batas",
   "premiumRestore": "Pulihkan Pembelian",
-  "premiumThanks": "Pembelian akan tersedia dalam pembaruan mendatang. Terima kasih atas dukungan Anda.",
-  "premiumComingSoon": "Pembelian dalam aplikasi sedang disiapkan. Belum ada yang akan ditagih.",
+  "premiumThanks": "Terima kasih telah mendukung Smart Voice Alarm.",
+  "premiumComingSoon": "Produk harus dikonfigurasi di App Store Connect dan Google Play Console.",
   "commonCancel": "Batal",
   "commonDone": "Selesai",
   "commonBack": "Kembali",
@@ -234,5 +234,36 @@
   "notificationChannelAlarmsDesc": "Peringatan alarm suara",
   "notificationChannelReminders": "Pengingat",
   "notificationChannelRemindersDesc": "Pengingat harian untuk mengatur alarm besok",
-  "alarmDefaultLabel": "Alarm"
+  "alarmDefaultLabel": "Alarm",
+  "premiumBenefitLifetimeBuy": "Beli sekali. Milik Anda selamanya.",
+  "premiumStatusLoading": "Memeriksa toko…",
+  "premiumStatusPurchasing": "Memulai pembelian…",
+  "premiumStatusPurchased": "Premium Lifetime terbuka",
+  "premiumStatusRestored": "Pembelian dipulihkan",
+  "premiumStatusCancelled": "Pembelian dibatalkan",
+  "premiumStatusPending": "Pembelian tertunda…",
+  "premiumStatusError": "Pembelian gagal. Coba lagi.",
+  "premiumWebUnavailable": "Pembelian dalam aplikasi tidak tersedia di demo web.",
+  "premiumStoreUnavailable": "Toko tidak tersedia di perangkat ini.",
+  "premiumLimitExplainFree": "Versi gratis mencakup hingga 3 alarm.",
+  "premiumLimitExplainUnlock": "Buka alarm tanpa batas dengan pembelian seumur hidup.",
+  "premiumFreeLimitLabel": "Hingga {count} alarm",
+  "voicesSearchHint": "Cari bahasa atau suara",
+  "voicesLanguages": "Bahasa",
+  "voicesSelectVoiceHint": "Pilih suara untuk bahasa ini",
+  "voicesLanguageCount": "{count, plural, =1{1 suara} other{{count} suara}}",
+  "@premiumFreeLimitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

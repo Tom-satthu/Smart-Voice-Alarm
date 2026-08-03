@@ -1,4 +1,4 @@
-package com.smartvoicealarm.smart_voice_alarm
+package com.smartvoicealarm.app
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -89,6 +89,6 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        const val ACTION_FIRE = "com.smartvoicealarm.smart_voice_alarm.ACTION_FIRE_ALARM"
+        const val ACTION_FIRE = "com.smartvoicealarm.app.ACTION_FIRE_ALARM"
     }
 }

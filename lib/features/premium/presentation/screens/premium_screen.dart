@@ -1,28 +1,115 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/responsive/responsive.dart';
+import '../../../../core/services/premium_purchase_service.dart';
 import '../../../../localization/generated/app_localizations.dart';
+import '../../../../shared/providers/prototype_providers.dart';
 import '../../../../shared/widgets/app_widgets.dart';
 import '../../../../shared/widgets/visual_widgets.dart';
 import '../../../../theme/app_colors.dart';
 
-class PremiumScreen extends StatelessWidget {
-  const PremiumScreen({super.key});
+class PremiumScreen extends ConsumerStatefulWidget {
+  const PremiumScreen({super.key, this.resumeCreateAfterPurchase = false});
+
+  /// When true, pop back after a successful unlock so create-alarm can continue.
+  final bool resumeCreateAfterPurchase;
+
+  @override
+  ConsumerState<PremiumScreen> createState() => _PremiumScreenState();
+}
+
+class _PremiumScreenState extends ConsumerState<PremiumScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(premiumPurchaseProvider.notifier).refreshProducts();
+    });
+  }
+
+  String _statusMessage(AppLocalizations l10n, PremiumPurchaseState state) {
+    return switch (state.status) {
+      PurchaseFlowStatus.loading => l10n.premiumStatusLoading,
+      PurchaseFlowStatus.purchasing => l10n.premiumStatusPurchasing,
+      PurchaseFlowStatus.purchased => l10n.premiumStatusPurchased,
+      PurchaseFlowStatus.restored => l10n.premiumStatusRestored,
+      PurchaseFlowStatus.cancelled => l10n.premiumStatusCancelled,
+      PurchaseFlowStatus.pending => l10n.premiumStatusPending,
+      PurchaseFlowStatus.error => l10n.premiumStatusError,
+      PurchaseFlowStatus.unavailable => kIsWeb
+          ? l10n.premiumWebUnavailable
+          : l10n.premiumStoreUnavailable,
+      PurchaseFlowStatus.idle => state.isPremium
+          ? l10n.premiumStatusPurchased
+          : '',
+    };
+  }
+
+  Future<void> _handleUnlock(AppLocalizations l10n) async {
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.premiumWebUnavailable)),
+      );
+      return;
+    }
+    await ref.read(premiumPurchaseProvider.notifier).buy();
+    if (!mounted) return;
+    final state = ref.read(premiumPurchaseProvider);
+    if (state.isPremium && widget.resumeCreateAfterPurchase) {
+      context.pop(true);
+      return;
+    }
+    final message = _statusMessage(l10n, state);
+    if (message.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
+
+  Future<void> _handleRestore(AppLocalizations l10n) async {
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.premiumWebUnavailable)),
+      );
+      return;
+    }
+    await ref.read(premiumPurchaseProvider.notifier).restore();
+    if (!mounted) return;
+    final state = ref.read(premiumPurchaseProvider);
+    if (state.isPremium && widget.resumeCreateAfterPurchase) {
+      context.pop(true);
+      return;
+    }
+    final message = _statusMessage(l10n, state);
+    if (message.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final purchase = ref.watch(premiumPurchaseProvider);
+    final isPremium = purchase.isPremium || ref.watch(isPremiumProvider);
+    final priceLabel =
+        purchase.localizedPrice ?? AppConstants.premiumPriceHintUsd;
+    final busy = purchase.status == PurchaseFlowStatus.loading ||
+        purchase.status == PurchaseFlowStatus.purchasing ||
+        purchase.status == PurchaseFlowStatus.pending;
 
     final benefits = [
       (Icons.all_inclusive_rounded, l10n.premiumBenefitUnlimited),
-      (Icons.queue_music_rounded, l10n.premiumBenefitSequences),
-      (Icons.record_voice_over_rounded, l10n.premiumBenefitVoices),
-      (Icons.palette_outlined, l10n.premiumBenefitThemes),
-      (Icons.support_agent_rounded, l10n.premiumBenefitSupport),
-      (Icons.block_rounded, l10n.premiumBenefitNoAds),
+      (Icons.alarm_rounded, l10n.premiumLimitExplainFree),
+      (Icons.lock_open_rounded, l10n.premiumLimitExplainUnlock),
+      (Icons.shopping_bag_outlined, l10n.premiumBenefitLifetimeBuy),
     ];
 
     return Scaffold(
@@ -35,7 +122,7 @@ class PremiumScreen extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: IconButton(
                     tooltip: l10n.commonClose,
-                    onPressed: () => context.pop(),
+                    onPressed: () => context.pop(false),
                     icon: const Icon(Icons.close_rounded),
                   ),
                 ),
@@ -65,7 +152,7 @@ class PremiumScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: AppConstants.spaceLg),
                       Text(
-                        l10n.premiumTitle,
+                        l10n.premiumPlanLifetime,
                         textAlign: TextAlign.center,
                         style: context.textTheme.labelLarge?.copyWith(
                           color: context.colors.primary,
@@ -92,15 +179,19 @@ class PremiumScreen extends StatelessWidget {
                           Expanded(
                             child: _PlanCard(
                               title: l10n.premiumPlanFree,
-                              subtitle: l10n.commonEnabled,
-                              selected: false,
+                              subtitle: l10n.premiumFreeLimitLabel(
+                                AppConstants.freeAlarmLimit,
+                              ),
+                              selected: !isPremium,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: _PlanCard(
                               title: l10n.premiumPlanLifetime,
-                              subtitle: l10n.premiumPlanLifetimePrice,
+                              subtitle: isPremium
+                                  ? l10n.premiumStatusPurchased
+                                  : priceLabel,
                               selected: true,
                             ),
                           ),
@@ -151,33 +242,41 @@ class PremiumScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      const SizedBox(height: AppConstants.spaceSm),
-                      Text(
-                        l10n.premiumComingSoon,
-                        textAlign: TextAlign.center,
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: context.colors.onSurfaceVariant,
+                      if (_statusMessage(l10n, purchase).isNotEmpty) ...[
+                        const SizedBox(height: AppConstants.spaceSm),
+                        Text(
+                          _statusMessage(l10n, purchase),
+                          textAlign: TextAlign.center,
+                          style: context.textTheme.bodySmall?.copyWith(
+                            color: context.colors.onSurfaceVariant,
+                          ),
                         ),
-                      ),
+                      ],
+                      if (kIsWeb) ...[
+                        const SizedBox(height: AppConstants.spaceSm),
+                        Text(
+                          l10n.premiumWebUnavailable,
+                          textAlign: TextAlign.center,
+                          style: context.textTheme.bodySmall?.copyWith(
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
                 PrimaryActionButton(
-                  label: l10n.premiumUnlock,
+                  label: isPremium
+                      ? l10n.premiumStatusPurchased
+                      : l10n.premiumUnlock,
                   icon: Icons.lock_open_rounded,
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.premiumThanks)),
-                    );
-                  },
+                  onPressed: isPremium || busy || kIsWeb
+                      ? null
+                      : () => _handleUnlock(l10n),
                 ),
                 const SizedBox(height: AppConstants.spaceSm),
                 TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.premiumThanks)),
-                    );
-                  },
+                  onPressed: busy || kIsWeb ? null : () => _handleRestore(l10n),
                   child: Text(l10n.premiumRestore),
                 ),
                 const SizedBox(height: AppConstants.spaceMd),

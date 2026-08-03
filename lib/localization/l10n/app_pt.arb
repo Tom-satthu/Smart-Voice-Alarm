@@ -116,31 +116,31 @@
   "settingsAboutSubtitle": "Informações da app e suporte",
   "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "Premium",
-  "settingsPremiumSubtitle": "Desbloqueie o acesso vitalício",
+  "settingsPremiumSubtitle": "Desbloqueie alarmes ilimitados",
   "settingsVoices": "Vozes",
   "settingsVoicesSubtitle": "Vozes do sistema para texto para fala",
   "settingsVersion": "Versão",
   "settingsLicenses": "Licenças de código aberto",
   "settingsPrivacy": "Política de privacidade",
   "settingsTerms": "Termos de utilização",
-  "settingsLegalPlaceholder": "Conteúdo em breve.",
+  "settingsLegalPlaceholder": "Ver documento",
   "premiumTitle": "Premium",
-  "premiumHeadline": "Uma compra. Sua para sempre.",
-  "premiumSubtitle": "Desbloqueie a experiência completa do Smart Voice Alarm com uma única compra vitalícia. Sem assinaturas.",
+  "premiumHeadline": "Desbloquear alarmes ilimitados",
+  "premiumSubtitle": "A versão gratuita inclui até 3 alarmes. Desbloqueie alarmes ilimitados com uma compra vitalícia. Sem assinaturas.",
   "premiumPlanFree": "Grátis",
   "premiumPlanLifetime": "Premium vitalício",
-  "premiumPlanLifetimePrice": "Desbloqueio único",
+  "premiumPlanLifetimePrice": "Compra única",
   "premiumBenefitsTitle": "Tudo no Premium",
-  "premiumBenefitUnlimited": "Alarmes de voz ilimitados",
-  "premiumBenefitSequences": "Sequências de voz mais longas",
-  "premiumBenefitVoices": "Acesso completo às vozes",
-  "premiumBenefitThemes": "Opções extra de aparência",
+  "premiumBenefitUnlimited": "Alarmes ilimitados",
+  "premiumBenefitSequences": "Sequências de voz sem bloqueios",
+  "premiumBenefitVoices": "Todas as vozes do sistema instaladas",
+  "premiumBenefitThemes": "Temas, lembretes e gravação continuam grátis",
   "premiumBenefitSupport": "Suporte prioritário",
-  "premiumBenefitNoAds": "Experiência sem anúncios",
-  "premiumUnlock": "Desbloquear vitalício",
+  "premiumBenefitNoAds": "Sem anúncios",
+  "premiumUnlock": "Desbloquear alarmes ilimitados",
   "premiumRestore": "Restaurar compra",
-  "premiumThanks": "As compras estarão disponíveis numa atualização futura. Obrigado pelo seu apoio.",
-  "premiumComingSoon": "As compras na app estão a ser preparadas. Nada será cobrado ainda.",
+  "premiumThanks": "Obrigado por apoiar o Smart Voice Alarm.",
+  "premiumComingSoon": "Os produtos devem ser configurados no App Store Connect e no Google Play Console.",
   "commonCancel": "Cancelar",
   "commonDone": "Concluído",
   "commonBack": "Voltar",
@@ -234,5 +234,36 @@
   "notificationChannelAlarmsDesc": "Alertas de alarme de voz",
   "notificationChannelReminders": "Lembretes",
   "notificationChannelRemindersDesc": "Lembrete diário para definir o alarme de amanhã",
-  "alarmDefaultLabel": "Alarme"
+  "alarmDefaultLabel": "Alarme",
+  "premiumBenefitLifetimeBuy": "Compre uma vez. Seu para sempre.",
+  "premiumStatusLoading": "A verificar a loja…",
+  "premiumStatusPurchasing": "A iniciar compra…",
+  "premiumStatusPurchased": "Premium Lifetime desbloqueado",
+  "premiumStatusRestored": "Compra restaurada",
+  "premiumStatusCancelled": "Compra cancelada",
+  "premiumStatusPending": "Compra pendente…",
+  "premiumStatusError": "A compra falhou. Tente novamente.",
+  "premiumWebUnavailable": "Compras não estão disponíveis na demo web.",
+  "premiumStoreUnavailable": "A loja não está disponível neste dispositivo.",
+  "premiumLimitExplainFree": "A versão gratuita inclui até 3 alarmes.",
+  "premiumLimitExplainUnlock": "Desbloqueie alarmes ilimitados com uma compra vitalícia.",
+  "premiumFreeLimitLabel": "Até {count} alarmes",
+  "voicesSearchHint": "Pesquisar idiomas ou vozes",
+  "voicesLanguages": "Idiomas",
+  "voicesSelectVoiceHint": "Escolha uma voz para este idioma",
+  "voicesLanguageCount": "{count, plural, =1{1 voz} other{{count} vozes}}",
+  "@premiumFreeLimitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

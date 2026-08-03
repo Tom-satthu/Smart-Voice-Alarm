@@ -163,6 +163,17 @@ class SettingsScreen extends ConsumerWidget {
                 AppConstants.termsUrl,
               ),
             ),
+            const SizedBox(height: AppConstants.spaceMd),
+            SettingTile(
+              icon: Icons.support_agent_rounded,
+              title: l10n.aboutEmail,
+              subtitle: AppConstants.supportEmail,
+              onTap: () => _openPlaceholderLink(
+                context,
+                l10n.aboutEmail,
+                AppConstants.supportUrl,
+              ),
+            ),
           ],
         ),
       ),

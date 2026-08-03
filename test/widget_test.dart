@@ -193,7 +193,7 @@ void main() {
       isTrue,
     );
     await _tapVisible(tester, find.text('Save Alarm'));
-    expect(find.text('4 alarms ready'), findsOneWidget);
+    expect(find.text('3 alarms ready'), findsOneWidget);
   });
 
   testWidgets('6. Delete alarm removes it from Home', (tester) async {
@@ -202,7 +202,7 @@ void main() {
     await _pumpFrames(tester);
     await tester.tap(find.text('Delete'));
     await _pumpFrames(tester);
-    expect(find.text('2 alarms ready'), findsOneWidget);
+    expect(find.text('1 alarm ready'), findsOneWidget);
   });
 
   testWidgets('7. Toggle alarm switch works', (tester) async {
@@ -264,7 +264,7 @@ void main() {
         }),
       ],
     );
-    await tester.enterText(find.byType(TextField), 'Rise and shine today');
+    await tester.enterText(find.byType(TextField).first, 'Rise and shine today');
     await tester.pump();
     await _tapVisible(tester, find.text('Save'));
     expect(
@@ -333,8 +333,8 @@ void main() {
 
   testWidgets('13. Open Premium', (tester) async {
     await _pumpApp(tester, initialLocation: AppRoutes.premium);
-    expect(find.text('Unlock Lifetime'), findsOneWidget);
-    expect(find.text('One purchase. Yours forever.'), findsOneWidget);
+    expect(find.text('Unlock Unlimited Alarms'), findsWidgets);
+    expect(find.textContaining('Free includes up to 3 alarms'), findsWidgets);
   });
 
   testWidgets('14. No overflow on common phone size', (tester) async {

@@ -93,6 +93,19 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     // Ensure sequence document exists before linking.
     ref.read(voiceSequenceProvider(sequenceId));
 
+    if (!_isEdit) {
+      final entitlement = ref.read(premiumEntitlementProvider);
+      final isPremium = ref.read(isPremiumProvider);
+      final count = ref.read(alarmListProvider).length;
+      if (!isPremium && !entitlement.canCreateAlarm(count)) {
+        final unlocked = await context.push<bool>(
+          '${AppRoutes.premium}?resumeCreate=1',
+        );
+        if (unlocked != true) return;
+        if (!ref.read(isPremiumProvider)) return;
+      }
+    }
+
     final model = AlarmUiModel(
       id: widget.alarmId ?? const Uuid().v4(),
       time: _time,

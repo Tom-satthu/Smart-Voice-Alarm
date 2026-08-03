@@ -38,6 +38,9 @@ Future<void> main() async {
     ],
   );
 
+  // Sync store entitlement before schedules so free-limit gates are correct.
+  await container.read(premiumPurchaseProvider.notifier).init();
+
   // Sync native / local schedules with persisted alarms.
   await notifications.rescheduleAll(container.read(alarmListProvider));
   await container.read(reminderSettingsProvider.notifier).ensureScheduled();

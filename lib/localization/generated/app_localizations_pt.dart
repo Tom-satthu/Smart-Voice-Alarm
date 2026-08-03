@@ -330,7 +330,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsPremium => 'Premium';
 
   @override
-  String get settingsPremiumSubtitle => 'Desbloqueie o acesso vitalício';
+  String get settingsPremiumSubtitle => 'Desbloqueie alarmes ilimitados';
 
   @override
   String get settingsVoices => 'Vozes';
@@ -351,17 +351,17 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsTerms => 'Termos de utilização';
 
   @override
-  String get settingsLegalPlaceholder => 'Conteúdo em breve.';
+  String get settingsLegalPlaceholder => 'Ver documento';
 
   @override
   String get premiumTitle => 'Premium';
 
   @override
-  String get premiumHeadline => 'Uma compra. Sua para sempre.';
+  String get premiumHeadline => 'Desbloquear alarmes ilimitados';
 
   @override
   String get premiumSubtitle =>
-      'Desbloqueie a experiência completa do Smart Voice Alarm com uma única compra vitalícia. Sem assinaturas.';
+      'A versão gratuita inclui até 3 alarmes. Desbloqueie alarmes ilimitados com uma compra vitalícia. Sem assinaturas.';
 
   @override
   String get premiumPlanFree => 'Grátis';
@@ -370,42 +370,42 @@ class AppLocalizationsPt extends AppLocalizations {
   String get premiumPlanLifetime => 'Premium vitalício';
 
   @override
-  String get premiumPlanLifetimePrice => 'Desbloqueio único';
+  String get premiumPlanLifetimePrice => 'Compra única';
 
   @override
   String get premiumBenefitsTitle => 'Tudo no Premium';
 
   @override
-  String get premiumBenefitUnlimited => 'Alarmes de voz ilimitados';
+  String get premiumBenefitUnlimited => 'Alarmes ilimitados';
 
   @override
-  String get premiumBenefitSequences => 'Sequências de voz mais longas';
+  String get premiumBenefitSequences => 'Sequências de voz sem bloqueios';
 
   @override
-  String get premiumBenefitVoices => 'Acesso completo às vozes';
+  String get premiumBenefitVoices => 'Todas as vozes do sistema instaladas';
 
   @override
-  String get premiumBenefitThemes => 'Opções extra de aparência';
+  String get premiumBenefitThemes =>
+      'Temas, lembretes e gravação continuam grátis';
 
   @override
   String get premiumBenefitSupport => 'Suporte prioritário';
 
   @override
-  String get premiumBenefitNoAds => 'Experiência sem anúncios';
+  String get premiumBenefitNoAds => 'Sem anúncios';
 
   @override
-  String get premiumUnlock => 'Desbloquear vitalício';
+  String get premiumUnlock => 'Desbloquear alarmes ilimitados';
 
   @override
   String get premiumRestore => 'Restaurar compra';
 
   @override
-  String get premiumThanks =>
-      'As compras estarão disponíveis numa atualização futura. Obrigado pelo seu apoio.';
+  String get premiumThanks => 'Obrigado por apoiar o Smart Voice Alarm.';
 
   @override
   String get premiumComingSoon =>
-      'As compras na app estão a ser preparadas. Nada será cobrado ainda.';
+      'Os produtos devem ser configurados no App Store Connect e no Google Play Console.';
 
   @override
   String get commonCancel => 'Cancelar';
@@ -658,4 +658,69 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get alarmDefaultLabel => 'Alarme';
+
+  @override
+  String get premiumBenefitLifetimeBuy => 'Compre uma vez. Seu para sempre.';
+
+  @override
+  String get premiumStatusLoading => 'A verificar a loja…';
+
+  @override
+  String get premiumStatusPurchasing => 'A iniciar compra…';
+
+  @override
+  String get premiumStatusPurchased => 'Premium Lifetime desbloqueado';
+
+  @override
+  String get premiumStatusRestored => 'Compra restaurada';
+
+  @override
+  String get premiumStatusCancelled => 'Compra cancelada';
+
+  @override
+  String get premiumStatusPending => 'Compra pendente…';
+
+  @override
+  String get premiumStatusError => 'A compra falhou. Tente novamente.';
+
+  @override
+  String get premiumWebUnavailable =>
+      'Compras não estão disponíveis na demo web.';
+
+  @override
+  String get premiumStoreUnavailable =>
+      'A loja não está disponível neste dispositivo.';
+
+  @override
+  String get premiumLimitExplainFree =>
+      'A versão gratuita inclui até 3 alarmes.';
+
+  @override
+  String get premiumLimitExplainUnlock =>
+      'Desbloqueie alarmes ilimitados com uma compra vitalícia.';
+
+  @override
+  String premiumFreeLimitLabel(int count) {
+    return 'Até $count alarmes';
+  }
+
+  @override
+  String get voicesSearchHint => 'Pesquisar idiomas ou vozes';
+
+  @override
+  String get voicesLanguages => 'Idiomas';
+
+  @override
+  String get voicesSelectVoiceHint => 'Escolha uma voz para este idioma';
+
+  @override
+  String voicesLanguageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vozes',
+      one: '1 voz',
+    );
+    return '$_temp0';
+  }
 }
