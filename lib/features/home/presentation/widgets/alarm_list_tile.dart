@@ -31,8 +31,9 @@ class AlarmListTile extends StatelessWidget {
 
     return SurfacePanel(
       onTap: onEdit,
-      padding: const EdgeInsets.fromLTRB(18, 16, 8, 16),
+      padding: const EdgeInsets.fromLTRB(20, 18, 10, 18),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
@@ -40,13 +41,14 @@ class AlarmListTile extends StatelessWidget {
               children: [
                 AnimatedOpacity(
                   duration: AppConstants.animationFast,
-                  opacity: muted ? 0.45 : 1,
+                  opacity: muted ? 0.38 : 1,
                   child: Text(
                     TimeFormatters.formatTime(alarm.time),
                     style: context.textTheme.displaySmall?.copyWith(
-                      fontSize: 40,
+                      fontSize: 44,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: -1,
+                      letterSpacing: -1.4,
+                      height: 1.05,
                     ),
                   ),
                 ),
@@ -59,16 +61,16 @@ class AlarmListTile extends StatelessWidget {
                         : context.colors.onSurface,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _MetaPill(
+                    MetaPill(
                       icon: Icons.repeat_rounded,
                       label: formatRepeatDays(l10n, alarm.repeatDays),
                     ),
-                    _MetaPill(
+                    MetaPill(
                       icon: Icons.graphic_eq_rounded,
                       label: alarmTypeLabel(l10n, alarm.type),
                     ),
@@ -79,12 +81,17 @@ class AlarmListTile extends StatelessWidget {
           ),
           Column(
             children: [
-              Switch.adaptive(
-                value: alarm.isEnabled,
-                onChanged: (_) => onToggle(),
+              Semantics(
+                label: alarm.isEnabled
+                    ? l10n.commonEnabled
+                    : l10n.commonDisabled,
+                child: Switch.adaptive(
+                  value: alarm.isEnabled,
+                  onChanged: (_) => onToggle(),
+                ),
               ),
               PopupMenuButton<_AlarmMenuAction>(
-                tooltip: 'More',
+                tooltip: l10n.homeMore,
                 onSelected: (action) {
                   switch (action) {
                     case _AlarmMenuAction.edit:
@@ -126,34 +133,3 @@ class AlarmListTile extends StatelessWidget {
 }
 
 enum _AlarmMenuAction { edit, duplicate, delete }
-
-class _MetaPill extends StatelessWidget {
-  const _MetaPill({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: context.colors.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: context.colors.onSurfaceVariant),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: context.textTheme.labelSmall?.copyWith(
-              color: context.colors.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

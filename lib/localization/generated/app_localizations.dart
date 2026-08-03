@@ -148,6 +148,36 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get homeDelete;
 
+  /// No description provided for @homeMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get homeMore;
+
+  /// No description provided for @homeAlarmsReady.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No alarms} =1{1 alarm ready} other{{count} alarms ready}}'**
+  String homeAlarmsReady(int count);
+
+  /// No description provided for @homeGoodMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get homeGoodMorning;
+
+  /// No description provided for @homeGoodAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get homeGoodAfternoon;
+
+  /// No description provided for @homeGoodEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get homeGoodEvening;
+
   /// No description provided for @alarmTypeVoice.
   ///
   /// In en, this message translates to:
@@ -165,6 +195,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mixed'**
   String get alarmTypeMixed;
+
+  /// No description provided for @alarmTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm type'**
+  String get alarmTypeLabel;
 
   /// No description provided for @createAlarmTitle.
   ///
@@ -211,13 +247,13 @@ abstract class AppLocalizations {
   /// No description provided for @alarmRingtone.
   ///
   /// In en, this message translates to:
-  /// **'Ringtone'**
+  /// **'Ringtone after voice'**
   String get alarmRingtone;
 
   /// No description provided for @alarmRepeatCount.
   ///
   /// In en, this message translates to:
-  /// **'Repeat count'**
+  /// **'Sequence repeats'**
   String get alarmRepeatCount;
 
   /// No description provided for @alarmCopyFrom.
@@ -235,13 +271,13 @@ abstract class AppLocalizations {
   /// No description provided for @alarmSelectSequence.
   ///
   /// In en, this message translates to:
-  /// **'Select sequence'**
+  /// **'Tap to edit sequence'**
   String get alarmSelectSequence;
 
   /// No description provided for @alarmSelectRingtone.
   ///
   /// In en, this message translates to:
-  /// **'Select ringtone'**
+  /// **'Choose a sound'**
   String get alarmSelectRingtone;
 
   /// No description provided for @alarmNoneSelected.
@@ -249,6 +285,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None selected'**
   String get alarmNoneSelected;
+
+  /// No description provided for @alarmCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings copied'**
+  String get alarmCopied;
+
+  /// No description provided for @alarmSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm saved'**
+  String get alarmSaved;
+
+  /// No description provided for @alarmDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm deleted'**
+  String get alarmDeleted;
+
+  /// No description provided for @alarmDuplicated.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm duplicated'**
+  String get alarmDuplicated;
 
   /// No description provided for @dayMon.
   ///
@@ -325,19 +385,19 @@ abstract class AppLocalizations {
   /// No description provided for @voiceSequenceEmptyTitle.
   ///
   /// In en, this message translates to:
-  /// **'No segments yet'**
+  /// **'Build your wake-up message'**
   String get voiceSequenceEmptyTitle;
 
   /// No description provided for @voiceSequenceEmptySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Add recordings or text-to-speech clips to build your wake-up message.'**
+  /// **'Add recordings or spoken text in the order you want to hear them.'**
   String get voiceSequenceEmptySubtitle;
 
   /// No description provided for @voiceSequenceAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add Segment'**
+  /// **'Add Voice'**
   String get voiceSequenceAdd;
 
   /// No description provided for @voiceSequenceDelete.
@@ -345,6 +405,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get voiceSequenceDelete;
+
+  /// No description provided for @voiceSequenceDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove segment?'**
+  String get voiceSequenceDeleteConfirmTitle;
+
+  /// No description provided for @voiceSequenceDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the segment from the sequence.'**
+  String get voiceSequenceDeleteConfirmBody;
+
+  /// No description provided for @voiceSequenceReorderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder'**
+  String get voiceSequenceReorderHint;
 
   /// No description provided for @voiceSegmentName.
   ///
@@ -363,6 +441,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Duration'**
   String get voiceSegmentDuration;
+
+  /// No description provided for @voiceSegmentOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {number}'**
+  String voiceSegmentOrder(int number);
 
   /// No description provided for @voiceTypeRecording.
   ///
@@ -385,13 +469,13 @@ abstract class AppLocalizations {
   /// No description provided for @addVoiceRecord.
   ///
   /// In en, this message translates to:
-  /// **'Record'**
+  /// **'Record Voice'**
   String get addVoiceRecord;
 
   /// No description provided for @addVoiceRecordSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Capture your voice with the microphone'**
+  /// **'Speak a short message into your microphone'**
   String get addVoiceRecordSubtitle;
 
   /// No description provided for @addVoiceTts.
@@ -403,7 +487,7 @@ abstract class AppLocalizations {
   /// No description provided for @addVoiceTtsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Type a message and choose a voice'**
+  /// **'Type a message and choose a speaking voice'**
   String get addVoiceTtsSubtitle;
 
   /// No description provided for @ttsTitle.
@@ -411,6 +495,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Text to Speech'**
   String get ttsTitle;
+
+  /// No description provided for @ttsInputLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get ttsInputLabel;
 
   /// No description provided for @ttsInputHint.
   ///
@@ -421,7 +511,7 @@ abstract class AppLocalizations {
   /// No description provided for @ttsVoices.
   ///
   /// In en, this message translates to:
-  /// **'Voices'**
+  /// **'Voice'**
   String get ttsVoices;
 
   /// No description provided for @ttsPreview.
@@ -430,11 +520,23 @@ abstract class AppLocalizations {
   /// **'Preview'**
   String get ttsPreview;
 
+  /// No description provided for @ttsPreviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing preview…'**
+  String get ttsPreviewing;
+
   /// No description provided for @ttsSave.
   ///
   /// In en, this message translates to:
   /// **'Save'**
   String get ttsSave;
+
+  /// No description provided for @ttsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice segment saved'**
+  String get ttsSaved;
 
   /// No description provided for @recordTitle.
   ///
@@ -460,6 +562,12 @@ abstract class AppLocalizations {
   /// **'Play'**
   String get recordPlay;
 
+  /// No description provided for @recordPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing…'**
+  String get recordPlaying;
+
   /// No description provided for @recordSave.
   ///
   /// In en, this message translates to:
@@ -469,7 +577,7 @@ abstract class AppLocalizations {
   /// No description provided for @recordHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap the button to start recording'**
+  /// **'Tap Record when you are ready'**
   String get recordHint;
 
   /// No description provided for @recordRecording.
@@ -484,6 +592,18 @@ abstract class AppLocalizations {
   /// **'Ready to save'**
   String get recordReady;
 
+  /// No description provided for @recordSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording saved'**
+  String get recordSaved;
+
+  /// No description provided for @recordDefaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice recording'**
+  String get recordDefaultName;
+
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
@@ -496,11 +616,29 @@ abstract class AppLocalizations {
   /// **'Appearance'**
   String get settingsAppearance;
 
-  /// No description provided for @settingsDarkMode.
+  /// No description provided for @settingsTheme.
   ///
   /// In en, this message translates to:
-  /// **'Dark Mode'**
-  String get settingsDarkMode;
+  /// **'Theme'**
+  String get settingsTheme;
+
+  /// No description provided for @settingsThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsThemeSystem;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDark;
 
   /// No description provided for @settingsLanguage.
   ///
@@ -511,14 +649,20 @@ abstract class AppLocalizations {
   /// No description provided for @settingsReminder.
   ///
   /// In en, this message translates to:
-  /// **'Reminder'**
+  /// **'Reminder to set alarm'**
   String get settingsReminder;
 
   /// No description provided for @settingsReminderSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Gentle nudge before an alarm rings'**
+  /// **'Get a gentle nudge if no alarm is scheduled'**
   String get settingsReminderSubtitle;
+
+  /// No description provided for @settingsReminderTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get settingsReminderTime;
 
   /// No description provided for @settingsAbout.
   ///
@@ -531,6 +675,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version {version}'**
   String settingsAboutSubtitle(String version);
+
+  /// No description provided for @settingsAboutLegalese.
+  ///
+  /// In en, this message translates to:
+  /// **'© Smart Voice Alarm'**
+  String get settingsAboutLegalese;
 
   /// No description provided for @settingsPremium.
   ///
@@ -553,13 +703,13 @@ abstract class AppLocalizations {
   /// No description provided for @premiumHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Wake up, elevated.'**
+  /// **'One purchase. Yours forever.'**
   String get premiumHeadline;
 
   /// No description provided for @premiumSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlock the full voice alarm experience with a one-time purchase.'**
+  /// **'Support the app and unlock the complete voice alarm toolkit with a single lifetime purchase.'**
   String get premiumSubtitle;
 
   /// No description provided for @premiumBenefitUnlimited.
@@ -571,19 +721,19 @@ abstract class AppLocalizations {
   /// No description provided for @premiumBenefitSequences.
   ///
   /// In en, this message translates to:
-  /// **'Advanced voice sequences'**
+  /// **'Longer voice sequences'**
   String get premiumBenefitSequences;
 
   /// No description provided for @premiumBenefitVoices.
   ///
   /// In en, this message translates to:
-  /// **'Premium TTS voices'**
+  /// **'More speaking voices'**
   String get premiumBenefitVoices;
 
   /// No description provided for @premiumBenefitThemes.
   ///
   /// In en, this message translates to:
-  /// **'Exclusive themes'**
+  /// **'Extra appearance options'**
   String get premiumBenefitThemes;
 
   /// No description provided for @premiumBenefitSupport.
@@ -603,6 +753,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore Purchase'**
   String get premiumRestore;
+
+  /// No description provided for @premiumThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for your support'**
+  String get premiumThanks;
 
   /// No description provided for @commonCancel.
   ///
@@ -646,6 +802,12 @@ abstract class AppLocalizations {
   /// **'Off'**
   String get commonDisabled;
 
+  /// No description provided for @commonRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get commonRemove;
+
   /// No description provided for @languageEnglish.
   ///
   /// In en, this message translates to:
@@ -655,14 +817,44 @@ abstract class AppLocalizations {
   /// No description provided for @timesLabel.
   ///
   /// In en, this message translates to:
-  /// **'{count} times'**
+  /// **'{count, plural, =1{1 time} other{{count} times}}'**
   String timesLabel(int count);
 
   /// No description provided for @segmentsLabel.
   ///
   /// In en, this message translates to:
-  /// **'{count} segments'**
+  /// **'{count, plural, =0{No segments} =1{1 segment} other{{count} segments}}'**
   String segmentsLabel(int count);
+
+  /// No description provided for @ringtoneSoftChime.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft Chime'**
+  String get ringtoneSoftChime;
+
+  /// No description provided for @ringtoneOceanBreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Ocean Breeze'**
+  String get ringtoneOceanBreeze;
+
+  /// No description provided for @ringtoneNightPulse.
+  ///
+  /// In en, this message translates to:
+  /// **'Night Pulse'**
+  String get ringtoneNightPulse;
+
+  /// No description provided for @ringtoneForestDawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Forest Dawn'**
+  String get ringtoneForestDawn;
+
+  /// No description provided for @ringtoneCrystalBell.
+  ///
+  /// In en, this message translates to:
+  /// **'Crystal Bell'**
+  String get ringtoneCrystalBell;
 }
 
 class _AppLocalizationsDelegate

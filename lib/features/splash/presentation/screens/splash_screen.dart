@@ -28,9 +28,10 @@ class _SplashScreenState extends State<SplashScreen>
       duration: AppConstants.animationSlow,
     );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _rise = Tween<double>(begin: 18, end: 0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _rise = Tween<double>(
+      begin: 16,
+      end: 0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
     Future<void>.delayed(AppConstants.splashDuration, _goHome);
   }
@@ -65,34 +66,37 @@ class _SplashScreenState extends State<SplashScreen>
               );
             },
             child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const BrandMark(size: 88, animated: true),
-                  const SizedBox(height: AppConstants.spaceXl),
-                  Text(
-                    l10n.appName,
-                    textAlign: TextAlign.center,
-                    style: context.textTheme.headlineLarge,
-                  ),
-                  const SizedBox(height: AppConstants.spaceSm),
-                  Text(
-                    l10n.appTagline,
-                    textAlign: TextAlign.center,
-                    style: context.textTheme.bodyLarge?.copyWith(
-                      color: context.colors.onSurfaceVariant,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const BrandMark(size: 92, animated: true),
+                    const SizedBox(height: AppConstants.spaceXl),
+                    Text(
+                      l10n.appName,
+                      textAlign: TextAlign.center,
+                      style: context.textTheme.headlineLarge,
                     ),
-                  ),
-                  const SizedBox(height: AppConstants.space2xl),
-                  SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.4,
-                      color: context.colors.primary.withValues(alpha: 0.7),
+                    const SizedBox(height: AppConstants.spaceSm),
+                    Text(
+                      l10n.appTagline,
+                      textAlign: TextAlign.center,
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        color: context.colors.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: AppConstants.space2xl),
+                    SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: context.colors.primary.withValues(alpha: 0.65),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -38,3 +38,20 @@ String alarmTypeLabel(AppLocalizations l10n, AlarmType type) {
     AlarmType.mixed => l10n.alarmTypeMixed,
   };
 }
+
+String greetingForHour(AppLocalizations l10n, int hour) {
+  if (hour < 12) return l10n.homeGoodMorning;
+  if (hour < 18) return l10n.homeGoodAfternoon;
+  return l10n.homeGoodEvening;
+}
+
+String localizedRingtone(AppLocalizations l10n, String name) {
+  return switch (name) {
+    'Soft Chime' => l10n.ringtoneSoftChime,
+    'Ocean Breeze' => l10n.ringtoneOceanBreeze,
+    'Night Pulse' => l10n.ringtoneNightPulse,
+    'Forest Dawn' => l10n.ringtoneForestDawn,
+    'Crystal Bell' => l10n.ringtoneCrystalBell,
+    _ => name,
+  };
+}

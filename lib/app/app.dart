@@ -9,14 +9,17 @@ import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 
 class SmartVoiceAlarmApp extends ConsumerStatefulWidget {
-  const SmartVoiceAlarmApp({super.key});
+  const SmartVoiceAlarmApp({super.key, this.initialLocation});
+
+  /// Optional override for tests (skips splash when set to home).
+  final String? initialLocation;
 
   @override
   ConsumerState<SmartVoiceAlarmApp> createState() => _SmartVoiceAlarmAppState();
 }
 
 class _SmartVoiceAlarmAppState extends ConsumerState<SmartVoiceAlarmApp> {
-  late final _router = createAppRouter();
+  late final _router = createAppRouter(initialLocation: widget.initialLocation);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +27,7 @@ class _SmartVoiceAlarmAppState extends ConsumerState<SmartVoiceAlarmApp> {
     final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
-      title: 'Smart Voice Alarm',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

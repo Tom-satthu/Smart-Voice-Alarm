@@ -37,6 +37,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeDelete => 'Delete';
 
   @override
+  String get homeMore => 'More options';
+
+  @override
+  String homeAlarmsReady(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alarms ready',
+      one: '1 alarm ready',
+      zero: 'No alarms',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeGoodMorning => 'Good morning';
+
+  @override
+  String get homeGoodAfternoon => 'Good afternoon';
+
+  @override
+  String get homeGoodEvening => 'Good evening';
+
+  @override
   String get alarmTypeVoice => 'Voice';
 
   @override
@@ -44,6 +68,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alarmTypeMixed => 'Mixed';
+
+  @override
+  String get alarmTypeLabel => 'Alarm type';
 
   @override
   String get createAlarmTitle => 'New Alarm';
@@ -67,10 +94,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmVoiceSequence => 'Voice Sequence';
 
   @override
-  String get alarmRingtone => 'Ringtone';
+  String get alarmRingtone => 'Ringtone after voice';
 
   @override
-  String get alarmRepeatCount => 'Repeat count';
+  String get alarmRepeatCount => 'Sequence repeats';
 
   @override
   String get alarmCopyFrom => 'Copy from another alarm';
@@ -79,13 +106,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmSave => 'Save Alarm';
 
   @override
-  String get alarmSelectSequence => 'Select sequence';
+  String get alarmSelectSequence => 'Tap to edit sequence';
 
   @override
-  String get alarmSelectRingtone => 'Select ringtone';
+  String get alarmSelectRingtone => 'Choose a sound';
 
   @override
   String get alarmNoneSelected => 'None selected';
+
+  @override
+  String get alarmCopied => 'Settings copied';
+
+  @override
+  String get alarmSaved => 'Alarm saved';
+
+  @override
+  String get alarmDeleted => 'Alarm deleted';
+
+  @override
+  String get alarmDuplicated => 'Alarm duplicated';
 
   @override
   String get dayMon => 'Mon';
@@ -124,17 +163,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceSequenceTitle => 'Voice Sequence';
 
   @override
-  String get voiceSequenceEmptyTitle => 'No segments yet';
+  String get voiceSequenceEmptyTitle => 'Build your wake-up message';
 
   @override
   String get voiceSequenceEmptySubtitle =>
-      'Add recordings or text-to-speech clips to build your wake-up message.';
+      'Add recordings or spoken text in the order you want to hear them.';
 
   @override
-  String get voiceSequenceAdd => 'Add Segment';
+  String get voiceSequenceAdd => 'Add Voice';
 
   @override
   String get voiceSequenceDelete => 'Delete';
+
+  @override
+  String get voiceSequenceDeleteConfirmTitle => 'Remove segment?';
+
+  @override
+  String get voiceSequenceDeleteConfirmBody =>
+      'This removes the segment from the sequence.';
+
+  @override
+  String get voiceSequenceReorderHint => 'Drag to reorder';
 
   @override
   String get voiceSegmentName => 'Name';
@@ -146,6 +195,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceSegmentDuration => 'Duration';
 
   @override
+  String voiceSegmentOrder(int number) {
+    return 'Step $number';
+  }
+
+  @override
   String get voiceTypeRecording => 'Recording';
 
   @override
@@ -155,31 +209,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addVoiceTitle => 'Add Voice';
 
   @override
-  String get addVoiceRecord => 'Record';
+  String get addVoiceRecord => 'Record Voice';
 
   @override
-  String get addVoiceRecordSubtitle => 'Capture your voice with the microphone';
+  String get addVoiceRecordSubtitle =>
+      'Speak a short message into your microphone';
 
   @override
   String get addVoiceTts => 'Text to Speech';
 
   @override
-  String get addVoiceTtsSubtitle => 'Type a message and choose a voice';
+  String get addVoiceTtsSubtitle =>
+      'Type a message and choose a speaking voice';
 
   @override
   String get ttsTitle => 'Text to Speech';
 
   @override
+  String get ttsInputLabel => 'Message';
+
+  @override
   String get ttsInputHint => 'Type the message you want to hear…';
 
   @override
-  String get ttsVoices => 'Voices';
+  String get ttsVoices => 'Voice';
 
   @override
   String get ttsPreview => 'Preview';
 
   @override
+  String get ttsPreviewing => 'Playing preview…';
+
+  @override
   String get ttsSave => 'Save';
+
+  @override
+  String get ttsSaved => 'Voice segment saved';
 
   @override
   String get recordTitle => 'Record Voice';
@@ -194,10 +259,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordPlay => 'Play';
 
   @override
+  String get recordPlaying => 'Playing…';
+
+  @override
   String get recordSave => 'Save';
 
   @override
-  String get recordHint => 'Tap the button to start recording';
+  String get recordHint => 'Tap Record when you are ready';
 
   @override
   String get recordRecording => 'Recording…';
@@ -206,22 +274,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordReady => 'Ready to save';
 
   @override
+  String get recordSaved => 'Recording saved';
+
+  @override
+  String get recordDefaultName => 'Voice recording';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
   String get settingsAppearance => 'Appearance';
 
   @override
-  String get settingsDarkMode => 'Dark Mode';
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get settingsThemeSystem => 'System';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
 
   @override
   String get settingsLanguage => 'Language';
 
   @override
-  String get settingsReminder => 'Reminder';
+  String get settingsReminder => 'Reminder to set alarm';
 
   @override
-  String get settingsReminderSubtitle => 'Gentle nudge before an alarm rings';
+  String get settingsReminderSubtitle =>
+      'Get a gentle nudge if no alarm is scheduled';
+
+  @override
+  String get settingsReminderTime => 'Reminder time';
 
   @override
   String get settingsAbout => 'About';
@@ -230,6 +317,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String settingsAboutSubtitle(String version) {
     return 'Version $version';
   }
+
+  @override
+  String get settingsAboutLegalese => '© Smart Voice Alarm';
 
   @override
   String get settingsPremium => 'Premium';
@@ -241,23 +331,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumTitle => 'Go Premium';
 
   @override
-  String get premiumHeadline => 'Wake up, elevated.';
+  String get premiumHeadline => 'One purchase. Yours forever.';
 
   @override
   String get premiumSubtitle =>
-      'Unlock the full voice alarm experience with a one-time purchase.';
+      'Support the app and unlock the complete voice alarm toolkit with a single lifetime purchase.';
 
   @override
   String get premiumBenefitUnlimited => 'Unlimited voice alarms';
 
   @override
-  String get premiumBenefitSequences => 'Advanced voice sequences';
+  String get premiumBenefitSequences => 'Longer voice sequences';
 
   @override
-  String get premiumBenefitVoices => 'Premium TTS voices';
+  String get premiumBenefitVoices => 'More speaking voices';
 
   @override
-  String get premiumBenefitThemes => 'Exclusive themes';
+  String get premiumBenefitThemes => 'Extra appearance options';
 
   @override
   String get premiumBenefitSupport => 'Priority support';
@@ -267,6 +357,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get premiumRestore => 'Restore Purchase';
+
+  @override
+  String get premiumThanks => 'Thank you for your support';
 
   @override
   String get commonCancel => 'Cancel';
@@ -290,15 +383,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonDisabled => 'Off';
 
   @override
+  String get commonRemove => 'Remove';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
   String timesLabel(int count) {
-    return '$count times';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count times',
+      one: '1 time',
+    );
+    return '$_temp0';
   }
 
   @override
   String segmentsLabel(int count) {
-    return '$count segments';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count segments',
+      one: '1 segment',
+      zero: 'No segments',
+    );
+    return '$_temp0';
   }
+
+  @override
+  String get ringtoneSoftChime => 'Soft Chime';
+
+  @override
+  String get ringtoneOceanBreeze => 'Ocean Breeze';
+
+  @override
+  String get ringtoneNightPulse => 'Night Pulse';
+
+  @override
+  String get ringtoneForestDawn => 'Forest Dawn';
+
+  @override
+  String get ringtoneCrystalBell => 'Crystal Bell';
 }

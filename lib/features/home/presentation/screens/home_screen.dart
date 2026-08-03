@@ -10,6 +10,7 @@ import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/providers/prototype_providers.dart';
 import '../../../../shared/widgets/app_widgets.dart';
+import '../widgets/alarm_formatters.dart';
 import '../widgets/alarm_list_tile.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -61,24 +62,33 @@ class HomeScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final alarm = alarms[index];
                       return FadeSlideIn(
-                        delay: Duration(milliseconds: 40 * index),
+                        delay: Duration(milliseconds: 35 * index),
                         child: AlarmListTile(
                           alarm: alarm,
-                          onToggle: () =>
-                              ref.read(alarmListProvider.notifier).toggle(alarm.id),
+                          onToggle: () => ref
+                              .read(alarmListProvider.notifier)
+                              .toggle(alarm.id),
                           onEdit: () =>
                               context.push(AppRoutes.editAlarmPath(alarm.id)),
-                          onDuplicate: () {},
-                          onDelete: () => ref
-                              .read(alarmListProvider.notifier)
-                              .remove(alarm.id),
+                          onDuplicate: () {
+                            final newId = ref
+                                .read(alarmListProvider.notifier)
+                                .duplicate(alarm.id);
+                            context.push(AppRoutes.editAlarmPath(newId));
+                          },
+                          onDelete: () {
+                            ref
+                                .read(alarmListProvider.notifier)
+                                .remove(alarm.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(l10n.alarmDeleted)),
+                            );
+                          },
                         ),
                       );
                     },
                   ),
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 120),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               ),
       ),
@@ -93,42 +103,34 @@ class _HomeHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final now = TimeOfDay.now();
 
     return SurfacePanel(
+      emphasized: true,
       padding: const EdgeInsets.all(AppConstants.spaceLg),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  TimeFormatters.formatTime(now),
-                  style: context.textTheme.displaySmall,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  alarmCount == 1
-                      ? '1 alarm ready'
-                      : '$alarmCount alarms ready',
-                  style: context.textTheme.bodyMedium?.copyWith(
-                    color: context.colors.onSurfaceVariant,
-                  ),
-                ),
-              ],
+          Text(
+            greetingForHour(l10n, now.hour),
+            style: context.textTheme.bodyMedium?.copyWith(
+              color: context.colors.onSurfaceVariant,
             ),
           ),
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: context.colors.primary.withValues(alpha: 0.12),
+          const SizedBox(height: 8),
+          Text(
+            TimeFormatters.formatTime(now),
+            style: context.textTheme.displayMedium?.copyWith(
+              letterSpacing: -1.6,
+              height: 1,
             ),
-            child: Icon(
-              Icons.waving_hand_rounded,
-              color: context.colors.primary,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.homeAlarmsReady(alarmCount),
+            style: context.textTheme.bodyMedium?.copyWith(
+              color: context.colors.onSurfaceVariant,
             ),
           ),
         ],

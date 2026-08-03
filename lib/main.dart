@@ -18,9 +18,5 @@ Future<void> main() async {
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
 
-  runApp(
-    const ProviderScope(
-      child: SmartVoiceAlarmApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: SmartVoiceAlarmApp()));
 }

@@ -15,6 +15,7 @@ class AppScaffold extends StatelessWidget {
     this.bottom,
     this.extendBodyBehindAppBar = false,
     this.backgroundColor,
+    this.resizeToAvoidBottomInset = true,
   });
 
   final Widget body;
@@ -26,12 +27,14 @@ class AppScaffold extends StatelessWidget {
   final PreferredSizeWidget? bottom;
   final bool extendBodyBehindAppBar;
   final Color? backgroundColor;
+  final bool resizeToAvoidBottomInset;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: extendBodyBehindAppBar,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       appBar: title == null && actions == null && !showBack
           ? null
           : AppBar(
@@ -42,7 +45,7 @@ class AppScaffold extends StatelessWidget {
               bottom: bottom,
             ),
       floatingActionButton: floatingActionButton,
-      body: body,
+      body: SafeArea(top: !extendBodyBehindAppBar, child: body),
     );
   }
 }
@@ -62,7 +65,7 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppConstants.spaceMd),
+      padding: const EdgeInsets.only(bottom: AppConstants.spaceSm + 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -73,10 +76,7 @@ class SectionHeader extends StatelessWidget {
                 Text(title, style: context.textTheme.titleMedium),
                 if (subtitle != null) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    subtitle!,
-                    style: context.textTheme.bodySmall,
-                  ),
+                  Text(subtitle!, style: context.textTheme.bodySmall),
                 ],
               ],
             ),
@@ -95,16 +95,18 @@ class SurfacePanel extends StatelessWidget {
     this.padding = const EdgeInsets.all(AppConstants.spaceMd),
     this.onTap,
     this.borderRadius,
+    this.emphasized = false,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
   final BorderRadius? borderRadius;
+  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
-    final radius = borderRadius ?? BorderRadius.circular(AppConstants.radiusMd);
+    final radius = borderRadius ?? BorderRadius.circular(20);
     final panel = AnimatedContainer(
       duration: AppConstants.animationFast,
       padding: padding,
@@ -112,8 +114,19 @@ class SurfacePanel extends StatelessWidget {
         color: context.colors.surface,
         borderRadius: radius,
         border: Border.all(
-          color: context.colors.outline.withValues(alpha: 0.55),
+          color: emphasized
+              ? context.colors.primary.withValues(alpha: 0.35)
+              : context.colors.outline.withValues(alpha: 0.45),
         ),
+        boxShadow: emphasized
+            ? [
+                BoxShadow(
+                  color: context.colors.primary.withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ]
+            : null,
       ),
       child: child,
     );
@@ -122,11 +135,7 @@ class SurfacePanel extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: radius,
-        child: panel,
-      ),
+      child: InkWell(onTap: onTap, borderRadius: radius, child: panel),
     );
   }
 }
@@ -156,20 +165,13 @@ class EmptyStateView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 88,
-              height: 88,
+              width: 96,
+              height: 96,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    context.colors.primary.withValues(alpha: 0.18),
-                    context.colors.secondary.withValues(alpha: 0.12),
-                  ],
-                ),
+                color: context.colors.primary.withValues(alpha: 0.10),
               ),
-              child: Icon(icon, size: 40, color: context.colors.primary),
+              child: Icon(icon, size: 42, color: context.colors.primary),
             ),
             const SizedBox(height: AppConstants.spaceLg),
             Text(
@@ -185,6 +187,7 @@ class EmptyStateView extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: context.textTheme.bodyMedium?.copyWith(
                   color: context.colors.onSurfaceVariant,
+                  height: 1.45,
                 ),
               ),
             ),
@@ -256,22 +259,20 @@ class SettingTile extends StatelessWidget {
       onTap: onTap,
       child: ListTile(
         leading: Container(
-          width: 42,
-          height: 42,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: context.colors.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
+            color: context.colors.primary.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Icon(icon, color: context.colors.primary, size: 22),
         ),
         title: Text(title, style: context.textTheme.titleSmall),
         subtitle: subtitle == null
             ? null
-            : Text(
-                subtitle!,
-                style: context.textTheme.bodySmall,
-              ),
-        trailing: trailing ??
+            : Text(subtitle!, style: context.textTheme.bodySmall),
+        trailing:
+            trailing ??
             (onTap == null
                 ? null
                 : Icon(
@@ -297,30 +298,60 @@ class AppChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: AppConstants.animationFast,
-      child: FilterChip(
-        label: Text(label),
-        selected: selected,
-        showCheckmark: false,
-        onSelected: onTap == null ? null : (_) => onTap!(),
-        selectedColor: context.colors.primary,
-        labelStyle: context.textTheme.labelMedium?.copyWith(
-          color: selected
-              ? context.colors.onPrimary
-              : context.colors.onSurface,
-          fontWeight: FontWeight.w600,
-        ),
-        backgroundColor: context.colors.surface,
-        side: BorderSide(
-          color: selected
-              ? context.colors.primary
-              : context.colors.outline.withValues(alpha: 0.7),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      showCheckmark: false,
+      onSelected: onTap == null ? null : (_) => onTap!(),
+      selectedColor: context.colors.primary,
+      labelStyle: context.textTheme.labelMedium?.copyWith(
+        color: selected ? context.colors.onPrimary : context.colors.onSurface,
+        fontWeight: FontWeight.w600,
+      ),
+      backgroundColor: context.colors.surface,
+      side: BorderSide(
+        color: selected
+            ? context.colors.primary
+            : context.colors.outline.withValues(alpha: 0.7),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+}
+
+class MetaPill extends StatelessWidget {
+  const MetaPill({super.key, required this.label, this.icon});
+
+  final String label;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: context.colors.onSurfaceVariant),
+            const SizedBox(width: 6),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              style: context.textTheme.labelSmall?.copyWith(
+                color: context.colors.onSurfaceVariant,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -357,6 +388,31 @@ class FadeSlideIn extends StatelessWidget {
         );
       },
       child: child,
+    );
+  }
+}
+
+class StickyBottomBar extends StatelessWidget {
+  const StickyBottomBar({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: context.theme.scaffoldBackgroundColor,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppConstants.spaceLg,
+            AppConstants.spaceSm,
+            AppConstants.spaceLg,
+            AppConstants.spaceMd,
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 }

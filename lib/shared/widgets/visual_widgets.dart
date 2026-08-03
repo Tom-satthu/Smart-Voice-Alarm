@@ -7,50 +7,28 @@ import '../../core/extensions/context_extensions.dart';
 import '../../theme/app_colors.dart';
 
 class BrandMark extends StatelessWidget {
-  const BrandMark({
-    super.key,
-    this.size = 72,
-    this.animated = false,
-  });
+  const BrandMark({super.key, this.size = 72, this.animated = false});
 
   final double size;
   final bool animated;
 
   @override
   Widget build(BuildContext context) {
-    final mark = Container(
+    final mark = SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * 0.28),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.brandTealLight,
-            AppColors.brandTeal,
-            AppColors.brandTealDeep,
-          ],
+      child: CustomPaint(
+        painter: _AlarmMarkPainter(
+          gradient: AppColors.brandGradient,
+          shadowColor: AppColors.brandTeal.withValues(alpha: 0.28),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.brandTeal.withValues(alpha: 0.35),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Icon(
-        Icons.graphic_eq_rounded,
-        color: Colors.white,
-        size: size * 0.46,
       ),
     );
 
     if (!animated) return mark;
 
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.86, end: 1),
+      tween: Tween(begin: 0.88, end: 1),
       duration: AppConstants.animationSlow,
       curve: Curves.easeOutBack,
       builder: (context, scale, child) =>
@@ -60,12 +38,96 @@ class BrandMark extends StatelessWidget {
   }
 }
 
+class _AlarmMarkPainter extends CustomPainter {
+  _AlarmMarkPainter({required this.gradient, required this.shadowColor});
+
+  final Gradient gradient;
+  final Color shadowColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final radius = size.shortestSide * 0.28;
+    final rrect = RRect.fromRectAndRadius(
+      rect.deflate(2),
+      Radius.circular(radius),
+    );
+
+    final shadowPaint = Paint()
+      ..color = shadowColor
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
+    canvas.drawRRect(rrect.shift(const Offset(0, 8)), shadowPaint);
+
+    final fill = Paint()..shader = gradient.createShader(rect);
+    canvas.drawRRect(rrect, fill);
+
+    final stroke = Paint()
+      ..color = Colors.white.withValues(alpha: 0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawRRect(rrect.deflate(1), stroke);
+
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final outer = size.shortestSide * 0.22;
+    final white = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.shortestSide * 0.045
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(Offset(cx, cy), outer, white);
+
+    final hand = Paint()
+      ..color = Colors.white
+      ..strokeWidth = size.shortestSide * 0.045
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(cx, cy), Offset(cx, cy - outer * 0.55), hand);
+    canvas.drawLine(
+      Offset(cx, cy),
+      Offset(cx + outer * 0.42, cy + outer * 0.12),
+      hand,
+    );
+
+    final bell = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.shortestSide * 0.04
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCenter(
+        center: Offset(cx - outer * 0.95, cy - outer * 0.85),
+        width: outer * 0.7,
+        height: outer * 0.7,
+      ),
+      -2.2,
+      1.6,
+      false,
+      bell,
+    );
+    canvas.drawArc(
+      Rect.fromCenter(
+        center: Offset(cx + outer * 0.95, cy - outer * 0.85),
+        width: outer * 0.7,
+        height: outer * 0.7,
+      ),
+      -0.6,
+      1.6,
+      false,
+      bell,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _AlarmMarkPainter oldDelegate) => false;
+}
+
 class WaveVisualizer extends StatefulWidget {
   const WaveVisualizer({
     super.key,
     this.active = false,
-    this.barCount = 28,
-    this.height = 96,
+    this.barCount = 26,
+    this.height = 88,
   });
 
   final bool active;
@@ -96,8 +158,9 @@ class _WaveVisualizerState extends State<WaveVisualizer>
     if (widget.active && !_controller.isAnimating) {
       _controller.repeat();
     } else if (!widget.active && _controller.isAnimating) {
-      _controller.stop();
-      _controller.value = 0;
+      _controller
+        ..stop()
+        ..value = 0;
     }
   }
 
@@ -148,17 +211,17 @@ class _WavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..strokeCap = StrokeCap.round;
-    final barWidth = size.width / (barCount * 1.8);
-    final gap = barWidth * 0.8;
+    final barWidth = size.width / (barCount * 1.85);
+    final gap = barWidth * 0.85;
     final total = barCount * barWidth + (barCount - 1) * gap;
     var x = (size.width - total) / 2;
 
     for (var i = 0; i < barCount; i++) {
-      final wave = math.sin((progress * math.pi * 2) + i * 0.45);
-      final idle = 0.18 + (i % 5) * 0.04;
-      final amplitude = active ? 0.25 + (wave.abs() * 0.7) : idle;
+      final wave = math.sin((progress * math.pi * 2) + i * 0.42);
+      final idle = 0.18 + (i % 5) * 0.035;
+      final amplitude = active ? 0.28 + (wave.abs() * 0.65) : idle;
       final h = size.height * amplitude;
-      paint.color = active ? color : muted.withValues(alpha: 0.7);
+      paint.color = active ? color : muted.withValues(alpha: 0.65);
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromCenter(
@@ -203,19 +266,19 @@ class AmbientBackground extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            top: -80,
-            right: -40,
+            top: -90,
+            right: -50,
             child: _GlowOrb(
               size: 220,
-              color: context.colors.primary.withValues(alpha: 0.14),
+              color: context.colors.primary.withValues(alpha: 0.10),
             ),
           ),
           Positioned(
-            bottom: -60,
-            left: -30,
+            bottom: -70,
+            left: -40,
             child: _GlowOrb(
               size: 180,
-              color: context.colors.secondary.withValues(alpha: 0.10),
+              color: context.colors.primary.withValues(alpha: 0.07),
             ),
           ),
           child,
@@ -237,10 +300,7 @@ class _GlowOrb extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-        ),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       ),
     );
   }

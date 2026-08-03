@@ -33,27 +33,30 @@ class PremiumScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: IconButton(
+                    tooltip: l10n.commonClose,
                     onPressed: () => context.pop(),
                     icon: const Icon(Icons.close_rounded),
                   ),
                 ),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.only(bottom: AppConstants.spaceXl),
+                    padding: const EdgeInsets.only(
+                      bottom: AppConstants.spaceXl,
+                    ),
                     children: [
                       const SizedBox(height: AppConstants.spaceMd),
                       Center(
                         child: Container(
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(28),
+                            borderRadius: BorderRadius.circular(30),
                             gradient: AppColors.premiumGradient,
                           ),
                           child: Container(
                             padding: const EdgeInsets.all(18),
                             decoration: BoxDecoration(
                               color: context.colors.surface,
-                              borderRadius: BorderRadius.circular(25),
+                              borderRadius: BorderRadius.circular(27),
                             ),
                             child: const BrandMark(size: 64),
                           ),
@@ -74,8 +77,8 @@ class PremiumScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: AppConstants.spaceXl),
-                      ...benefits.map((benefit) {
-                        return Padding(
+                      for (final benefit in benefits)
+                        Padding(
                           padding: const EdgeInsets.only(
                             bottom: AppConstants.spaceMd,
                           ),
@@ -91,8 +94,9 @@ class PremiumScreen extends StatelessWidget {
                                   height: 42,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(12),
-                                    color: context.colors.primary
-                                        .withValues(alpha: 0.12),
+                                    color: context.colors.primary.withValues(
+                                      alpha: 0.12,
+                                    ),
                                   ),
                                   child: Icon(
                                     benefit.$1,
@@ -114,8 +118,7 @@ class PremiumScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                        );
-                      }),
+                        ),
                     ],
                   ),
                 ),
@@ -123,14 +126,18 @@ class PremiumScreen extends StatelessWidget {
                   label: l10n.premiumUnlock,
                   icon: Icons.lock_open_rounded,
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.premiumUnlock)),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(l10n.premiumThanks)));
                   },
                 ),
                 const SizedBox(height: AppConstants.spaceSm),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(l10n.premiumThanks)));
+                  },
                   child: Text(l10n.premiumRestore),
                 ),
                 const SizedBox(height: AppConstants.spaceMd),

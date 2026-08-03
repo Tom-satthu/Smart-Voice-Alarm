@@ -12,10 +12,10 @@ import 'routes.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
-GoRouter createAppRouter() {
+GoRouter createAppRouter({String? initialLocation}) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: AppRoutes.splash,
+    initialLocation: initialLocation ?? AppRoutes.splash,
     routes: [
       GoRoute(
         path: AppRoutes.splash,

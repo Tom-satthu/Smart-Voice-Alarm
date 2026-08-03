@@ -1,7 +1,7 @@
 abstract final class AppConstants {
   static const String appName = 'Smart Voice Alarm';
   static const String appVersion = '1.0.0';
-  static const Duration splashDuration = Duration(milliseconds: 2200);
+  static const Duration splashDuration = Duration(milliseconds: 1600);
   static const Duration animationFast = Duration(milliseconds: 200);
   static const Duration animationNormal = Duration(milliseconds: 320);
   static const Duration animationSlow = Duration(milliseconds: 500);

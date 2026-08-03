@@ -11,10 +11,10 @@ abstract final class AppTheme {
       onPrimary: Colors.white,
       primaryContainer: const Color(0xFFCCFBF1),
       onPrimaryContainer: AppColors.brandTealDeep,
-      secondary: AppColors.brandAmber,
-      onSecondary: const Color(0xFF1A1200),
-      secondaryContainer: const Color(0xFFFEF3C7),
-      onSecondaryContainer: const Color(0xFF78350F),
+      secondary: AppColors.brandTealBright,
+      onSecondary: Colors.white,
+      secondaryContainer: const Color(0xFFD5F5F0),
+      onSecondaryContainer: AppColors.brandTealDeep,
       surface: AppColors.lightSurface,
       onSurface: AppColors.lightOnSurface,
       onSurfaceVariant: AppColors.lightMuted,
@@ -22,7 +22,7 @@ abstract final class AppTheme {
       outlineVariant: AppColors.lightSurfaceMuted,
       error: AppColors.danger,
       onError: Colors.white,
-      tertiary: AppColors.brandTealLight,
+      tertiary: AppColors.brandTealSoft,
     );
 
     return _base(
@@ -40,14 +40,14 @@ abstract final class AppTheme {
 
   static ThemeData dark() {
     final colorScheme = ColorScheme.dark(
-      primary: AppColors.brandTealLight,
+      primary: AppColors.brandTealBright,
       onPrimary: const Color(0xFF042F2E),
       primaryContainer: AppColors.brandTealDeep,
       onPrimaryContainer: const Color(0xFFCCFBF1),
-      secondary: AppColors.brandAmberSoft,
-      onSecondary: const Color(0xFF1A1200),
-      secondaryContainer: const Color(0xFF92400E),
-      onSecondaryContainer: const Color(0xFFFEF3C7),
+      secondary: AppColors.brandTealSoft,
+      onSecondary: const Color(0xFF042F2E),
+      secondaryContainer: const Color(0xFF134E4A),
+      onSecondaryContainer: const Color(0xFFCCFBF1),
       surface: AppColors.darkSurface,
       onSurface: AppColors.darkOnSurface,
       onSurfaceVariant: AppColors.darkMuted,
@@ -79,6 +79,8 @@ abstract final class AppTheme {
     required Color dividerColor,
     required SystemUiOverlayStyle systemOverlay,
   }) {
+    final isLight = brightness == Brightness.light;
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
@@ -100,6 +102,7 @@ abstract final class AppTheme {
         foregroundColor: colorScheme.onPrimary,
         elevation: 2,
         highlightElevation: 4,
+        extendedPadding: const EdgeInsets.symmetric(horizontal: 20),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
       switchTheme: SwitchThemeData(
@@ -107,7 +110,7 @@ abstract final class AppTheme {
           if (states.contains(WidgetState.selected)) {
             return colorScheme.onPrimary;
           }
-          return colorScheme.onSurfaceVariant;
+          return isLight ? Colors.white : colorScheme.onSurfaceVariant;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -120,6 +123,7 @@ abstract final class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           elevation: 0,
+          minimumSize: const Size(48, 52),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -129,6 +133,7 @@ abstract final class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 52),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -140,12 +145,13 @@ abstract final class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
+          minimumSize: const Size(44, 44),
           textStyle: textTheme.labelLarge,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: brightness == Brightness.light
+        fillColor: isLight
             ? AppColors.lightSurface
             : AppColors.darkSurfaceMuted,
         contentPadding: const EdgeInsets.symmetric(
@@ -171,6 +177,7 @@ abstract final class AppTheme {
       listTileTheme: ListTileThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        minVerticalPadding: 12,
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
@@ -191,6 +198,14 @@ abstract final class AppTheme {
         color: colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         elevation: 4,
+      ),
+      cardTheme: CardThemeData(
+        color: colorScheme.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.5)),
+        ),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

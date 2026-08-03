@@ -23,15 +23,10 @@ class VoiceSequenceScreen extends ConsumerWidget {
     return AppScaffold(
       showBack: true,
       title: l10n.voiceSequenceTitle,
-      actions: [
-        TextButton(
-          onPressed: () => context.push(AppRoutes.addVoice),
-          child: Text(l10n.voiceSequenceAdd),
-        ),
-      ],
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.addVoice),
-        child: const Icon(Icons.add_rounded),
+        icon: const Icon(Icons.add_rounded),
+        label: Text(l10n.voiceSequenceAdd),
       ),
       body: ResponsiveCenter(
         child: segments.isEmpty
@@ -48,28 +43,26 @@ class VoiceSequenceScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.only(
                       top: AppConstants.spaceMd,
-                      bottom: AppConstants.spaceMd,
+                      bottom: AppConstants.spaceSm,
                     ),
                     child: SectionHeader(
                       title: sequence.name,
-                      subtitle: l10n.segmentsLabel(segments.length),
+                      subtitle:
+                          '${l10n.segmentsLabel(segments.length)} · ${l10n.voiceSequenceReorderHint}',
                     ),
                   ),
                   Expanded(
                     child: ReorderableListView.builder(
+                      padding: const EdgeInsets.only(bottom: 100),
                       itemCount: segments.length,
                       proxyDecorator: (child, index, animation) {
-                        return AnimatedBuilder(
-                          animation: animation,
-                          builder: (context, _) {
-                            return Material(
-                              elevation: 4,
-                              borderRadius:
-                                  BorderRadius.circular(AppConstants.radiusMd),
-                              color: context.colors.surface,
-                              child: child,
-                            );
-                          },
+                        return Material(
+                          elevation: 4,
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusMd,
+                          ),
+                          color: context.colors.surface,
+                          child: child,
                         );
                       },
                       onReorder: (oldIndex, newIndex) {
@@ -87,9 +80,37 @@ class VoiceSequenceScreen extends ConsumerWidget {
                           child: VoiceSegmentTile(
                             segment: segment,
                             index: index,
-                            onDelete: () => ref
-                                .read(voiceSequenceProvider.notifier)
-                                .removeAt(index),
+                            orderNumber: index + 1,
+                            onDelete: () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(
+                                    l10n.voiceSequenceDeleteConfirmTitle,
+                                  ),
+                                  content: Text(
+                                    l10n.voiceSequenceDeleteConfirmBody,
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: Text(l10n.commonCancel),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      child: Text(l10n.commonRemove),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true) {
+                                ref
+                                    .read(voiceSequenceProvider.notifier)
+                                    .removeAt(index);
+                              }
+                            },
                           ),
                         );
                       },
@@ -153,14 +174,15 @@ class _ChoiceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SurfacePanel(
       onTap: onTap,
+      emphasized: true,
       padding: const EdgeInsets.all(AppConstants.spaceLg),
       child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 58,
+            height: 58,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
               color: context.colors.primary.withValues(alpha: 0.12),
             ),
             child: Icon(icon, color: context.colors.primary, size: 28),

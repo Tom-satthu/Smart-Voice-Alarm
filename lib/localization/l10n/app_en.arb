@@ -9,9 +9,22 @@
   "homeEdit": "Edit",
   "homeDuplicate": "Duplicate",
   "homeDelete": "Delete",
+  "homeMore": "More options",
+  "homeAlarmsReady": "{count, plural, =0{No alarms} =1{1 alarm ready} other{{count} alarms ready}}",
+  "@homeAlarmsReady": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeGoodMorning": "Good morning",
+  "homeGoodAfternoon": "Good afternoon",
+  "homeGoodEvening": "Good evening",
   "alarmTypeVoice": "Voice",
   "alarmTypeRingtone": "Ringtone",
   "alarmTypeMixed": "Mixed",
+  "alarmTypeLabel": "Alarm type",
   "createAlarmTitle": "New Alarm",
   "editAlarmTitle": "Edit Alarm",
   "alarmTime": "Time",
@@ -19,13 +32,17 @@
   "alarmMinute": "Minute",
   "alarmRepeat": "Repeat",
   "alarmVoiceSequence": "Voice Sequence",
-  "alarmRingtone": "Ringtone",
-  "alarmRepeatCount": "Repeat count",
+  "alarmRingtone": "Ringtone after voice",
+  "alarmRepeatCount": "Sequence repeats",
   "alarmCopyFrom": "Copy from another alarm",
   "alarmSave": "Save Alarm",
-  "alarmSelectSequence": "Select sequence",
-  "alarmSelectRingtone": "Select ringtone",
+  "alarmSelectSequence": "Tap to edit sequence",
+  "alarmSelectRingtone": "Choose a sound",
   "alarmNoneSelected": "None selected",
+  "alarmCopied": "Settings copied",
+  "alarmSaved": "Alarm saved",
+  "alarmDeleted": "Alarm deleted",
+  "alarmDuplicated": "Alarm duplicated",
   "dayMon": "Mon",
   "dayTue": "Tue",
   "dayWed": "Wed",
@@ -38,39 +55,60 @@
   "dayWeekends": "Weekends",
   "dayOnce": "Once",
   "voiceSequenceTitle": "Voice Sequence",
-  "voiceSequenceEmptyTitle": "No segments yet",
-  "voiceSequenceEmptySubtitle": "Add recordings or text-to-speech clips to build your wake-up message.",
-  "voiceSequenceAdd": "Add Segment",
+  "voiceSequenceEmptyTitle": "Build your wake-up message",
+  "voiceSequenceEmptySubtitle": "Add recordings or spoken text in the order you want to hear them.",
+  "voiceSequenceAdd": "Add Voice",
   "voiceSequenceDelete": "Delete",
+  "voiceSequenceDeleteConfirmTitle": "Remove segment?",
+  "voiceSequenceDeleteConfirmBody": "This removes the segment from the sequence.",
+  "voiceSequenceReorderHint": "Drag to reorder",
   "voiceSegmentName": "Name",
   "voiceSegmentType": "Type",
   "voiceSegmentDuration": "Duration",
+  "voiceSegmentOrder": "Step {number}",
+  "@voiceSegmentOrder": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "voiceTypeRecording": "Recording",
   "voiceTypeTts": "Text to Speech",
   "addVoiceTitle": "Add Voice",
-  "addVoiceRecord": "Record",
-  "addVoiceRecordSubtitle": "Capture your voice with the microphone",
+  "addVoiceRecord": "Record Voice",
+  "addVoiceRecordSubtitle": "Speak a short message into your microphone",
   "addVoiceTts": "Text to Speech",
-  "addVoiceTtsSubtitle": "Type a message and choose a voice",
+  "addVoiceTtsSubtitle": "Type a message and choose a speaking voice",
   "ttsTitle": "Text to Speech",
+  "ttsInputLabel": "Message",
   "ttsInputHint": "Type the message you want to hear…",
-  "ttsVoices": "Voices",
+  "ttsVoices": "Voice",
   "ttsPreview": "Preview",
+  "ttsPreviewing": "Playing preview…",
   "ttsSave": "Save",
+  "ttsSaved": "Voice segment saved",
   "recordTitle": "Record Voice",
   "recordStart": "Record",
   "recordStop": "Stop",
   "recordPlay": "Play",
+  "recordPlaying": "Playing…",
   "recordSave": "Save",
-  "recordHint": "Tap the button to start recording",
+  "recordHint": "Tap Record when you are ready",
   "recordRecording": "Recording…",
   "recordReady": "Ready to save",
+  "recordSaved": "Recording saved",
+  "recordDefaultName": "Voice recording",
   "settingsTitle": "Settings",
   "settingsAppearance": "Appearance",
-  "settingsDarkMode": "Dark Mode",
+  "settingsTheme": "Theme",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
   "settingsLanguage": "Language",
-  "settingsReminder": "Reminder",
-  "settingsReminderSubtitle": "Gentle nudge before an alarm rings",
+  "settingsReminder": "Reminder to set alarm",
+  "settingsReminderSubtitle": "Get a gentle nudge if no alarm is scheduled",
+  "settingsReminderTime": "Reminder time",
   "settingsAbout": "About",
   "settingsAboutSubtitle": "Version {version}",
   "@settingsAboutSubtitle": {
@@ -80,18 +118,20 @@
       }
     }
   },
+  "settingsAboutLegalese": "© Smart Voice Alarm",
   "settingsPremium": "Premium",
   "settingsPremiumSubtitle": "Unlock lifetime access",
   "premiumTitle": "Go Premium",
-  "premiumHeadline": "Wake up, elevated.",
-  "premiumSubtitle": "Unlock the full voice alarm experience with a one-time purchase.",
+  "premiumHeadline": "One purchase. Yours forever.",
+  "premiumSubtitle": "Support the app and unlock the complete voice alarm toolkit with a single lifetime purchase.",
   "premiumBenefitUnlimited": "Unlimited voice alarms",
-  "premiumBenefitSequences": "Advanced voice sequences",
-  "premiumBenefitVoices": "Premium TTS voices",
-  "premiumBenefitThemes": "Exclusive themes",
+  "premiumBenefitSequences": "Longer voice sequences",
+  "premiumBenefitVoices": "More speaking voices",
+  "premiumBenefitThemes": "Extra appearance options",
   "premiumBenefitSupport": "Priority support",
   "premiumUnlock": "Unlock Lifetime",
   "premiumRestore": "Restore Purchase",
+  "premiumThanks": "Thank you for your support",
   "commonCancel": "Cancel",
   "commonDone": "Done",
   "commonBack": "Back",
@@ -99,8 +139,9 @@
   "commonClose": "Close",
   "commonEnabled": "On",
   "commonDisabled": "Off",
+  "commonRemove": "Remove",
   "languageEnglish": "English",
-  "timesLabel": "{count} times",
+  "timesLabel": "{count, plural, =1{1 time} other{{count} times}}",
   "@timesLabel": {
     "placeholders": {
       "count": {
@@ -108,12 +149,17 @@
       }
     }
   },
-  "segmentsLabel": "{count} segments",
+  "segmentsLabel": "{count, plural, =0{No segments} =1{1 segment} other{{count} segments}}",
   "@segmentsLabel": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
-  }
+  },
+  "ringtoneSoftChime": "Soft Chime",
+  "ringtoneOceanBreeze": "Ocean Breeze",
+  "ringtoneNightPulse": "Night Pulse",
+  "ringtoneForestDawn": "Forest Dawn",
+  "ringtoneCrystalBell": "Crystal Bell"
 }
