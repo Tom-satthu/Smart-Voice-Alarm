@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../shared/data/local_store.dart';
+
 class ThemeController extends StateNotifier<ThemeMode> {
-  ThemeController() : super(ThemeMode.system);
+  ThemeController(this._repo) : super(_repo.loadThemeMode());
 
-  void setThemeMode(ThemeMode mode) => state = mode;
+  final SettingsRepository _repo;
 
-  void toggleDark(bool enabled) {
-    state = enabled ? ThemeMode.dark : ThemeMode.light;
+  Future<void> setThemeMode(ThemeMode mode) async {
+    state = mode;
+    await _repo.saveThemeMode(mode);
+  }
+
+  Future<void> toggleDark(bool enabled) async {
+    await setThemeMode(enabled ? ThemeMode.dark : ThemeMode.light);
   }
 
   bool isDark(BuildContext context) {
@@ -18,8 +25,7 @@ class ThemeController extends StateNotifier<ThemeMode> {
   }
 }
 
-final themeModeProvider = StateNotifierProvider<ThemeController, ThemeMode>((
-  ref,
-) {
-  return ThemeController();
+final themeModeProvider =
+    StateNotifierProvider<ThemeController, ThemeMode>((ref) {
+  return ThemeController(SettingsRepository());
 });

@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/navigation/root_navigator.dart';
+import '../features/alarm/presentation/screens/alarm_ringing_screen.dart';
 import '../features/alarm/presentation/screens/create_alarm_screen.dart';
 import '../features/home/presentation/screens/home_screen.dart';
 import '../features/premium/presentation/screens/premium_screen.dart';
@@ -8,9 +9,8 @@ import '../features/settings/presentation/screens/settings_screen.dart';
 import '../features/splash/presentation/screens/splash_screen.dart';
 import '../features/voice_sequence/presentation/screens/tts_record_screens.dart';
 import '../features/voice_sequence/presentation/screens/voice_sequence_screen.dart';
+import '../shared/providers/prototype_providers.dart';
 import 'routes.dart';
-
-final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 GoRouter createAppRouter({String? initialLocation}) {
   return GoRouter(
@@ -43,22 +43,38 @@ GoRouter createAppRouter({String? initialLocation}) {
       GoRoute(
         path: AppRoutes.voiceSequence,
         name: 'voiceSequence',
-        builder: (context, state) => const VoiceSequenceScreen(),
+        builder: (context, state) {
+          final sequenceId =
+              state.uri.queryParameters['id'] ?? defaultSequenceId;
+          return VoiceSequenceScreen(sequenceId: sequenceId);
+        },
       ),
       GoRoute(
         path: AppRoutes.addVoice,
         name: 'addVoice',
-        builder: (context, state) => const AddVoiceScreen(),
+        builder: (context, state) {
+          final sequenceId =
+              state.uri.queryParameters['id'] ?? defaultSequenceId;
+          return AddVoiceScreen(sequenceId: sequenceId);
+        },
       ),
       GoRoute(
         path: AppRoutes.tts,
         name: 'tts',
-        builder: (context, state) => const TtsScreen(),
+        builder: (context, state) {
+          final sequenceId =
+              state.uri.queryParameters['id'] ?? defaultSequenceId;
+          return TtsScreen(sequenceId: sequenceId);
+        },
       ),
       GoRoute(
         path: AppRoutes.record,
         name: 'record',
-        builder: (context, state) => const RecordScreen(),
+        builder: (context, state) {
+          final sequenceId =
+              state.uri.queryParameters['id'] ?? defaultSequenceId;
+          return RecordScreen(sequenceId: sequenceId);
+        },
       ),
       GoRoute(
         path: AppRoutes.settings,
@@ -69,6 +85,14 @@ GoRouter createAppRouter({String? initialLocation}) {
         path: AppRoutes.premium,
         name: 'premium',
         builder: (context, state) => const PremiumScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.ringing,
+        name: 'ringing',
+        builder: (context, state) {
+          final alarmId = state.pathParameters['id'] ?? '';
+          return AlarmRingingScreen(alarmId: alarmId);
+        },
       ),
     ],
   );

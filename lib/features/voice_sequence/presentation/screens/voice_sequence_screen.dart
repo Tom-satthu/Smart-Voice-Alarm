@@ -12,19 +12,22 @@ import '../../../../shared/widgets/app_widgets.dart';
 import '../widgets/voice_segment_tile.dart';
 
 class VoiceSequenceScreen extends ConsumerWidget {
-  const VoiceSequenceScreen({super.key});
+  const VoiceSequenceScreen({super.key, this.sequenceId});
+
+  final String? sequenceId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final sequence = ref.watch(voiceSequenceProvider);
+    final id = sequenceId ?? defaultSequenceId;
+    final sequence = ref.watch(voiceSequenceProvider(id));
     final segments = sequence.segments;
 
     return AppScaffold(
       showBack: true,
       title: l10n.voiceSequenceTitle,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addVoice),
+        onPressed: () => context.push(AppRoutes.addVoicePath(id)),
         icon: const Icon(Icons.add_rounded),
         label: Text(l10n.voiceSequenceAdd),
       ),
@@ -35,7 +38,7 @@ class VoiceSequenceScreen extends ConsumerWidget {
                 title: l10n.voiceSequenceEmptyTitle,
                 subtitle: l10n.voiceSequenceEmptySubtitle,
                 actionLabel: l10n.voiceSequenceAdd,
-                onAction: () => context.push(AppRoutes.addVoice),
+                onAction: () => context.push(AppRoutes.addVoicePath(id)),
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,7 +70,7 @@ class VoiceSequenceScreen extends ConsumerWidget {
                       },
                       onReorder: (oldIndex, newIndex) {
                         ref
-                            .read(voiceSequenceProvider.notifier)
+                            .read(voiceSequenceProvider(id).notifier)
                             .reorder(oldIndex, newIndex);
                       },
                       itemBuilder: (context, index) {
@@ -107,7 +110,7 @@ class VoiceSequenceScreen extends ConsumerWidget {
                               );
                               if (confirmed == true) {
                                 ref
-                                    .read(voiceSequenceProvider.notifier)
+                                    .read(voiceSequenceProvider(id).notifier)
                                     .removeAt(index);
                               }
                             },
@@ -124,11 +127,14 @@ class VoiceSequenceScreen extends ConsumerWidget {
 }
 
 class AddVoiceScreen extends StatelessWidget {
-  const AddVoiceScreen({super.key});
+  const AddVoiceScreen({super.key, this.sequenceId});
+
+  final String? sequenceId;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final id = sequenceId ?? defaultSequenceId;
 
     return AppScaffold(
       showBack: true,
@@ -141,14 +147,14 @@ class AddVoiceScreen extends StatelessWidget {
               icon: Icons.mic_rounded,
               title: l10n.addVoiceRecord,
               subtitle: l10n.addVoiceRecordSubtitle,
-              onTap: () => context.push(AppRoutes.record),
+              onTap: () => context.push(AppRoutes.recordPath(id)),
             ),
             const SizedBox(height: AppConstants.spaceMd),
             _ChoiceCard(
               icon: Icons.record_voice_over_rounded,
               title: l10n.addVoiceTts,
               subtitle: l10n.addVoiceTtsSubtitle,
-              onTap: () => context.push(AppRoutes.tts),
+              onTap: () => context.push(AppRoutes.ttsPath(id)),
             ),
           ],
         ),

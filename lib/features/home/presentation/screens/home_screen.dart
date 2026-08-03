@@ -70,10 +70,11 @@ class HomeScreen extends ConsumerWidget {
                               .toggle(alarm.id),
                           onEdit: () =>
                               context.push(AppRoutes.editAlarmPath(alarm.id)),
-                          onDuplicate: () {
-                            final newId = ref
+                          onDuplicate: () async {
+                            final newId = await ref
                                 .read(alarmListProvider.notifier)
                                 .duplicate(alarm.id);
+                            if (!context.mounted) return;
                             context.push(AppRoutes.editAlarmPath(newId));
                           },
                           onDelete: () {
