@@ -20,11 +20,7 @@ Business logic, database, notifications, and TTS engine are intentionally deferr
 
 **URL:** https://tom-satthu.github.io/Smart-Voice-Alarm/
 
-Enable once (required): [Settings → Pages](https://github.com/Tom-satthu/Smart-Voice-Alarm/settings/pages)
-
-- Source: **GitHub Actions**, or branch **`gh-pages`** / **`/(root)`**, or **`main`** / **`/docs`**
-- Save — the URL above becomes public
-- Every push to `main` rebuilds and republishes via `.github/workflows/deploy-github-pages.yml`
+Deployed via GitHub Actions (`.github/workflows/deploy-github-pages.yml`) on every push to `main`.
 
 ## Run
 
