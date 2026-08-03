@@ -16,6 +16,10 @@ This repository currently ships:
 
 Business logic, database, notifications, and TTS engine are intentionally deferred to later phases.
 
+## Live demo
+
+GitHub Pages: https://tom-satthu.github.io/Smart-Voice-Alarm/
+
 ## Run
 
 ```bash
