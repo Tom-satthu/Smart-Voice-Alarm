@@ -708,4 +708,31 @@ class AppLocalizationsJa extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'タップして時刻を選択';
+
+  @override
+  String get segmentPlay => '再生';
+
+  @override
+  String get voicePlaying => '再生中';
+
+  @override
+  String get voiceSelect => '選択';
+
+  @override
+  String get voiceUnavailable => '音声を利用できません';
+
+  @override
+  String get recordingFileMissing => '録音ファイルがありません。このセグメントを削除するか、再録音してください。';
+
+  @override
+  String get voiceDetails => '音声の詳細';
+
+  @override
+  String get ttsSelectedVoice => '選択中の音声';
+
+  @override
+  String get voicePreviewSample => 'これはこの音声の短いプレビューです。';
 }

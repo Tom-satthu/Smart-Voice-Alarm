@@ -721,4 +721,32 @@ class AppLocalizationsVi extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'Chạm để chọn giờ';
+
+  @override
+  String get segmentPlay => 'Phát';
+
+  @override
+  String get voicePlaying => 'Đang phát';
+
+  @override
+  String get voiceSelect => 'Chọn';
+
+  @override
+  String get voiceUnavailable => 'Giọng không khả dụng';
+
+  @override
+  String get recordingFileMissing =>
+      'Thiếu tệp ghi âm. Xóa đoạn này hoặc ghi lại.';
+
+  @override
+  String get voiceDetails => 'Chi tiết giọng';
+
+  @override
+  String get ttsSelectedVoice => 'Giọng đã chọn';
+
+  @override
+  String get voicePreviewSample => 'Đây là bản xem trước ngắn của giọng này.';
 }

@@ -1420,6 +1420,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 voice} other{{count} voices}}'**
   String voicesLanguageCount(int count);
+
+  /// No description provided for @alarmSelectTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to choose time'**
+  String get alarmSelectTime;
+
+  /// No description provided for @segmentPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get segmentPlay;
+
+  /// No description provided for @voicePlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing'**
+  String get voicePlaying;
+
+  /// No description provided for @voiceSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get voiceSelect;
+
+  /// No description provided for @voiceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice unavailable'**
+  String get voiceUnavailable;
+
+  /// No description provided for @recordingFileMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording file missing. Delete this segment or record again.'**
+  String get recordingFileMissing;
+
+  /// No description provided for @voiceDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice details'**
+  String get voiceDetails;
+
+  /// No description provided for @ttsSelectedVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected voice'**
+  String get ttsSelectedVoice;
+
+  /// No description provided for @voicePreviewSample.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a short preview of this voice.'**
+  String get voicePreviewSample;
 }
 
 class _AppLocalizationsDelegate

@@ -49,6 +49,17 @@ Future<void> main() async {
     unawaited(_openRinging(container, alarmId));
   };
 
+  // Native → Flutter: notification tap / full-screen while app is warm, and
+  // notification Stop action.
+  final native = notifications.native;
+  native.onAlarmTriggered = (alarmId) {
+    notifications.onAlarmTriggered?.call(alarmId);
+  };
+  native.onNativeAlarmStopped = () {
+    unawaited(container.read(alarmEngineProvider).stopAll());
+  };
+  native.attachPlatformHandlers();
+
   final launchAlarmId = await notifications.consumeLaunchAlarmId();
   if (launchAlarmId != null) {
     WidgetsBinding.instance.addPostFrameCallback((_) {

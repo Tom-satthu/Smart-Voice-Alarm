@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -132,6 +131,16 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     context.pop();
   }
 
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _time,
+    );
+    if (picked != null) {
+      setState(() => _time = picked);
+    }
+  }
+
   Future<void> _pickRingtone() async {
     final l10n = AppLocalizations.of(context);
     final ringtones = ref.read(ringtonesProvider);
@@ -196,46 +205,34 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 children: [
                   SectionHeader(title: l10n.alarmTime),
                   SurfacePanel(
+                    onTap: _pickTime,
                     emphasized: true,
-                    child: Column(
+                    child: Row(
                       children: [
-                        Text(
-                          TimeFormatters.formatTime(_time),
-                          style: context.textTheme.displayMedium?.copyWith(
-                            letterSpacing: -1.4,
+                        Icon(
+                          Icons.schedule_rounded,
+                          color: context.colors.primary,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                TimeFormatters.formatTime(_time),
+                                style: context.textTheme.headlineMedium
+                                    ?.copyWith(letterSpacing: -1.0),
+                              ),
+                              Text(
+                                l10n.alarmSelectTime,
+                                style: context.textTheme.bodySmall,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: AppConstants.spaceSm),
-                        SizedBox(
-                          height: 148,
-                          child: CupertinoTheme(
-                            data: CupertinoThemeData(
-                              brightness: context.theme.brightness,
-                              textTheme: CupertinoTextThemeData(
-                                dateTimePickerTextStyle:
-                                    context.textTheme.titleLarge!,
-                              ),
-                            ),
-                            child: CupertinoDatePicker(
-                              mode: CupertinoDatePickerMode.time,
-                              use24hFormat: true,
-                              initialDateTime: DateTime(
-                                2026,
-                                1,
-                                1,
-                                _time.hour,
-                                _time.minute,
-                              ),
-                              onDateTimeChanged: (value) {
-                                setState(() {
-                                  _time = TimeOfDay(
-                                    hour: value.hour,
-                                    minute: value.minute,
-                                  );
-                                });
-                              },
-                            ),
-                          ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: context.colors.onSurfaceVariant,
                         ),
                       ],
                     ),
@@ -243,34 +240,41 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                   const SizedBox(height: AppConstants.spaceXl),
                   SectionHeader(title: l10n.alarmRepeat),
                   SurfacePanel(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: Weekday.values.map((day) {
-                        final selected = _repeatDays.contains(day);
-                        final label = switch (day) {
-                          Weekday.monday => l10n.dayMon,
-                          Weekday.tuesday => l10n.dayTue,
-                          Weekday.wednesday => l10n.dayWed,
-                          Weekday.thursday => l10n.dayThu,
-                          Weekday.friday => l10n.dayFri,
-                          Weekday.saturday => l10n.daySat,
-                          Weekday.sunday => l10n.daySun,
-                        };
-                        return AppChip(
-                          label: label,
-                          selected: selected,
-                          onTap: () {
-                            setState(() {
-                              if (selected) {
-                                _repeatDays.remove(day);
-                              } else {
-                                _repeatDays.add(day);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        for (final day in Weekday.values)
+                          Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: _DayToggle(
+                                label: switch (day) {
+                                  Weekday.monday => l10n.dayMon,
+                                  Weekday.tuesday => l10n.dayTue,
+                                  Weekday.wednesday => l10n.dayWed,
+                                  Weekday.thursday => l10n.dayThu,
+                                  Weekday.friday => l10n.dayFri,
+                                  Weekday.saturday => l10n.daySat,
+                                  Weekday.sunday => l10n.daySun,
+                                },
+                                selected: _repeatDays.contains(day),
+                                onTap: () {
+                                  setState(() {
+                                    if (_repeatDays.contains(day)) {
+                                      _repeatDays.remove(day);
+                                    } else {
+                                      _repeatDays.add(day);
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: AppConstants.spaceXl),
@@ -420,6 +424,50 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DayToggle extends StatelessWidget {
+  const _DayToggle({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Material(
+      color: selected ? colors.primary : colors.surface,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: SizedBox(
+          height: 40,
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: context.textTheme.labelSmall?.copyWith(
+                    color: selected ? colors.onPrimary : colors.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

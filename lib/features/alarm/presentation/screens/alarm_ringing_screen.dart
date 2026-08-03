@@ -56,6 +56,8 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
 
   Future<void> _stopCurrent() async {
     await _engine.stopCurrent();
+    // Ensure native FGS / notification are gone even if handoff raced.
+    await ref.read(notificationServiceProvider).native.stopForegroundAlarm();
     if (!mounted) return;
     // Give the queue a moment to promote the next alarm.
     await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -73,6 +75,7 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
 
   Future<void> _stopAll() async {
     await _engine.stopAll();
+    await ref.read(notificationServiceProvider).native.stopForegroundAlarm();
     if (!mounted) return;
     if (context.canPop()) {
       context.pop();

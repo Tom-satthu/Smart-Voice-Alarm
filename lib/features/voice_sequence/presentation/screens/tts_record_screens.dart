@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/localization/locale_display_names.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
@@ -31,6 +32,8 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
   final _controller = TextEditingController();
   String? _selectedVoiceId;
   String? _selectedLocale;
+  String? _selectedVoiceName;
+  TtsVoiceQuality? _selectedQuality;
   bool _previewing = false;
   bool _hydratedVoice = false;
 
@@ -40,6 +43,12 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void deactivate() {
+    ref.read(ttsServiceProvider).stop();
+    super.deactivate();
   }
 
   @override
@@ -67,11 +76,15 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
       preferredLocale: _selectedLocale ?? preferred.locale,
     );
     if (!mounted) return;
+    final fellBack =
+        preferred.id != null && preferred.id != resolved.id;
     setState(() {
       _selectedVoiceId = resolved.id;
       _selectedLocale = resolved.locale;
+      _selectedVoiceName = resolved.name;
+      _selectedQuality = resolved.quality;
     });
-    if (preferred.id != null && preferred.id != resolved.id) {
+    if (fellBack) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context).ttsVoiceFallback),
@@ -101,9 +114,40 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
     return voices.first;
   }
 
+  String? _qualityLabel(AppLocalizations l10n, TtsVoiceQuality? quality) {
+    if (quality == null) return null;
+    return switch (quality) {
+      TtsVoiceQuality.defaultQuality => l10n.voiceQualityDefault,
+      TtsVoiceQuality.enhanced => l10n.voiceQualityEnhanced,
+      TtsVoiceQuality.premium => l10n.voiceQualityPremium,
+    };
+  }
+
+  Future<void> _openVoicePicker(List<TtsVoiceUiModel> voices) async {
+    await ref.read(ttsServiceProvider).stop();
+    if (!mounted) return;
+    final picked = await showVoicePicker(
+      context: context,
+      voices: voices,
+      selectedVoiceId: _selectedVoiceId,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _selectedVoiceId = picked.id;
+      _selectedLocale = picked.locale;
+      _selectedVoiceName = picked.name;
+      _selectedQuality = picked.quality;
+    });
+  }
+
   Future<void> _preview() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+    if (_previewing) {
+      await ref.read(ttsServiceProvider).stop();
+      if (mounted) setState(() => _previewing = false);
+      return;
+    }
     setState(() => _previewing = true);
     try {
       await ref.read(ttsServiceProvider).preview(
@@ -197,6 +241,12 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _ensureVoiceSelection(voices);
             });
+            final voiceLabel = _selectedVoiceName == null
+                ? l10n.voiceSelect
+                : (_selectedVoiceName == 'System Default'
+                    ? l10n.voiceSystemDefault
+                    : _selectedVoiceName!);
+            final quality = _qualityLabel(l10n, _selectedQuality);
             return Column(
               children: [
                 Expanded(
@@ -217,16 +267,32 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                         onChanged: (_) => setState(() {}),
                       ),
                       const SizedBox(height: AppConstants.spaceXl),
-                      SectionHeader(title: l10n.ttsVoices),
-                      VoiceBrowser(
-                        voices: voices,
-                        selectedVoiceId: _selectedVoiceId,
-                        onSelected: (voice) {
-                          setState(() {
-                            _selectedVoiceId = voice.id;
-                            _selectedLocale = voice.locale;
-                          });
-                        },
+                      SectionHeader(title: l10n.ttsSelectedVoice),
+                      SurfacePanel(
+                        onTap: () => _openVoicePicker(voices),
+                        emphasized: true,
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.record_voice_over_rounded,
+                              color: context.colors.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: VoiceIdentityBlock(
+                                languageLabel: LocaleDisplayNames.friendly(
+                                  _selectedLocale ?? 'en-US',
+                                ),
+                                voiceName: voiceLabel,
+                                qualityLabel: quality,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: context.colors.onSurfaceVariant,
+                            ),
+                          ],
+                        ),
                       ),
                       TextButton(
                         onPressed: () => context.push(AppRoutes.voiceSpeech),
@@ -240,10 +306,9 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed:
-                              _previewing || _controller.text.trim().isEmpty
-                                  ? null
-                                  : _preview,
+                          onPressed: _controller.text.trim().isEmpty
+                              ? null
+                              : _preview,
                           icon: _previewing
                               ? const SizedBox(
                                   width: 16,
@@ -252,9 +317,13 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Icon(Icons.play_arrow_rounded),
+                              : Icon(
+                                  _previewing
+                                      ? Icons.stop_rounded
+                                      : Icons.play_arrow_rounded,
+                                ),
                           label: Text(
-                            _previewing ? l10n.ttsPreviewing : l10n.ttsPreview,
+                            _previewing ? l10n.voicePlaying : l10n.ttsPreview,
                           ),
                         ),
                       ),
@@ -297,6 +366,12 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   Timer? _ticker;
 
   String get _sequenceId => widget.sequenceId ?? defaultSequenceId;
+
+  @override
+  void deactivate() {
+    ref.read(audioPlayerServiceProvider).stop();
+    super.deactivate();
+  }
 
   @override
   void dispose() {
@@ -347,9 +422,12 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   Future<void> _play() async {
     final path = _filePath;
     if (path == null) return;
-    if (_phase != _RecordPhase.ready && _phase != _RecordPhase.playing) {
+    if (_phase == _RecordPhase.playing) {
+      await ref.read(audioPlayerServiceProvider).stop();
+      if (mounted) setState(() => _phase = _RecordPhase.ready);
       return;
     }
+    if (_phase != _RecordPhase.ready) return;
     setState(() => _phase = _RecordPhase.playing);
     try {
       await ref.read(audioPlayerServiceProvider).playFile(path);
@@ -444,8 +522,16 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: canSave ? _play : null,
-                      icon: const Icon(Icons.play_arrow_rounded),
-                      label: Text(l10n.recordPlay),
+                      icon: Icon(
+                        _phase == _RecordPhase.playing
+                            ? Icons.stop_rounded
+                            : Icons.play_arrow_rounded,
+                      ),
+                      label: Text(
+                        _phase == _RecordPhase.playing
+                            ? l10n.alarmStop
+                            : l10n.recordPlay,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),

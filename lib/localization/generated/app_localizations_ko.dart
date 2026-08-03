@@ -710,4 +710,31 @@ class AppLocalizationsKo extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => '탭하여 시간 선택';
+
+  @override
+  String get segmentPlay => '재생';
+
+  @override
+  String get voicePlaying => '재생 중';
+
+  @override
+  String get voiceSelect => '선택';
+
+  @override
+  String get voiceUnavailable => '음성을 사용할 수 없음';
+
+  @override
+  String get recordingFileMissing => '녹음 파일이 없습니다. 이 세그먼트를 삭제하거나 다시 녹음하세요.';
+
+  @override
+  String get voiceDetails => '음성 세부정보';
+
+  @override
+  String get ttsSelectedVoice => '선택한 음성';
+
+  @override
+  String get voicePreviewSample => '이 음성의 짧은 미리듣기입니다.';
 }

@@ -724,4 +724,32 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'Tik om een tijd te kiezen';
+
+  @override
+  String get segmentPlay => 'Afspelen';
+
+  @override
+  String get voicePlaying => 'Bezig met afspelen';
+
+  @override
+  String get voiceSelect => 'Selecteren';
+
+  @override
+  String get voiceUnavailable => 'Stem niet beschikbaar';
+
+  @override
+  String get recordingFileMissing =>
+      'Opnamebestand ontbreekt. Verwijder dit segment of neem opnieuw op.';
+
+  @override
+  String get voiceDetails => 'Stemdetails';
+
+  @override
+  String get ttsSelectedVoice => 'Geselecteerde stem';
+
+  @override
+  String get voicePreviewSample => 'Dit is een korte preview van deze stem.';
 }

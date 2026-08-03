@@ -9,6 +9,7 @@ import org.json.JSONArray
 /**
  * Fires when AlarmManager triggers. Starts the foreground ringing service and
  * brings the full-screen alarm UI to the front without requiring a tap.
+ * Also handles the notification Stop action.
  */
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
@@ -19,6 +20,12 @@ class AlarmReceiver : BroadcastReceiver() {
             intent?.action == "com.htc.intent.action.QUICKBOOT_POWERON"
         ) {
             AlarmScheduler.rescheduleAll(app)
+            return
+        }
+
+        if (intent?.action == ACTION_STOP) {
+            AlarmForegroundService.stop(app)
+            MainActivity.notifyNativeAlarmStopped()
             return
         }
 
@@ -90,5 +97,6 @@ class AlarmReceiver : BroadcastReceiver() {
 
     companion object {
         const val ACTION_FIRE = "com.smartvoicealarm.app.ACTION_FIRE_ALARM"
+        const val ACTION_STOP = "com.smartvoicealarm.app.ACTION_STOP_ALARM_UI"
     }
 }

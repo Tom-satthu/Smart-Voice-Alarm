@@ -724,4 +724,33 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'Tocca per scegliere l\'ora';
+
+  @override
+  String get segmentPlay => 'Riproduci';
+
+  @override
+  String get voicePlaying => 'In riproduzione';
+
+  @override
+  String get voiceSelect => 'Seleziona';
+
+  @override
+  String get voiceUnavailable => 'Voce non disponibile';
+
+  @override
+  String get recordingFileMissing =>
+      'File di registrazione mancante. Elimina questo segmento o registra di nuovo.';
+
+  @override
+  String get voiceDetails => 'Dettagli voce';
+
+  @override
+  String get ttsSelectedVoice => 'Voce selezionata';
+
+  @override
+  String get voicePreviewSample =>
+      'Questa è una breve anteprima di questa voce.';
 }

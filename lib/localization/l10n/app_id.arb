@@ -265,5 +265,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "alarmSelectTime": "Ketuk untuk memilih waktu",
+  "segmentPlay": "Putar",
+  "voicePlaying": "Memutar",
+  "voiceSelect": "Pilih",
+  "voiceUnavailable": "Suara tidak tersedia",
+  "recordingFileMissing": "File rekaman hilang. Hapus segmen ini atau rekam ulang.",
+  "voiceDetails": "Detail suara",
+  "ttsSelectedVoice": "Suara terpilih",
+  "voicePreviewSample": "Ini adalah pratinjau singkat suara ini."
 }

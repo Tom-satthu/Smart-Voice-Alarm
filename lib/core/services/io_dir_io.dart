@@ -6,3 +6,11 @@ Future<void> ensureDirectoryExists(String path) async {
     await dir.create(recursive: true);
   }
 }
+
+Future<bool> fileExists(String path) async {
+  try {
+    return await File(path).exists();
+  } catch (_) {
+    return false;
+  }
+}

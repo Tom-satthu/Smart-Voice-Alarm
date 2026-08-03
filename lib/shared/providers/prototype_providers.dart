@@ -112,8 +112,9 @@ final alarmEngineProvider = Provider<AlarmEngine>((ref) {
     tts: ref.watch(ttsServiceProvider),
     alarmRepository: alarmRepo,
     sequenceRepository: ref.watch(sequenceRepositoryProvider),
+    onStopNative: () => notifications.native.stopForegroundAlarm(),
     onAlarmStarted: (alarm) async {
-      await notifications.native.stopForegroundAlarm();
+      // Native audio already stopped in AlarmEngine._playAlarm before this.
       if (alarm.repeatDays.isEmpty) {
         final disabled = alarm.copyWith(isEnabled: false);
         await alarmRepo.upsert(disabled);

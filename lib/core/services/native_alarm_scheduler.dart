@@ -11,6 +11,10 @@ class NativeAlarmScheduler {
   static const _channel =
       MethodChannel('com.smartvoicealarm.app/alarms');
 
+  void Function(String alarmId)? onAlarmTriggered;
+  VoidCallback? onNativeAlarmStopped;
+  bool _handlerAttached = false;
+
   /// Disabled under widget tests and non-Android hosts.
   bool get isSupported {
     if (kIsWeb) return false;
@@ -20,6 +24,25 @@ class NativeAlarmScheduler {
     final bindingName = WidgetsBinding.instance.runtimeType.toString();
     if (bindingName.contains('TestWidgetsFlutterBinding')) return false;
     return true;
+  }
+
+  /// Listens for native → Flutter events (alarm open / notification Stop).
+  void attachPlatformHandlers() {
+    if (!isSupported || _handlerAttached) return;
+    _handlerAttached = true;
+    _channel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'onAlarmTriggered':
+          final id = call.arguments?.toString();
+          if (id != null && id.isNotEmpty) {
+            onAlarmTriggered?.call(id);
+          }
+        case 'onNativeAlarmStopped':
+          onNativeAlarmStopped?.call();
+        default:
+          break;
+      }
+    });
   }
 
   Future<void> scheduleAlarm(AlarmUiModel alarm, DateTime triggerAt) async {

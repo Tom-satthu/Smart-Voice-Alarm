@@ -265,5 +265,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "alarmSelectTime": "点按选择时间",
+  "segmentPlay": "播放",
+  "voicePlaying": "正在播放",
+  "voiceSelect": "选择",
+  "voiceUnavailable": "语音不可用",
+  "recordingFileMissing": "录音文件缺失。请删除此片段或重新录制。",
+  "voiceDetails": "语音详情",
+  "ttsSelectedVoice": "已选语音",
+  "voicePreviewSample": "这是此语音的简短预览。"
 }

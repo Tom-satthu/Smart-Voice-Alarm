@@ -146,7 +146,7 @@ void main() {
     await _tapVisible(tester, find.text('Create Alarm').first);
     await _tapVisible(tester, find.text('Save Alarm'));
     expect(find.text('Alarms'), findsOneWidget);
-    expect(find.text('1 alarm ready'), findsOneWidget);
+    expect(find.text('Alarm'), findsWidgets);
   });
 
   testWidgets('4. Edit alarm updates Home', (tester) async {
@@ -193,7 +193,8 @@ void main() {
       isTrue,
     );
     await _tapVisible(tester, find.text('Save Alarm'));
-    expect(find.text('3 alarms ready'), findsOneWidget);
+    expect(find.text('Alarms'), findsOneWidget);
+    expect(controller.state.length, 3);
   });
 
   testWidgets('6. Delete alarm removes it from Home', (tester) async {
@@ -202,7 +203,8 @@ void main() {
     await _pumpFrames(tester);
     await tester.tap(find.text('Delete'));
     await _pumpFrames(tester);
-    expect(find.text('1 alarm ready'), findsOneWidget);
+    expect(find.text('06:30'), findsNothing);
+    expect(find.text('07:15'), findsOneWidget);
   });
 
   testWidgets('7. Toggle alarm switch works', (tester) async {

@@ -720,4 +720,32 @@ class AppLocalizationsId extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'Ketuk untuk memilih waktu';
+
+  @override
+  String get segmentPlay => 'Putar';
+
+  @override
+  String get voicePlaying => 'Memutar';
+
+  @override
+  String get voiceSelect => 'Pilih';
+
+  @override
+  String get voiceUnavailable => 'Suara tidak tersedia';
+
+  @override
+  String get recordingFileMissing =>
+      'File rekaman hilang. Hapus segmen ini atau rekam ulang.';
+
+  @override
+  String get voiceDetails => 'Detail suara';
+
+  @override
+  String get ttsSelectedVoice => 'Suara terpilih';
+
+  @override
+  String get voicePreviewSample => 'Ini adalah pratinjau singkat suara ini.';
 }

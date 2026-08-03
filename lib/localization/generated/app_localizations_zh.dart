@@ -707,6 +707,33 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => '点按选择时间';
+
+  @override
+  String get segmentPlay => '播放';
+
+  @override
+  String get voicePlaying => '正在播放';
+
+  @override
+  String get voiceSelect => '选择';
+
+  @override
+  String get voiceUnavailable => '语音不可用';
+
+  @override
+  String get recordingFileMissing => '录音文件缺失。请删除此片段或重新录制。';
+
+  @override
+  String get voiceDetails => '语音详情';
+
+  @override
+  String get ttsSelectedVoice => '已选语音';
+
+  @override
+  String get voicePreviewSample => '这是此语音的简短预览。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1412,4 +1439,31 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => '點一下以選擇時間';
+
+  @override
+  String get segmentPlay => '播放';
+
+  @override
+  String get voicePlaying => '播放中';
+
+  @override
+  String get voiceSelect => '選擇';
+
+  @override
+  String get voiceUnavailable => '語音無法使用';
+
+  @override
+  String get recordingFileMissing => '缺少錄音檔。請刪除此區段或重新錄音。';
+
+  @override
+  String get voiceDetails => '語音詳細資料';
+
+  @override
+  String get ttsSelectedVoice => '已選語音';
+
+  @override
+  String get voicePreviewSample => '這是此語音的簡短預覽。';
 }

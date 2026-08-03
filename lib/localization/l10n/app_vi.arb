@@ -265,5 +265,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "alarmSelectTime": "Chạm để chọn giờ",
+  "segmentPlay": "Phát",
+  "voicePlaying": "Đang phát",
+  "voiceSelect": "Chọn",
+  "voiceUnavailable": "Giọng không khả dụng",
+  "recordingFileMissing": "Thiếu tệp ghi âm. Xóa đoạn này hoặc ghi lại.",
+  "voiceDetails": "Chi tiết giọng",
+  "ttsSelectedVoice": "Giọng đã chọn",
+  "voicePreviewSample": "Đây là bản xem trước ngắn của giọng này."
 }

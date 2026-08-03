@@ -265,5 +265,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "alarmSelectTime": "Tocca per scegliere l'ora",
+  "segmentPlay": "Riproduci",
+  "voicePlaying": "In riproduzione",
+  "voiceSelect": "Seleziona",
+  "voiceUnavailable": "Voce non disponibile",
+  "recordingFileMissing": "File di registrazione mancante. Elimina questo segmento o registra di nuovo.",
+  "voiceDetails": "Dettagli voce",
+  "ttsSelectedVoice": "Voce selezionata",
+  "voicePreviewSample": "Questa è una breve anteprima di questa voce."
 }

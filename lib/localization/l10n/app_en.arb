@@ -265,5 +265,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "alarmSelectTime": "Tap to choose time",
+  "segmentPlay": "Play",
+  "voicePlaying": "Playing",
+  "voiceSelect": "Select",
+  "voiceUnavailable": "Voice unavailable",
+  "recordingFileMissing": "Recording file missing. Delete this segment or record again.",
+  "voiceDetails": "Voice details",
+  "ttsSelectedVoice": "Selected voice",
+  "voicePreviewSample": "This is a short preview of this voice."
 }

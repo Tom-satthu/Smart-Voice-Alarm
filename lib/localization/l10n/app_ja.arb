@@ -265,5 +265,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "alarmSelectTime": "タップして時刻を選択",
+  "segmentPlay": "再生",
+  "voicePlaying": "再生中",
+  "voiceSelect": "選択",
+  "voiceUnavailable": "音声を利用できません",
+  "recordingFileMissing": "録音ファイルがありません。このセグメントを削除するか、再録音してください。",
+  "voiceDetails": "音声の詳細",
+  "ttsSelectedVoice": "選択中の音声",
+  "voicePreviewSample": "これはこの音声の短いプレビューです。"
 }

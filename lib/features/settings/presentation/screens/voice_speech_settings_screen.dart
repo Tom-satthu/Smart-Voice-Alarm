@@ -30,6 +30,12 @@ class _VoiceSpeechSettingsScreenState
   }
 
   @override
+  void deactivate() {
+    ref.read(ttsServiceProvider).stop();
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();

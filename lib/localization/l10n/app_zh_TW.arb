@@ -265,5 +265,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "alarmSelectTime": "點一下以選擇時間",
+  "segmentPlay": "播放",
+  "voicePlaying": "播放中",
+  "voiceSelect": "選擇",
+  "voiceUnavailable": "語音無法使用",
+  "recordingFileMissing": "缺少錄音檔。請刪除此區段或重新錄音。",
+  "voiceDetails": "語音詳細資料",
+  "ttsSelectedVoice": "已選語音",
+  "voicePreviewSample": "這是此語音的簡短預覽。"
 }

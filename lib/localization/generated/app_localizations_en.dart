@@ -724,4 +724,32 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'Tap to choose time';
+
+  @override
+  String get segmentPlay => 'Play';
+
+  @override
+  String get voicePlaying => 'Playing';
+
+  @override
+  String get voiceSelect => 'Select';
+
+  @override
+  String get voiceUnavailable => 'Voice unavailable';
+
+  @override
+  String get recordingFileMissing =>
+      'Recording file missing. Delete this segment or record again.';
+
+  @override
+  String get voiceDetails => 'Voice details';
+
+  @override
+  String get ttsSelectedVoice => 'Selected voice';
+
+  @override
+  String get voicePreviewSample => 'This is a short preview of this voice.';
 }

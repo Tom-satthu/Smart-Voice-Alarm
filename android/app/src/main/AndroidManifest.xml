@@ -46,6 +46,7 @@
             android:enabled="true">
             <intent-filter>
                 <action android:name="com.smartvoicealarm.app.ACTION_FIRE_ALARM"/>
+                <action android:name="com.smartvoicealarm.app.ACTION_STOP_ALARM_UI"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

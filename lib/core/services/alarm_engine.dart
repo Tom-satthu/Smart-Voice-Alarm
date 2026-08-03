@@ -17,6 +17,7 @@ enum AlarmEnginePhase {
 }
 
 typedef AlarmFiredCallback = FutureOr<void> Function(AlarmUiModel alarm);
+typedef AlarmStopNativeCallback = FutureOr<void> Function();
 
 /// Plays voice sequences then loops ringtone until the user stops.
 ///
@@ -31,6 +32,7 @@ class AlarmEngine {
     AlarmRepository? alarmRepository,
     VoiceSequenceRepository? sequenceRepository,
     this.onAlarmStarted,
+    this.onStopNative,
   })  : _audio = audioPlayer ?? AudioPlayerService(),
         _tts = tts ?? TtsService(),
         _alarms = alarmRepository ?? AlarmRepository(),
@@ -43,6 +45,9 @@ class AlarmEngine {
 
   /// Called when an alarm begins playback (for one-shot disable / reschedule).
   final AlarmFiredCallback? onAlarmStarted;
+
+  /// Stops native foreground service / notification / vibration / wake lock.
+  final AlarmStopNativeCallback? onStopNative;
 
   final Queue<String> _queue = Queue<String>();
   bool _running = false;
@@ -78,7 +83,7 @@ class AlarmEngine {
   /// Stops the active alarm only; continues with the next queued alarm.
   Future<void> stopCurrent() async {
     _stopCurrentRequested = true;
-    await _interruptPlayback();
+    await _interruptPlayback(stopNative: true);
     _ringtoneHold?.complete();
     _ringtoneHold = null;
   }
@@ -89,7 +94,7 @@ class AlarmEngine {
     _stopCurrentRequested = true;
     _queue.clear();
     queuedCount = 0;
-    await _interruptPlayback();
+    await _interruptPlayback(stopNative: true);
     _ringtoneHold?.complete();
     _ringtoneHold = null;
     _running = false;
@@ -99,12 +104,35 @@ class AlarmEngine {
     _phaseController.add(phase);
   }
 
+  /// Removes [alarmId] from the queue, or stops it if currently ringing.
+  Future<void> dismissAlarm(String alarmId) async {
+    final removed = _queue.remove(alarmId);
+    if (removed) {
+      queuedCount = _queue.length;
+    }
+    if (activeAlarmId == alarmId) {
+      await stopCurrent();
+    } else if (removed) {
+      await _stopNativeOnly();
+    }
+  }
+
   /// Backwards-compatible alias for [stopAll].
   Future<void> stop() => stopAll();
 
-  Future<void> _interruptPlayback() async {
+  Future<void> _interruptPlayback({required bool stopNative}) async {
     await _audio.stop();
     await _tts.stop();
+    if (stopNative) {
+      await _stopNativeOnly();
+    }
+  }
+
+  Future<void> _stopNativeOnly() async {
+    final stop = onStopNative;
+    if (stop != null) {
+      await stop();
+    }
   }
 
   Future<void> _processQueue() async {
@@ -135,6 +163,9 @@ class AlarmEngine {
   Future<void> _playAlarm(String alarmId) async {
     final alarm = _alarms.findById(alarmId);
     if (alarm == null) return;
+
+    // Hand off from native FGS before Flutter starts audio to avoid dual play.
+    await _stopNativeOnly();
 
     final started = onAlarmStarted;
     if (started != null) {

@@ -265,5 +265,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "alarmSelectTime": "Tik om een tijd te kiezen",
+  "segmentPlay": "Afspelen",
+  "voicePlaying": "Bezig met afspelen",
+  "voiceSelect": "Selecteren",
+  "voiceUnavailable": "Stem niet beschikbaar",
+  "recordingFileMissing": "Opnamebestand ontbreekt. Verwijder dit segment of neem opnieuw op.",
+  "voiceDetails": "Stemdetails",
+  "ttsSelectedVoice": "Geselecteerde stem",
+  "voicePreviewSample": "Dit is een korte preview van deze stem."
 }
