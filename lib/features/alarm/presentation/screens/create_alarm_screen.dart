@@ -37,10 +37,16 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   AlarmType _type = AlarmType.voice;
   String _ringtoneName = 'Soft Chime';
   String _label = 'Alarm';
-  String? _voiceSequenceId = 'seq-1';
+  String? _voiceSequenceId;
   bool _hydrated = false;
+  bool _enabled = true;
 
   bool get _isEdit => widget.alarmId != null;
+
+  String _ensureSequenceId() {
+    _voiceSequenceId ??= const Uuid().v4();
+    return _voiceSequenceId!;
+  }
 
   @override
   void didChangeDependencies() {
@@ -51,7 +57,10 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     final existing = widget.alarmId == null
         ? null
         : ref.read(alarmListProvider.notifier).findById(widget.alarmId!);
-    if (existing == null) return;
+    if (existing == null) {
+      _voiceSequenceId = const Uuid().v4();
+      return;
+    }
 
     _time = existing.time;
     _repeatDays = Set<Weekday>.from(existing.repeatDays);
@@ -59,7 +68,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     _type = existing.type;
     _ringtoneName = existing.ringtoneName ?? 'Soft Chime';
     _label = existing.label;
-    _voiceSequenceId = existing.voiceSequenceId ?? 'seq-1';
+    _voiceSequenceId = existing.voiceSequenceId ?? const Uuid().v4();
+    _enabled = existing.isEnabled;
   }
 
   void _applyCopy(AlarmUiModel source) {
@@ -70,35 +80,39 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       _type = source.type;
       _ringtoneName = source.ringtoneName ?? 'Soft Chime';
       _label = source.label;
-      _voiceSequenceId = source.voiceSequenceId ?? 'seq-1';
+      _voiceSequenceId = source.voiceSequenceId ?? const Uuid().v4();
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context).alarmCopied)),
     );
   }
 
-  void _save() {
+  Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
-    final sequence = ref.read(voiceSequenceProvider);
+    final sequenceId = _ensureSequenceId();
+    // Ensure sequence document exists before linking.
+    ref.read(voiceSequenceProvider(sequenceId));
+
     final model = AlarmUiModel(
       id: widget.alarmId ?? const Uuid().v4(),
       time: _time,
       repeatDays: Set<Weekday>.from(_repeatDays),
-      isEnabled: true,
+      isEnabled: _enabled,
       type: _type,
       label: _label.trim().isEmpty ? l10n.createAlarmTitle : _label.trim(),
-      voiceSequenceId: _voiceSequenceId ?? sequence.id,
+      voiceSequenceId: sequenceId,
       ringtoneName: _ringtoneName,
       repeatCount: _repeatCount,
     );
 
     final controller = ref.read(alarmListProvider.notifier);
     if (_isEdit) {
-      controller.update(model);
+      await controller.update(model);
     } else {
-      controller.add(model);
+      await controller.add(model);
     }
 
+    if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.alarmSaved)));
@@ -149,7 +163,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final alarms = ref.watch(alarmListProvider);
-    final sequence = ref.watch(voiceSequenceProvider);
+    final sequenceId = _voiceSequenceId ?? defaultSequenceId;
+    final sequence = ref.watch(voiceSequenceProvider(sequenceId));
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return AppScaffold(
@@ -248,7 +263,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                   const SizedBox(height: AppConstants.spaceXl),
                   SectionHeader(title: l10n.alarmVoiceSequence),
                   SurfacePanel(
-                    onTap: () => context.push(AppRoutes.voiceSequence),
+                    onTap: () =>
+                        context.push(AppRoutes.voiceSequencePath(sequenceId)),
                     child: Row(
                       children: [
                         Icon(

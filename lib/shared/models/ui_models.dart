@@ -6,7 +6,6 @@ enum VoiceSegmentType { recording, tts }
 
 enum Weekday { monday, tuesday, wednesday, thursday, friday, saturday, sunday }
 
-/// UI prototype model — no persistence layer in Phase 1.
 class AlarmUiModel {
   const AlarmUiModel({
     required this.id,
@@ -53,6 +52,40 @@ class AlarmUiModel {
       repeatCount: repeatCount ?? this.repeatCount,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'hour': time.hour,
+        'minute': time.minute,
+        'repeatDays': repeatDays.map((d) => d.name).toList(),
+        'isEnabled': isEnabled,
+        'type': type.name,
+        'label': label,
+        'voiceSequenceId': voiceSequenceId,
+        'ringtoneName': ringtoneName,
+        'repeatCount': repeatCount,
+      };
+
+  factory AlarmUiModel.fromJson(Map<String, dynamic> json) {
+    final days = <Weekday>{};
+    for (final raw in (json['repeatDays'] as List<dynamic>? ?? const [])) {
+      days.add(Weekday.values.byName(raw as String));
+    }
+    return AlarmUiModel(
+      id: json['id'] as String,
+      time: TimeOfDay(
+        hour: json['hour'] as int,
+        minute: json['minute'] as int,
+      ),
+      repeatDays: days,
+      isEnabled: json['isEnabled'] as bool? ?? true,
+      type: AlarmType.values.byName(json['type'] as String? ?? 'voice'),
+      label: json['label'] as String? ?? 'Alarm',
+      voiceSequenceId: json['voiceSequenceId'] as String?,
+      ringtoneName: json['ringtoneName'] as String?,
+      repeatCount: json['repeatCount'] as int? ?? 3,
+    );
+  }
 }
 
 class VoiceSegmentUiModel {
@@ -62,6 +95,9 @@ class VoiceSegmentUiModel {
     required this.type,
     required this.duration,
     this.text,
+    this.filePath,
+    this.voiceId,
+    this.localeId,
   });
 
   final String id;
@@ -69,6 +105,9 @@ class VoiceSegmentUiModel {
   final VoiceSegmentType type;
   final Duration duration;
   final String? text;
+  final String? filePath;
+  final String? voiceId;
+  final String? localeId;
 
   VoiceSegmentUiModel copyWith({
     String? id,
@@ -76,6 +115,9 @@ class VoiceSegmentUiModel {
     VoiceSegmentType? type,
     Duration? duration,
     String? text,
+    String? filePath,
+    String? voiceId,
+    String? localeId,
   }) {
     return VoiceSegmentUiModel(
       id: id ?? this.id,
@@ -83,6 +125,35 @@ class VoiceSegmentUiModel {
       type: type ?? this.type,
       duration: duration ?? this.duration,
       text: text ?? this.text,
+      filePath: filePath ?? this.filePath,
+      voiceId: voiceId ?? this.voiceId,
+      localeId: localeId ?? this.localeId,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'type': type.name,
+        'durationMs': duration.inMilliseconds,
+        'text': text,
+        'filePath': filePath,
+        'voiceId': voiceId,
+        'localeId': localeId,
+      };
+
+  factory VoiceSegmentUiModel.fromJson(Map<String, dynamic> json) {
+    return VoiceSegmentUiModel(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? 'Segment',
+      type: VoiceSegmentType.values.byName(
+        json['type'] as String? ?? 'recording',
+      ),
+      duration: Duration(milliseconds: json['durationMs'] as int? ?? 0),
+      text: json['text'] as String?,
+      filePath: json['filePath'] as String?,
+      voiceId: json['voiceId'] as String?,
+      localeId: json['localeId'] as String?,
     );
   }
 }
@@ -109,6 +180,25 @@ class VoiceSequenceUiModel {
       segments: segments ?? this.segments,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'segments': segments.map((s) => s.toJson()).toList(),
+      };
+
+  factory VoiceSequenceUiModel.fromJson(Map<String, dynamic> json) {
+    final rawSegments = json['segments'] as List<dynamic>? ?? const [];
+    return VoiceSequenceUiModel(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? 'Sequence',
+      segments: rawSegments
+          .map((e) => VoiceSegmentUiModel.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ))
+          .toList(),
+    );
+  }
 }
 
 class TtsVoiceUiModel {
@@ -116,7 +206,7 @@ class TtsVoiceUiModel {
     required this.id,
     required this.name,
     required this.locale,
-    required this.isPremium,
+    this.isPremium = false,
   });
 
   final String id;
@@ -126,8 +216,13 @@ class TtsVoiceUiModel {
 }
 
 class RingtoneUiModel {
-  const RingtoneUiModel({required this.id, required this.name});
+  const RingtoneUiModel({
+    required this.id,
+    required this.name,
+    required this.assetPath,
+  });
 
   final String id;
   final String name;
+  final String assetPath;
 }
