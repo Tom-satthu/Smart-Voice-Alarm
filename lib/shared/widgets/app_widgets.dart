@@ -1,0 +1,362 @@
+import 'package:flutter/material.dart';
+
+import '../../core/constants/app_constants.dart';
+import '../../core/extensions/context_extensions.dart';
+
+class AppScaffold extends StatelessWidget {
+  const AppScaffold({
+    super.key,
+    required this.body,
+    this.title,
+    this.actions,
+    this.floatingActionButton,
+    this.leading,
+    this.showBack = false,
+    this.bottom,
+    this.extendBodyBehindAppBar = false,
+    this.backgroundColor,
+  });
+
+  final Widget body;
+  final String? title;
+  final List<Widget>? actions;
+  final Widget? floatingActionButton;
+  final Widget? leading;
+  final bool showBack;
+  final PreferredSizeWidget? bottom;
+  final bool extendBodyBehindAppBar;
+  final Color? backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      extendBodyBehindAppBar: extendBodyBehindAppBar,
+      appBar: title == null && actions == null && !showBack
+          ? null
+          : AppBar(
+              title: title == null ? null : Text(title!),
+              actions: actions,
+              leading: leading,
+              automaticallyImplyLeading: showBack,
+              bottom: bottom,
+            ),
+      floatingActionButton: floatingActionButton,
+      body: body,
+    );
+  }
+}
+
+class SectionHeader extends StatelessWidget {
+  const SectionHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppConstants.spaceMd),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: context.textTheme.titleMedium),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle!,
+                    style: context.textTheme.bodySmall,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+  }
+}
+
+class SurfacePanel extends StatelessWidget {
+  const SurfacePanel({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(AppConstants.spaceMd),
+    this.onTap,
+    this.borderRadius,
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final VoidCallback? onTap;
+  final BorderRadius? borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = borderRadius ?? BorderRadius.circular(AppConstants.radiusMd);
+    final panel = AnimatedContainer(
+      duration: AppConstants.animationFast,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: radius,
+        border: Border.all(
+          color: context.colors.outline.withValues(alpha: 0.55),
+        ),
+      ),
+      child: child,
+    );
+
+    if (onTap == null) return panel;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: panel,
+      ),
+    );
+  }
+}
+
+class EmptyStateView extends StatelessWidget {
+  const EmptyStateView({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.spaceXl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    context.colors.primary.withValues(alpha: 0.18),
+                    context.colors.secondary.withValues(alpha: 0.12),
+                  ],
+                ),
+              ),
+              child: Icon(icon, size: 40, color: context.colors.primary),
+            ),
+            const SizedBox(height: AppConstants.spaceLg),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: context.textTheme.headlineSmall,
+            ),
+            const SizedBox(height: AppConstants.spaceSm),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: context.colors.onSurfaceVariant,
+                ),
+              ),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: AppConstants.spaceLg),
+              FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PrimaryActionButton extends StatelessWidget {
+  const PrimaryActionButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.expanded = true,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+  final bool expanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final child = icon == null
+        ? Text(label)
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20),
+              const SizedBox(width: 8),
+              Text(label),
+            ],
+          );
+
+    final button = FilledButton(onPressed: onPressed, child: child);
+    if (!expanded) return button;
+    return SizedBox(width: double.infinity, child: button);
+  }
+}
+
+class SettingTile extends StatelessWidget {
+  const SettingTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SurfacePanel(
+      padding: EdgeInsets.zero,
+      onTap: onTap,
+      child: ListTile(
+        leading: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: context.colors.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: context.colors.primary, size: 22),
+        ),
+        title: Text(title, style: context.textTheme.titleSmall),
+        subtitle: subtitle == null
+            ? null
+            : Text(
+                subtitle!,
+                style: context.textTheme.bodySmall,
+              ),
+        trailing: trailing ??
+            (onTap == null
+                ? null
+                : Icon(
+                    Icons.chevron_right_rounded,
+                    color: context.colors.onSurfaceVariant,
+                  )),
+      ),
+    );
+  }
+}
+
+class AppChip extends StatelessWidget {
+  const AppChip({
+    super.key,
+    required this.label,
+    this.selected = false,
+    this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: AppConstants.animationFast,
+      child: FilterChip(
+        label: Text(label),
+        selected: selected,
+        showCheckmark: false,
+        onSelected: onTap == null ? null : (_) => onTap!(),
+        selectedColor: context.colors.primary,
+        labelStyle: context.textTheme.labelMedium?.copyWith(
+          color: selected
+              ? context.colors.onPrimary
+              : context.colors.onSurface,
+          fontWeight: FontWeight.w600,
+        ),
+        backgroundColor: context.colors.surface,
+        side: BorderSide(
+          color: selected
+              ? context.colors.primary
+              : context.colors.outline.withValues(alpha: 0.7),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+      ),
+    );
+  }
+}
+
+class FadeSlideIn extends StatelessWidget {
+  const FadeSlideIn({
+    super.key,
+    required this.child,
+    this.delay = Duration.zero,
+    this.offset = const Offset(0, 0.06),
+  });
+
+  final Widget child;
+  final Duration delay;
+  final Offset offset;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: AppConstants.animationSlow + delay,
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(
+              offset.dx * (1 - value) * 24,
+              offset.dy * (1 - value) * 24,
+            ),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
