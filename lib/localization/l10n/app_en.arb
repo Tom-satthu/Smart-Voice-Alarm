@@ -161,5 +161,38 @@
   "ringtoneOceanBreeze": "Ocean Breeze",
   "ringtoneNightPulse": "Night Pulse",
   "ringtoneForestDawn": "Forest Dawn",
-  "ringtoneCrystalBell": "Crystal Bell"
+  "ringtoneCrystalBell": "Crystal Bell",
+  "alarmStop": "Stop",
+  "alarmStopAll": "Stop All",
+  "alarmQueueWaiting": "{count, plural, =1{1 alarm waiting} other{{count} alarms waiting}}",
+  "@alarmQueueWaiting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsVoiceSpeech": "Voice & Speech",
+  "settingsVoiceSpeechSubtitle": "System voices for text to speech",
+  "voiceSpeechTitle": "Voice & Speech",
+  "voiceSpeechSystemVoices": "System voices",
+  "voiceSpeechDownloadMore": "Download more voices",
+  "voiceSpeechRefresh": "Refresh voice list",
+  "voiceSpeechOfflineHint": "Prefer offline voices so alarms still speak without a network connection.",
+  "voiceSpeechIosGuideTitle": "Install voices on iPhone",
+  "voiceSpeechIosGuideBody": "Open Settings → Accessibility → Spoken Content → Voices, download the voices you need, then return here and tap Refresh.",
+  "voiceSpeechAndroidGuide": "Opens the system TTS data installer. Smart Voice Alarm does not download or host voice packages.",
+  "voiceSpeechWebUnavailable": "Browsers manage their own voices. Download packs are not available on web.",
+  "voiceSpeechEmpty": "No usable voices found yet",
+  "voiceSpeechEmptyCta": "Download more voices",
+  "voiceQualityDefault": "Default",
+  "voiceQualityEnhanced": "Enhanced",
+  "voiceQualityPremium": "Premium",
+  "voiceAvailabilityOffline": "Offline",
+  "voiceAvailabilityNetwork": "Needs network",
+  "voiceAvailabilityMissing": "Not installed",
+  "ttsNoVoicesTitle": "No usable voices",
+  "ttsNoVoicesBody": "Download system voices, then refresh the list.",
+  "ttsOpenVoiceSettings": "Download more voices",
+  "ttsVoiceFallback": "Selected voice is unavailable. Using a default voice instead."
 }

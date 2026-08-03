@@ -2,25 +2,40 @@
 
 Commercial Flutter app for voice-based alarms. Wake up to your own recordings and text-to-speech sequences.
 
-## Phase 1 — Architecture & UI Prototype
-
-This repository currently ships:
-
-- Clean Architecture with Feature-First organization
-- Material Design 3, Light & Dark mode
-- Riverpod state management
-- Go Router navigation
-- Localization (English default, extensible)
-- Responsive layouts for phone, tablet, and web
-- Full UI screens: Splash, Home, Create Alarm, Voice Sequence, Add Voice, TTS, Record, Settings, Premium
-
-Business logic, database, notifications, and TTS engine are intentionally deferred to later phases.
-
 ## Live demo (GitHub Pages)
 
 **URL:** https://tom-satthu.github.io/Smart-Voice-Alarm/
 
 Deployed via GitHub Actions (`.github/workflows/deploy-github-pages.yml`) on every push to `main`.
+
+## Features
+
+- Local persistence (Hive) for alarms, voice sequences, theme, language, reminder
+- Voice sequences: recordings + offline system TTS
+- Alarm engine: play sequence → repeat loops → continuous ringtone until Stop
+- Alarm queue with **Stop** (current) and **Stop All**
+- Android: AlarmManager + BroadcastReceiver + foreground service (audio starts without tapping a notification); reschedule after reboot
+- iOS: full voice playback while the app is active; local notification with system sound when the app is killed
+- Settings → Voice & Speech for system voice packs
+
+## Platform limits
+
+### Android
+
+- Exact alarms require the system exact-alarm permission on newer OS versions.
+- Some OEMs aggressively kill background work; AlarmClock + foreground service is used for reliability.
+- Voice packs are installed through the system TTS installer (`INSTALL_TTS_DATA`). This app does not ship or host Google voice packages.
+
+### iOS
+
+- While the app is in the foreground / background (still running), Voice Sequence + TTS playback uses the in-app Alarm Engine.
+- **When iOS has fully killed the app**, TTS and custom recordings cannot continue to run. The system shows a local notification with an appropriate alert sound instead.
+- Additional voices must be downloaded by the user in **Settings → Accessibility → Spoken Content → Voices**. The app cannot install voice packs itself.
+
+### Web
+
+- Demo UI and browser TTS voices work where supported.
+- Microphone recording and system voice-pack install are unavailable in the browser.
 
 ## Run
 
@@ -29,11 +44,12 @@ flutter pub get
 flutter run
 ```
 
-## Analyze & Web Build
+## Analyze & builds
 
 ```bash
 flutter analyze
-flutter build web
+flutter build web --release --base-href "/Smart-Voice-Alarm/"
+flutter build apk --debug
 ```
 
 ## Structure

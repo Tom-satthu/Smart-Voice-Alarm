@@ -38,6 +38,8 @@ Future<void> main() async {
     ],
   );
 
+  // Sync native / local schedules with persisted alarms.
+  await notifications.rescheduleAll(container.read(alarmListProvider));
   await container.read(reminderSettingsProvider.notifier).ensureScheduled();
 
   notifications.onAlarmTriggered = (alarmId) {
@@ -72,5 +74,12 @@ Future<void> _openRinging(ProviderContainer container, String alarmId) async {
   final ctx = rootNavigatorKey.currentContext;
   if (ctx != null && ctx.mounted) {
     GoRouter.of(ctx).go(AppRoutes.ringingPath(alarmId));
+  } else {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final later = rootNavigatorKey.currentContext;
+      if (later != null && later.mounted) {
+        GoRouter.of(later).go(AppRoutes.ringingPath(alarmId));
+      }
+    });
   }
 }

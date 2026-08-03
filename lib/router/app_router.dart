@@ -6,6 +6,7 @@ import '../features/alarm/presentation/screens/create_alarm_screen.dart';
 import '../features/home/presentation/screens/home_screen.dart';
 import '../features/premium/presentation/screens/premium_screen.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
+import '../features/settings/presentation/screens/voice_speech_settings_screen.dart';
 import '../features/splash/presentation/screens/splash_screen.dart';
 import '../features/voice_sequence/presentation/screens/tts_record_screens.dart';
 import '../features/voice_sequence/presentation/screens/voice_sequence_screen.dart';
@@ -80,6 +81,11 @@ GoRouter createAppRouter({String? initialLocation}) {
         path: AppRoutes.settings,
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.voiceSpeech,
+        name: 'voiceSpeech',
+        builder: (context, state) => const VoiceSpeechSettingsScreen(),
       ),
       GoRoute(
         path: AppRoutes.premium,

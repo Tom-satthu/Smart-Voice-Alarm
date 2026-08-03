@@ -13,9 +13,19 @@ class TtsService {
     if (_ready) return;
     await _tts.awaitSpeakCompletion(true);
     if (!kIsWeb) {
-      await _tts.setSharedInstance(true);
+      try {
+        await _tts.setSharedInstance(true);
+      } catch (_) {}
     }
     _ready = true;
+  }
+
+  /// Returns only voices that can be selected for preview / alarms.
+  Future<List<TtsVoiceUiModel>> loadUsableVoices() async {
+    final all = await loadVoices();
+    final usable = all.where((v) => v.isUsable).toList();
+    if (usable.isEmpty) return _fallbackVoices;
+    return usable;
   }
 
   Future<List<TtsVoiceUiModel>> loadVoices() async {
@@ -31,21 +41,53 @@ class TtsService {
         final map = Map<String, dynamic>.from(item);
         final name = (map['name'] ?? map['voiceURI'] ?? 'Voice').toString();
         final locale = (map['locale'] ?? 'en-US').toString();
-        if (!locale.toLowerCase().startsWith('en')) continue;
+        final quality = _parseQuality(map);
+        final availability = _parseAvailability(map);
+        final usable = availability != TtsVoiceAvailability.notInstalled;
         voices.add(
           TtsVoiceUiModel(
             id: '$name|$locale',
-            name: name,
+            name: _displayName(name),
             locale: locale,
+            isPremium: quality == TtsVoiceQuality.premium,
+            quality: quality,
+            availability: availability,
+            isUsable: usable,
           ),
         );
       }
       if (voices.isEmpty) return _fallbackVoices;
-      voices.sort((a, b) => a.name.compareTo(b.name));
+      voices.sort((a, b) {
+        final byLocale = a.locale.compareTo(b.locale);
+        if (byLocale != 0) return byLocale;
+        return a.name.compareTo(b.name);
+      });
       return voices;
     } catch (_) {
       return _fallbackVoices;
     }
+  }
+
+  /// Picks [preferredId] when still installed; otherwise same-locale default.
+  Future<TtsVoiceUiModel> resolveVoice({
+    String? preferredId,
+    String? preferredLocale,
+  }) async {
+    final voices = await loadUsableVoices();
+    if (preferredId != null) {
+      for (final voice in voices) {
+        if (voice.id == preferredId) return voice;
+      }
+    }
+    final locale = preferredLocale ?? 'en-US';
+    for (final voice in voices) {
+      if (voice.locale.toLowerCase() == locale.toLowerCase()) return voice;
+    }
+    final lang = locale.split(RegExp('[-_]')).first.toLowerCase();
+    for (final voice in voices) {
+      if (voice.locale.toLowerCase().startsWith(lang)) return voice;
+    }
+    return voices.first;
   }
 
   Future<void> preview({
@@ -56,15 +98,17 @@ class TtsService {
     await init();
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
-    if (locale != null && locale.isNotEmpty) {
-      await _tts.setLanguage(locale);
-    }
-    if (voiceId != null && voiceId.contains('|')) {
-      final name = voiceId.split('|').first;
-      try {
-        await _tts.setVoice({'name': name, 'locale': locale ?? 'en-US'});
-      } catch (_) {}
-    }
+    final resolved = await resolveVoice(
+      preferredId: voiceId,
+      preferredLocale: locale,
+    );
+    try {
+      await _tts.setLanguage(resolved.locale);
+      final name = resolved.id.contains('|')
+          ? resolved.id.split('|').first
+          : resolved.name;
+      await _tts.setVoice({'name': name, 'locale': resolved.locale});
+    } catch (_) {}
     await _tts.speak(trimmed);
   }
 
@@ -78,7 +122,60 @@ class TtsService {
 
   Future<void> stop() => _tts.stop();
 
+  TtsVoiceQuality _parseQuality(Map<String, dynamic> map) {
+    final quality = (map['quality'] ?? map['features'] ?? '')
+        .toString()
+        .toLowerCase();
+    final name = (map['name'] ?? '').toString().toLowerCase();
+    if (quality.contains('premium') || name.contains('premium')) {
+      return TtsVoiceQuality.premium;
+    }
+    if (quality.contains('enhanced') ||
+        quality.contains('quality') ||
+        name.contains('enhanced') ||
+        name.contains('compact')) {
+      return TtsVoiceQuality.enhanced;
+    }
+    // iOS often exposes quality as int via undocumented keys.
+    final q = map['quality'];
+    if (q is num) {
+      if (q >= 300) return TtsVoiceQuality.premium;
+      if (q >= 200) return TtsVoiceQuality.enhanced;
+    }
+    return TtsVoiceQuality.defaultQuality;
+  }
+
+  TtsVoiceAvailability _parseAvailability(Map<String, dynamic> map) {
+    final network = map['networkConnectionRequired'] ??
+        map['network_required'] ??
+        map['requiresNetwork'];
+    if (network == true || network?.toString() == '1') {
+      return TtsVoiceAvailability.networkRequired;
+    }
+    final installed = map['installed'] ?? map['isInstalled'];
+    if (installed == false || installed?.toString() == '0') {
+      return TtsVoiceAvailability.notInstalled;
+    }
+    final features = (map['features'] ?? '').toString().toLowerCase();
+    if (features.contains('notInstalled') || features.contains('not_installed')) {
+      return TtsVoiceAvailability.notInstalled;
+    }
+    return TtsVoiceAvailability.installedOffline;
+  }
+
+  String _displayName(String raw) {
+    // Strip locale suffixes like "en-us-x-sfg-local" noise when present twice.
+    return raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
   static const _fallbackVoices = [
-    TtsVoiceUiModel(id: 'default|en-US', name: 'System Default', locale: 'en-US'),
+    TtsVoiceUiModel(
+      id: 'default|en-US',
+      name: 'System Default',
+      locale: 'en-US',
+      quality: TtsVoiceQuality.defaultQuality,
+      availability: TtsVoiceAvailability.installedOffline,
+      isUsable: true,
+    ),
   ];
 }

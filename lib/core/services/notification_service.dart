@@ -6,14 +6,17 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../shared/models/ui_models.dart';
+import 'native_alarm_scheduler.dart';
 
 typedef AlarmNotificationCallback = void Function(String alarmId);
 
 class NotificationService {
-  NotificationService();
+  NotificationService({NativeAlarmScheduler? nativeScheduler})
+      : _native = nativeScheduler ?? NativeAlarmScheduler();
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
+  final NativeAlarmScheduler _native;
 
   static const _alarmChannelId = 'smart_voice_alarm_alarms';
   static const _reminderChannelId = 'smart_voice_alarm_reminders';
@@ -21,6 +24,8 @@ class NotificationService {
 
   AlarmNotificationCallback? onAlarmTriggered;
   bool _initialized = false;
+
+  NativeAlarmScheduler get native => _native;
 
   Future<void> init() async {
     if (kIsWeb || _initialized) return;
@@ -88,27 +93,54 @@ class NotificationService {
   }
 
   Future<void> cancelAlarm(String alarmId) async {
-    if (kIsWeb || !_initialized) return;
+    if (kIsWeb) return;
     try {
-      await _plugin.cancel(alarmId.hashCode);
+      if (_native.isSupported) {
+        await _native.cancelAlarm(alarmId);
+      }
+      if (_initialized) {
+        await _plugin.cancel(alarmId.hashCode);
+      }
     } catch (error) {
       debugPrint('cancelAlarm failed: $error');
     }
   }
 
   Future<void> scheduleAlarm(AlarmUiModel alarm) async {
-    if (kIsWeb || !_initialized) return;
+    if (kIsWeb) return;
     try {
       if (!alarm.isEnabled) {
         await cancelAlarm(alarm.id);
         return;
       }
 
-      await cancelAlarm(alarm.id);
       final next = _nextOccurrence(alarm);
-      if (next == null) return;
+      if (next == null) {
+        await cancelAlarm(alarm.id);
+        return;
+      }
 
+      // Android: AlarmManager + FGS so audio starts without a notification tap.
+      if (_native.isSupported) {
+        await _native.scheduleAlarm(alarm, next);
+        // Still cancel any stale FLN alarm ids.
+        if (_initialized) {
+          await _plugin.cancel(alarm.id.hashCode);
+        }
+        return;
+      }
+
+      if (!_initialized) return;
+      await _plugin.cancel(alarm.id.hashCode);
+
+      // iOS: local notification with system sound when the app may be killed.
+      // Voice sequences / TTS cannot run while the process is dead.
       const details = NotificationDetails(
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentSound: true,
+          interruptionLevel: InterruptionLevel.timeSensitive,
+        ),
         android: AndroidNotificationDetails(
           _alarmChannelId,
           'Alarms',
@@ -117,15 +149,7 @@ class NotificationService {
           priority: Priority.max,
           category: AndroidNotificationCategory.alarm,
           fullScreenIntent: true,
-          visibility: NotificationVisibility.public,
-          ongoing: true,
-          autoCancel: false,
-          playSound: false,
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentSound: true,
-          interruptionLevel: InterruptionLevel.timeSensitive,
+          playSound: true,
         ),
       );
 
@@ -147,7 +171,7 @@ class NotificationService {
   }
 
   Future<void> rescheduleAll(List<AlarmUiModel> alarms) async {
-    if (kIsWeb || !_initialized) return;
+    if (kIsWeb) return;
     for (final alarm in alarms) {
       await scheduleAlarm(alarm);
     }
@@ -202,7 +226,11 @@ class NotificationService {
   }
 
   Future<String?> consumeLaunchAlarmId() async {
-    if (kIsWeb || !_initialized) return null;
+    if (kIsWeb) return null;
+    final nativeId = await _native.consumeLaunchAlarmId();
+    if (nativeId != null && nativeId.isNotEmpty) return nativeId;
+
+    if (!_initialized) return null;
     try {
       final details = await _plugin.getNotificationAppLaunchDetails();
       if (details?.didNotificationLaunchApp != true) return null;
@@ -214,7 +242,20 @@ class NotificationService {
     }
   }
 
+  tz.TZDateTime? nextOccurrence(AlarmUiModel alarm) => _nextOccurrence(alarm);
+
+  void _ensureTimeZone() {
+    try {
+      // Touch local to detect uninitialized timezone database.
+      tz.TZDateTime.now(tz.local);
+    } catch (_) {
+      tzdata.initializeTimeZones();
+      tz.setLocalLocation(tz.UTC);
+    }
+  }
+
   tz.TZDateTime? _nextOccurrence(AlarmUiModel alarm) {
+    _ensureTimeZone();
     final now = tz.TZDateTime.now(tz.local);
     for (var offset = 0; offset < 8; offset++) {
       final candidateDay = now.add(Duration(days: offset));

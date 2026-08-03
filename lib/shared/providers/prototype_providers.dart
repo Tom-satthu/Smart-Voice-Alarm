@@ -7,6 +7,7 @@ import '../../core/services/audio_player_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/recording_service.dart';
 import '../../core/services/storage_paths.dart';
+import '../../core/services/tts_platform_bridge.dart';
 import '../../core/services/tts_service.dart';
 import '../data/local_store.dart';
 import '../models/ui_models.dart';
@@ -45,12 +46,30 @@ final ttsServiceProvider = Provider<TtsService>((ref) {
   return TtsService();
 });
 
+final ttsPlatformBridgeProvider = Provider<TtsPlatformBridge>((ref) {
+  return TtsPlatformBridge();
+});
+
 final alarmEngineProvider = Provider<AlarmEngine>((ref) {
+  final notifications = ref.watch(notificationServiceProvider);
+  final alarmRepo = ref.watch(alarmRepositoryProvider);
   final engine = AlarmEngine(
     audioPlayer: ref.watch(audioPlayerServiceProvider),
     tts: ref.watch(ttsServiceProvider),
-    alarmRepository: ref.watch(alarmRepositoryProvider),
+    alarmRepository: alarmRepo,
     sequenceRepository: ref.watch(sequenceRepositoryProvider),
+    onAlarmStarted: (alarm) async {
+      await notifications.native.stopForegroundAlarm();
+      if (alarm.repeatDays.isEmpty) {
+        final disabled = alarm.copyWith(isEnabled: false);
+        await alarmRepo.upsert(disabled);
+        await notifications.scheduleAlarm(disabled);
+        await ref.read(alarmListProvider.notifier).reload();
+      } else {
+        // Keep repeating alarms scheduled for the next matching day.
+        await notifications.scheduleAlarm(alarm);
+      }
+    },
   );
   ref.onDispose(engine.dispose);
   return engine;
@@ -241,8 +260,39 @@ final voiceSequenceProvider = StateNotifierProvider.family<
 const defaultSequenceId = 'seq-1';
 
 final ttsVoicesProvider =
-    FutureProvider<List<TtsVoiceUiModel>>((ref) async {
+    FutureProvider.autoDispose<List<TtsVoiceUiModel>>((ref) async {
   return ref.watch(ttsServiceProvider).loadVoices();
+});
+
+final usableTtsVoicesProvider =
+    FutureProvider.autoDispose<List<TtsVoiceUiModel>>((ref) async {
+  return ref.watch(ttsServiceProvider).loadUsableVoices();
+});
+
+class PreferredVoiceController extends StateNotifier<({String? id, String? locale})> {
+  PreferredVoiceController([SettingsRepository? repo])
+      : _repo = repo ?? SettingsRepository(),
+        super((
+          id: (repo ?? SettingsRepository()).loadPreferredVoiceId(),
+          locale: (repo ?? SettingsRepository()).loadPreferredVoiceLocale(),
+        )) {
+    state = (
+      id: _repo.loadPreferredVoiceId(),
+      locale: _repo.loadPreferredVoiceLocale(),
+    );
+  }
+
+  final SettingsRepository _repo;
+
+  Future<void> setVoice({required String id, required String locale}) async {
+    state = (id: id, locale: locale);
+    await _repo.savePreferredVoice(voiceId: id, localeId: locale);
+  }
+}
+
+final preferredVoiceProvider = StateNotifierProvider<PreferredVoiceController,
+    ({String? id, String? locale})>((ref) {
+  return PreferredVoiceController(ref.watch(settingsRepositoryProvider));
 });
 
 final ringtonesProvider = Provider<List<RingtoneUiModel>>((ref) {

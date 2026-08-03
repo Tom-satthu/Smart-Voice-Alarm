@@ -239,7 +239,20 @@ void main() {
         sequenceRepositoryProvider.overrideWithValue(sequenceRepo),
         ttsVoicesProvider.overrideWith(
           (ref) async => const [
-            TtsVoiceUiModel(id: 'voice-1', name: 'Ava', locale: 'en-US'),
+            TtsVoiceUiModel(
+              id: 'voice-1',
+              name: 'Ava',
+              locale: 'en-US',
+            ),
+          ],
+        ),
+        usableTtsVoicesProvider.overrideWith(
+          (ref) async => const [
+            TtsVoiceUiModel(
+              id: 'voice-1',
+              name: 'Ava',
+              locale: 'en-US',
+            ),
           ],
         ),
         voiceSequenceProvider.overrideWith((ref, id) {

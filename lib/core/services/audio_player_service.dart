@@ -14,6 +14,7 @@ class AudioPlayerService {
 
   Future<void> playAsset(String assetPath) async {
     await _player.stop();
+    await _player.setLoopMode(LoopMode.off);
     await _player.setAsset(assetPath);
     await _player.play();
     await _player.processingStateStream.firstWhere(
@@ -23,9 +24,18 @@ class AudioPlayerService {
     );
   }
 
+  /// Loops an asset until [stop] is called.
+  Future<void> loopAsset(String assetPath) async {
+    await _player.stop();
+    await _player.setLoopMode(LoopMode.one);
+    await _player.setAsset(assetPath);
+    await _player.play();
+  }
+
   Future<void> playFile(String filePath) async {
     if (kIsWeb) return;
     await _player.stop();
+    await _player.setLoopMode(LoopMode.off);
     await _player.setFilePath(filePath);
     await _player.play();
     await _player.processingStateStream.firstWhere(
@@ -38,11 +48,16 @@ class AudioPlayerService {
   Future<void> playFilePreview(String filePath) async {
     if (kIsWeb) return;
     await _player.stop();
+    await _player.setLoopMode(LoopMode.off);
     await _player.setFilePath(filePath);
     await _player.play();
   }
 
-  Future<void> stop() => _player.stop();
+  Future<void> stop() async {
+    await _player.stop();
+    await _player.setLoopMode(LoopMode.off);
+  }
+
   Future<void> pause() => _player.pause();
 
   Future<void> dispose() => _player.dispose();

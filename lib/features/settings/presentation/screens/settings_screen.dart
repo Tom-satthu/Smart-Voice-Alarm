@@ -89,6 +89,14 @@ class SettingsScreen extends ConsumerWidget {
                   : null,
             ),
             const SizedBox(height: AppConstants.spaceXl),
+            SectionHeader(title: l10n.settingsVoiceSpeech),
+            SettingTile(
+              icon: Icons.record_voice_over_outlined,
+              title: l10n.settingsVoiceSpeech,
+              subtitle: l10n.settingsVoiceSpeechSubtitle,
+              onTap: () => context.push(AppRoutes.voiceSpeech),
+            ),
+            const SizedBox(height: AppConstants.spaceXl),
             SettingTile(
               icon: Icons.workspace_premium_rounded,
               title: l10n.settingsPremium,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,26 +25,54 @@ class AlarmRingingScreen extends ConsumerStatefulWidget {
 class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
   late final AlarmEngine _engine;
   AlarmEnginePhase _phase = AlarmEnginePhase.idle;
+  String? _activeId;
+  StreamSubscription<AlarmEnginePhase>? _phaseSub;
+  StreamSubscription<String?>? _activeSub;
 
   @override
   void initState() {
     super.initState();
     _engine = ref.read(alarmEngineProvider);
-    _engine.phaseStream.listen((phase) {
+    _activeId = widget.alarmId;
+    _phaseSub = _engine.phaseStream.listen((phase) {
       if (!mounted) return;
       setState(() => _phase = phase);
-      if (phase == AlarmEnginePhase.completed ||
-          phase == AlarmEnginePhase.idle && !_engine.isRunning) {
-        // Stay on screen until user dismisses.
-      }
+    });
+    _activeSub = _engine.activeAlarmStream.listen((id) {
+      if (!mounted) return;
+      setState(() => _activeId = id ?? _activeId);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _engine.enqueue(widget.alarmId);
     });
   }
 
-  Future<void> _dismiss() async {
-    await _engine.stop();
+  @override
+  void dispose() {
+    _phaseSub?.cancel();
+    _activeSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _stopCurrent() async {
+    await _engine.stopCurrent();
+    if (!mounted) return;
+    // Give the queue a moment to promote the next alarm.
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    if (!mounted) return;
+    if (_engine.isRunning && _engine.activeAlarmId != null) {
+      setState(() => _activeId = _engine.activeAlarmId);
+      return;
+    }
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.home);
+    }
+  }
+
+  Future<void> _stopAll() async {
+    await _engine.stopAll();
     if (!mounted) return;
     if (context.canPop()) {
       context.pop();
@@ -54,10 +84,12 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final alarm = ref.watch(alarmListProvider.notifier).findById(widget.alarmId);
+    final id = _activeId ?? widget.alarmId;
+    final alarm = ref.watch(alarmListProvider.notifier).findById(id);
     final title = alarm?.label ?? l10n.appName;
     final active = _phase == AlarmEnginePhase.playingVoice ||
         _phase == AlarmEnginePhase.playingRingtone;
+    final queued = _engine.queuedCount;
 
     return Scaffold(
       body: AmbientBackground(
@@ -79,6 +111,15 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
                     color: context.colors.onSurfaceVariant,
                   ),
                 ),
+                if (queued > 0) ...[
+                  const SizedBox(height: AppConstants.spaceSm),
+                  Text(
+                    l10n.alarmQueueWaiting(queued),
+                    style: context.textTheme.bodyMedium?.copyWith(
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppConstants.spaceXl),
                 WaveVisualizer(active: active),
                 if (_engine.statusText != null) ...[
@@ -91,9 +132,15 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
                 ],
                 const Spacer(),
                 PrimaryActionButton(
-                  label: l10n.commonDone,
+                  label: l10n.alarmStop,
                   icon: Icons.alarm_off_rounded,
-                  onPressed: _dismiss,
+                  onPressed: _stopCurrent,
+                ),
+                const SizedBox(height: AppConstants.spaceMd),
+                OutlinedButton.icon(
+                  onPressed: _stopAll,
+                  icon: const Icon(Icons.stop_circle_outlined),
+                  label: Text(l10n.alarmStopAll),
                 ),
               ],
             ),

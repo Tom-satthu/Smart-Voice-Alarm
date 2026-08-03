@@ -207,12 +207,26 @@ class TtsVoiceUiModel {
     required this.name,
     required this.locale,
     this.isPremium = false,
+    this.quality = TtsVoiceQuality.defaultQuality,
+    this.availability = TtsVoiceAvailability.installedOffline,
+    this.isUsable = true,
   });
 
   final String id;
   final String name;
   final String locale;
   final bool isPremium;
+  final TtsVoiceQuality quality;
+  final TtsVoiceAvailability availability;
+  final bool isUsable;
+}
+
+enum TtsVoiceQuality { defaultQuality, enhanced, premium }
+
+enum TtsVoiceAvailability {
+  installedOffline,
+  networkRequired,
+  notInstalled,
 }
 
 class RingtoneUiModel {
