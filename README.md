@@ -16,11 +16,15 @@ This repository currently ships:
 
 Business logic, database, notifications, and TTS engine are intentionally deferred to later phases.
 
-## Live demo
+## Live demo (GitHub Pages)
 
-GitHub Pages: https://tom-satthu.github.io/Smart-Voice-Alarm/
+**URL:** https://tom-satthu.github.io/Smart-Voice-Alarm/
 
-> If the link 404s, enable Pages once in **Settings → Pages** (source: GitHub Actions, or branch `gh-pages` / root, or `main` / `/docs`).
+Enable once (required): [Settings → Pages](https://github.com/Tom-satthu/Smart-Voice-Alarm/settings/pages)
+
+- Source: **GitHub Actions**, or branch **`gh-pages`** / **`/(root)`**, or **`main`** / **`/docs`**
+- Save — the URL above becomes public
+- Every push to `main` rebuilds and republishes via `.github/workflows/deploy-github-pages.yml`
 
 ## Run
 
