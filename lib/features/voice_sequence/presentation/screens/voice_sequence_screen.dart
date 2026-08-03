@@ -68,7 +68,7 @@ class VoiceSequenceScreen extends ConsumerWidget {
                           child: child,
                         );
                       },
-                      onReorder: (oldIndex, newIndex) {
+                      onReorderItem: (oldIndex, newIndex) {
                         ref
                             .read(voiceSequenceProvider(id).notifier)
                             .reorder(oldIndex, newIndex);
