@@ -154,12 +154,25 @@ class SettingsRepository {
   }
 
   Locale loadLocale() {
-    final code = LocalDatabase.settingsBox.get(_localeKey) as String? ?? 'en';
+    final code = LocalDatabase.settingsBox.get(_localeKey) as String?;
+    if (code == null || code.isEmpty) {
+      return const Locale('en');
+    }
+    final parts = code.split('_');
+    if (parts.length >= 2) {
+      return Locale(parts[0], parts[1]);
+    }
     return Locale(code);
   }
 
+  bool get hasSavedLocale =>
+      LocalDatabase.settingsBox.get(_localeKey) != null;
+
   Future<void> saveLocale(Locale locale) async {
-    await LocalDatabase.settingsBox.put(_localeKey, locale.languageCode);
+    final value = locale.countryCode == null || locale.countryCode!.isEmpty
+        ? locale.languageCode
+        : '${locale.languageCode}_${locale.countryCode}';
+    await LocalDatabase.settingsBox.put(_localeKey, value);
   }
 
   bool loadReminderEnabled() =>

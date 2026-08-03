@@ -5,7 +5,18 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_id.dart';
+import 'app_localizations_it.dart';
+import 'app_localizations_ja.dart';
+import 'app_localizations_ko.dart';
+import 'app_localizations_nl.dart';
+import 'app_localizations_pt.dart';
+import 'app_localizations_vi.dart';
+import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,7 +103,21 @@ abstract class AppLocalizations {
       ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
+    Locale('en'),
+    Locale('es'),
+    Locale('fr'),
+    Locale('id'),
+    Locale('it'),
+    Locale('ja'),
+    Locale('ko'),
+    Locale('nl'),
+    Locale('pt'),
+    Locale('vi'),
+    Locale('zh'),
+    Locale('zh', 'TW'),
+  ];
 
   /// No description provided for @appName.
   ///
@@ -511,8 +536,26 @@ abstract class AppLocalizations {
   /// No description provided for @ttsVoices.
   ///
   /// In en, this message translates to:
-  /// **'Voice'**
+  /// **'Voices'**
   String get ttsVoices;
+
+  /// No description provided for @ttsLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get ttsLanguageLabel;
+
+  /// No description provided for @ttsVoiceNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get ttsVoiceNameLabel;
+
+  /// No description provided for @ttsVoiceQualityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality'**
+  String get ttsVoiceQualityLabel;
 
   /// No description provided for @ttsPreview.
   ///
@@ -649,7 +692,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsReminder.
   ///
   /// In en, this message translates to:
-  /// **'Reminder to set alarm'**
+  /// **'Reminder'**
   String get settingsReminder;
 
   /// No description provided for @settingsReminderSubtitle.
@@ -673,8 +716,8 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAboutSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Version {version}'**
-  String settingsAboutSubtitle(String version);
+  /// **'App info and support'**
+  String get settingsAboutSubtitle;
 
   /// No description provided for @settingsAboutLegalese.
   ///
@@ -694,10 +737,52 @@ abstract class AppLocalizations {
   /// **'Unlock lifetime access'**
   String get settingsPremiumSubtitle;
 
+  /// No description provided for @settingsVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Voices'**
+  String get settingsVoices;
+
+  /// No description provided for @settingsVoicesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System voices for text to speech'**
+  String get settingsVoicesSubtitle;
+
+  /// No description provided for @settingsVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get settingsVersion;
+
+  /// No description provided for @settingsLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Source Licenses'**
+  String get settingsLicenses;
+
+  /// No description provided for @settingsPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get settingsPrivacy;
+
+  /// No description provided for @settingsTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Use'**
+  String get settingsTerms;
+
+  /// No description provided for @settingsLegalPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Content coming soon.'**
+  String get settingsLegalPlaceholder;
+
   /// No description provided for @premiumTitle.
   ///
   /// In en, this message translates to:
-  /// **'Go Premium'**
+  /// **'Premium'**
   String get premiumTitle;
 
   /// No description provided for @premiumHeadline.
@@ -709,8 +794,32 @@ abstract class AppLocalizations {
   /// No description provided for @premiumSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Support the app and unlock the complete voice alarm toolkit with a single lifetime purchase.'**
+  /// **'Unlock the complete Smart Voice Alarm experience with a single lifetime purchase. No subscriptions.'**
   String get premiumSubtitle;
+
+  /// No description provided for @premiumPlanFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get premiumPlanFree;
+
+  /// No description provided for @premiumPlanLifetime.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Lifetime'**
+  String get premiumPlanLifetime;
+
+  /// No description provided for @premiumPlanLifetimePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time unlock'**
+  String get premiumPlanLifetimePrice;
+
+  /// No description provided for @premiumBenefitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in Premium'**
+  String get premiumBenefitsTitle;
 
   /// No description provided for @premiumBenefitUnlimited.
   ///
@@ -727,7 +836,7 @@ abstract class AppLocalizations {
   /// No description provided for @premiumBenefitVoices.
   ///
   /// In en, this message translates to:
-  /// **'More speaking voices'**
+  /// **'Full access to speaking voices'**
   String get premiumBenefitVoices;
 
   /// No description provided for @premiumBenefitThemes.
@@ -741,6 +850,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Priority support'**
   String get premiumBenefitSupport;
+
+  /// No description provided for @premiumBenefitNoAds.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad-free experience'**
+  String get premiumBenefitNoAds;
 
   /// No description provided for @premiumUnlock.
   ///
@@ -757,8 +872,14 @@ abstract class AppLocalizations {
   /// No description provided for @premiumThanks.
   ///
   /// In en, this message translates to:
-  /// **'Thank you for your support'**
+  /// **'Purchases will be available in a future update. Thank you for your support.'**
   String get premiumThanks;
+
+  /// No description provided for @premiumComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app purchases are being prepared. Nothing will be charged yet.'**
+  String get premiumComingSoon;
 
   /// No description provided for @commonCancel.
   ///
@@ -808,11 +929,89 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get commonRemove;
 
+  /// No description provided for @commonOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get commonOpen;
+
   /// No description provided for @languageEnglish.
   ///
   /// In en, this message translates to:
   /// **'English'**
   String get languageEnglish;
+
+  /// No description provided for @languageSpanish.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get languageSpanish;
+
+  /// No description provided for @languagePortuguese.
+  ///
+  /// In en, this message translates to:
+  /// **'Portuguese'**
+  String get languagePortuguese;
+
+  /// No description provided for @languageFrench.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get languageFrench;
+
+  /// No description provided for @languageGerman.
+  ///
+  /// In en, this message translates to:
+  /// **'German'**
+  String get languageGerman;
+
+  /// No description provided for @languageItalian.
+  ///
+  /// In en, this message translates to:
+  /// **'Italian'**
+  String get languageItalian;
+
+  /// No description provided for @languageDutch.
+  ///
+  /// In en, this message translates to:
+  /// **'Dutch'**
+  String get languageDutch;
+
+  /// No description provided for @languageJapanese.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese'**
+  String get languageJapanese;
+
+  /// No description provided for @languageKorean.
+  ///
+  /// In en, this message translates to:
+  /// **'Korean'**
+  String get languageKorean;
+
+  /// No description provided for @languageChineseSimplified.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese (Simplified)'**
+  String get languageChineseSimplified;
+
+  /// No description provided for @languageChineseTraditional.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese (Traditional)'**
+  String get languageChineseTraditional;
+
+  /// No description provided for @languageIndonesian.
+  ///
+  /// In en, this message translates to:
+  /// **'Indonesian'**
+  String get languageIndonesian;
+
+  /// No description provided for @languageVietnamese.
+  ///
+  /// In en, this message translates to:
+  /// **'Vietnamese'**
+  String get languageVietnamese;
 
   /// No description provided for @timesLabel.
   ///
@@ -874,83 +1073,71 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 alarm waiting} other{{count} alarms waiting}}'**
   String alarmQueueWaiting(int count);
 
-  /// No description provided for @settingsVoiceSpeech.
+  /// No description provided for @voicesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Voice & Speech'**
-  String get settingsVoiceSpeech;
+  /// **'Voices'**
+  String get voicesTitle;
 
-  /// No description provided for @settingsVoiceSpeechSubtitle.
+  /// No description provided for @voicesSystemVoices.
   ///
   /// In en, this message translates to:
-  /// **'System voices for text to speech'**
-  String get settingsVoiceSpeechSubtitle;
+  /// **'System Voices'**
+  String get voicesSystemVoices;
 
-  /// No description provided for @voiceSpeechTitle.
+  /// No description provided for @voicesDownloadMore.
   ///
   /// In en, this message translates to:
-  /// **'Voice & Speech'**
-  String get voiceSpeechTitle;
+  /// **'Download More Voices'**
+  String get voicesDownloadMore;
 
-  /// No description provided for @voiceSpeechSystemVoices.
+  /// No description provided for @voicesRefresh.
   ///
   /// In en, this message translates to:
-  /// **'System voices'**
-  String get voiceSpeechSystemVoices;
+  /// **'Refresh Voices'**
+  String get voicesRefresh;
 
-  /// No description provided for @voiceSpeechDownloadMore.
-  ///
-  /// In en, this message translates to:
-  /// **'Download more voices'**
-  String get voiceSpeechDownloadMore;
-
-  /// No description provided for @voiceSpeechRefresh.
-  ///
-  /// In en, this message translates to:
-  /// **'Refresh voice list'**
-  String get voiceSpeechRefresh;
-
-  /// No description provided for @voiceSpeechOfflineHint.
+  /// No description provided for @voicesOfflineHint.
   ///
   /// In en, this message translates to:
   /// **'Prefer offline voices so alarms still speak without a network connection.'**
-  String get voiceSpeechOfflineHint;
+  String get voicesOfflineHint;
 
-  /// No description provided for @voiceSpeechIosGuideTitle.
+  /// No description provided for @voicesIosGuideTitle.
   ///
   /// In en, this message translates to:
   /// **'Install voices on iPhone'**
-  String get voiceSpeechIosGuideTitle;
+  String get voicesIosGuideTitle;
 
-  /// No description provided for @voiceSpeechIosGuideBody.
+  /// No description provided for @voicesIosGuideBody.
   ///
   /// In en, this message translates to:
-  /// **'Open Settings → Accessibility → Spoken Content → Voices, download the voices you need, then return here and tap Refresh.'**
-  String get voiceSpeechIosGuideBody;
+  /// **'Open Settings → Accessibility → Spoken Content → Voices, download the voices you need, then return here and tap Refresh Voices.'**
+  String get voicesIosGuideBody;
 
-  /// No description provided for @voiceSpeechAndroidGuide.
+  /// No description provided for @voicesAndroidGuide.
   ///
   /// In en, this message translates to:
   /// **'Opens the system TTS data installer. Smart Voice Alarm does not download or host voice packages.'**
-  String get voiceSpeechAndroidGuide;
+  String get voicesAndroidGuide;
 
-  /// No description provided for @voiceSpeechWebUnavailable.
+  /// No description provided for @voicesWebUnavailable.
   ///
   /// In en, this message translates to:
   /// **'Browsers manage their own voices. Download packs are not available on web.'**
-  String get voiceSpeechWebUnavailable;
+  String get voicesWebUnavailable;
 
-  /// No description provided for @voiceSpeechEmpty.
+  /// No description provided for @voicesEmpty.
   ///
   /// In en, this message translates to:
   /// **'No usable voices found yet'**
-  String get voiceSpeechEmpty;
+  String get voicesEmpty;
 
-  /// No description provided for @voiceSpeechEmptyCta.
+  /// No description provided for @voicesEmptyCta.
   ///
   /// In en, this message translates to:
-  /// **'Download more voices'**
-  String get voiceSpeechEmptyCta;
+  /// **'Download More Voices'**
+  String get voicesEmptyCta;
 
   /// No description provided for @voiceQualityDefault.
   ///
@@ -1003,7 +1190,7 @@ abstract class AppLocalizations {
   /// No description provided for @ttsOpenVoiceSettings.
   ///
   /// In en, this message translates to:
-  /// **'Download more voices'**
+  /// **'Download More Voices'**
   String get ttsOpenVoiceSettings;
 
   /// No description provided for @ttsVoiceFallback.
@@ -1011,6 +1198,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Selected voice is unavailable. Using a default voice instead.'**
   String get ttsVoiceFallback;
+
+  /// No description provided for @reminderNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set tomorrow’s alarm'**
+  String get reminderNotificationTitle;
+
+  /// No description provided for @reminderNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a moment to schedule your Smart Voice Alarm for tomorrow.'**
+  String get reminderNotificationBody;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutAppName.
+  ///
+  /// In en, this message translates to:
+  /// **'App Name'**
+  String get aboutAppName;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get aboutVersion;
+
+  /// No description provided for @aboutDeveloper.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer'**
+  String get aboutDeveloper;
+
+  /// No description provided for @aboutDeveloperValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tom Satthu'**
+  String get aboutDeveloperValue;
+
+  /// No description provided for @aboutGithub.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub Repository'**
+  String get aboutGithub;
+
+  /// No description provided for @aboutGithubValue.
+  ///
+  /// In en, this message translates to:
+  /// **'github.com/Tom-satthu/Smart-Voice-Alarm'**
+  String get aboutGithubValue;
+
+  /// No description provided for @aboutEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Support'**
+  String get aboutEmail;
+
+  /// No description provided for @aboutEmailValue.
+  ///
+  /// In en, this message translates to:
+  /// **'support@smartvoicealarm.app'**
+  String get aboutEmailValue;
+
+  /// No description provided for @aboutWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get aboutWebsite;
+
+  /// No description provided for @aboutWebsiteValue.
+  ///
+  /// In en, this message translates to:
+  /// **'www.smartvoicealarm.app'**
+  String get aboutWebsiteValue;
+
+  /// No description provided for @aboutWebsitePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get aboutWebsitePlaceholder;
+
+  /// No description provided for @voiceSystemDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'System Default'**
+  String get voiceSystemDefault;
+
+  /// No description provided for @notificationChannelAlarms.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarms'**
+  String get notificationChannelAlarms;
+
+  /// No description provided for @notificationChannelAlarmsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice alarm alerts'**
+  String get notificationChannelAlarmsDesc;
+
+  /// No description provided for @notificationChannelReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get notificationChannelReminders;
+
+  /// No description provided for @notificationChannelRemindersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder to set tomorrow’s alarm'**
+  String get notificationChannelRemindersDesc;
+
+  /// No description provided for @alarmDefaultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm'**
+  String get alarmDefaultLabel;
 }
 
 class _AppLocalizationsDelegate
@@ -1023,18 +1330,64 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'de',
+    'en',
+    'es',
+    'fr',
+    'id',
+    'it',
+    'ja',
+    'ko',
+    'nl',
+    'pt',
+    'vi',
+    'zh',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when language+country codes are specified.
+  switch (locale.languageCode) {
+    case 'zh':
+      {
+        switch (locale.countryCode) {
+          case 'TW':
+            return AppLocalizationsZhTw();
+        }
+        break;
+      }
+  }
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'id':
+      return AppLocalizationsId();
+    case 'it':
+      return AppLocalizationsIt();
+    case 'ja':
+      return AppLocalizationsJa();
+    case 'ko':
+      return AppLocalizationsKo();
+    case 'nl':
+      return AppLocalizationsNl();
+    case 'pt':
+      return AppLocalizationsPt();
+    case 'vi':
+      return AppLocalizationsVi();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(

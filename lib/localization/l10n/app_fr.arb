@@ -228,5 +228,11 @@
   "aboutEmailValue": "support@smartvoicealarm.app",
   "aboutWebsite": "Site web",
   "aboutWebsiteValue": "www.smartvoicealarm.app",
-  "aboutWebsitePlaceholder": "Bientôt disponible"
+  "aboutWebsitePlaceholder": "Bientôt disponible",
+  "voiceSystemDefault": "Voix système",
+  "notificationChannelAlarms": "Alarmes",
+  "notificationChannelAlarmsDesc": "Alertes d’alarme vocale",
+  "notificationChannelReminders": "Rappels",
+  "notificationChannelRemindersDesc": "Rappel quotidien pour régler l’alarme de demain",
+  "alarmDefaultLabel": "Alarme"
 }

@@ -232,7 +232,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ttsInputHint => 'Type the message you want to hear…';
 
   @override
-  String get ttsVoices => 'Voice';
+  String get ttsVoices => 'Voices';
+
+  @override
+  String get ttsLanguageLabel => 'Language';
+
+  @override
+  String get ttsVoiceNameLabel => 'Voice';
+
+  @override
+  String get ttsVoiceQualityLabel => 'Quality';
 
   @override
   String get ttsPreview => 'Preview';
@@ -301,7 +310,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguage => 'Language';
 
   @override
-  String get settingsReminder => 'Reminder to set alarm';
+  String get settingsReminder => 'Reminder';
 
   @override
   String get settingsReminderSubtitle =>
@@ -314,9 +323,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAbout => 'About';
 
   @override
-  String settingsAboutSubtitle(String version) {
-    return 'Version $version';
-  }
+  String get settingsAboutSubtitle => 'App info and support';
 
   @override
   String get settingsAboutLegalese => '© Smart Voice Alarm';
@@ -328,14 +335,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPremiumSubtitle => 'Unlock lifetime access';
 
   @override
-  String get premiumTitle => 'Go Premium';
+  String get settingsVoices => 'Voices';
+
+  @override
+  String get settingsVoicesSubtitle => 'System voices for text to speech';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get settingsLicenses => 'Open Source Licenses';
+
+  @override
+  String get settingsPrivacy => 'Privacy Policy';
+
+  @override
+  String get settingsTerms => 'Terms of Use';
+
+  @override
+  String get settingsLegalPlaceholder => 'Content coming soon.';
+
+  @override
+  String get premiumTitle => 'Premium';
 
   @override
   String get premiumHeadline => 'One purchase. Yours forever.';
 
   @override
   String get premiumSubtitle =>
-      'Support the app and unlock the complete voice alarm toolkit with a single lifetime purchase.';
+      'Unlock the complete Smart Voice Alarm experience with a single lifetime purchase. No subscriptions.';
+
+  @override
+  String get premiumPlanFree => 'Free';
+
+  @override
+  String get premiumPlanLifetime => 'Premium Lifetime';
+
+  @override
+  String get premiumPlanLifetimePrice => 'One-time unlock';
+
+  @override
+  String get premiumBenefitsTitle => 'Everything in Premium';
 
   @override
   String get premiumBenefitUnlimited => 'Unlimited voice alarms';
@@ -344,7 +384,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumBenefitSequences => 'Longer voice sequences';
 
   @override
-  String get premiumBenefitVoices => 'More speaking voices';
+  String get premiumBenefitVoices => 'Full access to speaking voices';
 
   @override
   String get premiumBenefitThemes => 'Extra appearance options';
@@ -353,13 +393,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get premiumBenefitSupport => 'Priority support';
 
   @override
+  String get premiumBenefitNoAds => 'Ad-free experience';
+
+  @override
   String get premiumUnlock => 'Unlock Lifetime';
 
   @override
   String get premiumRestore => 'Restore Purchase';
 
   @override
-  String get premiumThanks => 'Thank you for your support';
+  String get premiumThanks =>
+      'Purchases will be available in a future update. Thank you for your support.';
+
+  @override
+  String get premiumComingSoon =>
+      'In-app purchases are being prepared. Nothing will be charged yet.';
 
   @override
   String get commonCancel => 'Cancel';
@@ -386,7 +434,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonRemove => 'Remove';
 
   @override
+  String get commonOpen => 'Open';
+
+  @override
   String get languageEnglish => 'English';
+
+  @override
+  String get languageSpanish => 'Spanish';
+
+  @override
+  String get languagePortuguese => 'Portuguese';
+
+  @override
+  String get languageFrench => 'French';
+
+  @override
+  String get languageGerman => 'German';
+
+  @override
+  String get languageItalian => 'Italian';
+
+  @override
+  String get languageDutch => 'Dutch';
+
+  @override
+  String get languageJapanese => 'Japanese';
+
+  @override
+  String get languageKorean => 'Korean';
+
+  @override
+  String get languageChineseSimplified => 'Chinese (Simplified)';
+
+  @override
+  String get languageChineseTraditional => 'Chinese (Traditional)';
+
+  @override
+  String get languageIndonesian => 'Indonesian';
+
+  @override
+  String get languageVietnamese => 'Vietnamese';
 
   @override
   String timesLabel(int count) {
@@ -444,47 +531,41 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsVoiceSpeech => 'Voice & Speech';
+  String get voicesTitle => 'Voices';
 
   @override
-  String get settingsVoiceSpeechSubtitle => 'System voices for text to speech';
+  String get voicesSystemVoices => 'System Voices';
 
   @override
-  String get voiceSpeechTitle => 'Voice & Speech';
+  String get voicesDownloadMore => 'Download More Voices';
 
   @override
-  String get voiceSpeechSystemVoices => 'System voices';
+  String get voicesRefresh => 'Refresh Voices';
 
   @override
-  String get voiceSpeechDownloadMore => 'Download more voices';
-
-  @override
-  String get voiceSpeechRefresh => 'Refresh voice list';
-
-  @override
-  String get voiceSpeechOfflineHint =>
+  String get voicesOfflineHint =>
       'Prefer offline voices so alarms still speak without a network connection.';
 
   @override
-  String get voiceSpeechIosGuideTitle => 'Install voices on iPhone';
+  String get voicesIosGuideTitle => 'Install voices on iPhone';
 
   @override
-  String get voiceSpeechIosGuideBody =>
-      'Open Settings → Accessibility → Spoken Content → Voices, download the voices you need, then return here and tap Refresh.';
+  String get voicesIosGuideBody =>
+      'Open Settings → Accessibility → Spoken Content → Voices, download the voices you need, then return here and tap Refresh Voices.';
 
   @override
-  String get voiceSpeechAndroidGuide =>
+  String get voicesAndroidGuide =>
       'Opens the system TTS data installer. Smart Voice Alarm does not download or host voice packages.';
 
   @override
-  String get voiceSpeechWebUnavailable =>
+  String get voicesWebUnavailable =>
       'Browsers manage their own voices. Download packs are not available on web.';
 
   @override
-  String get voiceSpeechEmpty => 'No usable voices found yet';
+  String get voicesEmpty => 'No usable voices found yet';
 
   @override
-  String get voiceSpeechEmptyCta => 'Download more voices';
+  String get voicesEmptyCta => 'Download More Voices';
 
   @override
   String get voiceQualityDefault => 'Default';
@@ -512,9 +593,71 @@ class AppLocalizationsEn extends AppLocalizations {
       'Download system voices, then refresh the list.';
 
   @override
-  String get ttsOpenVoiceSettings => 'Download more voices';
+  String get ttsOpenVoiceSettings => 'Download More Voices';
 
   @override
   String get ttsVoiceFallback =>
       'Selected voice is unavailable. Using a default voice instead.';
+
+  @override
+  String get reminderNotificationTitle => 'Set tomorrow’s alarm';
+
+  @override
+  String get reminderNotificationBody =>
+      'Take a moment to schedule your Smart Voice Alarm for tomorrow.';
+
+  @override
+  String get aboutTitle => 'About';
+
+  @override
+  String get aboutAppName => 'App Name';
+
+  @override
+  String get aboutVersion => 'Version';
+
+  @override
+  String get aboutDeveloper => 'Developer';
+
+  @override
+  String get aboutDeveloperValue => 'Tom Satthu';
+
+  @override
+  String get aboutGithub => 'GitHub Repository';
+
+  @override
+  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+
+  @override
+  String get aboutEmail => 'Email Support';
+
+  @override
+  String get aboutEmailValue => 'support@smartvoicealarm.app';
+
+  @override
+  String get aboutWebsite => 'Website';
+
+  @override
+  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+
+  @override
+  String get aboutWebsitePlaceholder => 'Coming soon';
+
+  @override
+  String get voiceSystemDefault => 'System Default';
+
+  @override
+  String get notificationChannelAlarms => 'Alarms';
+
+  @override
+  String get notificationChannelAlarmsDesc => 'Voice alarm alerts';
+
+  @override
+  String get notificationChannelReminders => 'Reminders';
+
+  @override
+  String get notificationChannelRemindersDesc =>
+      'Daily reminder to set tomorrow’s alarm';
+
+  @override
+  String get alarmDefaultLabel => 'Alarm';
 }

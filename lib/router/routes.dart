@@ -9,7 +9,8 @@ abstract final class AppRoutes {
   static const String tts = '/voice-sequence/tts';
   static const String record = '/voice-sequence/record';
   static const String settings = '/settings';
-  static const String voiceSpeech = '/settings/voice-speech';
+  static const String voiceSpeech = '/settings/voices';
+  static const String about = '/settings/about';
   static const String premium = '/premium';
 
   static String editAlarmPath(String id) => '/alarm/edit/$id';

@@ -36,7 +36,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   int _repeatCount = 3;
   AlarmType _type = AlarmType.voice;
   String _ringtoneName = 'Soft Chime';
-  String _label = 'Alarm';
+  String _label = '';
   String? _voiceSequenceId;
   bool _hydrated = false;
   bool _enabled = true;
@@ -99,7 +99,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       repeatDays: Set<Weekday>.from(_repeatDays),
       isEnabled: _enabled,
       type: _type,
-      label: _label.trim().isEmpty ? l10n.createAlarmTitle : _label.trim(),
+      label: _label.trim().isEmpty ? l10n.alarmDefaultLabel : _label.trim(),
       voiceSequenceId: sequenceId,
       ringtoneName: _ringtoneName,
       repeatCount: _repeatCount,

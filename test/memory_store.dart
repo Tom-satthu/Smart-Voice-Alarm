@@ -73,6 +73,7 @@ class MemoryVoiceSequenceRepository extends VoiceSequenceRepository {
 class MemorySettingsRepository extends SettingsRepository {
   ThemeMode _themeMode = ThemeMode.system;
   Locale _locale = const Locale('en');
+  bool _hasSavedLocale = false;
   bool _reminderEnabled = true;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 23, minute: 0);
   bool _didSeed = false;
@@ -87,7 +88,13 @@ class MemorySettingsRepository extends SettingsRepository {
   Locale loadLocale() => _locale;
 
   @override
-  Future<void> saveLocale(Locale locale) async => _locale = locale;
+  bool get hasSavedLocale => _hasSavedLocale;
+
+  @override
+  Future<void> saveLocale(Locale locale) async {
+    _locale = locale;
+    _hasSavedLocale = true;
+  }
 
   @override
   bool loadReminderEnabled() => _reminderEnabled;

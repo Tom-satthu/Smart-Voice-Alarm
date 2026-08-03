@@ -228,5 +228,11 @@
   "aboutEmailValue": "support@smartvoicealarm.app",
   "aboutWebsite": "Sito web",
   "aboutWebsiteValue": "www.smartvoicealarm.app",
-  "aboutWebsitePlaceholder": "In arrivo"
+  "aboutWebsitePlaceholder": "In arrivo",
+  "voiceSystemDefault": "Predefinita di sistema",
+  "notificationChannelAlarms": "Sveglie",
+  "notificationChannelAlarmsDesc": "Avvisi sveglia vocale",
+  "notificationChannelReminders": "Promemoria",
+  "notificationChannelRemindersDesc": "Promemoria giornaliero per impostare la sveglia di domani",
+  "alarmDefaultLabel": "Sveglia"
 }

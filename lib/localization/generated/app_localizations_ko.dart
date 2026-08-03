@@ -1,0 +1,651 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Korean (`ko`).
+class AppLocalizationsKo extends AppLocalizations {
+  AppLocalizationsKo([String locale = 'ko']) : super(locale);
+
+  @override
+  String get appName => 'Smart Voice Alarm';
+
+  @override
+  String get appTagline => '내 목소리로 일어나세요';
+
+  @override
+  String get homeTitle => '알람';
+
+  @override
+  String get homeEmptyTitle => '아직 알람이 없습니다';
+
+  @override
+  String get homeEmptySubtitle => '첫 음성 알람을 만들고 의미 있는 말로 일어나세요.';
+
+  @override
+  String get homeCreateAlarm => '알람 만들기';
+
+  @override
+  String get homeEdit => '편집';
+
+  @override
+  String get homeDuplicate => '복제';
+
+  @override
+  String get homeDelete => '삭제';
+
+  @override
+  String get homeMore => '더보기';
+
+  @override
+  String homeAlarmsReady(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '알람 $count개 준비됨',
+      one: '알람 1개 준비됨',
+      zero: '알람 없음',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeGoodMorning => '좋은 아침입니다';
+
+  @override
+  String get homeGoodAfternoon => '좋은 오후입니다';
+
+  @override
+  String get homeGoodEvening => '좋은 저녁입니다';
+
+  @override
+  String get alarmTypeVoice => '음성';
+
+  @override
+  String get alarmTypeRingtone => '벨소리';
+
+  @override
+  String get alarmTypeMixed => '혼합';
+
+  @override
+  String get alarmTypeLabel => '알람 유형';
+
+  @override
+  String get createAlarmTitle => '새 알람';
+
+  @override
+  String get editAlarmTitle => '알람 편집';
+
+  @override
+  String get alarmTime => '시간';
+
+  @override
+  String get alarmHour => '시';
+
+  @override
+  String get alarmMinute => '분';
+
+  @override
+  String get alarmRepeat => '반복';
+
+  @override
+  String get alarmVoiceSequence => '음성 시퀀스';
+
+  @override
+  String get alarmRingtone => '음성 후 벨소리';
+
+  @override
+  String get alarmRepeatCount => '시퀀스 반복';
+
+  @override
+  String get alarmCopyFrom => '다른 알람에서 복사';
+
+  @override
+  String get alarmSave => '알람 저장';
+
+  @override
+  String get alarmSelectSequence => '탭하여 시퀀스 편집';
+
+  @override
+  String get alarmSelectRingtone => '소리 선택';
+
+  @override
+  String get alarmNoneSelected => '선택 없음';
+
+  @override
+  String get alarmCopied => '설정을 복사했습니다';
+
+  @override
+  String get alarmSaved => '알람을 저장했습니다';
+
+  @override
+  String get alarmDeleted => '알람을 삭제했습니다';
+
+  @override
+  String get alarmDuplicated => '알람을 복제했습니다';
+
+  @override
+  String get dayMon => '월';
+
+  @override
+  String get dayTue => '화';
+
+  @override
+  String get dayWed => '수';
+
+  @override
+  String get dayThu => '목';
+
+  @override
+  String get dayFri => '금';
+
+  @override
+  String get daySat => '토';
+
+  @override
+  String get daySun => '일';
+
+  @override
+  String get dayEveryDay => '매일';
+
+  @override
+  String get dayWeekdays => '평일';
+
+  @override
+  String get dayWeekends => '주말';
+
+  @override
+  String get dayOnce => '한 번';
+
+  @override
+  String get voiceSequenceTitle => '음성 시퀀스';
+
+  @override
+  String get voiceSequenceEmptyTitle => '기상 메시지 만들기';
+
+  @override
+  String get voiceSequenceEmptySubtitle => '듣고 싶은 순서대로 녹음이나 음성 변환 텍스트를 추가하세요.';
+
+  @override
+  String get voiceSequenceAdd => '음성 추가';
+
+  @override
+  String get voiceSequenceDelete => '삭제';
+
+  @override
+  String get voiceSequenceDeleteConfirmTitle => '세그먼트를 제거할까요?';
+
+  @override
+  String get voiceSequenceDeleteConfirmBody => '시퀀스에서 이 세그먼트가 제거됩니다.';
+
+  @override
+  String get voiceSequenceReorderHint => '드래그하여 순서 변경';
+
+  @override
+  String get voiceSegmentName => '이름';
+
+  @override
+  String get voiceSegmentType => '유형';
+
+  @override
+  String get voiceSegmentDuration => '길이';
+
+  @override
+  String voiceSegmentOrder(int number) {
+    return '단계 $number';
+  }
+
+  @override
+  String get voiceTypeRecording => '녹음';
+
+  @override
+  String get voiceTypeTts => '텍스트 음성 변환';
+
+  @override
+  String get addVoiceTitle => '음성 추가';
+
+  @override
+  String get addVoiceRecord => '음성 녹음';
+
+  @override
+  String get addVoiceRecordSubtitle => '마이크에 짧은 메시지를 말하세요';
+
+  @override
+  String get addVoiceTts => '텍스트 음성 변환';
+
+  @override
+  String get addVoiceTtsSubtitle => '메시지를 입력하고 말하기 음성을 선택하세요';
+
+  @override
+  String get ttsTitle => '텍스트 음성 변환';
+
+  @override
+  String get ttsInputLabel => '메시지';
+
+  @override
+  String get ttsInputHint => '듣고 싶은 메시지를 입력하세요…';
+
+  @override
+  String get ttsVoices => '음성';
+
+  @override
+  String get ttsLanguageLabel => '언어';
+
+  @override
+  String get ttsVoiceNameLabel => '음성';
+
+  @override
+  String get ttsVoiceQualityLabel => '품질';
+
+  @override
+  String get ttsPreview => '미리듣기';
+
+  @override
+  String get ttsPreviewing => '미리듣기 재생 중…';
+
+  @override
+  String get ttsSave => '저장';
+
+  @override
+  String get ttsSaved => '음성 세그먼트를 저장했습니다';
+
+  @override
+  String get recordTitle => '음성 녹음';
+
+  @override
+  String get recordStart => '녹음';
+
+  @override
+  String get recordStop => '중지';
+
+  @override
+  String get recordPlay => '재생';
+
+  @override
+  String get recordPlaying => '재생 중…';
+
+  @override
+  String get recordSave => '저장';
+
+  @override
+  String get recordHint => '준비가 되면 녹음을 탭하세요';
+
+  @override
+  String get recordRecording => '녹음 중…';
+
+  @override
+  String get recordReady => '저장할 준비 완료';
+
+  @override
+  String get recordSaved => '녹음을 저장했습니다';
+
+  @override
+  String get recordDefaultName => '음성 녹음';
+
+  @override
+  String get settingsTitle => '설정';
+
+  @override
+  String get settingsAppearance => '모양';
+
+  @override
+  String get settingsTheme => '테마';
+
+  @override
+  String get settingsThemeSystem => '시스템';
+
+  @override
+  String get settingsThemeLight => '라이트';
+
+  @override
+  String get settingsThemeDark => '다크';
+
+  @override
+  String get settingsLanguage => '언어';
+
+  @override
+  String get settingsReminder => '알림';
+
+  @override
+  String get settingsReminderSubtitle => '예약된 알람이 없으면 부드럽게 알려드립니다';
+
+  @override
+  String get settingsReminderTime => '알림 시간';
+
+  @override
+  String get settingsAbout => '정보';
+
+  @override
+  String get settingsAboutSubtitle => '앱 정보 및 지원';
+
+  @override
+  String get settingsAboutLegalese => '© Smart Voice Alarm';
+
+  @override
+  String get settingsPremium => '프리미엄';
+
+  @override
+  String get settingsPremiumSubtitle => '평생 이용권 잠금 해제';
+
+  @override
+  String get settingsVoices => '음성';
+
+  @override
+  String get settingsVoicesSubtitle => '텍스트 음성 변환용 시스템 음성';
+
+  @override
+  String get settingsVersion => '버전';
+
+  @override
+  String get settingsLicenses => '오픈 소스 라이선스';
+
+  @override
+  String get settingsPrivacy => '개인정보 처리방침';
+
+  @override
+  String get settingsTerms => '이용약관';
+
+  @override
+  String get settingsLegalPlaceholder => '콘텐츠가 곧 제공됩니다.';
+
+  @override
+  String get premiumTitle => '프리미엄';
+
+  @override
+  String get premiumHeadline => '한 번의 구매. 영원히 당신의 것.';
+
+  @override
+  String get premiumSubtitle =>
+      '한 번의 평생 구매로 Smart Voice Alarm의 완전한 경험을 잠금 해제하세요. 구독은 없습니다.';
+
+  @override
+  String get premiumPlanFree => '무료';
+
+  @override
+  String get premiumPlanLifetime => '프리미엄 평생';
+
+  @override
+  String get premiumPlanLifetimePrice => '일회성 잠금 해제';
+
+  @override
+  String get premiumBenefitsTitle => '프리미엄의 모든 것';
+
+  @override
+  String get premiumBenefitUnlimited => '무제한 음성 알람';
+
+  @override
+  String get premiumBenefitSequences => '더 긴 음성 시퀀스';
+
+  @override
+  String get premiumBenefitVoices => '말하기 음성 전체 이용';
+
+  @override
+  String get premiumBenefitThemes => '추가 모양 옵션';
+
+  @override
+  String get premiumBenefitSupport => '우선 지원';
+
+  @override
+  String get premiumBenefitNoAds => '광고 없는 경험';
+
+  @override
+  String get premiumUnlock => '평생 잠금 해제';
+
+  @override
+  String get premiumRestore => '구매 복원';
+
+  @override
+  String get premiumThanks => '구매 기능은 향후 업데이트에서 제공됩니다. 지원해 주셔서 감사합니다.';
+
+  @override
+  String get premiumComingSoon => '인앱 구매를 준비 중입니다. 아직 요금이 청구되지 않습니다.';
+
+  @override
+  String get commonCancel => '취소';
+
+  @override
+  String get commonDone => '완료';
+
+  @override
+  String get commonBack => '뒤로';
+
+  @override
+  String get commonNext => '다음';
+
+  @override
+  String get commonClose => '닫기';
+
+  @override
+  String get commonEnabled => '켜짐';
+
+  @override
+  String get commonDisabled => '꺼짐';
+
+  @override
+  String get commonRemove => '제거';
+
+  @override
+  String get commonOpen => '열기';
+
+  @override
+  String get languageEnglish => '영어';
+
+  @override
+  String get languageSpanish => '스페인어';
+
+  @override
+  String get languagePortuguese => '포르투갈어';
+
+  @override
+  String get languageFrench => '프랑스어';
+
+  @override
+  String get languageGerman => '독일어';
+
+  @override
+  String get languageItalian => '이탈리아어';
+
+  @override
+  String get languageDutch => '네덜란드어';
+
+  @override
+  String get languageJapanese => '일본어';
+
+  @override
+  String get languageKorean => '한국어';
+
+  @override
+  String get languageChineseSimplified => '중국어(간체)';
+
+  @override
+  String get languageChineseTraditional => '중국어(번체)';
+
+  @override
+  String get languageIndonesian => '인도네시아어';
+
+  @override
+  String get languageVietnamese => '베트남어';
+
+  @override
+  String timesLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count회',
+      one: '1회',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String segmentsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '세그먼트 $count개',
+      one: '세그먼트 1개',
+      zero: '세그먼트 없음',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ringtoneSoftChime => '부드러운 차임';
+
+  @override
+  String get ringtoneOceanBreeze => '오션 브리즈';
+
+  @override
+  String get ringtoneNightPulse => '나이트 펄스';
+
+  @override
+  String get ringtoneForestDawn => '포레스트 던';
+
+  @override
+  String get ringtoneCrystalBell => '크리스탈 벨';
+
+  @override
+  String get alarmStop => '중지';
+
+  @override
+  String get alarmStopAll => '모두 중지';
+
+  @override
+  String alarmQueueWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '대기 중인 알람 $count개',
+      one: '대기 중인 알람 1개',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get voicesTitle => '음성';
+
+  @override
+  String get voicesSystemVoices => '시스템 음성';
+
+  @override
+  String get voicesDownloadMore => '더 많은 음성 다운로드';
+
+  @override
+  String get voicesRefresh => '음성 새로고침';
+
+  @override
+  String get voicesOfflineHint => '네트워크 없이도 알람이 말할 수 있도록 오프라인 음성을 권장합니다.';
+
+  @override
+  String get voicesIosGuideTitle => 'iPhone에 음성 설치';
+
+  @override
+  String get voicesIosGuideBody =>
+      '설정 → 손쉬운 사용 → 음성 콘텐츠 → 음성을 열고 필요한 음성을 다운로드한 다음, 여기로 돌아와 음성 새로고침을 탭하세요.';
+
+  @override
+  String get voicesAndroidGuide =>
+      '시스템 TTS 데이터 설치 프로그램을 엽니다. Smart Voice Alarm은 음성 패키지를 다운로드하거나 호스팅하지 않습니다.';
+
+  @override
+  String get voicesWebUnavailable =>
+      '브라우저는 자체 음성을 관리합니다. 웹에서는 다운로드 팩을 사용할 수 없습니다.';
+
+  @override
+  String get voicesEmpty => '아직 사용 가능한 음성을 찾지 못했습니다';
+
+  @override
+  String get voicesEmptyCta => '더 많은 음성 다운로드';
+
+  @override
+  String get voiceQualityDefault => '기본';
+
+  @override
+  String get voiceQualityEnhanced => '향상됨';
+
+  @override
+  String get voiceQualityPremium => '프리미엄';
+
+  @override
+  String get voiceAvailabilityOffline => '오프라인';
+
+  @override
+  String get voiceAvailabilityNetwork => '네트워크 필요';
+
+  @override
+  String get voiceAvailabilityMissing => '설치되지 않음';
+
+  @override
+  String get ttsNoVoicesTitle => '사용 가능한 음성 없음';
+
+  @override
+  String get ttsNoVoicesBody => '시스템 음성을 다운로드한 다음 목록을 새로고침하세요.';
+
+  @override
+  String get ttsOpenVoiceSettings => '더 많은 음성 다운로드';
+
+  @override
+  String get ttsVoiceFallback => '선택한 음성을 사용할 수 없습니다. 기본 음성을 사용합니다.';
+
+  @override
+  String get reminderNotificationTitle => '내일 알람 설정';
+
+  @override
+  String get reminderNotificationBody =>
+      '잠시 시간을 내어 내일의 Smart Voice Alarm을 예약하세요.';
+
+  @override
+  String get aboutTitle => '정보';
+
+  @override
+  String get aboutAppName => '앱 이름';
+
+  @override
+  String get aboutVersion => '버전';
+
+  @override
+  String get aboutDeveloper => '개발자';
+
+  @override
+  String get aboutDeveloperValue => 'Tom Satthu';
+
+  @override
+  String get aboutGithub => 'GitHub 저장소';
+
+  @override
+  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+
+  @override
+  String get aboutEmail => '이메일 지원';
+
+  @override
+  String get aboutEmailValue => 'support@smartvoicealarm.app';
+
+  @override
+  String get aboutWebsite => '웹사이트';
+
+  @override
+  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+
+  @override
+  String get aboutWebsitePlaceholder => '곧 제공';
+
+  @override
+  String get voiceSystemDefault => '시스템 기본';
+
+  @override
+  String get notificationChannelAlarms => '알람';
+
+  @override
+  String get notificationChannelAlarmsDesc => '음성 알람 알림';
+
+  @override
+  String get notificationChannelReminders => '알림';
+
+  @override
+  String get notificationChannelRemindersDesc => '내일 알람을 설정하라는 매일 알림';
+
+  @override
+  String get alarmDefaultLabel => '알람';
+}

@@ -1,0 +1,53 @@
+/// Human-readable labels for common TTS locale tags.
+abstract final class LocaleDisplayNames {
+  static String friendly(String raw) {
+    final normalized = raw.replaceAll('_', '-');
+    final known = _names[normalized] ??
+        _names[normalized.toLowerCase()] ??
+        _byLanguage(normalized);
+    return known ?? normalized;
+  }
+
+  static String? _byLanguage(String tag) {
+    final lang = tag.split('-').first.toLowerCase();
+    return switch (lang) {
+      'en' => 'English',
+      'es' => 'Spanish',
+      'pt' => 'Portuguese',
+      'fr' => 'French',
+      'de' => 'German',
+      'it' => 'Italian',
+      'nl' => 'Dutch',
+      'ja' => 'Japanese',
+      'ko' => 'Korean',
+      'zh' => 'Chinese',
+      'id' => 'Indonesian',
+      'vi' => 'Vietnamese',
+      _ => null,
+    };
+  }
+
+  static const _names = {
+    'en-US': 'English (United States)',
+    'en-GB': 'English (United Kingdom)',
+    'en-AU': 'English (Australia)',
+    'en-IN': 'English (India)',
+    'es-ES': 'Spanish (Spain)',
+    'es-MX': 'Spanish (Mexico)',
+    'es-US': 'Spanish (United States)',
+    'pt-BR': 'Portuguese (Brazil)',
+    'pt-PT': 'Portuguese (Portugal)',
+    'fr-FR': 'French (France)',
+    'fr-CA': 'French (Canada)',
+    'de-DE': 'German (Germany)',
+    'it-IT': 'Italian (Italy)',
+    'nl-NL': 'Dutch (Netherlands)',
+    'ja-JP': 'Japanese (Japan)',
+    'ko-KR': 'Korean (Korea)',
+    'zh-CN': 'Chinese (Simplified)',
+    'zh-TW': 'Chinese (Traditional)',
+    'zh-HK': 'Chinese (Hong Kong)',
+    'id-ID': 'Indonesian (Indonesia)',
+    'vi-VN': 'Vietnamese (Vietnam)',
+  };
+}

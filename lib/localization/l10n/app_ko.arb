@@ -228,5 +228,11 @@
   "aboutEmailValue": "support@smartvoicealarm.app",
   "aboutWebsite": "웹사이트",
   "aboutWebsiteValue": "www.smartvoicealarm.app",
-  "aboutWebsitePlaceholder": "곧 제공"
+  "aboutWebsitePlaceholder": "곧 제공",
+  "voiceSystemDefault": "시스템 기본",
+  "notificationChannelAlarms": "알람",
+  "notificationChannelAlarmsDesc": "음성 알람 알림",
+  "notificationChannelReminders": "알림",
+  "notificationChannelRemindersDesc": "내일 알람을 설정하라는 매일 알림",
+  "alarmDefaultLabel": "알람"
 }

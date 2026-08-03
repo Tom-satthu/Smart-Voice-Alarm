@@ -1,0 +1,660 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Indonesian (`id`).
+class AppLocalizationsId extends AppLocalizations {
+  AppLocalizationsId([String locale = 'id']) : super(locale);
+
+  @override
+  String get appName => 'Smart Voice Alarm';
+
+  @override
+  String get appTagline => 'Bangun dengan suara Anda sendiri';
+
+  @override
+  String get homeTitle => 'Alarm';
+
+  @override
+  String get homeEmptyTitle => 'Belum ada alarm';
+
+  @override
+  String get homeEmptySubtitle =>
+      'Buat alarm suara pertama Anda dan bangun dengan kata-kata yang berarti.';
+
+  @override
+  String get homeCreateAlarm => 'Buat Alarm';
+
+  @override
+  String get homeEdit => 'Edit';
+
+  @override
+  String get homeDuplicate => 'Duplikat';
+
+  @override
+  String get homeDelete => 'Hapus';
+
+  @override
+  String get homeMore => 'Opsi lainnya';
+
+  @override
+  String homeAlarmsReady(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alarm siap',
+      one: '1 alarm siap',
+      zero: 'Tidak ada alarm',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeGoodMorning => 'Selamat pagi';
+
+  @override
+  String get homeGoodAfternoon => 'Selamat siang';
+
+  @override
+  String get homeGoodEvening => 'Selamat malam';
+
+  @override
+  String get alarmTypeVoice => 'Suara';
+
+  @override
+  String get alarmTypeRingtone => 'Nada dering';
+
+  @override
+  String get alarmTypeMixed => 'Campuran';
+
+  @override
+  String get alarmTypeLabel => 'Jenis alarm';
+
+  @override
+  String get createAlarmTitle => 'Alarm Baru';
+
+  @override
+  String get editAlarmTitle => 'Edit Alarm';
+
+  @override
+  String get alarmTime => 'Waktu';
+
+  @override
+  String get alarmHour => 'Jam';
+
+  @override
+  String get alarmMinute => 'Menit';
+
+  @override
+  String get alarmRepeat => 'Ulangi';
+
+  @override
+  String get alarmVoiceSequence => 'Urutan Suara';
+
+  @override
+  String get alarmRingtone => 'Nada dering setelah suara';
+
+  @override
+  String get alarmRepeatCount => 'Pengulangan urutan';
+
+  @override
+  String get alarmCopyFrom => 'Salin dari alarm lain';
+
+  @override
+  String get alarmSave => 'Simpan Alarm';
+
+  @override
+  String get alarmSelectSequence => 'Ketuk untuk mengedit urutan';
+
+  @override
+  String get alarmSelectRingtone => 'Pilih suara';
+
+  @override
+  String get alarmNoneSelected => 'Tidak ada yang dipilih';
+
+  @override
+  String get alarmCopied => 'Pengaturan disalin';
+
+  @override
+  String get alarmSaved => 'Alarm disimpan';
+
+  @override
+  String get alarmDeleted => 'Alarm dihapus';
+
+  @override
+  String get alarmDuplicated => 'Alarm diduplikasi';
+
+  @override
+  String get dayMon => 'Sen';
+
+  @override
+  String get dayTue => 'Sel';
+
+  @override
+  String get dayWed => 'Rab';
+
+  @override
+  String get dayThu => 'Kam';
+
+  @override
+  String get dayFri => 'Jum';
+
+  @override
+  String get daySat => 'Sab';
+
+  @override
+  String get daySun => 'Min';
+
+  @override
+  String get dayEveryDay => 'Setiap hari';
+
+  @override
+  String get dayWeekdays => 'Hari kerja';
+
+  @override
+  String get dayWeekends => 'Akhir pekan';
+
+  @override
+  String get dayOnce => 'Sekali';
+
+  @override
+  String get voiceSequenceTitle => 'Urutan Suara';
+
+  @override
+  String get voiceSequenceEmptyTitle => 'Buat pesan bangun Anda';
+
+  @override
+  String get voiceSequenceEmptySubtitle =>
+      'Tambahkan rekaman atau teks yang diucapkan sesuai urutan yang ingin Anda dengar.';
+
+  @override
+  String get voiceSequenceAdd => 'Tambah Suara';
+
+  @override
+  String get voiceSequenceDelete => 'Hapus';
+
+  @override
+  String get voiceSequenceDeleteConfirmTitle => 'Hapus segmen?';
+
+  @override
+  String get voiceSequenceDeleteConfirmBody =>
+      'Ini menghapus segmen dari urutan.';
+
+  @override
+  String get voiceSequenceReorderHint => 'Seret untuk mengurutkan ulang';
+
+  @override
+  String get voiceSegmentName => 'Nama';
+
+  @override
+  String get voiceSegmentType => 'Jenis';
+
+  @override
+  String get voiceSegmentDuration => 'Durasi';
+
+  @override
+  String voiceSegmentOrder(int number) {
+    return 'Langkah $number';
+  }
+
+  @override
+  String get voiceTypeRecording => 'Rekaman';
+
+  @override
+  String get voiceTypeTts => 'Teks ke Ucapan';
+
+  @override
+  String get addVoiceTitle => 'Tambah Suara';
+
+  @override
+  String get addVoiceRecord => 'Rekam Suara';
+
+  @override
+  String get addVoiceRecordSubtitle => 'Ucapkan pesan singkat ke mikrofon Anda';
+
+  @override
+  String get addVoiceTts => 'Teks ke Ucapan';
+
+  @override
+  String get addVoiceTtsSubtitle => 'Ketik pesan dan pilih suara pengucapan';
+
+  @override
+  String get ttsTitle => 'Teks ke Ucapan';
+
+  @override
+  String get ttsInputLabel => 'Pesan';
+
+  @override
+  String get ttsInputHint => 'Ketik pesan yang ingin Anda dengar…';
+
+  @override
+  String get ttsVoices => 'Suara';
+
+  @override
+  String get ttsLanguageLabel => 'Bahasa';
+
+  @override
+  String get ttsVoiceNameLabel => 'Suara';
+
+  @override
+  String get ttsVoiceQualityLabel => 'Kualitas';
+
+  @override
+  String get ttsPreview => 'Pratinjau';
+
+  @override
+  String get ttsPreviewing => 'Memutar pratinjau…';
+
+  @override
+  String get ttsSave => 'Simpan';
+
+  @override
+  String get ttsSaved => 'Segmen suara disimpan';
+
+  @override
+  String get recordTitle => 'Rekam Suara';
+
+  @override
+  String get recordStart => 'Rekam';
+
+  @override
+  String get recordStop => 'Berhenti';
+
+  @override
+  String get recordPlay => 'Putar';
+
+  @override
+  String get recordPlaying => 'Memutar…';
+
+  @override
+  String get recordSave => 'Simpan';
+
+  @override
+  String get recordHint => 'Ketuk Rekam saat Anda siap';
+
+  @override
+  String get recordRecording => 'Merekam…';
+
+  @override
+  String get recordReady => 'Siap disimpan';
+
+  @override
+  String get recordSaved => 'Rekaman disimpan';
+
+  @override
+  String get recordDefaultName => 'Rekaman suara';
+
+  @override
+  String get settingsTitle => 'Pengaturan';
+
+  @override
+  String get settingsAppearance => 'Tampilan';
+
+  @override
+  String get settingsTheme => 'Tema';
+
+  @override
+  String get settingsThemeSystem => 'Sistem';
+
+  @override
+  String get settingsThemeLight => 'Terang';
+
+  @override
+  String get settingsThemeDark => 'Gelap';
+
+  @override
+  String get settingsLanguage => 'Bahasa';
+
+  @override
+  String get settingsReminder => 'Pengingat';
+
+  @override
+  String get settingsReminderSubtitle =>
+      'Dapatkan pengingat lembut jika tidak ada alarm yang dijadwalkan';
+
+  @override
+  String get settingsReminderTime => 'Waktu pengingat';
+
+  @override
+  String get settingsAbout => 'Tentang';
+
+  @override
+  String get settingsAboutSubtitle => 'Info aplikasi dan dukungan';
+
+  @override
+  String get settingsAboutLegalese => '© Smart Voice Alarm';
+
+  @override
+  String get settingsPremium => 'Premium';
+
+  @override
+  String get settingsPremiumSubtitle => 'Buka akses seumur hidup';
+
+  @override
+  String get settingsVoices => 'Suara';
+
+  @override
+  String get settingsVoicesSubtitle => 'Suara sistem untuk teks ke ucapan';
+
+  @override
+  String get settingsVersion => 'Versi';
+
+  @override
+  String get settingsLicenses => 'Lisensi Sumber Terbuka';
+
+  @override
+  String get settingsPrivacy => 'Kebijakan Privasi';
+
+  @override
+  String get settingsTerms => 'Ketentuan Penggunaan';
+
+  @override
+  String get settingsLegalPlaceholder => 'Konten segera hadir.';
+
+  @override
+  String get premiumTitle => 'Premium';
+
+  @override
+  String get premiumHeadline => 'Satu pembelian. Milik Anda selamanya.';
+
+  @override
+  String get premiumSubtitle =>
+      'Buka pengalaman lengkap Smart Voice Alarm dengan satu pembelian seumur hidup. Tanpa langganan.';
+
+  @override
+  String get premiumPlanFree => 'Gratis';
+
+  @override
+  String get premiumPlanLifetime => 'Premium Seumur Hidup';
+
+  @override
+  String get premiumPlanLifetimePrice => 'Pembukaan sekali bayar';
+
+  @override
+  String get premiumBenefitsTitle => 'Semua di Premium';
+
+  @override
+  String get premiumBenefitUnlimited => 'Alarm suara tanpa batas';
+
+  @override
+  String get premiumBenefitSequences => 'Urutan suara yang lebih panjang';
+
+  @override
+  String get premiumBenefitVoices => 'Akses penuh ke suara pengucapan';
+
+  @override
+  String get premiumBenefitThemes => 'Opsi tampilan tambahan';
+
+  @override
+  String get premiumBenefitSupport => 'Dukungan prioritas';
+
+  @override
+  String get premiumBenefitNoAds => 'Pengalaman bebas iklan';
+
+  @override
+  String get premiumUnlock => 'Buka Seumur Hidup';
+
+  @override
+  String get premiumRestore => 'Pulihkan Pembelian';
+
+  @override
+  String get premiumThanks =>
+      'Pembelian akan tersedia dalam pembaruan mendatang. Terima kasih atas dukungan Anda.';
+
+  @override
+  String get premiumComingSoon =>
+      'Pembelian dalam aplikasi sedang disiapkan. Belum ada yang akan ditagih.';
+
+  @override
+  String get commonCancel => 'Batal';
+
+  @override
+  String get commonDone => 'Selesai';
+
+  @override
+  String get commonBack => 'Kembali';
+
+  @override
+  String get commonNext => 'Berikutnya';
+
+  @override
+  String get commonClose => 'Tutup';
+
+  @override
+  String get commonEnabled => 'Aktif';
+
+  @override
+  String get commonDisabled => 'Nonaktif';
+
+  @override
+  String get commonRemove => 'Hapus';
+
+  @override
+  String get commonOpen => 'Buka';
+
+  @override
+  String get languageEnglish => 'Inggris';
+
+  @override
+  String get languageSpanish => 'Spanyol';
+
+  @override
+  String get languagePortuguese => 'Portugis';
+
+  @override
+  String get languageFrench => 'Prancis';
+
+  @override
+  String get languageGerman => 'Jerman';
+
+  @override
+  String get languageItalian => 'Italia';
+
+  @override
+  String get languageDutch => 'Belanda';
+
+  @override
+  String get languageJapanese => 'Jepang';
+
+  @override
+  String get languageKorean => 'Korea';
+
+  @override
+  String get languageChineseSimplified => 'Tionghoa (Sederhana)';
+
+  @override
+  String get languageChineseTraditional => 'Tionghoa (Tradisional)';
+
+  @override
+  String get languageIndonesian => 'Indonesia';
+
+  @override
+  String get languageVietnamese => 'Vietnam';
+
+  @override
+  String timesLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kali',
+      one: '1 kali',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String segmentsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count segmen',
+      one: '1 segmen',
+      zero: 'Tidak ada segmen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ringtoneSoftChime => 'Lonceng Lembut';
+
+  @override
+  String get ringtoneOceanBreeze => 'Angin Laut';
+
+  @override
+  String get ringtoneNightPulse => 'Denyut Malam';
+
+  @override
+  String get ringtoneForestDawn => 'Fajar Hutan';
+
+  @override
+  String get ringtoneCrystalBell => 'Lonceng Kristal';
+
+  @override
+  String get alarmStop => 'Berhenti';
+
+  @override
+  String get alarmStopAll => 'Hentikan Semua';
+
+  @override
+  String alarmQueueWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alarm menunggu',
+      one: '1 alarm menunggu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get voicesTitle => 'Suara';
+
+  @override
+  String get voicesSystemVoices => 'Suara Sistem';
+
+  @override
+  String get voicesDownloadMore => 'Unduh Lebih Banyak Suara';
+
+  @override
+  String get voicesRefresh => 'Segarkan Suara';
+
+  @override
+  String get voicesOfflineHint =>
+      'Lebih baik gunakan suara offline agar alarm tetap berbicara tanpa koneksi jaringan.';
+
+  @override
+  String get voicesIosGuideTitle => 'Instal suara di iPhone';
+
+  @override
+  String get voicesIosGuideBody =>
+      'Buka Pengaturan → Aksesibilitas → Konten Lisan → Suara, unduh suara yang Anda butuhkan, lalu kembali ke sini dan ketuk Segarkan Suara.';
+
+  @override
+  String get voicesAndroidGuide =>
+      'Membuka penginstal data TTS sistem. Smart Voice Alarm tidak mengunduh atau menghosting paket suara.';
+
+  @override
+  String get voicesWebUnavailable =>
+      'Browser mengelola suaranya sendiri. Paket unduhan tidak tersedia di web.';
+
+  @override
+  String get voicesEmpty => 'Belum ada suara yang dapat digunakan';
+
+  @override
+  String get voicesEmptyCta => 'Unduh Lebih Banyak Suara';
+
+  @override
+  String get voiceQualityDefault => 'Default';
+
+  @override
+  String get voiceQualityEnhanced => 'Ditingkatkan';
+
+  @override
+  String get voiceQualityPremium => 'Premium';
+
+  @override
+  String get voiceAvailabilityOffline => 'Offline';
+
+  @override
+  String get voiceAvailabilityNetwork => 'Perlu jaringan';
+
+  @override
+  String get voiceAvailabilityMissing => 'Belum diinstal';
+
+  @override
+  String get ttsNoVoicesTitle => 'Tidak ada suara yang dapat digunakan';
+
+  @override
+  String get ttsNoVoicesBody => 'Unduh suara sistem, lalu segarkan daftar.';
+
+  @override
+  String get ttsOpenVoiceSettings => 'Unduh Lebih Banyak Suara';
+
+  @override
+  String get ttsVoiceFallback =>
+      'Suara yang dipilih tidak tersedia. Menggunakan suara default sebagai gantinya.';
+
+  @override
+  String get reminderNotificationTitle => 'Atur alarm untuk besok';
+
+  @override
+  String get reminderNotificationBody =>
+      'Luangkan waktu sebentar untuk menjadwalkan Smart Voice Alarm Anda untuk besok.';
+
+  @override
+  String get aboutTitle => 'Tentang';
+
+  @override
+  String get aboutAppName => 'Nama Aplikasi';
+
+  @override
+  String get aboutVersion => 'Versi';
+
+  @override
+  String get aboutDeveloper => 'Pengembang';
+
+  @override
+  String get aboutDeveloperValue => 'Tom Satthu';
+
+  @override
+  String get aboutGithub => 'Repositori GitHub';
+
+  @override
+  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+
+  @override
+  String get aboutEmail => 'Dukungan Email';
+
+  @override
+  String get aboutEmailValue => 'support@smartvoicealarm.app';
+
+  @override
+  String get aboutWebsite => 'Situs Web';
+
+  @override
+  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+
+  @override
+  String get aboutWebsitePlaceholder => 'Segera hadir';
+
+  @override
+  String get voiceSystemDefault => 'Default sistem';
+
+  @override
+  String get notificationChannelAlarms => 'Alarm';
+
+  @override
+  String get notificationChannelAlarmsDesc => 'Peringatan alarm suara';
+
+  @override
+  String get notificationChannelReminders => 'Pengingat';
+
+  @override
+  String get notificationChannelRemindersDesc =>
+      'Pengingat harian untuk mengatur alarm besok';
+
+  @override
+  String get alarmDefaultLabel => 'Alarm';
+}

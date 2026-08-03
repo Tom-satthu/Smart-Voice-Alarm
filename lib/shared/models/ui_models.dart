@@ -207,7 +207,7 @@ class TtsVoiceUiModel {
     required this.name,
     required this.locale,
     this.isPremium = false,
-    this.quality = TtsVoiceQuality.defaultQuality,
+    this.quality,
     this.availability = TtsVoiceAvailability.installedOffline,
     this.isUsable = true,
   });
@@ -216,7 +216,8 @@ class TtsVoiceUiModel {
   final String name;
   final String locale;
   final bool isPremium;
-  final TtsVoiceQuality quality;
+  /// Null when the platform does not expose a reliable quality signal.
+  final TtsVoiceQuality? quality;
   final TtsVoiceAvailability availability;
   final bool isUsable;
 }

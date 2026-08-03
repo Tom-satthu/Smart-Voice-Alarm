@@ -228,5 +228,11 @@
   "aboutEmailValue": "support@smartvoicealarm.app",
   "aboutWebsite": "Website",
   "aboutWebsiteValue": "www.smartvoicealarm.app",
-  "aboutWebsitePlaceholder": "Binnenkort"
+  "aboutWebsitePlaceholder": "Binnenkort",
+  "voiceSystemDefault": "Systeemstandaard",
+  "notificationChannelAlarms": "Alarmen",
+  "notificationChannelAlarmsDesc": "Spraakalarmmeldingen",
+  "notificationChannelReminders": "Herinneringen",
+  "notificationChannelRemindersDesc": "Dagelijkse herinnering om morgen’s alarm in te stellen",
+  "alarmDefaultLabel": "Alarm"
 }

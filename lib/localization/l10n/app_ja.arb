@@ -228,5 +228,11 @@
   "aboutEmailValue": "support@smartvoicealarm.app",
   "aboutWebsite": "ウェブサイト",
   "aboutWebsiteValue": "www.smartvoicealarm.app",
-  "aboutWebsitePlaceholder": "近日公開"
+  "aboutWebsitePlaceholder": "近日公開",
+  "voiceSystemDefault": "システムデフォルト",
+  "notificationChannelAlarms": "アラーム",
+  "notificationChannelAlarmsDesc": "音声アラームの通知",
+  "notificationChannelReminders": "リマインダー",
+  "notificationChannelRemindersDesc": "明日のアラームを設定する毎日のリマインダー",
+  "alarmDefaultLabel": "アラーム"
 }

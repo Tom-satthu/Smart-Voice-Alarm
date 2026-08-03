@@ -109,24 +109,32 @@ class SurfacePanel extends StatelessWidget {
     final radius = borderRadius ?? BorderRadius.circular(20);
     final panel = AnimatedContainer(
       duration: AppConstants.animationFast,
+      curve: Curves.easeOutCubic,
       padding: padding,
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: radius,
         border: Border.all(
           color: emphasized
-              ? context.colors.primary.withValues(alpha: 0.35)
-              : context.colors.outline.withValues(alpha: 0.45),
+              ? context.colors.primary.withValues(alpha: 0.32)
+              : context.colors.outline.withValues(alpha: 0.38),
+          width: emphasized ? 1.2 : 1,
         ),
         boxShadow: emphasized
             ? [
                 BoxShadow(
-                  color: context.colors.primary.withValues(alpha: 0.08),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
+                  color: context.colors.primary.withValues(alpha: 0.10),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
                 ),
               ]
-            : null,
+            : [
+                BoxShadow(
+                  color: context.colors.shadow.withValues(alpha: 0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
       child: child,
     );
@@ -198,6 +206,46 @@ class EmptyStateView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Language / voice name / optional quality — used in Voices and TTS pickers.
+class VoiceIdentityBlock extends StatelessWidget {
+  const VoiceIdentityBlock({
+    super.key,
+    required this.languageLabel,
+    required this.voiceName,
+    this.qualityLabel,
+    this.availabilityLabel,
+  });
+
+  final String languageLabel;
+  final String voiceName;
+  final String? qualityLabel;
+  final String? availabilityLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = context.textTheme.bodySmall?.copyWith(
+      color: context.colors.onSurfaceVariant,
+      height: 1.35,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(languageLabel, style: muted),
+        const SizedBox(height: 2),
+        Text(voiceName, style: context.textTheme.titleSmall),
+        if (qualityLabel != null) ...[
+          const SizedBox(height: 2),
+          Text(qualityLabel!, style: muted),
+        ],
+        if (availabilityLabel != null) ...[
+          const SizedBox(height: 2),
+          Text(availabilityLabel!, style: muted),
+        ],
+      ],
     );
   }
 }

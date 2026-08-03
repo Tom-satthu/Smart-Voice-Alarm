@@ -327,7 +327,8 @@ void main() {
     await _pumpFrames(tester);
     expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Theme'), findsOneWidget);
-    expect(find.text('Reminder to set alarm'), findsWidgets);
+    expect(find.text('Voices'), findsWidgets);
+    expect(find.text('Get a gentle nudge if no alarm is scheduled'), findsWidgets);
   });
 
   testWidgets('13. Open Premium', (tester) async {

@@ -1,0 +1,661 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Portuguese (`pt`).
+class AppLocalizationsPt extends AppLocalizations {
+  AppLocalizationsPt([String locale = 'pt']) : super(locale);
+
+  @override
+  String get appName => 'Smart Voice Alarm';
+
+  @override
+  String get appTagline => 'Acorde com a sua própria voz';
+
+  @override
+  String get homeTitle => 'Alarmes';
+
+  @override
+  String get homeEmptyTitle => 'Ainda não há alarmes';
+
+  @override
+  String get homeEmptySubtitle =>
+      'Crie o seu primeiro alarme de voz e acorde com as palavras que importam.';
+
+  @override
+  String get homeCreateAlarm => 'Criar alarme';
+
+  @override
+  String get homeEdit => 'Editar';
+
+  @override
+  String get homeDuplicate => 'Duplicar';
+
+  @override
+  String get homeDelete => 'Eliminar';
+
+  @override
+  String get homeMore => 'Mais opções';
+
+  @override
+  String homeAlarmsReady(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alarmes prontos',
+      one: '1 alarme pronto',
+      zero: 'Sem alarmes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeGoodMorning => 'Bom dia';
+
+  @override
+  String get homeGoodAfternoon => 'Boa tarde';
+
+  @override
+  String get homeGoodEvening => 'Boa noite';
+
+  @override
+  String get alarmTypeVoice => 'Voz';
+
+  @override
+  String get alarmTypeRingtone => 'Toque';
+
+  @override
+  String get alarmTypeMixed => 'Misto';
+
+  @override
+  String get alarmTypeLabel => 'Tipo de alarme';
+
+  @override
+  String get createAlarmTitle => 'Novo alarme';
+
+  @override
+  String get editAlarmTitle => 'Editar alarme';
+
+  @override
+  String get alarmTime => 'Hora';
+
+  @override
+  String get alarmHour => 'Hora';
+
+  @override
+  String get alarmMinute => 'Minuto';
+
+  @override
+  String get alarmRepeat => 'Repetir';
+
+  @override
+  String get alarmVoiceSequence => 'Sequência de voz';
+
+  @override
+  String get alarmRingtone => 'Toque após a voz';
+
+  @override
+  String get alarmRepeatCount => 'Repetições da sequência';
+
+  @override
+  String get alarmCopyFrom => 'Copiar de outro alarme';
+
+  @override
+  String get alarmSave => 'Guardar alarme';
+
+  @override
+  String get alarmSelectSequence => 'Toque para editar a sequência';
+
+  @override
+  String get alarmSelectRingtone => 'Escolha um som';
+
+  @override
+  String get alarmNoneSelected => 'Nenhum selecionado';
+
+  @override
+  String get alarmCopied => 'Definições copiadas';
+
+  @override
+  String get alarmSaved => 'Alarme guardado';
+
+  @override
+  String get alarmDeleted => 'Alarme eliminado';
+
+  @override
+  String get alarmDuplicated => 'Alarme duplicado';
+
+  @override
+  String get dayMon => 'Seg';
+
+  @override
+  String get dayTue => 'Ter';
+
+  @override
+  String get dayWed => 'Qua';
+
+  @override
+  String get dayThu => 'Qui';
+
+  @override
+  String get dayFri => 'Sex';
+
+  @override
+  String get daySat => 'Sáb';
+
+  @override
+  String get daySun => 'Dom';
+
+  @override
+  String get dayEveryDay => 'Todos os dias';
+
+  @override
+  String get dayWeekdays => 'Dias úteis';
+
+  @override
+  String get dayWeekends => 'Fins de semana';
+
+  @override
+  String get dayOnce => 'Uma vez';
+
+  @override
+  String get voiceSequenceTitle => 'Sequência de voz';
+
+  @override
+  String get voiceSequenceEmptyTitle => 'Crie a sua mensagem de despertar';
+
+  @override
+  String get voiceSequenceEmptySubtitle =>
+      'Adicione gravações ou texto falado na ordem em que quer ouvi-los.';
+
+  @override
+  String get voiceSequenceAdd => 'Adicionar voz';
+
+  @override
+  String get voiceSequenceDelete => 'Eliminar';
+
+  @override
+  String get voiceSequenceDeleteConfirmTitle => 'Remover segmento?';
+
+  @override
+  String get voiceSequenceDeleteConfirmBody =>
+      'Isto remove o segmento da sequência.';
+
+  @override
+  String get voiceSequenceReorderHint => 'Arraste para reordenar';
+
+  @override
+  String get voiceSegmentName => 'Nome';
+
+  @override
+  String get voiceSegmentType => 'Tipo';
+
+  @override
+  String get voiceSegmentDuration => 'Duração';
+
+  @override
+  String voiceSegmentOrder(int number) {
+    return 'Passo $number';
+  }
+
+  @override
+  String get voiceTypeRecording => 'Gravação';
+
+  @override
+  String get voiceTypeTts => 'Texto para fala';
+
+  @override
+  String get addVoiceTitle => 'Adicionar voz';
+
+  @override
+  String get addVoiceRecord => 'Gravar voz';
+
+  @override
+  String get addVoiceRecordSubtitle => 'Fale uma mensagem curta no microfone';
+
+  @override
+  String get addVoiceTts => 'Texto para fala';
+
+  @override
+  String get addVoiceTtsSubtitle => 'Escreva uma mensagem e escolha uma voz';
+
+  @override
+  String get ttsTitle => 'Texto para fala';
+
+  @override
+  String get ttsInputLabel => 'Mensagem';
+
+  @override
+  String get ttsInputHint => 'Escreva a mensagem que quer ouvir…';
+
+  @override
+  String get ttsVoices => 'Vozes';
+
+  @override
+  String get ttsLanguageLabel => 'Idioma';
+
+  @override
+  String get ttsVoiceNameLabel => 'Voz';
+
+  @override
+  String get ttsVoiceQualityLabel => 'Qualidade';
+
+  @override
+  String get ttsPreview => 'Pré-visualizar';
+
+  @override
+  String get ttsPreviewing => 'A reproduzir pré-visualização…';
+
+  @override
+  String get ttsSave => 'Guardar';
+
+  @override
+  String get ttsSaved => 'Segmento de voz guardado';
+
+  @override
+  String get recordTitle => 'Gravar voz';
+
+  @override
+  String get recordStart => 'Gravar';
+
+  @override
+  String get recordStop => 'Parar';
+
+  @override
+  String get recordPlay => 'Reproduzir';
+
+  @override
+  String get recordPlaying => 'A reproduzir…';
+
+  @override
+  String get recordSave => 'Guardar';
+
+  @override
+  String get recordHint => 'Toque em Gravar quando estiver pronto';
+
+  @override
+  String get recordRecording => 'A gravar…';
+
+  @override
+  String get recordReady => 'Pronto para guardar';
+
+  @override
+  String get recordSaved => 'Gravação guardada';
+
+  @override
+  String get recordDefaultName => 'Gravação de voz';
+
+  @override
+  String get settingsTitle => 'Definições';
+
+  @override
+  String get settingsAppearance => 'Aparência';
+
+  @override
+  String get settingsTheme => 'Tema';
+
+  @override
+  String get settingsThemeSystem => 'Sistema';
+
+  @override
+  String get settingsThemeLight => 'Claro';
+
+  @override
+  String get settingsThemeDark => 'Escuro';
+
+  @override
+  String get settingsLanguage => 'Idioma';
+
+  @override
+  String get settingsReminder => 'Lembrete';
+
+  @override
+  String get settingsReminderSubtitle =>
+      'Receba um aviso suave se não houver nenhum alarme agendado';
+
+  @override
+  String get settingsReminderTime => 'Hora do lembrete';
+
+  @override
+  String get settingsAbout => 'Sobre';
+
+  @override
+  String get settingsAboutSubtitle => 'Informações da app e suporte';
+
+  @override
+  String get settingsAboutLegalese => '© Smart Voice Alarm';
+
+  @override
+  String get settingsPremium => 'Premium';
+
+  @override
+  String get settingsPremiumSubtitle => 'Desbloqueie o acesso vitalício';
+
+  @override
+  String get settingsVoices => 'Vozes';
+
+  @override
+  String get settingsVoicesSubtitle => 'Vozes do sistema para texto para fala';
+
+  @override
+  String get settingsVersion => 'Versão';
+
+  @override
+  String get settingsLicenses => 'Licenças de código aberto';
+
+  @override
+  String get settingsPrivacy => 'Política de privacidade';
+
+  @override
+  String get settingsTerms => 'Termos de utilização';
+
+  @override
+  String get settingsLegalPlaceholder => 'Conteúdo em breve.';
+
+  @override
+  String get premiumTitle => 'Premium';
+
+  @override
+  String get premiumHeadline => 'Uma compra. Sua para sempre.';
+
+  @override
+  String get premiumSubtitle =>
+      'Desbloqueie a experiência completa do Smart Voice Alarm com uma única compra vitalícia. Sem assinaturas.';
+
+  @override
+  String get premiumPlanFree => 'Grátis';
+
+  @override
+  String get premiumPlanLifetime => 'Premium vitalício';
+
+  @override
+  String get premiumPlanLifetimePrice => 'Desbloqueio único';
+
+  @override
+  String get premiumBenefitsTitle => 'Tudo no Premium';
+
+  @override
+  String get premiumBenefitUnlimited => 'Alarmes de voz ilimitados';
+
+  @override
+  String get premiumBenefitSequences => 'Sequências de voz mais longas';
+
+  @override
+  String get premiumBenefitVoices => 'Acesso completo às vozes';
+
+  @override
+  String get premiumBenefitThemes => 'Opções extra de aparência';
+
+  @override
+  String get premiumBenefitSupport => 'Suporte prioritário';
+
+  @override
+  String get premiumBenefitNoAds => 'Experiência sem anúncios';
+
+  @override
+  String get premiumUnlock => 'Desbloquear vitalício';
+
+  @override
+  String get premiumRestore => 'Restaurar compra';
+
+  @override
+  String get premiumThanks =>
+      'As compras estarão disponíveis numa atualização futura. Obrigado pelo seu apoio.';
+
+  @override
+  String get premiumComingSoon =>
+      'As compras na app estão a ser preparadas. Nada será cobrado ainda.';
+
+  @override
+  String get commonCancel => 'Cancelar';
+
+  @override
+  String get commonDone => 'Concluído';
+
+  @override
+  String get commonBack => 'Voltar';
+
+  @override
+  String get commonNext => 'Seguinte';
+
+  @override
+  String get commonClose => 'Fechar';
+
+  @override
+  String get commonEnabled => 'Ligado';
+
+  @override
+  String get commonDisabled => 'Desligado';
+
+  @override
+  String get commonRemove => 'Remover';
+
+  @override
+  String get commonOpen => 'Abrir';
+
+  @override
+  String get languageEnglish => 'Inglês';
+
+  @override
+  String get languageSpanish => 'Espanhol';
+
+  @override
+  String get languagePortuguese => 'Português';
+
+  @override
+  String get languageFrench => 'Francês';
+
+  @override
+  String get languageGerman => 'Alemão';
+
+  @override
+  String get languageItalian => 'Italiano';
+
+  @override
+  String get languageDutch => 'Neerlandês';
+
+  @override
+  String get languageJapanese => 'Japonês';
+
+  @override
+  String get languageKorean => 'Coreano';
+
+  @override
+  String get languageChineseSimplified => 'Chinês (simplificado)';
+
+  @override
+  String get languageChineseTraditional => 'Chinês (tradicional)';
+
+  @override
+  String get languageIndonesian => 'Indonésio';
+
+  @override
+  String get languageVietnamese => 'Vietnamita';
+
+  @override
+  String timesLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vezes',
+      one: '1 vez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String segmentsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count segmentos',
+      one: '1 segmento',
+      zero: 'Sem segmentos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ringtoneSoftChime => 'Carrilhão suave';
+
+  @override
+  String get ringtoneOceanBreeze => 'Brisa oceânica';
+
+  @override
+  String get ringtoneNightPulse => 'Pulso noturno';
+
+  @override
+  String get ringtoneForestDawn => 'Amanhecer na floresta';
+
+  @override
+  String get ringtoneCrystalBell => 'Sino de cristal';
+
+  @override
+  String get alarmStop => 'Parar';
+
+  @override
+  String get alarmStopAll => 'Parar tudo';
+
+  @override
+  String alarmQueueWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alarmes à espera',
+      one: '1 alarme à espera',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get voicesTitle => 'Vozes';
+
+  @override
+  String get voicesSystemVoices => 'Vozes do sistema';
+
+  @override
+  String get voicesDownloadMore => 'Descarregar mais vozes';
+
+  @override
+  String get voicesRefresh => 'Atualizar vozes';
+
+  @override
+  String get voicesOfflineHint =>
+      'Prefira vozes offline para que os alarmes falem mesmo sem ligação à rede.';
+
+  @override
+  String get voicesIosGuideTitle => 'Instalar vozes no iPhone';
+
+  @override
+  String get voicesIosGuideBody =>
+      'Abra Definições → Acessibilidade → Conteúdo falado → Vozes, descarregue as vozes de que precisa, volte aqui e toque em Atualizar vozes.';
+
+  @override
+  String get voicesAndroidGuide =>
+      'Abre o instalador de dados TTS do sistema. O Smart Voice Alarm não descarrega nem aloja pacotes de voz.';
+
+  @override
+  String get voicesWebUnavailable =>
+      'Os browsers gerem as suas próprias vozes. Os pacotes de descarga não estão disponíveis na web.';
+
+  @override
+  String get voicesEmpty => 'Ainda não foram encontradas vozes utilizáveis';
+
+  @override
+  String get voicesEmptyCta => 'Descarregar mais vozes';
+
+  @override
+  String get voiceQualityDefault => 'Predefinida';
+
+  @override
+  String get voiceQualityEnhanced => 'Melhorada';
+
+  @override
+  String get voiceQualityPremium => 'Premium';
+
+  @override
+  String get voiceAvailabilityOffline => 'Offline';
+
+  @override
+  String get voiceAvailabilityNetwork => 'Requer rede';
+
+  @override
+  String get voiceAvailabilityMissing => 'Não instalada';
+
+  @override
+  String get ttsNoVoicesTitle => 'Sem vozes utilizáveis';
+
+  @override
+  String get ttsNoVoicesBody =>
+      'Descarregue vozes do sistema e depois atualize a lista.';
+
+  @override
+  String get ttsOpenVoiceSettings => 'Descarregar mais vozes';
+
+  @override
+  String get ttsVoiceFallback =>
+      'A voz selecionada não está disponível. A usar uma voz predefinida.';
+
+  @override
+  String get reminderNotificationTitle => 'Defina o alarme de amanhã';
+
+  @override
+  String get reminderNotificationBody =>
+      'Reserve um momento para agendar o seu Smart Voice Alarm para amanhã.';
+
+  @override
+  String get aboutTitle => 'Sobre';
+
+  @override
+  String get aboutAppName => 'Nome da app';
+
+  @override
+  String get aboutVersion => 'Versão';
+
+  @override
+  String get aboutDeveloper => 'Programador';
+
+  @override
+  String get aboutDeveloperValue => 'Tom Satthu';
+
+  @override
+  String get aboutGithub => 'Repositório GitHub';
+
+  @override
+  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+
+  @override
+  String get aboutEmail => 'Suporte por e-mail';
+
+  @override
+  String get aboutEmailValue => 'support@smartvoicealarm.app';
+
+  @override
+  String get aboutWebsite => 'Website';
+
+  @override
+  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+
+  @override
+  String get aboutWebsitePlaceholder => 'Em breve';
+
+  @override
+  String get voiceSystemDefault => 'Padrão do sistema';
+
+  @override
+  String get notificationChannelAlarms => 'Alarmes';
+
+  @override
+  String get notificationChannelAlarmsDesc => 'Alertas de alarme de voz';
+
+  @override
+  String get notificationChannelReminders => 'Lembretes';
+
+  @override
+  String get notificationChannelRemindersDesc =>
+      'Lembrete diário para definir o alarme de amanhã';
+
+  @override
+  String get alarmDefaultLabel => 'Alarme';
+}

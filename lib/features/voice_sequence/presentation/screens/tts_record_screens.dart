@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/localization/locale_display_names.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
@@ -118,9 +119,9 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
 
     final voices = await ref.read(usableTtsVoicesProvider.future);
     final resolved = voices.isEmpty
-        ? const TtsVoiceUiModel(
+        ? TtsVoiceUiModel(
             id: 'default|en-US',
-            name: 'System Default',
+            name: l10n.voiceSystemDefault,
             locale: 'en-US',
           )
         : _pickVoice(
@@ -162,7 +163,8 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
     }
   }
 
-  String _qualityLabel(AppLocalizations l10n, TtsVoiceQuality quality) {
+  String? _qualityLabel(AppLocalizations l10n, TtsVoiceQuality? quality) {
+    if (quality == null) return null;
     return switch (quality) {
       TtsVoiceQuality.defaultQuality => l10n.voiceQualityDefault,
       TtsVoiceQuality.enhanced => l10n.voiceQualityEnhanced,
@@ -170,15 +172,11 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
     };
   }
 
-  String _availabilityLabel(
-    AppLocalizations l10n,
-    TtsVoiceAvailability availability,
-  ) {
-    return switch (availability) {
-      TtsVoiceAvailability.installedOffline => l10n.voiceAvailabilityOffline,
-      TtsVoiceAvailability.networkRequired => l10n.voiceAvailabilityNetwork,
-      TtsVoiceAvailability.notInstalled => l10n.voiceAvailabilityMissing,
-    };
+  String _voiceDisplayName(AppLocalizations l10n, TtsVoiceUiModel voice) {
+    if (voice.id.startsWith('default|') || voice.name == 'System Default') {
+      return l10n.voiceSystemDefault;
+    }
+    return voice.name;
   }
 
   @override
@@ -238,13 +236,14 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                             bottom: AppConstants.spaceSm,
                           ),
                           child: SurfacePanel(
+                            emphasized: _selectedVoiceId == voice.id,
                             onTap: () => setState(() {
                               _selectedVoiceId = voice.id;
                               _selectedLocale = voice.locale;
                             }),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
-                              vertical: 12,
+                              vertical: 14,
                             ),
                             child: Row(
                               children: [
@@ -258,19 +257,15 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        voice.name,
-                                        style: context.textTheme.titleSmall,
-                                      ),
-                                      Text(
-                                        '${voice.locale} · ${_qualityLabel(l10n, voice.quality)} · ${_availabilityLabel(l10n, voice.availability)}',
-                                        style: context.textTheme.bodySmall,
-                                      ),
-                                    ],
+                                  child: VoiceIdentityBlock(
+                                    languageLabel: LocaleDisplayNames.friendly(
+                                      voice.locale,
+                                    ),
+                                    voiceName: _voiceDisplayName(l10n, voice),
+                                    qualityLabel: _qualityLabel(
+                                      l10n,
+                                      voice.quality,
+                                    ),
                                   ),
                                 ),
                               ],

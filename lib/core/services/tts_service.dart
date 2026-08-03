@@ -122,27 +122,38 @@ class TtsService {
 
   Future<void> stop() => _tts.stop();
 
-  TtsVoiceQuality _parseQuality(Map<String, dynamic> map) {
-    final quality = (map['quality'] ?? map['features'] ?? '')
-        .toString()
-        .toLowerCase();
+  /// Returns null when the platform does not expose a trustworthy quality value.
+  TtsVoiceQuality? _parseQuality(Map<String, dynamic> map) {
+    final q = map['quality'];
+    final features = (map['features'] ?? '').toString().toLowerCase();
     final name = (map['name'] ?? '').toString().toLowerCase();
-    if (quality.contains('premium') || name.contains('premium')) {
+
+    if (name.contains('premium') || features.contains('premium')) {
       return TtsVoiceQuality.premium;
     }
-    if (quality.contains('enhanced') ||
-        quality.contains('quality') ||
-        name.contains('enhanced') ||
+    if (name.contains('enhanced') ||
+        features.contains('enhanced') ||
         name.contains('compact')) {
       return TtsVoiceQuality.enhanced;
     }
-    // iOS often exposes quality as int via undocumented keys.
-    final q = map['quality'];
+
+    // iOS often exposes quality as an int.
     if (q is num) {
       if (q >= 300) return TtsVoiceQuality.premium;
       if (q >= 200) return TtsVoiceQuality.enhanced;
+      if (q >= 100) return TtsVoiceQuality.defaultQuality;
+      return null;
     }
-    return TtsVoiceQuality.defaultQuality;
+
+    final quality = (q ?? '').toString().toLowerCase();
+    if (quality.contains('premium')) return TtsVoiceQuality.premium;
+    if (quality.contains('enhanced') || quality.contains('quality')) {
+      return TtsVoiceQuality.enhanced;
+    }
+    if (quality.contains('default')) return TtsVoiceQuality.defaultQuality;
+
+    // Many Android voices omit quality — hide rather than inventing a label.
+    return null;
   }
 
   TtsVoiceAvailability _parseAvailability(Map<String, dynamic> map) {
@@ -173,7 +184,6 @@ class TtsService {
       id: 'default|en-US',
       name: 'System Default',
       locale: 'en-US',
-      quality: TtsVoiceQuality.defaultQuality,
       availability: TtsVoiceAvailability.installedOffline,
       isUsable: true,
     ),

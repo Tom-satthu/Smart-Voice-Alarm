@@ -228,5 +228,11 @@
   "aboutEmailValue": "support@smartvoicealarm.app",
   "aboutWebsite": "Trang web",
   "aboutWebsiteValue": "www.smartvoicealarm.app",
-  "aboutWebsitePlaceholder": "Sắp ra mắt"
+  "aboutWebsitePlaceholder": "Sắp ra mắt",
+  "voiceSystemDefault": "Mặc định hệ thống",
+  "notificationChannelAlarms": "Báo thức",
+  "notificationChannelAlarmsDesc": "Thông báo báo thức giọng nói",
+  "notificationChannelReminders": "Nhắc nhở",
+  "notificationChannelRemindersDesc": "Nhắc nhở hàng ngày để đặt báo thức ngày mai",
+  "alarmDefaultLabel": "Báo thức"
 }

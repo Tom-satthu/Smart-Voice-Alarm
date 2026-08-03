@@ -1,6 +1,14 @@
 abstract final class AppConstants {
   static const String appName = 'Smart Voice Alarm';
   static const String appVersion = '1.0.0';
+  static const String developerName = 'Tom Satthu';
+  static const String githubRepoUrl =
+      'https://github.com/Tom-satthu/Smart-Voice-Alarm';
+  static const String supportEmail = 'support@smartvoicealarm.app';
+  static const String websiteUrl = 'https://www.smartvoicealarm.app';
+  static const String privacyUrl = 'https://www.smartvoicealarm.app/privacy';
+  static const String termsUrl = 'https://www.smartvoicealarm.app/terms';
+
   static const Duration splashDuration = Duration(milliseconds: 1600);
   static const Duration animationFast = Duration(milliseconds: 200);
   static const Duration animationNormal = Duration(milliseconds: 320);

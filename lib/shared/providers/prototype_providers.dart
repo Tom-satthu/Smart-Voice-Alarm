@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/localization/app_locale_support.dart';
 import '../../core/services/alarm_engine.dart';
 import '../../core/services/audio_player_service.dart';
 import '../../core/services/notification_service.dart';
@@ -329,14 +330,23 @@ class LocaleController extends StateNotifier<Locale> {
   LocaleController([SettingsRepository? repo])
       : _repo = repo ?? SettingsRepository(),
         super(const Locale('en')) {
-    state = _repo.loadLocale();
+    state = _resolveInitial(_repo);
   }
 
   final SettingsRepository _repo;
 
+  static Locale _resolveInitial(SettingsRepository repo) {
+    if (repo.hasSavedLocale) {
+      return AppLocaleSupport.resolve(null, repo.loadLocale());
+    }
+    final device = WidgetsBinding.instance.platformDispatcher.locale;
+    return AppLocaleSupport.resolve(device);
+  }
+
   Future<void> setLocale(Locale locale) async {
-    state = locale;
-    await _repo.saveLocale(locale);
+    final resolved = AppLocaleSupport.resolve(null, locale);
+    state = resolved;
+    await _repo.saveLocale(resolved);
   }
 }
 
@@ -399,12 +409,27 @@ class ReminderSettingsController extends StateNotifier<ReminderSettings> {
   }
 
   Future<void> ensureScheduled() async {
+    // Title/body are resolved by callers with l10n when possible; keep English
+    // fallback only for cold start before UI exists.
     await _notifications.scheduleDailyReminder(
       enabled: state.enabled,
       time: state.time,
-      title: 'Set tomorrow’s alarm',
-      body: 'Take a moment to schedule your Smart Voice Alarm for tomorrow.',
+      title: _reminderTitle ?? 'Set tomorrow’s alarm',
+      body: _reminderBody ??
+          'Take a moment to schedule your Smart Voice Alarm for tomorrow.',
     );
+  }
+
+  String? _reminderTitle;
+  String? _reminderBody;
+
+  Future<void> ensureScheduledLocalized({
+    required String title,
+    required String body,
+  }) async {
+    _reminderTitle = title;
+    _reminderBody = body;
+    await ensureScheduled();
   }
 }
 

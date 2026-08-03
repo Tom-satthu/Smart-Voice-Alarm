@@ -24,8 +24,53 @@ class NotificationService {
 
   AlarmNotificationCallback? onAlarmTriggered;
   bool _initialized = false;
+  String _appName = 'Smart Voice Alarm';
+  String _alarmChannelName = 'Alarms';
+  String _alarmChannelDesc = 'Voice alarm alerts';
+  String _reminderChannelName = 'Reminders';
+  String _reminderChannelDesc =
+      'Daily reminder to set tomorrow’s alarm';
 
   NativeAlarmScheduler get native => _native;
+
+  Future<void> applyLocalizedCopy({
+    required String appName,
+    required String alarmChannelName,
+    required String alarmChannelDescription,
+    required String reminderChannelName,
+    required String reminderChannelDescription,
+  }) async {
+    _appName = appName;
+    _alarmChannelName = alarmChannelName;
+    _alarmChannelDesc = alarmChannelDescription;
+    _reminderChannelName = reminderChannelName;
+    _reminderChannelDesc = reminderChannelDescription;
+    if (!_initialized || kIsWeb) return;
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      await androidPlugin?.createNotificationChannel(
+        AndroidNotificationChannel(
+          _alarmChannelId,
+          _alarmChannelName,
+          description: _alarmChannelDesc,
+          importance: Importance.max,
+          playSound: false,
+        ),
+      );
+      await androidPlugin?.createNotificationChannel(
+        AndroidNotificationChannel(
+          _reminderChannelId,
+          _reminderChannelName,
+          description: _reminderChannelDesc,
+          importance: Importance.defaultImportance,
+        ),
+      );
+    } catch (error) {
+      debugPrint('applyLocalizedCopy failed: $error');
+    }
+  }
 
   Future<void> init() async {
     if (kIsWeb || _initialized) return;
@@ -63,19 +108,19 @@ class NotificationService {
         await androidPlugin?.requestNotificationsPermission();
         await androidPlugin?.requestExactAlarmsPermission();
         await androidPlugin?.createNotificationChannel(
-          const AndroidNotificationChannel(
+          AndroidNotificationChannel(
             _alarmChannelId,
-            'Alarms',
-            description: 'Voice alarm alerts',
+            _alarmChannelName,
+            description: _alarmChannelDesc,
             importance: Importance.max,
             playSound: false,
           ),
         );
         await androidPlugin?.createNotificationChannel(
-          const AndroidNotificationChannel(
+          AndroidNotificationChannel(
             _reminderChannelId,
-            'Reminders',
-            description: 'Daily reminder to set tomorrow’s alarm',
+            _reminderChannelName,
+            description: _reminderChannelDesc,
             importance: Importance.defaultImportance,
           ),
         );
@@ -135,16 +180,16 @@ class NotificationService {
 
       // iOS: local notification with system sound when the app may be killed.
       // Voice sequences / TTS cannot run while the process is dead.
-      const details = NotificationDetails(
-        iOS: DarwinNotificationDetails(
+      final details = NotificationDetails(
+        iOS: const DarwinNotificationDetails(
           presentAlert: true,
           presentSound: true,
           interruptionLevel: InterruptionLevel.timeSensitive,
         ),
         android: AndroidNotificationDetails(
           _alarmChannelId,
-          'Alarms',
-          channelDescription: 'Voice alarm alerts',
+          _alarmChannelName,
+          channelDescription: _alarmChannelDesc,
           importance: Importance.max,
           priority: Priority.max,
           category: AndroidNotificationCategory.alarm,
@@ -156,7 +201,7 @@ class NotificationService {
       await _plugin.zonedSchedule(
         alarm.id.hashCode,
         alarm.label,
-        'Smart Voice Alarm',
+        _appName,
         next,
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -206,15 +251,15 @@ class NotificationService {
         title,
         body,
         scheduled,
-        const NotificationDetails(
+        NotificationDetails(
           android: AndroidNotificationDetails(
             _reminderChannelId,
-            'Reminders',
-            channelDescription: 'Daily reminder to set tomorrow’s alarm',
+            _reminderChannelName,
+            channelDescription: _reminderChannelDesc,
             importance: Importance.defaultImportance,
             priority: Priority.defaultPriority,
           ),
-          iOS: DarwinNotificationDetails(),
+          iOS: const DarwinNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,

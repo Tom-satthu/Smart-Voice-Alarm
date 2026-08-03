@@ -228,5 +228,11 @@
   "aboutEmailValue": "support@smartvoicealarm.app",
   "aboutWebsite": "Situs Web",
   "aboutWebsiteValue": "www.smartvoicealarm.app",
-  "aboutWebsitePlaceholder": "Segera hadir"
+  "aboutWebsitePlaceholder": "Segera hadir",
+  "voiceSystemDefault": "Default sistem",
+  "notificationChannelAlarms": "Alarm",
+  "notificationChannelAlarmsDesc": "Peringatan alarm suara",
+  "notificationChannelReminders": "Pengingat",
+  "notificationChannelRemindersDesc": "Pengingat harian untuk mengatur alarm besok",
+  "alarmDefaultLabel": "Alarm"
 }

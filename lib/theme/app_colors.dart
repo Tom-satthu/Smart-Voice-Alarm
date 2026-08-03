@@ -7,21 +7,21 @@ abstract final class AppColors {
   static const Color brandTealSoft = Color(0xFF5EEAD4);
   static const Color brandTealDeep = Color(0xFF115E59);
 
-  static const Color lightBackground = Color(0xFFF5F7F7);
+  static const Color lightBackground = Color(0xFFF4F8F7);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceMuted = Color(0xFFECF1F0);
-  static const Color lightOnBackground = Color(0xFF0B1615);
-  static const Color lightOnSurface = Color(0xFF152423);
-  static const Color lightOutline = Color(0xFFD5E0DE);
-  static const Color lightMuted = Color(0xFF5B716E);
+  static const Color lightSurfaceMuted = Color(0xFFE8F0EE);
+  static const Color lightOnBackground = Color(0xFF0A1413);
+  static const Color lightOnSurface = Color(0xFF13201F);
+  static const Color lightOutline = Color(0xFFD0DCDA);
+  static const Color lightMuted = Color(0xFF56706C);
 
-  static const Color darkBackground = Color(0xFF070B0C);
-  static const Color darkSurface = Color(0xFF11181A);
-  static const Color darkSurfaceMuted = Color(0xFF1A2326);
-  static const Color darkOnBackground = Color(0xFFF3F8F7);
-  static const Color darkOnSurface = Color(0xFFE6EEEC);
-  static const Color darkOutline = Color(0xFF2A3537);
-  static const Color darkMuted = Color(0xFF8FA3A0);
+  static const Color darkBackground = Color(0xFF060A0B);
+  static const Color darkSurface = Color(0xFF101719);
+  static const Color darkSurfaceMuted = Color(0xFF182124);
+  static const Color darkOnBackground = Color(0xFFF2F7F6);
+  static const Color darkOnSurface = Color(0xFFE4EDEC);
+  static const Color darkOutline = Color(0xFF2C3739);
+  static const Color darkMuted = Color(0xFF8B9E9B);
 
   static const Color danger = Color(0xFFE11D48);
   static const Color success = Color(0xFF16A34A);

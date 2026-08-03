@@ -228,5 +228,11 @@
   "aboutEmailValue": "support@smartvoicealarm.app",
   "aboutWebsite": "网站",
   "aboutWebsiteValue": "www.smartvoicealarm.app",
-  "aboutWebsitePlaceholder": "即将推出"
+  "aboutWebsitePlaceholder": "即将推出",
+  "voiceSystemDefault": "系统默认",
+  "notificationChannelAlarms": "闹钟",
+  "notificationChannelAlarmsDesc": "语音闹钟提醒",
+  "notificationChannelReminders": "提醒",
+  "notificationChannelRemindersDesc": "每天提醒设置明天的闹钟",
+  "alarmDefaultLabel": "闹钟"
 }

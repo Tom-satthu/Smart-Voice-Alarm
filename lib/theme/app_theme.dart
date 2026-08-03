@@ -126,7 +126,7 @@ abstract final class AppTheme {
           minimumSize: const Size(48, 52),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
           ),
           textStyle: textTheme.labelLarge,
         ),
@@ -136,9 +136,9 @@ abstract final class AppTheme {
           minimumSize: const Size(48, 52),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
           ),
-          side: BorderSide(color: colorScheme.outline),
+          side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.9)),
           textStyle: textTheme.labelLarge,
         ),
       ),
@@ -146,7 +146,7 @@ abstract final class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
           minimumSize: const Size(44, 44),
-          textStyle: textTheme.labelLarge,
+          textStyle: textTheme.labelLarge?.copyWith(letterSpacing: 0.15),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
