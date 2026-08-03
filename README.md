@@ -20,6 +20,8 @@ Business logic, database, notifications, and TTS engine are intentionally deferr
 
 GitHub Pages: https://tom-satthu.github.io/Smart-Voice-Alarm/
 
+> If the link 404s, enable Pages once in **Settings → Pages** (source: GitHub Actions, or branch `gh-pages` / root, or `main` / `/docs`).
+
 ## Run
 
 ```bash

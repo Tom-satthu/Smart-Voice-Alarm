@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build Flutter Web
+  build-and-publish:
+    name: Build and publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,17 +40,18 @@ jobs:
         run: flutter analyze
 
       - name: Build web release
-        run: flutter build web --release --base-href "/Smart-Voice-Alarm/"
+        run: flutter build web --release --base-href "./"
 
       - name: Prepare Pages artifacts
         run: |
           touch build/web/.nojekyll
           cp build/web/index.html build/web/404.html
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web
+      - name: Sync docs/ for branch-based Pages option
+        run: |
+          rm -rf docs
+          mkdir -p docs
+          cp -a build/web/. docs/
 
       - name: Publish to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
@@ -59,11 +60,15 @@ jobs:
           publish_dir: build/web
           force_orphan: true
           enable_jekyll: false
-          destination_dir: .
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
 
   deploy:
     name: Deploy to GitHub Pages
-    needs: build
+    needs: build-and-publish
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -72,4 +77,3 @@ jobs:
       - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        continue-on-error: true
