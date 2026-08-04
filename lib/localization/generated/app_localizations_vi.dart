@@ -287,6 +287,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String get recordDefaultName => 'Bản ghi giọng nói';
 
   @override
+  String get recordPermissionTitle => 'Quyền microphone';
+
+  @override
+  String get recordPermissionRationale =>
+      'Ứng dụng cần quyền microphone để ghi đoạn âm thanh bạn dùng làm báo thức.';
+
+  @override
+  String get recordPermissionDenied =>
+      'Quyền microphone chưa được cấp. Ứng dụng chưa bắt đầu ghi. Bạn có thể thử lại khi sẵn sàng.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'Quyền microphone đang bị chặn. Hãy mở cài đặt hệ thống và cấp quyền trước khi ghi.';
+
+  @override
   String get settingsTitle => 'Cài đặt';
 
   @override
@@ -617,12 +632,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get aboutDeveloperValue => 'Nguyên Đức';
-
-  @override
-  String get aboutGithub => 'Kho GitHub';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'Hỗ trợ qua email';
@@ -971,6 +980,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get exactAlarmPermission => 'Báo thức chính xác';
+
+  @override
+  String get fullScreenAlarmPermission => 'Báo thức toàn màn hình';
 
   @override
   String get openSystemSettings => 'Mở cài đặt hệ thống';

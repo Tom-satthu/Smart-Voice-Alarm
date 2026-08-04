@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/config/release_config.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/utils/time_formatters.dart';
@@ -86,13 +88,40 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     );
   }
 
+  Future<bool> _ensureNotificationAccess() async {
+    if (kIsWeb) return true;
+    final notifications = ref.read(notificationServiceProvider);
+    if (await notifications.notificationPermissionGranted) return true;
+    if (!mounted) return false;
+    final l10n = AppLocalizations.of(context);
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.notificationPermission),
+        content: Text(l10n.openSystemSettingsHint),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.notificationPermission),
+          ),
+        ],
+      ),
+    );
+    if (proceed != true) return false;
+    return notifications.requestNotificationPermission();
+  }
+
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
     final sequenceId = _ensureSequenceId();
     // Ensure sequence document exists before linking.
     ref.read(voiceSequenceProvider(sequenceId));
 
-    if (!_isEdit) {
+    if (!_isEdit && ReleaseConfig.enforceFreeAlarmLimit) {
       final entitlement = ref.read(premiumEntitlementProvider);
       final isPremium = ref.read(isPremiumProvider);
       final count = ref.read(alarmListProvider).length;
@@ -105,12 +134,17 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       }
     }
 
+    final wantsEnabled = _isEdit ? _enabled : true;
+    final notificationAllowed =
+        !wantsEnabled || await _ensureNotificationAccess();
+    if (!mounted) return;
+
     final model = AlarmUiModel(
       id: widget.alarmId ?? const Uuid().v4(),
       time: _time,
       repeatDays: Set<Weekday>.from(_repeatDays),
       // New alarms are always enabled so users do not forget to turn them on.
-      isEnabled: _isEdit ? _enabled : true,
+      isEnabled: wantsEnabled && notificationAllowed,
       type: _type,
       label: _label.trim().isEmpty ? l10n.alarmDefaultLabel : _label.trim(),
       voiceSequenceId: sequenceId,
@@ -126,6 +160,11 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     }
 
     if (!mounted) return;
+    if (!notificationAllowed) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.permissionStatusDenied)));
+    }
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.alarmSaved)));
@@ -133,10 +172,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   }
 
   Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _time,
-    );
+    final picked = await showTimePicker(context: context, initialTime: _time);
     if (picked != null) {
       setState(() => _time = picked);
     }
@@ -331,8 +367,9 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                         for (final day in Weekday.values)
                           Expanded(
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
                               child: _DayToggle(
                                 label: switch (day) {
                                   Weekday.monday => l10n.dayMon,

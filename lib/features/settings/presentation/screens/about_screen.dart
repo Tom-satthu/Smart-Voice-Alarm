@@ -20,18 +20,19 @@ class AboutScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final uri = Uri.tryParse(url);
     if (uri == null || !(uri.isScheme('https') || uri.isScheme('http'))) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.linkUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.linkUnavailable)));
       return;
     }
-    final ok = await canLaunchUrl(uri) &&
+    final ok =
+        await canLaunchUrl(uri) &&
         await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!context.mounted) return;
     if (!ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.linkUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.linkUnavailable)));
     }
   }
 
@@ -49,13 +50,11 @@ class AboutScreen extends ConsumerWidget {
       if (opened || !context.mounted) return;
     } catch (_) {}
     if (!context.mounted) return;
-    await Clipboard.setData(
-      ClipboardData(text: AppConstants.supportEmail),
-    );
+    await Clipboard.setData(ClipboardData(text: AppConstants.supportEmail));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.emailCopied)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.emailCopied)));
   }
 
   @override
@@ -96,22 +95,11 @@ class AboutScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppConstants.spaceXl),
-            _InfoTile(
-              label: l10n.aboutAppName,
-              value: l10n.appName,
-            ),
-            _InfoTile(
-              label: l10n.aboutVersion,
-              value: versionLabel,
-            ),
+            _InfoTile(label: l10n.aboutAppName, value: l10n.appName),
+            _InfoTile(label: l10n.aboutVersion, value: versionLabel),
             _InfoTile(
               label: l10n.aboutDeveloper,
               value: AppConstants.developerName,
-            ),
-            _InfoTile(
-              label: l10n.aboutGithub,
-              value: 'github.com/Tom-deptrai/Smart-Voice-Alarm',
-              onTap: () => _launchHttps(context, AppConstants.githubRepoUrl),
             ),
             _InfoTile(
               label: l10n.contactSupport,
@@ -157,11 +145,7 @@ class AboutScreen extends ConsumerWidget {
 }
 
 class _InfoTile extends StatelessWidget {
-  const _InfoTile({
-    required this.label,
-    required this.value,
-    this.onTap,
-  });
+  const _InfoTile({required this.label, required this.value, this.onTap});
 
   final String label;
   final String value;

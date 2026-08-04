@@ -10,15 +10,13 @@ abstract final class AppConstants {
   /// Public Google Play developer display name (not legal account name).
   static const String developerName = 'Nguyên Đức';
 
-  static const String githubRepoUrl =
-      'https://github.com/Tom-deptrai/Smart-Voice-Alarm';
-
   /// Public support inbox for users and store listings.
   static const String supportEmail = 'timeforwork789@gmail.com';
 
-  /// Leave empty until a real public page exists. Do not use placeholders.
+  /// Leave empty until the separately hosted legal site is live.
   static const String websiteUrl = '';
   static const String privacyPolicyUrl = '';
+  static const String supportUrl = '';
   static const String termsOfUseUrl = '';
 
   /// Play / App Store public URLs — empty until published.
@@ -29,6 +27,7 @@ abstract final class AppConstants {
   static bool get hasPrivacyPolicyUrl => privacyPolicyUrl.trim().isNotEmpty;
   static bool get hasTermsOfUseUrl => termsOfUseUrl.trim().isNotEmpty;
   static bool get hasWebsiteUrl => websiteUrl.trim().isNotEmpty;
+  static bool get hasSupportUrl => supportUrl.trim().isNotEmpty;
   static bool get hasPlayStoreUrl => playStoreUrl.trim().isNotEmpty;
   static bool get hasAppStoreUrl =>
       appStoreUrl.trim().isNotEmpty || appStoreId.trim().isNotEmpty;
@@ -36,6 +35,7 @@ abstract final class AppConstants {
   /// Non-consumable product shared conceptually on App Store and Play.
   static const String premiumProductId = 'smart_voice_alarm_unlimited';
   static const int freeAlarmLimit = 3;
+
   /// Display hint only when the store has not returned a localized price yet.
   static const String premiumPriceHintUsd = '\$1.99';
 

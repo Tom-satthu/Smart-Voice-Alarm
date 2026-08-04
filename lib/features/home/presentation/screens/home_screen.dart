@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/config/release_config.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
@@ -14,6 +15,10 @@ class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   Future<void> _openCreate(BuildContext context, WidgetRef ref) async {
+    if (!ReleaseConfig.enforceFreeAlarmLimit) {
+      context.push(AppRoutes.createAlarm);
+      return;
+    }
     final entitlement = ref.read(premiumEntitlementProvider);
     final isPremium = ref.read(isPremiumProvider);
     final count = ref.read(alarmListProvider).length;
@@ -34,6 +39,14 @@ class HomeScreen extends ConsumerWidget {
     WidgetRef ref,
     String alarmId,
   ) async {
+    if (!ReleaseConfig.enforceFreeAlarmLimit) {
+      final newId = await ref
+          .read(alarmListProvider.notifier)
+          .duplicate(alarmId);
+      if (!context.mounted) return;
+      context.push(AppRoutes.editAlarmPath(newId));
+      return;
+    }
     final entitlement = ref.read(premiumEntitlementProvider);
     final isPremium = ref.read(isPremiumProvider);
     final count = ref.read(alarmListProvider).length;
@@ -41,8 +54,7 @@ class HomeScreen extends ConsumerWidget {
       await context.push('${AppRoutes.premium}?resumeCreate=1');
       return;
     }
-    final newId =
-        await ref.read(alarmListProvider.notifier).duplicate(alarmId);
+    final newId = await ref.read(alarmListProvider.notifier).duplicate(alarmId);
     if (!context.mounted) return;
     context.push(AppRoutes.editAlarmPath(newId));
   }
@@ -106,8 +118,7 @@ class HomeScreen extends ConsumerWidget {
                           },
                           onEdit: () =>
                               context.push(AppRoutes.editAlarmPath(alarm.id)),
-                          onDuplicate: () =>
-                              _duplicate(context, ref, alarm.id),
+                          onDuplicate: () => _duplicate(context, ref, alarm.id),
                           onDelete: () async {
                             await ref
                                 .read(alarmListProvider.notifier)

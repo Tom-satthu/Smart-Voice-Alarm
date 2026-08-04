@@ -41,20 +41,18 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
       PurchaseFlowStatus.cancelled => l10n.premiumStatusCancelled,
       PurchaseFlowStatus.pending => l10n.premiumStatusPending,
       PurchaseFlowStatus.error => l10n.premiumStatusError,
-      PurchaseFlowStatus.unavailable => kIsWeb
-          ? l10n.premiumWebUnavailable
-          : l10n.premiumStoreUnavailable,
-      PurchaseFlowStatus.idle => state.isPremium
-          ? l10n.premiumStatusPurchased
-          : '',
+      PurchaseFlowStatus.unavailable =>
+        kIsWeb ? l10n.premiumWebUnavailable : l10n.premiumStoreUnavailable,
+      PurchaseFlowStatus.idle =>
+        state.isPremium ? l10n.premiumStatusPurchased : '',
     };
   }
 
   Future<void> _handleUnlock(AppLocalizations l10n) async {
     if (kIsWeb) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.premiumWebUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.premiumWebUnavailable)));
       return;
     }
     await ref.read(premiumPurchaseProvider.notifier).buy();
@@ -66,17 +64,17 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
     }
     final message = _statusMessage(l10n, state);
     if (message.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
   Future<void> _handleRestore(AppLocalizations l10n) async {
     if (kIsWeb) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.premiumWebUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.premiumWebUnavailable)));
       return;
     }
     await ref.read(premiumPurchaseProvider.notifier).restore();
@@ -88,9 +86,9 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
     }
     final message = _statusMessage(l10n, state);
     if (message.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -101,7 +99,8 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
     final isPremium = purchase.isPremium || ref.watch(isPremiumProvider);
     final priceLabel =
         purchase.localizedPrice ?? AppConstants.premiumPriceHintUsd;
-    final busy = purchase.status == PurchaseFlowStatus.loading ||
+    final busy =
+        purchase.status == PurchaseFlowStatus.loading ||
         purchase.status == PurchaseFlowStatus.purchasing ||
         purchase.status == PurchaseFlowStatus.pending;
 

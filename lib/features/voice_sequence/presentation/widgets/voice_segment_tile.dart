@@ -31,7 +31,8 @@ class VoiceSegmentTile extends StatelessWidget {
     final typeLabel = segment.type == VoiceSegmentType.recording
         ? l10n.voiceTypeRecording
         : l10n.voiceTypeTts;
-    final subtitle = segment.type == VoiceSegmentType.tts &&
+    final subtitle =
+        segment.type == VoiceSegmentType.tts &&
             (segment.text?.trim().isNotEmpty ?? false)
         ? segment.text!.trim()
         : segment.name;
@@ -96,9 +97,7 @@ class VoiceSegmentTile extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Icon(
-                    isPlaying
-                        ? Icons.stop_rounded
-                        : Icons.play_arrow_rounded,
+                    isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
                     color: context.colors.primary,
                   ),
           ),

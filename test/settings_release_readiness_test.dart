@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_voice_alarm/core/constants/app_constants.dart';
+import 'package:smart_voice_alarm/core/config/release_config.dart';
 import 'package:smart_voice_alarm/core/services/support_contact.dart';
 
 void main() {
@@ -39,11 +40,11 @@ void main() {
       }
     });
 
-    test('github points at the public repo', () {
-      expect(
-        AppConstants.githubRepoUrl,
-        'https://github.com/Tom-deptrai/Smart-Voice-Alarm',
-      );
+    test('release does not expose source or unfinished billing', () {
+      expect(ReleaseConfig.monetizationMode, MonetizationMode.paidApp);
+      expect(ReleaseConfig.showPremium, isFalse);
+      expect(ReleaseConfig.initializeBilling, isFalse);
+      expect(ReleaseConfig.enforceFreeAlarmLimit, isFalse);
     });
   });
 

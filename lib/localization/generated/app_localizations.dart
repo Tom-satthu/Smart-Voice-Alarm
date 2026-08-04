@@ -647,6 +647,30 @@ abstract class AppLocalizations {
   /// **'Voice recording'**
   String get recordDefaultName;
 
+  /// No description provided for @recordPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access'**
+  String get recordPermissionTitle;
+
+  /// No description provided for @recordPermissionRationale.
+  ///
+  /// In en, this message translates to:
+  /// **'The app needs microphone access to record the audio clip you use as an alarm.'**
+  String get recordPermissionRationale;
+
+  /// No description provided for @recordPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access was not granted. No recording was started. You can try again when you are ready.'**
+  String get recordPermissionDenied;
+
+  /// No description provided for @recordPermissionPermanentlyDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access is blocked. Open system settings to allow it before recording.'**
+  String get recordPermissionPermanentlyDenied;
+
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
@@ -1241,18 +1265,6 @@ abstract class AppLocalizations {
   /// **'Nguyên Đức'**
   String get aboutDeveloperValue;
 
-  /// No description provided for @aboutGithub.
-  ///
-  /// In en, this message translates to:
-  /// **'GitHub Repository'**
-  String get aboutGithub;
-
-  /// No description provided for @aboutGithubValue.
-  ///
-  /// In en, this message translates to:
-  /// **'github.com/Tom-deptrai/Smart-Voice-Alarm'**
-  String get aboutGithubValue;
-
   /// No description provided for @aboutEmail.
   ///
   /// In en, this message translates to:
@@ -1840,6 +1852,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exact alarms'**
   String get exactAlarmPermission;
+
+  /// No description provided for @fullScreenAlarmPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Full-screen alarms'**
+  String get fullScreenAlarmPermission;
 
   /// No description provided for @openSystemSettings.
   ///

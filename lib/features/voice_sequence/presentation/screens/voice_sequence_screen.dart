@@ -7,7 +7,8 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/services/io_dir_stub.dart'
-    if (dart.library.io) '../../../../core/services/io_dir_io.dart' as io_dir;
+    if (dart.library.io) '../../../../core/services/io_dir_io.dart'
+    as io_dir;
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/models/ui_models.dart';
@@ -90,7 +91,9 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
         }
         if (!mounted) return;
         setState(() => _loadingPreview = false);
-        await ref.read(ttsServiceProvider).preview(
+        await ref
+            .read(ttsServiceProvider)
+            .preview(
               text: text,
               voiceId: segment.voiceId,
               locale: segment.localeId,
@@ -99,9 +102,9 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
     } catch (error) {
       if (!mounted) return;
       final message = error is StateError ? error.message : '$error';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted && _playingSegmentId == segment.id) {
         setState(() {
@@ -139,7 +142,9 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
       ),
     );
     if (confirmed == true) {
-      await ref.read(voiceSequenceProvider(_sequenceId).notifier).removeAt(index);
+      await ref
+          .read(voiceSequenceProvider(_sequenceId).notifier)
+          .removeAt(index);
     }
   }
 
@@ -211,9 +216,11 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
                             segment: segment,
                             index: index,
                             orderNumber: index + 1,
-                            isPlaying: _playingSegmentId == segment.id &&
+                            isPlaying:
+                                _playingSegmentId == segment.id &&
                                 !_loadingPreview,
-                            isLoading: _playingSegmentId == segment.id &&
+                            isLoading:
+                                _playingSegmentId == segment.id &&
                                 _loadingPreview,
                             onPlayStop: () => _togglePreview(segment),
                             onDelete: () => _confirmDelete(index),

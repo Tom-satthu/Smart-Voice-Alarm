@@ -118,10 +118,7 @@ void main() {
       voices: [network, enUs, systemEn],
       selectedId: enUs.id,
       appLocale: 'en-US',
-      friendlyLabels: {
-        enUs.id: 'Voice 01',
-        network.id: 'Voice 02',
-      },
+      friendlyLabels: {enUs.id: 'Voice 01', network.id: 'Voice 02'},
     );
     expect(sorted.map((v) => v.id).toList(), [
       enUs.id,
@@ -150,8 +147,14 @@ void main() {
 
   test('discoveryGroupKey treats empty and garbage as other', () {
     expect(VoiceCatalog.discoveryGroupKey(''), VoiceCatalog.otherLanguageKey);
-    expect(VoiceCatalog.discoveryGroupKey('und'), VoiceCatalog.otherLanguageKey);
-    expect(VoiceCatalog.discoveryGroupKey('!!!'), VoiceCatalog.otherLanguageKey);
+    expect(
+      VoiceCatalog.discoveryGroupKey('und'),
+      VoiceCatalog.otherLanguageKey,
+    );
+    expect(
+      VoiceCatalog.discoveryGroupKey('!!!'),
+      VoiceCatalog.otherLanguageKey,
+    );
     expect(VoiceCatalog.discoveryGroupKey('en-US'), 'en');
     expect(VoiceCatalog.discoveryGroupKey('zh-TW'), 'zh');
   });

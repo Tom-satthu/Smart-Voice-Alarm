@@ -289,6 +289,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordDefaultName => 'Voice recording';
 
   @override
+  String get recordPermissionTitle => 'Microphone access';
+
+  @override
+  String get recordPermissionRationale =>
+      'The app needs microphone access to record the audio clip you use as an alarm.';
+
+  @override
+  String get recordPermissionDenied =>
+      'Microphone access was not granted. No recording was started. You can try again when you are ready.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'Microphone access is blocked. Open system settings to allow it before recording.';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -620,12 +635,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutDeveloperValue => 'Nguyên Đức';
-
-  @override
-  String get aboutGithub => 'GitHub Repository';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'Email Support';
@@ -973,6 +982,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exactAlarmPermission => 'Exact alarms';
+
+  @override
+  String get fullScreenAlarmPermission => 'Full-screen alarms';
 
   @override
   String get openSystemSettings => 'Open system settings';

@@ -37,8 +37,7 @@ class AudioPlayerService {
     await _player.play();
     await _player.processingStateStream.firstWhere(
       (state) =>
-          state == ProcessingState.completed ||
-          state == ProcessingState.idle,
+          state == ProcessingState.completed || state == ProcessingState.idle,
     );
   }
 
@@ -60,8 +59,7 @@ class AudioPlayerService {
     await _player.play();
     await _player.processingStateStream.firstWhere(
       (state) =>
-          state == ProcessingState.completed ||
-          state == ProcessingState.idle,
+          state == ProcessingState.completed || state == ProcessingState.idle,
     );
   }
 

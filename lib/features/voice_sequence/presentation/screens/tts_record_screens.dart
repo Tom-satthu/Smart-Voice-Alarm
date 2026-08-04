@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -11,6 +12,7 @@ import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/localization/locale_display_names.dart';
 import '../../../../core/localization/voice_catalog.dart';
 import '../../../../core/responsive/responsive.dart';
+import '../../../../core/services/recording_service.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/models/ui_models.dart';
@@ -79,8 +81,7 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
       preferredLocale: _selectedLocale ?? preferred.locale,
     );
     if (!mounted) return;
-    final fellBack =
-        preferred.id != null && preferred.id != resolved.id;
+    final fellBack = preferred.id != null && preferred.id != resolved.id;
     setState(() {
       _selectedVoiceId = resolved.id;
       _selectedLocale = resolved.locale;
@@ -89,9 +90,7 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
     });
     if (fellBack) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).ttsVoiceFallback),
-        ),
+        SnackBar(content: Text(AppLocalizations.of(context).ttsVoiceFallback)),
       );
     }
   }
@@ -153,7 +152,9 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
     }
     setState(() => _previewing = true);
     try {
-      await ref.read(ttsServiceProvider).preview(
+      await ref
+          .read(ttsServiceProvider)
+          .preview(
             text: text,
             voiceId: _selectedVoiceId,
             locale: _selectedLocale,
@@ -181,16 +182,18 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
             preferredLocale: _selectedLocale,
           );
 
-    await ref.read(voiceSequenceProvider(_sequenceId).notifier).add(
+    await ref
+        .read(voiceSequenceProvider(_sequenceId).notifier)
+        .add(
           VoiceSegmentUiModel(
             id: const Uuid().v4(),
             name: text.length > 28 ? '${text.substring(0, 28)}…' : text,
             type: VoiceSegmentType.tts,
             duration: Duration(
               seconds: (text.split(RegExp(r'\s+')).length * 0.4).ceil().clamp(
-                    3,
-                    60,
-                  ),
+                3,
+                60,
+              ),
             ),
             text: text,
             voiceId: resolved.id,
@@ -198,7 +201,9 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
           ),
         );
 
-    await ref.read(preferredVoiceProvider.notifier).setVoice(
+    await ref
+        .read(preferredVoiceProvider.notifier)
+        .setVoice(
           id: resolved.id,
           locale: resolved.locale,
           language: VoiceCatalog.languageCodeOf(resolved.locale),
@@ -248,8 +253,8 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
             final voiceLabel = _selectedVoiceName == null
                 ? l10n.voiceSelect
                 : (_selectedVoiceName == 'System Default'
-                    ? l10n.voiceSystemDefault
-                    : _selectedVoiceName!);
+                      ? l10n.voiceSystemDefault
+                      : _selectedVoiceName!);
             final quality = _qualityLabel(l10n, _selectedQuality);
             return Column(
               children: [
@@ -266,8 +271,9 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                         maxLines: 5,
                         minLines: 4,
                         textInputAction: TextInputAction.newline,
-                        decoration:
-                            InputDecoration(hintText: l10n.ttsInputHint),
+                        decoration: InputDecoration(
+                          hintText: l10n.ttsInputHint,
+                        ),
                         onChanged: (_) => setState(() {}),
                       ),
                       const SizedBox(height: AppConstants.spaceXl),
@@ -334,8 +340,9 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                       const SizedBox(width: 12),
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed:
-                              _controller.text.trim().isEmpty ? null : _save,
+                          onPressed: _controller.text.trim().isEmpty
+                              ? null
+                              : _save,
                           icon: const Icon(Icons.check_rounded),
                           label: Text(l10n.ttsSave),
                         ),
@@ -363,13 +370,20 @@ class RecordScreen extends ConsumerStatefulWidget {
 
 enum _RecordPhase { idle, recording, ready, playing }
 
-class _RecordScreenState extends ConsumerState<RecordScreen> {
+class _RecordScreenState extends ConsumerState<RecordScreen>
+    with WidgetsBindingObserver {
   _RecordPhase _phase = _RecordPhase.idle;
   Duration _elapsed = Duration.zero;
   String? _filePath;
   Timer? _ticker;
 
   String get _sequenceId => widget.sequenceId ?? defaultSequenceId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void deactivate() {
@@ -381,21 +395,122 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _ticker?.cancel();
+    unawaited(_abandonUnsavedRecording());
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      unawaited(_cancelForBackground());
+    }
+  }
+
+  Future<void> _abandonUnsavedRecording() async {
+    await ref.read(audioPlayerServiceProvider).stop();
+    await ref.read(recordingServiceProvider).cancel();
+  }
+
+  Future<void> _cancelForBackground() async {
+    if (_phase != _RecordPhase.recording) return;
+    _ticker?.cancel();
+    await _abandonUnsavedRecording();
+    if (!mounted) return;
+    setState(() {
+      _phase = _RecordPhase.idle;
+      _elapsed = Duration.zero;
+      _filePath = null;
+    });
+  }
+
+  Future<bool> _requestMicrophoneAccess() async {
+    final recorder = ref.read(recordingServiceProvider);
+    final current = await recorder.microphoneAccess();
+    if (current == MicrophoneAccess.granted) return true;
+    if (!mounted) return false;
+
+    if (current == MicrophoneAccess.permanentlyDenied ||
+        current == MicrophoneAccess.restricted) {
+      return _showMicrophoneBlocked(permanent: true);
+    }
+
+    final l10n = AppLocalizations.of(context);
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.recordPermissionTitle),
+        content: Text(l10n.recordPermissionRationale),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.recordStart),
+          ),
+        ],
+      ),
+    );
+    if (proceed != true) return false;
+
+    final requested = await recorder.microphoneAccess(request: true);
+    if (requested == MicrophoneAccess.granted) return true;
+    if (!mounted) return false;
+    return _showMicrophoneBlocked(
+      permanent:
+          requested == MicrophoneAccess.permanentlyDenied ||
+          requested == MicrophoneAccess.restricted,
+    );
+  }
+
+  Future<bool> _showMicrophoneBlocked({required bool permanent}) async {
+    final l10n = AppLocalizations.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.recordPermissionTitle),
+        content: Text(
+          permanent
+              ? l10n.recordPermissionPermanentlyDenied
+              : l10n.recordPermissionDenied,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.commonCancel),
+          ),
+          if (permanent)
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await openAppSettings();
+              },
+              child: Text(l10n.openSystemSettings),
+            ),
+        ],
+      ),
+    );
+    return false;
   }
 
   Future<void> _start() async {
     final l10n = AppLocalizations.of(context);
     if (kIsWeb) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.recordHint)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.recordHint)));
       return;
     }
 
     try {
       final recorder = ref.read(recordingServiceProvider);
+      await ref.read(audioPlayerServiceProvider).stop();
+      if (!await _requestMicrophoneAccess()) return;
       await recorder.start();
       _filePath = recorder.currentPath;
       setState(() {
@@ -409,20 +524,33 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
       });
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('$error')));
     }
   }
 
   Future<void> _stop() async {
     if (_phase != _RecordPhase.recording) return;
     _ticker?.cancel();
-    final path = await ref.read(recordingServiceProvider).stop();
-    setState(() {
-      _filePath = path ?? _filePath;
-      _phase = _RecordPhase.ready;
-    });
+    try {
+      final path = await ref.read(recordingServiceProvider).stop();
+      if (!mounted) return;
+      setState(() {
+        _filePath = path ?? _filePath;
+        _phase = _RecordPhase.ready;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _filePath = null;
+        _phase = _RecordPhase.idle;
+        _elapsed = Duration.zero;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).recordReady)),
+      );
+    }
   }
 
   Future<void> _play() async {
@@ -457,7 +585,9 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     final path = _filePath;
     if (path == null) return;
 
-    await ref.read(voiceSequenceProvider(_sequenceId).notifier).add(
+    await ref
+        .read(voiceSequenceProvider(_sequenceId).notifier)
+        .add(
           VoiceSegmentUiModel(
             id: const Uuid().v4(),
             name: l10n.recordDefaultName,
@@ -468,6 +598,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
             filePath: path,
           ),
         );
+    ref.read(recordingServiceProvider).retainCurrentFile();
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,

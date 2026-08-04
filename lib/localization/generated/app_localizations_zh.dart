@@ -284,6 +284,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordDefaultName => '语音录音';
 
   @override
+  String get recordPermissionTitle => '麦克风权限';
+
+  @override
+  String get recordPermissionRationale => '应用需要麦克风权限来录制您用作闹钟的音频片段。';
+
+  @override
+  String get recordPermissionDenied => '未授予麦克风权限，录音尚未开始。您可以稍后重试。';
+
+  @override
+  String get recordPermissionPermanentlyDenied => '麦克风权限已被阻止。请在录音前打开系统设置并授予权限。';
+
+  @override
   String get settingsTitle => '设置';
 
   @override
@@ -607,12 +619,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aboutDeveloperValue => 'Nguyên Đức';
-
-  @override
-  String get aboutGithub => 'GitHub 仓库';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => '电子邮件支持';
@@ -948,6 +954,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get exactAlarmPermission => '精确闹钟';
 
   @override
+  String get fullScreenAlarmPermission => '全屏闹钟';
+
+  @override
   String get openSystemSettings => '打开系统设置';
 
   @override
@@ -1241,6 +1250,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get recordDefaultName => '語音錄音';
+
+  @override
+  String get recordPermissionTitle => '麥克風權限';
+
+  @override
+  String get recordPermissionRationale => '應用程式需要麥克風權限，才能錄製您用作鬧鐘的音訊片段。';
+
+  @override
+  String get recordPermissionDenied => '未授予麥克風權限，錄音尚未開始。您可以稍後再試。';
+
+  @override
+  String get recordPermissionPermanentlyDenied => '麥克風權限已被封鎖。請在錄音前開啟系統設定並授予權限。';
 
   @override
   String get settingsTitle => '設定';
@@ -1566,12 +1587,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get aboutDeveloperValue => 'Nguyên Đức';
-
-  @override
-  String get aboutGithub => 'GitHub 存放庫';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => '電子郵件支援';
@@ -1905,6 +1920,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get exactAlarmPermission => '精確鬧鐘';
+
+  @override
+  String get fullScreenAlarmPermission => '全螢幕鬧鐘';
 
   @override
   String get openSystemSettings => '開啟系統設定';

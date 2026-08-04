@@ -4,7 +4,8 @@ import 'locale_codes.dart';
 abstract final class LocaleDisplayNames {
   static String friendly(String raw) {
     final normalized = LocaleCodes.normalizeLocaleTag(raw);
-    final known = _names[normalized] ??
+    final known =
+        _names[normalized] ??
         _names[normalized.toLowerCase()] ??
         _byLanguage(normalized);
     return known ?? normalized;

@@ -10,8 +10,8 @@ import 'tts_voice_source.dart';
 
 class TtsService {
   TtsService({TtsPlatformBridge? bridge, VoiceSource? source})
-      : _tts = FlutterTts(),
-        _source = source ?? createVoiceSource(bridge ?? TtsPlatformBridge());
+    : _tts = FlutterTts(),
+      _source = source ?? createVoiceSource(bridge ?? TtsPlatformBridge());
 
   FlutterTts _tts;
   final VoiceSource _source;
@@ -349,7 +349,8 @@ class TtsService {
   }
 
   TtsVoiceAvailability _parseAvailability(Map<String, dynamic> map) {
-    final network = map['networkConnectionRequired'] ??
+    final network =
+        map['networkConnectionRequired'] ??
         map['network_required'] ??
         map['requiresNetwork'];
     if (network == true || network?.toString() == '1') {

@@ -9,12 +9,7 @@ import 'audio_player_service.dart';
 import 'storage_paths.dart';
 import 'tts_service.dart';
 
-enum AlarmEnginePhase {
-  idle,
-  playingVoice,
-  playingRingtone,
-  completed,
-}
+enum AlarmEnginePhase { idle, playingVoice, playingRingtone, completed }
 
 typedef AlarmFiredCallback = FutureOr<void> Function(AlarmUiModel alarm);
 typedef AlarmStopNativeCallback = FutureOr<void> Function();
@@ -33,10 +28,10 @@ class AlarmEngine {
     VoiceSequenceRepository? sequenceRepository,
     this.onAlarmStarted,
     this.onStopNative,
-  })  : _audio = audioPlayer ?? AudioPlayerService(),
-        _tts = tts ?? TtsService(),
-        _alarms = alarmRepository ?? AlarmRepository(),
-        _sequences = sequenceRepository ?? VoiceSequenceRepository();
+  }) : _audio = audioPlayer ?? AudioPlayerService(),
+       _tts = tts ?? TtsService(),
+       _alarms = alarmRepository ?? AlarmRepository(),
+       _sequences = sequenceRepository ?? VoiceSequenceRepository();
 
   final AudioPlayerService _audio;
   final TtsService _tts;

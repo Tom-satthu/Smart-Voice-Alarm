@@ -14,3 +14,18 @@ Future<bool> fileExists(String path) async {
     return false;
   }
 }
+
+Future<int> fileLength(String path) async {
+  try {
+    return await File(path).length();
+  } catch (_) {
+    return 0;
+  }
+}
+
+Future<void> deleteFileIfExists(String path) async {
+  try {
+    final file = File(path);
+    if (await file.exists()) await file.delete();
+  } catch (_) {}
+}

@@ -287,6 +287,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get recordDefaultName => 'Rekaman suara';
 
   @override
+  String get recordPermissionTitle => 'Akses mikrofon';
+
+  @override
+  String get recordPermissionRationale =>
+      'Aplikasi memerlukan akses mikrofon untuk merekam klip audio yang Anda gunakan sebagai alarm.';
+
+  @override
+  String get recordPermissionDenied =>
+      'Akses mikrofon tidak diberikan. Perekaman belum dimulai. Anda dapat mencoba lagi.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'Akses mikrofon diblokir. Buka pengaturan sistem dan izinkan sebelum merekam.';
+
+  @override
   String get settingsTitle => 'Pengaturan';
 
   @override
@@ -617,12 +632,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get aboutDeveloperValue => 'Nguyên Đức';
-
-  @override
-  String get aboutGithub => 'Repositori GitHub';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'Dukungan Email';
@@ -970,6 +979,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get exactAlarmPermission => 'Alarm tepat waktu';
+
+  @override
+  String get fullScreenAlarmPermission => 'Alarm layar penuh';
 
   @override
   String get openSystemSettings => 'Buka pengaturan sistem';

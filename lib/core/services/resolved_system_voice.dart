@@ -33,12 +33,12 @@ class ResolvedSystemVoiceState {
       resolvedVoiceName != null && resolvedVoiceName!.trim().isNotEmpty;
 
   Map<String, Object?> toJson() => {
-        'requestedLocale': requestedLocale,
-        'resolvedVoiceName': resolvedVoiceName,
-        'resolvedLocale': resolvedLocale,
-        'enginePackage': enginePackage,
-        'languageAvailability': languageAvailability,
-      };
+    'requestedLocale': requestedLocale,
+    'resolvedVoiceName': resolvedVoiceName,
+    'resolvedLocale': resolvedLocale,
+    'enginePackage': enginePackage,
+    'languageAvailability': languageAvailability,
+  };
 
   factory ResolvedSystemVoiceState.fromJson(Map<String, dynamic> json) {
     return ResolvedSystemVoiceState(
@@ -54,7 +54,8 @@ class ResolvedSystemVoiceState {
 
   factory ResolvedSystemVoiceState.fromMap(Map<dynamic, dynamic> map) {
     return ResolvedSystemVoiceState(
-      requestedLocale: (map['requestedLocale'] ?? map['locale'] ?? '').toString(),
+      requestedLocale: (map['requestedLocale'] ?? map['locale'] ?? '')
+          .toString(),
       resolvedVoiceName:
           (map['resolvedVoiceName'] ?? map['name'] ?? map['identifier'])
               ?.toString(),
@@ -82,11 +83,11 @@ class SystemVoiceChangeEvent {
   final String type;
 
   Map<String, Object?> toJson() => {
-        'locale': locale,
-        'language': language,
-        'timestampMs': timestampMs,
-        'type': type,
-      };
+    'locale': locale,
+    'language': language,
+    'timestampMs': timestampMs,
+    'type': type,
+  };
 
   factory SystemVoiceChangeEvent.fromJson(Map<String, dynamic> json) {
     return SystemVoiceChangeEvent(

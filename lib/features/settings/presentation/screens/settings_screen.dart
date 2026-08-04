@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/config/release_config.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/localization/app_locale_support.dart';
 import '../../../../core/responsive/responsive.dart';
@@ -30,6 +31,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with WidgetsBindingObserver {
   PermissionStatus? _notificationStatus;
   PermissionStatus? _exactAlarmStatus;
+  PermissionStatus? _fullScreenIntentStatus;
 
   @override
   void initState() {
@@ -57,7 +59,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       final notification = await Permission.notification.status;
       PermissionStatus? exact;
       if (defaultTargetPlatform == TargetPlatform.android) {
-        exact = await Permission.scheduleExactAlarm.status;
+        final native = ref.read(notificationServiceProvider).native;
+        final allowed = await native.canScheduleExactAlarms();
+        exact = allowed ? PermissionStatus.granted : PermissionStatus.denied;
+        final fullScreen = await native.canUseFullScreenIntent();
+        _fullScreenIntentStatus = fullScreen
+            ? PermissionStatus.granted
+            : PermissionStatus.denied;
       }
       if (!mounted) return;
       setState(() {
@@ -75,9 +83,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       subject: l10n.supportEmailSubject,
       appVersion: version?.version ?? AppConstants.appVersion,
       buildNumber: version?.buildNumber ?? AppConstants.appBuildNumber,
-      platformLabel: kIsWeb
-          ? 'Web'
-          : defaultTargetPlatform.name,
+      platformLabel: kIsWeb ? 'Web' : defaultTargetPlatform.name,
     );
     try {
       final opened = await launchUrl(uri);
@@ -86,32 +92,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       debugPrint('mailto failed: $error');
     }
     if (!mounted) return;
-    await Clipboard.setData(
-      ClipboardData(text: AppConstants.supportEmail),
-    );
+    await Clipboard.setData(ClipboardData(text: AppConstants.supportEmail));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.emailCopied)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.emailCopied)));
   }
 
   Future<void> _openExternal(String url) async {
     final l10n = AppLocalizations.of(context);
     final uri = Uri.tryParse(url);
     if (uri == null || !(uri.isScheme('https') || uri.isScheme('http'))) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.linkUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.linkUnavailable)));
       return;
     }
-    final opened = await canLaunchUrl(uri) &&
+    final opened =
+        await canLaunchUrl(uri) &&
         await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!mounted) return;
     if (!opened) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.linkUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.linkUnavailable)));
     }
+  }
+
+  Future<bool> _confirmNotificationPermission(AppLocalizations l10n) async {
+    final notifications = ref.read(notificationServiceProvider);
+    if (await notifications.notificationPermissionGranted) return true;
+    if (!mounted) return false;
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.notificationPermission),
+        content: Text(l10n.openSystemSettingsHint),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.notificationPermission),
+          ),
+        ],
+      ),
+    );
+    if (proceed != true) return false;
+    final granted = await notifications.requestNotificationPermission();
+    await _refreshPermissions();
+    return granted;
   }
 
   String _permissionLabel(AppLocalizations l10n, PermissionStatus? status) {
@@ -187,6 +219,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               trailing: Switch.adaptive(
                 value: reminder.enabled,
                 onChanged: (value) async {
+                  if (value && !await _confirmNotificationPermission(l10n)) {
+                    return;
+                  }
                   await ref
                       .read(reminderSettingsProvider.notifier)
                       .setEnabled(value);
@@ -224,14 +259,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     }
                   : null,
             ),
-            const SizedBox(height: AppConstants.spaceXl),
-            SectionHeader(title: l10n.settingsPremium),
-            SettingTile(
-              icon: Icons.workspace_premium_rounded,
-              title: l10n.settingsPremium,
-              subtitle: l10n.settingsPremiumSubtitle,
-              onTap: () => context.push(AppRoutes.premium),
-            ),
+            if (ReleaseConfig.showPremium) ...[
+              const SizedBox(height: AppConstants.spaceXl),
+              SectionHeader(title: l10n.settingsPremium),
+              SettingTile(
+                icon: Icons.workspace_premium_rounded,
+                title: l10n.settingsPremium,
+                subtitle: l10n.settingsPremiumSubtitle,
+                onTap: () => context.push(AppRoutes.premium),
+              ),
+            ],
             if (!kIsWeb) ...[
               const SizedBox(height: AppConstants.spaceXl),
               SectionHeader(title: l10n.permissionsAndBackground),
@@ -250,7 +287,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   title: l10n.exactAlarmPermission,
                   subtitle: _permissionLabel(l10n, _exactAlarmStatus),
                   onTap: () async {
-                    await openAppSettings();
+                    await ref
+                        .read(notificationServiceProvider)
+                        .native
+                        .openExactAlarmSettings();
+                  },
+                ),
+                const SizedBox(height: AppConstants.spaceMd),
+                SettingTile(
+                  icon: Icons.fullscreen_rounded,
+                  title: l10n.fullScreenAlarmPermission,
+                  subtitle: _permissionLabel(l10n, _fullScreenIntentStatus),
+                  onTap: () async {
+                    await ref
+                        .read(notificationServiceProvider)
+                        .native
+                        .openFullScreenIntentSettings();
                   },
                 ),
               ],
@@ -272,6 +324,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               subtitle: AppConstants.supportEmail,
               onTap: () => _openSupportEmail(l10n),
             ),
+            if (AppConstants.hasSupportUrl) ...[
+              const SizedBox(height: AppConstants.spaceMd),
+              SettingTile(
+                icon: Icons.help_outline_rounded,
+                title: l10n.supportAndFeedback,
+                subtitle: l10n.settingsLegalPlaceholder,
+                onTap: () => _openExternal(AppConstants.supportUrl),
+              ),
+            ],
             const SizedBox(height: AppConstants.spaceMd),
             SettingTile(
               icon: Icons.description_outlined,
@@ -391,7 +452,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                           title: Text(
                             AppLocaleSupport.displayName(l10n, option),
                           ),
-                          trailing: AppLocaleSupport.localeStorageCode(option) ==
+                          trailing:
+                              AppLocaleSupport.localeStorageCode(option) ==
                                   AppLocaleSupport.localeStorageCode(locale)
                               ? Icon(
                                   Icons.check_rounded,

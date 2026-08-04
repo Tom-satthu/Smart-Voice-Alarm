@@ -288,6 +288,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get recordDefaultName => 'Registrazione vocale';
 
   @override
+  String get recordPermissionTitle => 'Accesso al microfono';
+
+  @override
+  String get recordPermissionRationale =>
+      'L’app richiede l’accesso al microfono per registrare l’audio che userai come sveglia.';
+
+  @override
+  String get recordPermissionDenied =>
+      'L’accesso al microfono non è stato concesso. Nessuna registrazione è iniziata. Puoi riprovare.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'L’accesso al microfono è bloccato. Apri le impostazioni di sistema e consentilo prima di registrare.';
+
+  @override
   String get settingsTitle => 'Impostazioni';
 
   @override
@@ -619,12 +634,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aboutDeveloperValue => 'Nguyên Đức';
-
-  @override
-  String get aboutGithub => 'Repository GitHub';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'Supporto e-mail';
@@ -978,6 +987,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get exactAlarmPermission => 'Sveglie esatte';
+
+  @override
+  String get fullScreenAlarmPermission => 'Sveglie a schermo intero';
 
   @override
   String get openSystemSettings => 'Apri impostazioni di sistema';

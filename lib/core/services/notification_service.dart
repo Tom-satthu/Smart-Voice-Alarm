@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -12,7 +13,7 @@ typedef AlarmNotificationCallback = void Function(String alarmId);
 
 class NotificationService {
   NotificationService({NativeAlarmScheduler? nativeScheduler})
-      : _native = nativeScheduler ?? NativeAlarmScheduler();
+    : _native = nativeScheduler ?? NativeAlarmScheduler();
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -28,8 +29,7 @@ class NotificationService {
   String _alarmChannelName = 'Alarms';
   String _alarmChannelDesc = 'Voice alarm alerts';
   String _reminderChannelName = 'Reminders';
-  String _reminderChannelDesc =
-      'Daily reminder to set tomorrow’s alarm';
+  String _reminderChannelDesc = 'Daily reminder to set tomorrow’s alarm';
 
   NativeAlarmScheduler get native => _native;
 
@@ -48,8 +48,10 @@ class NotificationService {
     if (!_initialized || kIsWeb) return;
     if (defaultTargetPlatform != TargetPlatform.android) return;
     try {
-      final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       await androidPlugin?.createNotificationChannel(
         AndroidNotificationChannel(
           _alarmChannelId,
@@ -86,9 +88,9 @@ class NotificationService {
 
       const android = AndroidInitializationSettings('@mipmap/ic_launcher');
       const ios = DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
       );
 
       await _plugin.initialize(
@@ -103,10 +105,10 @@ class NotificationService {
       );
 
       if (defaultTargetPlatform == TargetPlatform.android) {
-        final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-        await androidPlugin?.requestNotificationsPermission();
-        await androidPlugin?.requestExactAlarmsPermission();
+        final androidPlugin = _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
         await androidPlugin?.createNotificationChannel(
           AndroidNotificationChannel(
             _alarmChannelId,
@@ -124,17 +126,43 @@ class NotificationService {
             importance: Importance.defaultImportance,
           ),
         );
-      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-        await _plugin
-            .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin>()
-            ?.requestPermissions(alert: true, badge: true, sound: true);
       }
 
       _initialized = true;
     } catch (error, stack) {
       debugPrint('NotificationService.init failed: $error\n$stack');
     }
+  }
+
+  /// Requests notification access only from a user-initiated alarm/reminder
+  /// flow. Initialization intentionally never presents a permission dialog.
+  Future<bool> requestNotificationPermission() async {
+    if (kIsWeb) return false;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final plugin = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      return await plugin?.requestNotificationsPermission() ?? true;
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final plugin = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+      return await plugin?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          ) ??
+          false;
+    }
+    return true;
+  }
+
+  Future<bool> get notificationPermissionGranted async {
+    if (kIsWeb) return false;
+    return Permission.notification.isGranted;
   }
 
   Future<void> cancelAlarm(String alarmId) async {

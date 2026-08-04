@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'app/app.dart';
+import 'core/config/release_config.dart';
 import 'core/navigation/root_navigator.dart';
 import 'core/services/notification_service.dart';
 import 'router/routes.dart';
@@ -33,13 +34,13 @@ Future<void> main() async {
   await notifications.init();
 
   final container = ProviderContainer(
-    overrides: [
-      notificationServiceProvider.overrideWithValue(notifications),
-    ],
+    overrides: [notificationServiceProvider.overrideWithValue(notifications)],
   );
 
   // Sync store entitlement before schedules so free-limit gates are correct.
-  await container.read(premiumPurchaseProvider.notifier).init();
+  if (ReleaseConfig.initializeBilling) {
+    await container.read(premiumPurchaseProvider.notifier).init();
+  }
 
   // Sync native / local schedules with persisted alarms.
   await notifications.rescheduleAll(container.read(alarmListProvider));
@@ -68,11 +69,7 @@ Future<void> main() async {
   if (launchAlarmId != null) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(
-        _openRinging(
-          container,
-          launchAlarmId,
-          challenge: launchChallenge,
-        ),
+        _openRinging(container, launchAlarmId, challenge: launchChallenge),
       );
     });
   }

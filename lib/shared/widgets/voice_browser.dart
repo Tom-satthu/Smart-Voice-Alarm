@@ -556,9 +556,7 @@ class _SelectedVoiceCardState extends ConsumerState<SelectedVoiceCard> {
   }
 
   String _subtitle(AppLocalizations l10n) {
-    final parts = <String>[
-      LocaleDisplayNames.friendly(widget.voice.locale),
-    ];
+    final parts = <String>[LocaleDisplayNames.friendly(widget.voice.locale)];
     final engine = widget.voice.platformEngine?.trim();
     if (engine != null && engine.isNotEmpty) {
       parts.add(engine.contains('.') ? engine.split('.').last : engine);

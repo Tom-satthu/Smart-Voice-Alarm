@@ -44,11 +44,11 @@ class AndroidVoiceSource implements VoiceSource {
 
   @override
   VoiceCapabilities get capabilities => const VoiceCapabilities(
-        platform: VoicePlatformKind.android,
-        supportsVoiceManagement: true,
-        validatesSelectability: true,
-        supportsPerLocaleSystemDefaultProbe: true,
-      );
+    platform: VoicePlatformKind.android,
+    supportsVoiceManagement: true,
+    validatesSelectability: true,
+    supportsPerLocaleSystemDefaultProbe: true,
+  );
 
   @override
   Future<List<Map<String, dynamic>>> loadVoices(FlutterTts tts) async {
@@ -72,8 +72,7 @@ class AndroidVoiceSource implements VoiceSource {
   @override
   Future<Map<String, ResolvedSystemVoiceState>> resolveSystemDefaultsForLocales(
     List<String> locales,
-  ) =>
-      _bridge.resolveSystemDefaultsForLocales(locales);
+  ) => _bridge.resolveSystemDefaultsForLocales(locales);
 
   @override
   bool validateSelectableVoice(Map<String, dynamic> voice) =>
@@ -135,21 +134,21 @@ VoiceSource createVoiceSource(TtsPlatformBridge bridge) {
   return switch (defaultTargetPlatform) {
     TargetPlatform.android => AndroidVoiceSource(bridge),
     TargetPlatform.iOS || TargetPlatform.macOS => const PublicApiVoiceSource(
-        VoiceCapabilities(
-          platform: VoicePlatformKind.apple,
-          supportsVoiceManagement: false,
-          validatesSelectability: false,
-          supportsPerLocaleSystemDefaultProbe: false,
-        ),
+      VoiceCapabilities(
+        platform: VoicePlatformKind.apple,
+        supportsVoiceManagement: false,
+        validatesSelectability: false,
+        supportsPerLocaleSystemDefaultProbe: false,
       ),
+    ),
     _ => const PublicApiVoiceSource(
-        VoiceCapabilities(
-          platform: VoicePlatformKind.other,
-          supportsVoiceManagement: false,
-          validatesSelectability: false,
-          supportsPerLocaleSystemDefaultProbe: false,
-        ),
+      VoiceCapabilities(
+        platform: VoicePlatformKind.other,
+        supportsVoiceManagement: false,
+        validatesSelectability: false,
+        supportsPerLocaleSystemDefaultProbe: false,
       ),
+    ),
   };
 }
 

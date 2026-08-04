@@ -8,8 +8,7 @@ import '../../shared/models/ui_models.dart';
 class NativeAlarmScheduler {
   NativeAlarmScheduler();
 
-  static const _channel =
-      MethodChannel('com.smartvoicealarm.app/alarms');
+  static const _channel = MethodChannel('com.smartvoicealarm.app/alarms');
 
   void Function(String alarmId)? onAlarmTriggered;
   VoidCallback? onNativeAlarmStopped;
@@ -104,6 +103,54 @@ class NativeAlarmScheduler {
           .timeout(const Duration(milliseconds: 800));
     } catch (error) {
       debugPrint('NativeAlarmScheduler.rescheduleAll failed: $error');
+    }
+  }
+
+  Future<bool> canScheduleExactAlarms() async {
+    if (!isSupported) return true;
+    try {
+      return await _channel
+              .invokeMethod<bool>('canScheduleExactAlarms')
+              .timeout(const Duration(milliseconds: 800)) ??
+          false;
+    } catch (error) {
+      debugPrint('NativeAlarmScheduler.canScheduleExactAlarms failed: $error');
+      return false;
+    }
+  }
+
+  Future<bool> canUseFullScreenIntent() async {
+    if (!isSupported) return true;
+    try {
+      return await _channel
+              .invokeMethod<bool>('canUseFullScreenIntent')
+              .timeout(const Duration(milliseconds: 800)) ??
+          false;
+    } catch (error) {
+      debugPrint('NativeAlarmScheduler.canUseFullScreenIntent failed: $error');
+      return false;
+    }
+  }
+
+  Future<void> openExactAlarmSettings() async {
+    if (!isSupported) return;
+    try {
+      await _channel
+          .invokeMethod<bool>('openExactAlarmSettings')
+          .timeout(const Duration(milliseconds: 800));
+    } catch (error) {
+      debugPrint('openExactAlarmSettings failed: $error');
+    }
+  }
+
+  Future<void> openFullScreenIntentSettings() async {
+    if (!isSupported) return;
+    try {
+      await _channel
+          .invokeMethod<bool>('openFullScreenIntentSettings')
+          .timeout(const Duration(milliseconds: 800));
+    } catch (error) {
+      debugPrint('openFullScreenIntentSettings failed: $error');
     }
   }
 

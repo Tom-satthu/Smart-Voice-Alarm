@@ -1,7 +1,12 @@
 package com.smartvoicealarm.app
 
 import android.content.Intent
+import android.app.AlarmManager
+import android.app.NotificationManager
 import android.os.Bundle
+import android.os.Build
+import android.net.Uri
+import android.provider.Settings
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
@@ -98,6 +103,56 @@ class MainActivity : FlutterActivity() {
                 "rescheduleAll" -> {
                     AlarmScheduler.rescheduleAll(applicationContext)
                     result.success(null)
+                }
+                "canScheduleExactAlarms" -> {
+                    val manager = getSystemService(ALARM_SERVICE) as AlarmManager
+                    val allowed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        manager.canScheduleExactAlarms()
+                    } else {
+                        true
+                    }
+                    result.success(allowed)
+                }
+                "openExactAlarmSettings" -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        startActivity(
+                            Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                                data = Uri.parse("package:$packageName")
+                            },
+                        )
+                    } else {
+                        startActivity(
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.parse("package:$packageName")
+                            },
+                        )
+                    }
+                    result.success(true)
+                }
+                "canUseFullScreenIntent" -> {
+                    val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                    val allowed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        manager.canUseFullScreenIntent()
+                    } else {
+                        true
+                    }
+                    result.success(allowed)
+                }
+                "openFullScreenIntentSettings" -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        startActivity(
+                            Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                                data = Uri.parse("package:$packageName")
+                            },
+                        )
+                    } else {
+                        startActivity(
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.parse("package:$packageName")
+                            },
+                        )
+                    }
+                    result.success(true)
                 }
                 "stopForegroundAlarm" -> {
                     AlarmForegroundService.stop(applicationContext)

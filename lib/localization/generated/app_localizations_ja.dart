@@ -284,6 +284,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recordDefaultName => '音声録音';
 
   @override
+  String get recordPermissionTitle => 'マイクへのアクセス';
+
+  @override
+  String get recordPermissionRationale => 'アラームに使用する音声を録音するため、マイクへのアクセスが必要です。';
+
+  @override
+  String get recordPermissionDenied =>
+      'マイクへのアクセスが許可されていません。録音は開始されませんでした。もう一度お試しいただけます。';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'マイクへのアクセスがブロックされています。録音前にシステム設定で許可してください。';
+
+  @override
   String get settingsTitle => '設定';
 
   @override
@@ -608,12 +622,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aboutDeveloperValue => 'Nguyên Đức';
-
-  @override
-  String get aboutGithub => 'GitHubリポジトリ';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'メールサポート';
@@ -947,6 +955,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get exactAlarmPermission => '正確なアラーム';
+
+  @override
+  String get fullScreenAlarmPermission => '全画面アラーム';
 
   @override
   String get openSystemSettings => 'システム設定を開く';

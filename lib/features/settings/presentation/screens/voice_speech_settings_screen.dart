@@ -52,8 +52,8 @@ class _VoiceSpeechSettingsScreenState
     return VoiceLoadContext(
       preferredLocale: preferred.locale,
       appLocale: ref.read(localeProvider).toLanguageTag(),
-      systemLocale:
-          WidgetsBinding.instance.platformDispatcher.locale.toLanguageTag(),
+      systemLocale: WidgetsBinding.instance.platformDispatcher.locale
+          .toLanguageTag(),
     );
   }
 
@@ -111,7 +111,8 @@ class _VoiceSpeechSettingsScreenState
       final sorted = VoiceCatalog.sortForDeviceDiscovery(
         voices: usable,
         selectedId: preferred.id,
-        preferredLanguage: preferred.language ??
+        preferredLanguage:
+            preferred.language ??
             (preferred.locale == null
                 ? null
                 : VoiceCatalog.languageCodeOf(preferred.locale!)),
@@ -137,8 +138,9 @@ class _VoiceSpeechSettingsScreenState
       // A normal scan never rewrites a still-present selection.
       final normalizedPreferred =
           VoiceCatalog.normalizeSystemDefaultVoiceId(preferred.id) ??
-              preferred.id;
-      final stillPresent = preferred.id != null &&
+          preferred.id;
+      final stillPresent =
+          preferred.id != null &&
           sorted.any(
             (voice) =>
                 voice.id == preferred.id || voice.id == normalizedPreferred,
@@ -150,7 +152,9 @@ class _VoiceSpeechSettingsScreenState
           preferredLanguage: preferred.language,
         );
         if (resolved != null && resolved.id != preferred.id) {
-          await ref.read(preferredVoiceProvider.notifier).setVoice(
+          await ref
+              .read(preferredVoiceProvider.notifier)
+              .setVoice(
                 id: resolved.id,
                 locale: resolved.locale,
                 language: VoiceCatalog.languageCodeOf(resolved.locale),
@@ -227,7 +231,9 @@ class _VoiceSpeechSettingsScreenState
     if (!mounted) return;
     setState(() => _previewingVoiceId = voice.id);
     try {
-      await ref.read(ttsServiceProvider).preview(
+      await ref
+          .read(ttsServiceProvider)
+          .preview(
             text: VoiceCatalog.previewSampleForLocale(voice.locale),
             voiceId: voice.id,
             locale: voice.locale,
@@ -242,7 +248,9 @@ class _VoiceSpeechSettingsScreenState
   Future<void> _saveVoice(TtsVoiceUiModel voice) async {
     final l10n = AppLocalizations.of(context);
     final locale = VoiceCatalog.normalizeLocaleTag(voice.locale);
-    await ref.read(preferredVoiceProvider.notifier).setVoice(
+    await ref
+        .read(preferredVoiceProvider.notifier)
+        .setVoice(
           id: voice.id,
           locale: locale,
           language: VoiceCatalog.languageCodeOf(locale),
@@ -274,9 +282,7 @@ class _VoiceSpeechSettingsScreenState
             voice.isSystemDefault
                 ? l10n.voiceSystemDefault
                 : VoiceCatalog.friendlyLabels(
-                        _scannedVoices.isNotEmpty
-                            ? _scannedVoices
-                            : [voice],
+                        _scannedVoices.isNotEmpty ? _scannedVoices : [voice],
                         labelFor: l10n.voiceFriendlyName,
                       )[voice.id] ??
                       l10n.voiceFriendlyName('01'),
@@ -290,12 +296,13 @@ class _VoiceSpeechSettingsScreenState
     final l10n = AppLocalizations.of(context);
     setState(() => _openingSettings = true);
     try {
-      final opened =
-          await ref.read(ttsPlatformBridgeProvider).openSystemTtsSettings();
+      final opened = await ref
+          .read(ttsPlatformBridgeProvider)
+          .openSystemTtsSettings();
       if (!opened && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.voicesOpenManagerFailed)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.voicesOpenManagerFailed)));
       }
     } finally {
       if (mounted) setState(() => _openingSettings = false);
@@ -316,22 +323,20 @@ class _VoiceSpeechSettingsScreenState
     final l10n = AppLocalizations.of(context);
     final preferred = ref.watch(preferredVoiceProvider);
     final voicesAsync = ref.watch(ttsVoicesProvider);
-    final canOpenSettings = !kIsWeb &&
+    final canOpenSettings =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
 
     final catalogForCurrent = _hasScanned
         ? _scannedVoices
         : (voicesAsync.asData?.value ?? const <TtsVoiceUiModel>[])
-            .where((v) => v.isUsable)
-            .toList();
-    final labels = VoiceCatalog.friendlyLabels(
-      [
-        ...catalogForCurrent,
-        ..._scannedVoices,
-      ],
-      labelFor: l10n.voiceFriendlyName,
-    );
+              .where((v) => v.isUsable)
+              .toList();
+    final labels = VoiceCatalog.friendlyLabels([
+      ...catalogForCurrent,
+      ..._scannedVoices,
+    ], labelFor: l10n.voiceFriendlyName);
     final selected = VoiceCatalog.resolvePreferredVoice(
       voices: catalogForCurrent,
       preferredId: preferred.id,
@@ -455,12 +460,10 @@ class _VoiceSpeechSettingsScreenState
                 voices: _scannedVoices,
                 labels: labels,
                 selectedId: preferred.id ?? selected?.id,
-                selectedLanguage: preferred.language ??
-                    preferred.locale ??
-                    selected?.locale,
+                selectedLanguage:
+                    preferred.language ?? preferred.locale ?? selected?.locale,
                 appLocale: ref.watch(localeProvider).toLanguageTag(),
-                systemLocale: WidgetsBinding
-                    .instance.platformDispatcher.locale
+                systemLocale: WidgetsBinding.instance.platformDispatcher.locale
                     .toLanguageTag(),
                 expandedLanguages: _expandedLanguages,
                 previewingVoiceId: _previewingVoiceId,
@@ -620,15 +623,26 @@ class _GroupedDeviceVoiceList extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
-          for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) ...[
+          for (
+            var groupIndex = 0;
+            groupIndex < groups.length;
+            groupIndex++
+          ) ...[
             if (groupIndex > 0)
-              Divider(height: 1, color: colors.outlineVariant.withValues(alpha: 0.5)),
+              Divider(
+                height: 1,
+                color: colors.outlineVariant.withValues(alpha: 0.5),
+              ),
             _LanguageGroupSection(
               group: groups[groupIndex],
               languageLabel: groups[groupIndex].isOther
                   ? l10n.otherLanguages
-                  : LocaleDisplayNames.friendly(groups[groupIndex].languageCode),
-              expanded: expandedLanguages.contains(groups[groupIndex].languageCode),
+                  : LocaleDisplayNames.friendly(
+                      groups[groupIndex].languageCode,
+                    ),
+              expanded: expandedLanguages.contains(
+                groups[groupIndex].languageCode,
+              ),
               selectedId: selectedId,
               previewingVoiceId: previewingVoiceId,
               onToggleExpanded: onToggleExpanded,
@@ -696,7 +710,10 @@ class _LanguageGroupSection extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 48),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: [
                     Icon(
@@ -730,11 +747,16 @@ class _LanguageGroupSection extends StatelessWidget {
         ),
         if (expanded)
           for (var i = 0; i < group.voices.length; i++) ...[
-            Divider(height: 1, indent: 16, color: colors.outlineVariant.withValues(alpha: 0.45)),
+            Divider(
+              height: 1,
+              indent: 16,
+              color: colors.outlineVariant.withValues(alpha: 0.45),
+            ),
             _CompactVoiceRow(
               voice: group.voices[i],
               friendlyName: friendlyNameFor(group.voices[i]),
-              selected: group.voices[i].id == selectedId ||
+              selected:
+                  group.voices[i].id == selectedId ||
                   group.voices[i].id ==
                       VoiceCatalog.normalizeSystemDefaultVoiceId(selectedId),
               previewing: previewingVoiceId == group.voices[i].id,
@@ -765,9 +787,7 @@ class _CompactVoiceRow extends StatelessWidget {
   final VoidCallback onPreview;
 
   String _meta(AppLocalizations l10n) {
-    final parts = <String>[
-      VoiceCatalog.normalizeLocaleTag(voice.locale),
-    ];
+    final parts = <String>[VoiceCatalog.normalizeLocaleTag(voice.locale)];
     final engine = voice.platformEngine?.trim();
     if (engine != null && engine.isNotEmpty) {
       parts.add(engine.contains('.') ? engine.split('.').last : engine);
@@ -822,8 +842,9 @@ class _CompactVoiceRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: context.textTheme.bodyMedium?.copyWith(
-                        fontWeight:
-                            selected ? FontWeight.w700 : FontWeight.w600,
+                        fontWeight: selected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -930,4 +951,3 @@ class _VoiceSetupGuideCard extends StatelessWidget {
     );
   }
 }
-

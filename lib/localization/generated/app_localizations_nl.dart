@@ -288,6 +288,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get recordDefaultName => 'Spraakopname';
 
   @override
+  String get recordPermissionTitle => 'Microfoontoegang';
+
+  @override
+  String get recordPermissionRationale =>
+      'De app heeft microfoontoegang nodig om de audioclip op te nemen die je als alarm gebruikt.';
+
+  @override
+  String get recordPermissionDenied =>
+      'Microfoontoegang is niet verleend. Er is geen opname gestart. Je kunt het opnieuw proberen.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'Microfoontoegang is geblokkeerd. Open de systeeminstellingen en sta toegang toe voordat je opneemt.';
+
+  @override
   String get settingsTitle => 'Instellingen';
 
   @override
@@ -620,12 +635,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get aboutDeveloperValue => 'Nguyên Đức';
-
-  @override
-  String get aboutGithub => 'GitHub-repository';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'E-mailondersteuning';
@@ -974,6 +983,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get exactAlarmPermission => 'Exacte wekkers';
+
+  @override
+  String get fullScreenAlarmPermission => 'Wekkers op volledig scherm';
 
   @override
   String get openSystemSettings => 'Systeeminstellingen openen';

@@ -284,6 +284,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get recordDefaultName => '음성 녹음';
 
   @override
+  String get recordPermissionTitle => '마이크 접근';
+
+  @override
+  String get recordPermissionRationale =>
+      '알람에 사용할 오디오를 녹음하려면 마이크 접근 권한이 필요합니다.';
+
+  @override
+  String get recordPermissionDenied =>
+      '마이크 접근이 허용되지 않아 녹음이 시작되지 않았습니다. 준비되면 다시 시도할 수 있습니다.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      '마이크 접근이 차단되었습니다. 녹음하기 전에 시스템 설정에서 허용하세요.';
+
+  @override
   String get settingsTitle => '설정';
 
   @override
@@ -610,12 +625,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get aboutDeveloperValue => 'Nguyên Đức';
-
-  @override
-  String get aboutGithub => 'GitHub 저장소';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => '이메일 지원';
@@ -949,6 +958,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get exactAlarmPermission => '정확한 알람';
+
+  @override
+  String get fullScreenAlarmPermission => '전체 화면 알람';
 
   @override
   String get openSystemSettings => '시스템 설정 열기';

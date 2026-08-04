@@ -59,13 +59,17 @@ class _SmartVoiceAlarmAppState extends ConsumerState<SmartVoiceAlarmApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(
-        ref.read(reminderSettingsProvider.notifier).ensureScheduledLocalized(
+        ref
+            .read(reminderSettingsProvider.notifier)
+            .ensureScheduledLocalized(
               title: l10n.reminderNotificationTitle,
               body: l10n.reminderNotificationBody,
             ),
       );
       unawaited(
-        ref.read(notificationServiceProvider).applyLocalizedCopy(
+        ref
+            .read(notificationServiceProvider)
+            .applyLocalizedCopy(
               appName: l10n.appName,
               alarmChannelName: l10n.notificationChannelAlarms,
               alarmChannelDescription: l10n.notificationChannelAlarmsDesc,

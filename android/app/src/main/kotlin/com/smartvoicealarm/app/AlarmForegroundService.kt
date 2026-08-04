@@ -12,6 +12,8 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -26,6 +28,8 @@ class AlarmForegroundService : Service() {
     private var player: MediaPlayer? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var vibrator: Vibrator? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val timeout = Runnable { stopSelfSafe() }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -52,6 +56,8 @@ class AlarmForegroundService : Service() {
                 }
                 startRingtone()
                 startVibration()
+                handler.removeCallbacks(timeout)
+                handler.postDelayed(timeout, MAX_RING_DURATION_MS)
                 return START_NOT_STICKY
             }
             else -> {
@@ -160,7 +166,7 @@ class AlarmForegroundService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(label)
             .setContentText("Smart Voice Alarm")
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setOngoing(true)
@@ -195,6 +201,7 @@ class AlarmForegroundService : Service() {
     }
 
     private fun stopSelfSafe() {
+        handler.removeCallbacks(timeout)
         try {
             player?.stop()
         } catch (_: Exception) {
@@ -211,6 +218,7 @@ class AlarmForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        handler.removeCallbacks(timeout)
         try {
             player?.stop()
         } catch (_: Exception) {
@@ -227,6 +235,7 @@ class AlarmForegroundService : Service() {
         const val ACTION_STOP = "com.smartvoicealarm.app.ACTION_STOP_ALARM"
         const val CHANNEL_ID = "smart_voice_alarm_native"
         const val NOTIFICATION_ID = 42001
+        const val MAX_RING_DURATION_MS = 10 * 60 * 1000L
 
         fun stop(context: Context) {
             val intent = Intent(context, AlarmForegroundService::class.java).apply {

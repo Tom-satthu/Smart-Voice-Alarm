@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:smart_voice_alarm/app/app.dart';
 import 'package:smart_voice_alarm/core/services/notification_service.dart';
 import 'package:smart_voice_alarm/router/routes.dart';
@@ -10,6 +9,14 @@ import 'package:smart_voice_alarm/shared/providers/prototype_providers.dart';
 import 'package:smart_voice_alarm/theme/theme_provider.dart';
 
 import 'memory_store.dart';
+
+class _GrantedNotificationService extends NotificationService {
+  @override
+  Future<bool> get notificationPermissionGranted async => true;
+
+  @override
+  Future<bool> requestNotificationPermission() async => true;
+}
 
 List<Override> _memoryOverrides({
   List<AlarmUiModel>? alarms,
@@ -23,7 +30,7 @@ List<Override> _memoryOverrides({
     sequence ?? TestSeedData.sequence,
   ]);
   final settingsRepo = MemorySettingsRepository();
-  final notifications = NotificationService();
+  final notifications = _GrantedNotificationService();
 
   return [
     alarmRepositoryProvider.overrideWithValue(alarmRepo),
@@ -33,12 +40,8 @@ List<Override> _memoryOverrides({
     alarmListProvider.overrideWith(
       (ref) => AlarmListController(alarmRepo, notifications, sequenceRepo),
     ),
-    themeModeProvider.overrideWith(
-      (ref) => ThemeController(settingsRepo),
-    ),
-    localeProvider.overrideWith(
-      (ref) => LocaleController(settingsRepo),
-    ),
+    themeModeProvider.overrideWith((ref) => ThemeController(settingsRepo)),
+    localeProvider.overrideWith((ref) => LocaleController(settingsRepo)),
     reminderSettingsProvider.overrideWith(
       (ref) => ReminderSettingsController(settingsRepo, notifications),
     ),
@@ -114,7 +117,6 @@ Future<void> _tapVisible(WidgetTester tester, Finder finder) async {
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    GoogleFonts.config.allowRuntimeFetching = false;
   });
 
   testWidgets('1. App boots successfully to splash', (tester) async {
@@ -163,7 +165,7 @@ void main() {
     final alarmRepo = MemoryAlarmRepository(TestSeedData.alarms);
     final sequenceRepo = MemoryVoiceSequenceRepository([TestSeedData.sequence]);
     final settingsRepo = MemorySettingsRepository();
-    final notifications = NotificationService();
+    final notifications = _GrantedNotificationService();
     controller = AlarmListController(alarmRepo, notifications, sequenceRepo);
 
     await _pumpApp(
@@ -241,20 +243,12 @@ void main() {
         sequenceRepositoryProvider.overrideWithValue(sequenceRepo),
         ttsVoicesProvider.overrideWith(
           (ref) async => const [
-            TtsVoiceUiModel(
-              id: 'voice-1',
-              name: 'Ava',
-              locale: 'en-US',
-            ),
+            TtsVoiceUiModel(id: 'voice-1', name: 'Ava', locale: 'en-US'),
           ],
         ),
         usableTtsVoicesProvider.overrideWith(
           (ref) async => const [
-            TtsVoiceUiModel(
-              id: 'voice-1',
-              name: 'Ava',
-              locale: 'en-US',
-            ),
+            TtsVoiceUiModel(id: 'voice-1', name: 'Ava', locale: 'en-US'),
           ],
         ),
         voiceSequenceProvider.overrideWith((ref, id) {
@@ -266,7 +260,10 @@ void main() {
         }),
       ],
     );
-    await tester.enterText(find.byType(TextField).first, 'Rise and shine today');
+    await tester.enterText(
+      find.byType(TextField).first,
+      'Rise and shine today',
+    );
     await tester.pump();
     await _tapVisible(tester, find.text('Save'));
     expect(
@@ -330,13 +327,21 @@ void main() {
     expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Theme'), findsOneWidget);
     expect(find.text('Voices'), findsWidgets);
-    expect(find.text('Get a gentle nudge if no alarm is scheduled'), findsWidgets);
+    expect(find.text('Premium'), findsNothing);
+    expect(find.textContaining('GitHub'), findsNothing);
+    expect(
+      find.text('Get a gentle nudge if no alarm is scheduled'),
+      findsWidgets,
+    );
   });
 
-  testWidgets('13. Open Premium', (tester) async {
+  testWidgets('13. Premium route is hidden for paid-app release', (
+    tester,
+  ) async {
     await _pumpApp(tester, initialLocation: AppRoutes.premium);
-    expect(find.text('Unlock Unlimited Alarms'), findsWidgets);
-    expect(find.textContaining('Free includes up to 3 alarms'), findsWidgets);
+    expect(find.text('Alarms'), findsOneWidget);
+    expect(find.text('Unlock Unlimited Alarms'), findsNothing);
+    expect(find.textContaining('Free includes up to 3 alarms'), findsNothing);
   });
 
   testWidgets('14. No overflow on common phone size', (tester) async {

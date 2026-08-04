@@ -26,10 +26,7 @@ class StoragePaths {
 
 /// Bundled ringtone catalog. [name] is the persisted alarm field value.
 class RingtoneAsset {
-  const RingtoneAsset({
-    required this.name,
-    required this.assetPath,
-  });
+  const RingtoneAsset({required this.name, required this.assetPath});
 
   final String name;
   final String assetPath;

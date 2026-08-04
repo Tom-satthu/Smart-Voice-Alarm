@@ -98,7 +98,8 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
     final id = _activeId ?? widget.alarmId;
     final alarm = ref.watch(alarmListProvider.notifier).findById(id);
     final title = alarm?.label ?? l10n.appName;
-    final active = _phase == AlarmEnginePhase.playingVoice ||
+    final active =
+        _phase == AlarmEnginePhase.playingVoice ||
         _phase == AlarmEnginePhase.playingRingtone;
     final queued = _engine.queuedCount;
 

@@ -4,7 +4,7 @@ import '../constants/app_constants.dart';
 /// Local premium entitlement gate used across alarm creation flows.
 class PremiumEntitlementService {
   PremiumEntitlementService([SettingsRepository? repo])
-      : _repo = repo ?? SettingsRepository();
+    : _repo = repo ?? SettingsRepository();
 
   final SettingsRepository _repo;
 

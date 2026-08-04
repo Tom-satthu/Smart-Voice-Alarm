@@ -8,21 +8,11 @@ import org.json.JSONArray
 
 /**
  * Fires when AlarmManager triggers. Starts the foreground ringing service and
- * brings the full-screen alarm UI to the front without requiring a tap.
- * Also handles the notification Stop action.
+ * posts a full-screen-capable alarm notification. Also handles its Stop action.
  */
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val app = context.applicationContext
-        if (intent?.action == Intent.ACTION_BOOT_COMPLETED ||
-            intent?.action == Intent.ACTION_LOCKED_BOOT_COMPLETED ||
-            intent?.action == "android.intent.action.QUICKBOOT_POWERON" ||
-            intent?.action == "com.htc.intent.action.QUICKBOOT_POWERON"
-        ) {
-            AlarmScheduler.rescheduleAll(app)
-            return
-        }
-
         if (intent?.action == ACTION_STOP) {
             // Bring the ringing UI forward so the user must solve the dismiss
             // challenge. Do not silently kill playback from the notification.
@@ -59,15 +49,6 @@ class AlarmReceiver : BroadcastReceiver() {
         } else {
             app.startService(serviceIntent)
         }
-
-        val activity = Intent(app, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId)
-            putExtra("from_native_alarm", true)
-        }
-        app.startActivity(activity)
 
         rescheduleOrDisable(app, alarmId)
     }

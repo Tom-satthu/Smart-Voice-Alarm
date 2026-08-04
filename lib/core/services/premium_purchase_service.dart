@@ -59,8 +59,8 @@ class PremiumPurchaseService {
   PremiumPurchaseService({
     PremiumEntitlementService? entitlement,
     InAppPurchase? iap,
-  })  : _entitlement = entitlement ?? PremiumEntitlementService(),
-        _iap = iap ?? InAppPurchase.instance;
+  }) : _entitlement = entitlement ?? PremiumEntitlementService(),
+       _iap = iap ?? InAppPurchase.instance;
 
   final PremiumEntitlementService _entitlement;
   final InAppPurchase _iap;
@@ -137,7 +137,9 @@ class PremiumPurchaseService {
       return;
     }
 
-    _emit(_state.copyWith(status: PurchaseFlowStatus.loading, clearError: true));
+    _emit(
+      _state.copyWith(status: PurchaseFlowStatus.loading, clearError: true),
+    );
     final response = await _iap.queryProductDetails({
       AppConstants.premiumProductId,
     });
@@ -196,10 +198,7 @@ class PremiumPurchaseService {
     }
 
     _emit(
-      _state.copyWith(
-        status: PurchaseFlowStatus.purchasing,
-        clearError: true,
-      ),
+      _state.copyWith(status: PurchaseFlowStatus.purchasing, clearError: true),
     );
     final param = PurchaseParam(productDetails: product);
     final started = await _iap.buyNonConsumable(purchaseParam: param);

@@ -130,8 +130,9 @@ abstract final class VoiceCatalog {
         ? null
         : normalizeLocaleTag(preferredLocale);
     final app = appLocale == null ? null : normalizeLocaleTag(appLocale);
-    final system =
-        systemLocale == null ? null : normalizeLocaleTag(systemLocale);
+    final system = systemLocale == null
+        ? null
+        : normalizeLocaleTag(systemLocale);
 
     return [
       for (final entry in byLanguage.entries)
@@ -306,7 +307,8 @@ abstract final class VoiceCatalog {
     final id = preferredId;
     if (id == null || !id.startsWith('system-default|')) return null;
     final language = normalizeLanguageCode(
-      preferredLanguage ?? languageCodeOf(id.substring('system-default|'.length)),
+      preferredLanguage ??
+          languageCodeOf(id.substring('system-default|'.length)),
     );
     if (language.isEmpty) return null;
     final matched = changedLocales.any(
@@ -361,7 +363,8 @@ abstract final class VoiceCatalog {
     String? preferredLanguage,
   }) {
     if (preferredId != null) {
-      final normalized = normalizeSystemDefaultVoiceId(preferredId) ?? preferredId;
+      final normalized =
+          normalizeSystemDefaultVoiceId(preferredId) ?? preferredId;
       for (final voice in voices) {
         if (voice.id == preferredId || voice.id == normalized) return voice;
       }
@@ -370,7 +373,8 @@ abstract final class VoiceCatalog {
           preferredId.substring('system-default|'.length),
         );
         for (final voice in voices) {
-          if (voice.isSystemDefault && languageCodeOf(voice.locale) == language) {
+          if (voice.isSystemDefault &&
+              languageCodeOf(voice.locale) == language) {
             return voice;
           }
         }
@@ -413,7 +417,9 @@ abstract final class VoiceCatalog {
   }
 
   /// Deduplicate by stable identity while keeping different engines separate.
-  static List<TtsVoiceUiModel> dedupeForDiscovery(Iterable<TtsVoiceUiModel> voices) {
+  static List<TtsVoiceUiModel> dedupeForDiscovery(
+    Iterable<TtsVoiceUiModel> voices,
+  ) {
     final seen = <String>{};
     final out = <TtsVoiceUiModel>[];
     for (final voice in voices) {
