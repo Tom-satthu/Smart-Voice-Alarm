@@ -123,8 +123,10 @@ Requires a **macOS machine with Xcode**.
 
 ## Support email
 
-Configured in `lib/core/constants/app_constants.dart` as `supportEmail`  
-(current temporary owner inbox: `daonguyenduc209@gmail.com` — replace with a dedicated address when ready).
+Configured in `lib/core/constants/app_constants.dart` as `supportEmail`:  
+`timeforwork789@gmail.com`
+
+Google Play public developer name: **Nguyên Đức**
 
 ## License
 

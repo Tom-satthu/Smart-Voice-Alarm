@@ -221,13 +221,13 @@
   "aboutAppName": "アプリ名",
   "aboutVersion": "バージョン",
   "aboutDeveloper": "開発者",
-  "aboutDeveloperValue": "Tom Satthu",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutGithub": "GitHubリポジトリ",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutGithubValue": "github.com/Tom-deptrai/Smart-Voice-Alarm",
   "aboutEmail": "メールサポート",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "ウェブサイト",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "近日公開",
   "voiceSystemDefault": "システムデフォルト",
   "voiceSystemDefaultHint": "デバイスの設定で管理されます",
@@ -392,5 +392,23 @@
         "type": "String"
       }
     }
-  }
+  },
+  "settingsSoundAndVoice": "音と音声",
+  "settingsAlarmsSection": "アラーム",
+  "supportAndFeedback": "サポート",
+  "contactSupport": "お問い合わせとフィードバック",
+  "supportEmailSubject": "Smart Voice Alarm サポート",
+  "emailCopied": "サポートメールをコピーしました",
+  "linkUnavailable": "このリンクはまだ利用できません",
+  "openSourceLicenses": "オープンソースライセンス",
+  "appInformation": "アプリ情報",
+  "appVersion": "アプリのバージョン",
+  "permissionsAndBackground": "権限とバックグラウンド",
+  "notificationPermission": "通知",
+  "exactAlarmPermission": "正確なアラーム",
+  "openSystemSettings": "システム設定を開く",
+  "openSystemSettingsHint": "通知と関連権限を管理",
+  "permissionStatusGranted": "許可済み",
+  "permissionStatusDenied": "未許可",
+  "permissionStatusUnknown": "不明"
 }

@@ -607,25 +607,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aboutDeveloper => '開発者';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutGithub => 'GitHubリポジトリ';
 
   @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'メールサポート';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'ウェブサイト';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => '近日公開';
@@ -908,4 +908,58 @@ class AppLocalizationsJa extends AppLocalizations {
   String voicePreviewNamed(String name) {
     return '$name をプレビュー';
   }
+
+  @override
+  String get settingsSoundAndVoice => '音と音声';
+
+  @override
+  String get settingsAlarmsSection => 'アラーム';
+
+  @override
+  String get supportAndFeedback => 'サポート';
+
+  @override
+  String get contactSupport => 'お問い合わせとフィードバック';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm サポート';
+
+  @override
+  String get emailCopied => 'サポートメールをコピーしました';
+
+  @override
+  String get linkUnavailable => 'このリンクはまだ利用できません';
+
+  @override
+  String get openSourceLicenses => 'オープンソースライセンス';
+
+  @override
+  String get appInformation => 'アプリ情報';
+
+  @override
+  String get appVersion => 'アプリのバージョン';
+
+  @override
+  String get permissionsAndBackground => '権限とバックグラウンド';
+
+  @override
+  String get notificationPermission => '通知';
+
+  @override
+  String get exactAlarmPermission => '正確なアラーム';
+
+  @override
+  String get openSystemSettings => 'システム設定を開く';
+
+  @override
+  String get openSystemSettingsHint => '通知と関連権限を管理';
+
+  @override
+  String get permissionStatusGranted => '許可済み';
+
+  @override
+  String get permissionStatusDenied => '未許可';
+
+  @override
+  String get permissionStatusUnknown => '不明';
 }

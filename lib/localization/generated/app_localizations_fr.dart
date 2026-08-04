@@ -619,25 +619,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aboutDeveloper => 'Développeur';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutGithub => 'Dépôt GitHub';
 
   @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'Assistance par e-mail';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'Site web';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => 'Bientôt disponible';
@@ -938,4 +938,59 @@ class AppLocalizationsFr extends AppLocalizations {
   String voicePreviewNamed(String name) {
     return 'Écouter $name';
   }
+
+  @override
+  String get settingsSoundAndVoice => 'Son et voix';
+
+  @override
+  String get settingsAlarmsSection => 'Alarmes';
+
+  @override
+  String get supportAndFeedback => 'Assistance';
+
+  @override
+  String get contactSupport => 'Contact et commentaires';
+
+  @override
+  String get supportEmailSubject => 'Assistance Smart Voice Alarm';
+
+  @override
+  String get emailCopied => 'E-mail d\'assistance copié';
+
+  @override
+  String get linkUnavailable => 'Ce lien n\'est pas encore disponible';
+
+  @override
+  String get openSourceLicenses => 'Licences open source';
+
+  @override
+  String get appInformation => 'À propos de l\'application';
+
+  @override
+  String get appVersion => 'Version de l\'application';
+
+  @override
+  String get permissionsAndBackground => 'Autorisations et arrière-plan';
+
+  @override
+  String get notificationPermission => 'Notifications';
+
+  @override
+  String get exactAlarmPermission => 'Alarmes exactes';
+
+  @override
+  String get openSystemSettings => 'Ouvrir les réglages système';
+
+  @override
+  String get openSystemSettingsHint =>
+      'Gérer les notifications et autorisations associées';
+
+  @override
+  String get permissionStatusGranted => 'Accordée';
+
+  @override
+  String get permissionStatusDenied => 'Non accordée';
+
+  @override
+  String get permissionStatusUnknown => 'Inconnu';
 }

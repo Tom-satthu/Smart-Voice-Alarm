@@ -606,25 +606,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aboutDeveloper => '开发者';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutGithub => 'GitHub 仓库';
 
   @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => '电子邮件支持';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => '网站';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => '即将推出';
@@ -907,6 +907,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String voicePreviewNamed(String name) {
     return '试听 $name';
   }
+
+  @override
+  String get settingsSoundAndVoice => '声音与语音';
+
+  @override
+  String get settingsAlarmsSection => '闹钟';
+
+  @override
+  String get supportAndFeedback => '支持';
+
+  @override
+  String get contactSupport => '联系与反馈';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm 支持';
+
+  @override
+  String get emailCopied => '支持邮箱已复制';
+
+  @override
+  String get linkUnavailable => '此链接尚不可用';
+
+  @override
+  String get openSourceLicenses => '开源许可证';
+
+  @override
+  String get appInformation => '关于应用';
+
+  @override
+  String get appVersion => '应用版本';
+
+  @override
+  String get permissionsAndBackground => '权限与后台';
+
+  @override
+  String get notificationPermission => '通知';
+
+  @override
+  String get exactAlarmPermission => '精确闹钟';
+
+  @override
+  String get openSystemSettings => '打开系统设置';
+
+  @override
+  String get openSystemSettingsHint => '管理通知及相关权限';
+
+  @override
+  String get permissionStatusGranted => '已授予';
+
+  @override
+  String get permissionStatusDenied => '未授予';
+
+  @override
+  String get permissionStatusUnknown => '未知';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1511,25 +1565,25 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get aboutDeveloper => '開發者';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutGithub => 'GitHub 存放庫';
 
   @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => '電子郵件支援';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => '網站';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => '即將推出';
@@ -1812,4 +1866,58 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String voicePreviewNamed(String name) {
     return '預聽 $name';
   }
+
+  @override
+  String get settingsSoundAndVoice => '聲音與語音';
+
+  @override
+  String get settingsAlarmsSection => '鬧鐘';
+
+  @override
+  String get supportAndFeedback => '支援';
+
+  @override
+  String get contactSupport => '聯絡與意見回饋';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm 支援';
+
+  @override
+  String get emailCopied => '已複製支援電子郵件';
+
+  @override
+  String get linkUnavailable => '此連結尚不可用';
+
+  @override
+  String get openSourceLicenses => '開放原始碼授權';
+
+  @override
+  String get appInformation => '關於應用程式';
+
+  @override
+  String get appVersion => '應用程式版本';
+
+  @override
+  String get permissionsAndBackground => '權限與背景';
+
+  @override
+  String get notificationPermission => '通知';
+
+  @override
+  String get exactAlarmPermission => '精確鬧鐘';
+
+  @override
+  String get openSystemSettings => '開啟系統設定';
+
+  @override
+  String get openSystemSettingsHint => '管理通知與相關權限';
+
+  @override
+  String get permissionStatusGranted => '已授予';
+
+  @override
+  String get permissionStatusDenied => '未授予';
+
+  @override
+  String get permissionStatusUnknown => '未知';
 }

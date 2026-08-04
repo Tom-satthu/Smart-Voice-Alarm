@@ -616,25 +616,25 @@ class AppLocalizationsId extends AppLocalizations {
   String get aboutDeveloper => 'Pengembang';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutGithub => 'Repositori GitHub';
 
   @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'Dukungan Email';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'Situs Web';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => 'Segera hadir';
@@ -931,4 +931,58 @@ class AppLocalizationsId extends AppLocalizations {
   String voicePreviewNamed(String name) {
     return 'Pratinjau $name';
   }
+
+  @override
+  String get settingsSoundAndVoice => 'Suara dan suara bicara';
+
+  @override
+  String get settingsAlarmsSection => 'Alarm';
+
+  @override
+  String get supportAndFeedback => 'Dukungan';
+
+  @override
+  String get contactSupport => 'Kontak dan masukan';
+
+  @override
+  String get supportEmailSubject => 'Dukungan Smart Voice Alarm';
+
+  @override
+  String get emailCopied => 'Email dukungan disalin';
+
+  @override
+  String get linkUnavailable => 'Tautan ini belum tersedia';
+
+  @override
+  String get openSourceLicenses => 'Lisensi sumber terbuka';
+
+  @override
+  String get appInformation => 'Tentang aplikasi';
+
+  @override
+  String get appVersion => 'Versi aplikasi';
+
+  @override
+  String get permissionsAndBackground => 'Izin dan latar belakang';
+
+  @override
+  String get notificationPermission => 'Notifikasi';
+
+  @override
+  String get exactAlarmPermission => 'Alarm tepat waktu';
+
+  @override
+  String get openSystemSettings => 'Buka pengaturan sistem';
+
+  @override
+  String get openSystemSettingsHint => 'Kelola notifikasi dan izin terkait';
+
+  @override
+  String get permissionStatusGranted => 'Diberikan';
+
+  @override
+  String get permissionStatusDenied => 'Tidak diberikan';
+
+  @override
+  String get permissionStatusUnknown => 'Tidak diketahui';
 }

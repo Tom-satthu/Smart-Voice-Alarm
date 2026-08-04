@@ -221,13 +221,13 @@
   "aboutAppName": "Appnaam",
   "aboutVersion": "Versie",
   "aboutDeveloper": "Ontwikkelaar",
-  "aboutDeveloperValue": "Tom Satthu",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutGithub": "GitHub-repository",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutGithubValue": "github.com/Tom-deptrai/Smart-Voice-Alarm",
   "aboutEmail": "E-mailondersteuning",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "Website",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "Binnenkort",
   "voiceSystemDefault": "Systeemstandaard",
   "voiceSystemDefaultHint": "Beheerd in de apparaatinstellingen",
@@ -392,5 +392,23 @@
         "type": "String"
       }
     }
-  }
+  },
+  "settingsSoundAndVoice": "Geluid en stem",
+  "settingsAlarmsSection": "Wekkers",
+  "supportAndFeedback": "Ondersteuning",
+  "contactSupport": "Contact en feedback",
+  "supportEmailSubject": "Smart Voice Alarm-ondersteuning",
+  "emailCopied": "Ondersteunings-e-mail gekopieerd",
+  "linkUnavailable": "Deze link is nog niet beschikbaar",
+  "openSourceLicenses": "Open-sourcelicenties",
+  "appInformation": "Over de app",
+  "appVersion": "App-versie",
+  "permissionsAndBackground": "Machtigingen en achtergrond",
+  "notificationPermission": "Meldingen",
+  "exactAlarmPermission": "Exacte wekkers",
+  "openSystemSettings": "Systeeminstellingen openen",
+  "openSystemSettingsHint": "Meldingen en gerelateerde machtigingen beheren",
+  "permissionStatusGranted": "Toegestaan",
+  "permissionStatusDenied": "Niet toegestaan",
+  "permissionStatusUnknown": "Onbekend"
 }

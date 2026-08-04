@@ -221,13 +221,13 @@
   "aboutAppName": "Tên ứng dụng",
   "aboutVersion": "Phiên bản",
   "aboutDeveloper": "Nhà phát triển",
-  "aboutDeveloperValue": "Tom Satthu",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutGithub": "Kho GitHub",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutGithubValue": "github.com/Tom-deptrai/Smart-Voice-Alarm",
   "aboutEmail": "Hỗ trợ qua email",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "Trang web",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "Sắp ra mắt",
   "voiceSystemDefault": "Mặc định hệ thống",
   "voiceSystemDefaultHint": "Được quản lý trong cài đặt điện thoại",
@@ -392,5 +392,23 @@
         "type": "String"
       }
     }
-  }
+  },
+  "settingsSoundAndVoice": "Âm thanh và giọng nói",
+  "settingsAlarmsSection": "Báo thức",
+  "supportAndFeedback": "Hỗ trợ",
+  "contactSupport": "Liên hệ và phản hồi",
+  "supportEmailSubject": "Hỗ trợ Smart Voice Alarm",
+  "emailCopied": "Đã sao chép email hỗ trợ",
+  "linkUnavailable": "Liên kết chưa khả dụng",
+  "openSourceLicenses": "Giấy phép mã nguồn mở",
+  "appInformation": "Giới thiệu ứng dụng",
+  "appVersion": "Phiên bản ứng dụng",
+  "permissionsAndBackground": "Quyền và hoạt động nền",
+  "notificationPermission": "Thông báo",
+  "exactAlarmPermission": "Báo thức chính xác",
+  "openSystemSettings": "Mở cài đặt hệ thống",
+  "openSystemSettingsHint": "Quản lý thông báo và quyền liên quan",
+  "permissionStatusGranted": "Đã cấp",
+  "permissionStatusDenied": "Chưa cấp",
+  "permissionStatusUnknown": "Chưa xác định"
 }

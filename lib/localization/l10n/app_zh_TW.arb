@@ -221,13 +221,13 @@
   "aboutAppName": "App 名稱",
   "aboutVersion": "版本",
   "aboutDeveloper": "開發者",
-  "aboutDeveloperValue": "Tom Satthu",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutGithub": "GitHub 存放庫",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutGithubValue": "github.com/Tom-deptrai/Smart-Voice-Alarm",
   "aboutEmail": "電子郵件支援",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "網站",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "即將推出",
   "voiceSystemDefault": "系統預設",
   "voiceSystemDefaultHint": "由裝置設定管理",
@@ -392,5 +392,23 @@
         "type": "String"
       }
     }
-  }
+  },
+  "settingsSoundAndVoice": "聲音與語音",
+  "settingsAlarmsSection": "鬧鐘",
+  "supportAndFeedback": "支援",
+  "contactSupport": "聯絡與意見回饋",
+  "supportEmailSubject": "Smart Voice Alarm 支援",
+  "emailCopied": "已複製支援電子郵件",
+  "linkUnavailable": "此連結尚不可用",
+  "openSourceLicenses": "開放原始碼授權",
+  "appInformation": "關於應用程式",
+  "appVersion": "應用程式版本",
+  "permissionsAndBackground": "權限與背景",
+  "notificationPermission": "通知",
+  "exactAlarmPermission": "精確鬧鐘",
+  "openSystemSettings": "開啟系統設定",
+  "openSystemSettingsHint": "管理通知與相關權限",
+  "permissionStatusGranted": "已授予",
+  "permissionStatusDenied": "未授予",
+  "permissionStatusUnknown": "未知"
 }

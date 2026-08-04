@@ -619,25 +619,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutDeveloper => 'Developer';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutGithub => 'GitHub Repository';
 
   @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'Email Support';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'Website';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => 'Coming soon';
@@ -934,4 +934,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String voicePreviewNamed(String name) {
     return 'Preview $name';
   }
+
+  @override
+  String get settingsSoundAndVoice => 'Sound and voice';
+
+  @override
+  String get settingsAlarmsSection => 'Alarms';
+
+  @override
+  String get supportAndFeedback => 'Support';
+
+  @override
+  String get contactSupport => 'Contact and feedback';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm Support';
+
+  @override
+  String get emailCopied => 'Support email copied';
+
+  @override
+  String get linkUnavailable => 'This link is not available yet';
+
+  @override
+  String get openSourceLicenses => 'Open-source licenses';
+
+  @override
+  String get appInformation => 'About the app';
+
+  @override
+  String get appVersion => 'App version';
+
+  @override
+  String get permissionsAndBackground => 'Permissions and background';
+
+  @override
+  String get notificationPermission => 'Notifications';
+
+  @override
+  String get exactAlarmPermission => 'Exact alarms';
+
+  @override
+  String get openSystemSettings => 'Open system settings';
+
+  @override
+  String get openSystemSettingsHint =>
+      'Manage notifications and related permissions';
+
+  @override
+  String get permissionStatusGranted => 'Granted';
+
+  @override
+  String get permissionStatusDenied => 'Not granted';
+
+  @override
+  String get permissionStatusUnknown => 'Unknown';
 }

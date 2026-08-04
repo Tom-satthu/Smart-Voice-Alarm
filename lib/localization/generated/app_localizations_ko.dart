@@ -609,25 +609,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aboutDeveloper => '개발자';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutGithub => 'GitHub 저장소';
 
   @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => '이메일 지원';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => '웹사이트';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => '곧 제공';
@@ -910,4 +910,58 @@ class AppLocalizationsKo extends AppLocalizations {
   String voicePreviewNamed(String name) {
     return '$name 미리듣기';
   }
+
+  @override
+  String get settingsSoundAndVoice => '소리 및 음성';
+
+  @override
+  String get settingsAlarmsSection => '알람';
+
+  @override
+  String get supportAndFeedback => '지원';
+
+  @override
+  String get contactSupport => '문의 및 피드백';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm 지원';
+
+  @override
+  String get emailCopied => '지원 이메일이 복사됨';
+
+  @override
+  String get linkUnavailable => '이 링크는 아직 사용할 수 없습니다';
+
+  @override
+  String get openSourceLicenses => '오픈소스 라이선스';
+
+  @override
+  String get appInformation => '앱 정보';
+
+  @override
+  String get appVersion => '앱 버전';
+
+  @override
+  String get permissionsAndBackground => '권한 및 백그라운드';
+
+  @override
+  String get notificationPermission => '알림';
+
+  @override
+  String get exactAlarmPermission => '정확한 알람';
+
+  @override
+  String get openSystemSettings => '시스템 설정 열기';
+
+  @override
+  String get openSystemSettingsHint => '알림 및 관련 권한 관리';
+
+  @override
+  String get permissionStatusGranted => '허용됨';
+
+  @override
+  String get permissionStatusDenied => '허용되지 않음';
+
+  @override
+  String get permissionStatusUnknown => '알 수 없음';
 }

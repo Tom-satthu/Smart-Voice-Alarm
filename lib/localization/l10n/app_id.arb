@@ -221,13 +221,13 @@
   "aboutAppName": "Nama Aplikasi",
   "aboutVersion": "Versi",
   "aboutDeveloper": "Pengembang",
-  "aboutDeveloperValue": "Tom Satthu",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutGithub": "Repositori GitHub",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutGithubValue": "github.com/Tom-deptrai/Smart-Voice-Alarm",
   "aboutEmail": "Dukungan Email",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "Situs Web",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "Segera hadir",
   "voiceSystemDefault": "Default sistem",
   "voiceSystemDefaultHint": "Dikelola di pengaturan perangkat",
@@ -392,5 +392,23 @@
         "type": "String"
       }
     }
-  }
+  },
+  "settingsSoundAndVoice": "Suara dan suara bicara",
+  "settingsAlarmsSection": "Alarm",
+  "supportAndFeedback": "Dukungan",
+  "contactSupport": "Kontak dan masukan",
+  "supportEmailSubject": "Dukungan Smart Voice Alarm",
+  "emailCopied": "Email dukungan disalin",
+  "linkUnavailable": "Tautan ini belum tersedia",
+  "openSourceLicenses": "Lisensi sumber terbuka",
+  "appInformation": "Tentang aplikasi",
+  "appVersion": "Versi aplikasi",
+  "permissionsAndBackground": "Izin dan latar belakang",
+  "notificationPermission": "Notifikasi",
+  "exactAlarmPermission": "Alarm tepat waktu",
+  "openSystemSettings": "Buka pengaturan sistem",
+  "openSystemSettingsHint": "Kelola notifikasi dan izin terkait",
+  "permissionStatusGranted": "Diberikan",
+  "permissionStatusDenied": "Tidak diberikan",
+  "permissionStatusUnknown": "Tidak diketahui"
 }

@@ -1238,7 +1238,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutDeveloperValue.
   ///
   /// In en, this message translates to:
-  /// **'Tom Satthu'**
+  /// **'Nguyên Đức'**
   String get aboutDeveloperValue;
 
   /// No description provided for @aboutGithub.
@@ -1250,7 +1250,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutGithubValue.
   ///
   /// In en, this message translates to:
-  /// **'github.com/Tom-satthu/Smart-Voice-Alarm'**
+  /// **'github.com/Tom-deptrai/Smart-Voice-Alarm'**
   String get aboutGithubValue;
 
   /// No description provided for @aboutEmail.
@@ -1262,7 +1262,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutEmailValue.
   ///
   /// In en, this message translates to:
-  /// **'support@smartvoicealarm.app'**
+  /// **'timeforwork789@gmail.com'**
   String get aboutEmailValue;
 
   /// No description provided for @aboutWebsite.
@@ -1274,7 +1274,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutWebsiteValue.
   ///
   /// In en, this message translates to:
-  /// **'www.smartvoicealarm.app'**
+  /// **''**
   String get aboutWebsiteValue;
 
   /// No description provided for @aboutWebsitePlaceholder.
@@ -1762,6 +1762,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preview {name}'**
   String voicePreviewNamed(String name);
+
+  /// No description provided for @settingsSoundAndVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound and voice'**
+  String get settingsSoundAndVoice;
+
+  /// No description provided for @settingsAlarmsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarms'**
+  String get settingsAlarmsSection;
+
+  /// No description provided for @supportAndFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get supportAndFeedback;
+
+  /// No description provided for @contactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact and feedback'**
+  String get contactSupport;
+
+  /// No description provided for @supportEmailSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Voice Alarm Support'**
+  String get supportEmailSubject;
+
+  /// No description provided for @emailCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Support email copied'**
+  String get emailCopied;
+
+  /// No description provided for @linkUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This link is not available yet'**
+  String get linkUnavailable;
+
+  /// No description provided for @openSourceLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source licenses'**
+  String get openSourceLicenses;
+
+  /// No description provided for @appInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'About the app'**
+  String get appInformation;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'App version'**
+  String get appVersion;
+
+  /// No description provided for @permissionsAndBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions and background'**
+  String get permissionsAndBackground;
+
+  /// No description provided for @notificationPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationPermission;
+
+  /// No description provided for @exactAlarmPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact alarms'**
+  String get exactAlarmPermission;
+
+  /// No description provided for @openSystemSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open system settings'**
+  String get openSystemSettings;
+
+  /// No description provided for @openSystemSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage notifications and related permissions'**
+  String get openSystemSettingsHint;
+
+  /// No description provided for @permissionStatusGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Granted'**
+  String get permissionStatusGranted;
+
+  /// No description provided for @permissionStatusDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Not granted'**
+  String get permissionStatusDenied;
+
+  /// No description provided for @permissionStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get permissionStatusUnknown;
 }
 
 class _AppLocalizationsDelegate

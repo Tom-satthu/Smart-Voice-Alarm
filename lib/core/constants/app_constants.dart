@@ -1,21 +1,37 @@
 abstract final class AppConstants {
   static const String appName = 'Smart Voice Alarm';
+
+  /// Fallback only — prefer [PackageInfo] at runtime.
   static const String appVersion = '1.0.0';
   static const String appBuildNumber = '1';
+
   static const String applicationId = 'com.smartvoicealarm.app';
-  static const String developerName = 'Tom Satthu';
+
+  /// Public Google Play developer display name (not legal account name).
+  static const String developerName = 'Nguyên Đức';
+
   static const String githubRepoUrl =
-      'https://github.com/Tom-satthu/Smart-Voice-Alarm';
-  /// Owner contact — replace with a dedicated support inbox when available.
-  static const String supportEmail = 'daonguyenduc209@gmail.com';
-  static const String websiteUrl =
-      'https://tom-satthu.github.io/Smart-Voice-Alarm/';
-  static const String privacyUrl =
-      'https://tom-satthu.github.io/Smart-Voice-Alarm/privacy/';
-  static const String termsUrl =
-      'https://tom-satthu.github.io/Smart-Voice-Alarm/terms/';
-  static const String supportUrl =
-      'https://tom-satthu.github.io/Smart-Voice-Alarm/support/';
+      'https://github.com/Tom-deptrai/Smart-Voice-Alarm';
+
+  /// Public support inbox for users and store listings.
+  static const String supportEmail = 'timeforwork789@gmail.com';
+
+  /// Leave empty until a real public page exists. Do not use placeholders.
+  static const String websiteUrl = '';
+  static const String privacyPolicyUrl = '';
+  static const String termsOfUseUrl = '';
+
+  /// Play / App Store public URLs — empty until published.
+  static const String playStoreUrl = '';
+  static const String appStoreUrl = '';
+  static const String appStoreId = '';
+
+  static bool get hasPrivacyPolicyUrl => privacyPolicyUrl.trim().isNotEmpty;
+  static bool get hasTermsOfUseUrl => termsOfUseUrl.trim().isNotEmpty;
+  static bool get hasWebsiteUrl => websiteUrl.trim().isNotEmpty;
+  static bool get hasPlayStoreUrl => playStoreUrl.trim().isNotEmpty;
+  static bool get hasAppStoreUrl =>
+      appStoreUrl.trim().isNotEmpty || appStoreId.trim().isNotEmpty;
 
   /// Non-consumable product shared conceptually on App Store and Play.
   static const String premiumProductId = 'smart_voice_alarm_unlimited';

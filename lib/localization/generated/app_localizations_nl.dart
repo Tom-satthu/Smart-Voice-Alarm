@@ -619,25 +619,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get aboutDeveloper => 'Ontwikkelaar';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutGithub => 'GitHub-repository';
 
   @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'E-mailondersteuning';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'Website';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => 'Binnenkort';
@@ -935,4 +935,59 @@ class AppLocalizationsNl extends AppLocalizations {
   String voicePreviewNamed(String name) {
     return '$name beluisteren';
   }
+
+  @override
+  String get settingsSoundAndVoice => 'Geluid en stem';
+
+  @override
+  String get settingsAlarmsSection => 'Wekkers';
+
+  @override
+  String get supportAndFeedback => 'Ondersteuning';
+
+  @override
+  String get contactSupport => 'Contact en feedback';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm-ondersteuning';
+
+  @override
+  String get emailCopied => 'Ondersteunings-e-mail gekopieerd';
+
+  @override
+  String get linkUnavailable => 'Deze link is nog niet beschikbaar';
+
+  @override
+  String get openSourceLicenses => 'Open-sourcelicenties';
+
+  @override
+  String get appInformation => 'Over de app';
+
+  @override
+  String get appVersion => 'App-versie';
+
+  @override
+  String get permissionsAndBackground => 'Machtigingen en achtergrond';
+
+  @override
+  String get notificationPermission => 'Meldingen';
+
+  @override
+  String get exactAlarmPermission => 'Exacte wekkers';
+
+  @override
+  String get openSystemSettings => 'Systeeminstellingen openen';
+
+  @override
+  String get openSystemSettingsHint =>
+      'Meldingen en gerelateerde machtigingen beheren';
+
+  @override
+  String get permissionStatusGranted => 'Toegestaan';
+
+  @override
+  String get permissionStatusDenied => 'Niet toegestaan';
+
+  @override
+  String get permissionStatusUnknown => 'Onbekend';
 }

@@ -616,25 +616,25 @@ class AppLocalizationsVi extends AppLocalizations {
   String get aboutDeveloper => 'Nhà phát triển';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutGithub => 'Kho GitHub';
 
   @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutGithubValue => 'github.com/Tom-deptrai/Smart-Voice-Alarm';
 
   @override
   String get aboutEmail => 'Hỗ trợ qua email';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'Trang web';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => 'Sắp ra mắt';
@@ -932,4 +932,58 @@ class AppLocalizationsVi extends AppLocalizations {
   String voicePreviewNamed(String name) {
     return 'Nghe thử $name';
   }
+
+  @override
+  String get settingsSoundAndVoice => 'Âm thanh và giọng nói';
+
+  @override
+  String get settingsAlarmsSection => 'Báo thức';
+
+  @override
+  String get supportAndFeedback => 'Hỗ trợ';
+
+  @override
+  String get contactSupport => 'Liên hệ và phản hồi';
+
+  @override
+  String get supportEmailSubject => 'Hỗ trợ Smart Voice Alarm';
+
+  @override
+  String get emailCopied => 'Đã sao chép email hỗ trợ';
+
+  @override
+  String get linkUnavailable => 'Liên kết chưa khả dụng';
+
+  @override
+  String get openSourceLicenses => 'Giấy phép mã nguồn mở';
+
+  @override
+  String get appInformation => 'Giới thiệu ứng dụng';
+
+  @override
+  String get appVersion => 'Phiên bản ứng dụng';
+
+  @override
+  String get permissionsAndBackground => 'Quyền và hoạt động nền';
+
+  @override
+  String get notificationPermission => 'Thông báo';
+
+  @override
+  String get exactAlarmPermission => 'Báo thức chính xác';
+
+  @override
+  String get openSystemSettings => 'Mở cài đặt hệ thống';
+
+  @override
+  String get openSystemSettingsHint => 'Quản lý thông báo và quyền liên quan';
+
+  @override
+  String get permissionStatusGranted => 'Đã cấp';
+
+  @override
+  String get permissionStatusDenied => 'Chưa cấp';
+
+  @override
+  String get permissionStatusUnknown => 'Chưa xác định';
 }

@@ -221,13 +221,13 @@
   "aboutAppName": "App-Name",
   "aboutVersion": "Version",
   "aboutDeveloper": "Entwickler",
-  "aboutDeveloperValue": "Tom Satthu",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutGithub": "GitHub-Repository",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutGithubValue": "github.com/Tom-deptrai/Smart-Voice-Alarm",
   "aboutEmail": "E-Mail-Support",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "Website",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "Demnächst",
   "voiceSystemDefault": "Systemstandard",
   "voiceSystemDefaultHint": "Wird in den Geräteeinstellungen verwaltet",
@@ -392,5 +392,23 @@
         "type": "String"
       }
     }
-  }
+  },
+  "settingsSoundAndVoice": "Ton und Stimme",
+  "settingsAlarmsSection": "Alarme",
+  "supportAndFeedback": "Support",
+  "contactSupport": "Kontakt und Feedback",
+  "supportEmailSubject": "Smart Voice Alarm Support",
+  "emailCopied": "Support-E-Mail kopiert",
+  "linkUnavailable": "Dieser Link ist noch nicht verfügbar",
+  "openSourceLicenses": "Open-Source-Lizenzen",
+  "appInformation": "Über die App",
+  "appVersion": "App-Version",
+  "permissionsAndBackground": "Berechtigungen und Hintergrund",
+  "notificationPermission": "Benachrichtigungen",
+  "exactAlarmPermission": "Genaue Alarme",
+  "openSystemSettings": "Systemeinstellungen öffnen",
+  "openSystemSettingsHint": "Benachrichtigungen und verwandte Berechtigungen verwalten",
+  "permissionStatusGranted": "Erlaubt",
+  "permissionStatusDenied": "Nicht erlaubt",
+  "permissionStatusUnknown": "Unbekannt"
 }
