@@ -55,9 +55,12 @@ abstract final class VoiceCatalog {
     for (final entry in byLocale.entries) {
       final sorted = List<TtsVoiceUiModel>.from(entry.value)
         ..sort((a, b) => a.id.compareTo(b.id));
-      for (var i = 0; i < sorted.length; i++) {
-        final padded = (i + 1).toString().padLeft(2, '0');
-        labels[sorted[i].id] = labelFor(padded);
+      var voiceNumber = 0;
+      for (final voice in sorted) {
+        if (voice.isSystemDefault) continue;
+        voiceNumber++;
+        final padded = voiceNumber.toString().padLeft(2, '0');
+        labels[voice.id] = labelFor(padded);
       }
     }
     return labels;
@@ -93,8 +96,9 @@ abstract final class VoiceCatalog {
         ? null
         : normalizeLanguageCode(preferredLanguage);
     final app = appLanguage == null ? null : normalizeLanguageCode(appLanguage);
-    final system =
-        systemLanguage == null ? null : normalizeLanguageCode(systemLanguage);
+    final system = systemLanguage == null
+        ? null
+        : normalizeLanguageCode(systemLanguage);
 
     final q = query.trim().toLowerCase();
     final filtered = q.isEmpty
@@ -127,8 +131,7 @@ abstract final class VoiceCatalog {
           localeLabel: LocaleDisplayNames.friendly(localeEntry.key),
           voices: list,
         );
-      }).toList()
-        ..sort((a, b) => a.localeLabel.compareTo(b.localeLabel));
+      }).toList()..sort((a, b) => a.localeLabel.compareTo(b.localeLabel));
 
       groups.add(
         VoiceLanguageGroup(

@@ -230,6 +230,7 @@
   "aboutWebsiteValue": "www.smartvoicealarm.app",
   "aboutWebsitePlaceholder": "In arrivo",
   "voiceSystemDefault": "Predefinita di sistema",
+  "voiceSystemDefaultHint": "Gestita nelle impostazioni del dispositivo",
   "notificationChannelAlarms": "Sveglie",
   "notificationChannelAlarmsDesc": "Avvisi sveglia vocale",
   "notificationChannelReminders": "Promemoria",

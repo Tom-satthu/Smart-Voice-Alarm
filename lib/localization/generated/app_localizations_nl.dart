@@ -646,6 +646,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get voiceSystemDefault => 'Systeemstandaard';
 
   @override
+  String get voiceSystemDefaultHint => 'Beheerd in de apparaatinstellingen';
+
+  @override
   String get notificationChannelAlarms => 'Alarmen';
 
   @override

@@ -643,6 +643,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get voiceSystemDefault => 'Mặc định hệ thống';
 
   @override
+  String get voiceSystemDefaultHint => 'Được quản lý trong cài đặt điện thoại';
+
+  @override
   String get notificationChannelAlarms => 'Báo thức';
 
   @override
@@ -825,7 +828,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get voicesNoChange => 'Không phát hiện thay đổi về giọng nói.';
+  String get voicesNoChange => 'Đã làm mới cài đặt giọng nói của thiết bị.';
 
   @override
   String get voicesNewBadge => 'Mới';

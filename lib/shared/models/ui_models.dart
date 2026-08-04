@@ -210,7 +210,12 @@ class TtsVoiceUiModel {
     this.quality,
     this.availability = TtsVoiceAvailability.installedOffline,
     this.isUsable = true,
-  });
+    String? platformName,
+    String? platformLocale,
+    this.platformIdentifier,
+    this.isSystemDefault = false,
+  })  : platformName = platformName ?? name,
+        platformLocale = platformLocale ?? locale;
 
   final String id;
   final String name;
@@ -220,6 +225,12 @@ class TtsVoiceUiModel {
   final TtsVoiceQuality? quality;
   final TtsVoiceAvailability availability;
   final bool isUsable;
+  /// Exact values returned by the engine. Never use the normalized UI locale
+  /// when selecting an Android voice.
+  final String platformName;
+  final String platformLocale;
+  final String? platformIdentifier;
+  final bool isSystemDefault;
 }
 
 enum TtsVoiceQuality { defaultQuality, enhanced, premium }

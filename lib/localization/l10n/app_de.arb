@@ -230,6 +230,7 @@
   "aboutWebsiteValue": "www.smartvoicealarm.app",
   "aboutWebsitePlaceholder": "Demnächst",
   "voiceSystemDefault": "Systemstandard",
+  "voiceSystemDefaultHint": "Wird in den Geräteeinstellungen verwaltet",
   "notificationChannelAlarms": "Alarme",
   "notificationChannelAlarmsDesc": "Sprachalarm-Benachrichtigungen",
   "notificationChannelReminders": "Erinnerungen",

@@ -643,6 +643,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get voiceSystemDefault => 'Default sistem';
 
   @override
+  String get voiceSystemDefaultHint => 'Dikelola di pengaturan perangkat';
+
+  @override
   String get notificationChannelAlarms => 'Alarm';
 
   @override

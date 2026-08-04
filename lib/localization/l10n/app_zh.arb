@@ -230,6 +230,7 @@
   "aboutWebsiteValue": "www.smartvoicealarm.app",
   "aboutWebsitePlaceholder": "即将推出",
   "voiceSystemDefault": "系统默认",
+  "voiceSystemDefaultHint": "由设备设置管理",
   "notificationChannelAlarms": "闹钟",
   "notificationChannelAlarmsDesc": "语音闹钟提醒",
   "notificationChannelReminders": "提醒",

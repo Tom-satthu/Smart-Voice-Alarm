@@ -230,6 +230,7 @@
   "aboutWebsiteValue": "www.smartvoicealarm.app",
   "aboutWebsitePlaceholder": "곧 제공",
   "voiceSystemDefault": "시스템 기본",
+  "voiceSystemDefaultHint": "기기 설정에서 관리됩니다",
   "notificationChannelAlarms": "알람",
   "notificationChannelAlarmsDesc": "음성 알람 알림",
   "notificationChannelReminders": "알림",

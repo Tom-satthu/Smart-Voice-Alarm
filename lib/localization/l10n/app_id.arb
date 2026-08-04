@@ -230,6 +230,7 @@
   "aboutWebsiteValue": "www.smartvoicealarm.app",
   "aboutWebsitePlaceholder": "Segera hadir",
   "voiceSystemDefault": "Default sistem",
+  "voiceSystemDefaultHint": "Dikelola di pengaturan perangkat",
   "notificationChannelAlarms": "Alarm",
   "notificationChannelAlarmsDesc": "Peringatan alarm suara",
   "notificationChannelReminders": "Pengingat",

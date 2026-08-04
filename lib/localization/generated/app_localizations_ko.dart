@@ -636,6 +636,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get voiceSystemDefault => '시스템 기본';
 
   @override
+  String get voiceSystemDefaultHint => '기기 설정에서 관리됩니다';
+
+  @override
   String get notificationChannelAlarms => '알람';
 
   @override

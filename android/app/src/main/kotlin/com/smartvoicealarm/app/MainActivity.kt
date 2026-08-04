@@ -156,9 +156,63 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                     "getEngineVoiceState" -> getEngineVoiceState(result)
+                    "getTtsVoices" -> withFreshTts(result) { tts ->
+                        tts.voices?.mapNotNull { requested ->
+                            tts.language = requested.locale
+                            val setResult = tts.setVoice(requested)
+                            val current = tts.voice
+                            val selectable = setResult == TextToSpeech.SUCCESS && current != null &&
+                                current.name == requested.name &&
+                                current.locale.toLanguageTag().equals(requested.locale.toLanguageTag(), ignoreCase = true)
+                            voiceToMap(requested)?.plus(
+                                mapOf(
+                                    "selectable" to selectable,
+                                    "resolvedName" to current?.name,
+                                    "resolvedLocale" to current?.locale?.toLanguageTag(),
+                                ),
+                            )
+                        } ?: emptyList<Map<String, Any?>>()
+                    }
+                    "probeTtsVoice" -> {
+                        val name = call.argument<String>("name")
+                            ?: return@setMethodCallHandler result.error("bad_args", "name", null)
+                        val localeTag = call.argument<String>("locale")
+                            ?: return@setMethodCallHandler result.error("bad_args", "locale", null)
+                        withFreshTts(result) { tts ->
+                            val requested = tts.voices?.firstOrNull {
+                                it.name == name && it.locale.toLanguageTag().equals(localeTag, ignoreCase = true)
+                            } ?: return@withFreshTts null
+                            tts.language = requested.locale
+                            val setResult = tts.setVoice(requested)
+                            val current = tts.voice
+                            if (setResult == TextToSpeech.SUCCESS && current?.name == requested.name &&
+                                current.locale.toLanguageTag().equals(requested.locale.toLanguageTag(), ignoreCase = true)
+                            ) voiceToMap(current) else null
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    private fun withFreshTts(result: MethodChannel.Result, block: (TextToSpeech) -> Any?) {
+        val replied = AtomicBoolean(false)
+        var instance: TextToSpeech? = null
+        try {
+            instance = TextToSpeech(applicationContext) { status ->
+                val tts = instance
+                if (!replied.compareAndSet(false, true)) return@TextToSpeech
+                if (status != TextToSpeech.SUCCESS || tts == null) {
+                    result.success(null)
+                } else {
+                    try { result.success(block(tts)) }
+                    catch (e: Exception) { result.error("tts_probe", e.message, null) }
+                    finally { tts.shutdown() }
+                }
+            }
+        } catch (e: Exception) {
+            if (replied.compareAndSet(false, true)) result.error("tts_probe", e.message, null)
+        }
     }
 
     private fun getEngineVoiceState(result: MethodChannel.Result) {

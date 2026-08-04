@@ -230,6 +230,7 @@
   "aboutWebsiteValue": "www.smartvoicealarm.app",
   "aboutWebsitePlaceholder": "Sắp ra mắt",
   "voiceSystemDefault": "Mặc định hệ thống",
+  "voiceSystemDefaultHint": "Được quản lý trong cài đặt điện thoại",
   "notificationChannelAlarms": "Báo thức",
   "notificationChannelAlarmsDesc": "Thông báo báo thức giọng nói",
   "notificationChannelReminders": "Nhắc nhở",
@@ -316,7 +317,7 @@
       }
     }
   },
-  "voicesNoChange": "Không phát hiện thay đổi về giọng nói.",
+  "voicesNoChange": "Đã làm mới cài đặt giọng nói của thiết bị.",
   "voicesNewBadge": "Mới",
   "voiceFriendlyName": "Giọng nói {number}",
   "voicesOpenManagerFailed": "Không mở được quản lý giọng nói. Hãy mở cài đặt Text-to-speech hệ thống để cài giọng.",

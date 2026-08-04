@@ -80,14 +80,14 @@ class _VoiceBrowserState extends ConsumerState<VoiceBrowser> {
   }
 
   String _voiceName(AppLocalizations l10n, TtsVoiceUiModel voice) {
-    if (voice.id.startsWith('default|') || voice.name == 'System Default') {
+    if (voice.isSystemDefault || voice.name == 'System Default') {
       return l10n.voiceSystemDefault;
     }
-    return widget.friendlyLabels[voice.id] ??
-        l10n.voiceFriendlyName('01');
+    return widget.friendlyLabels[voice.id] ?? l10n.voiceFriendlyName('01');
   }
 
   String? _availabilityLabel(AppLocalizations l10n, TtsVoiceUiModel voice) {
+    if (voice.isSystemDefault) return l10n.voiceSystemDefaultHint;
     if (!widget.showAvailability) return null;
     return switch (voice.availability) {
       TtsVoiceAvailability.installedOffline => l10n.voiceAvailabilityOffline,
@@ -119,7 +119,9 @@ class _VoiceBrowserState extends ConsumerState<VoiceBrowser> {
     });
     try {
       if (mounted) setState(() => _phase = _PreviewPhase.playing);
-      await ref.read(ttsServiceProvider).preview(
+      await ref
+          .read(ttsServiceProvider)
+          .preview(
             text: VoiceCatalog.previewSampleForLocale(voice.locale),
             voiceId: voice.id,
             locale: voice.locale,
@@ -182,7 +184,8 @@ class _VoiceBrowserState extends ConsumerState<VoiceBrowser> {
           for (final group in groups)
             _LanguageSection(
               group: group,
-              expanded: _search.text.trim().isNotEmpty ||
+              expanded:
+                  _search.text.trim().isNotEmpty ||
                   _expanded.contains(group.languageCode),
               onToggle: () {
                 setState(() {
@@ -260,10 +263,7 @@ class _LanguageSection extends StatelessWidget {
                         group.languageLabel,
                         style: context.textTheme.titleSmall,
                       ),
-                      Text(
-                        voiceCountLabel,
-                        style: context.textTheme.bodySmall,
-                      ),
+                      Text(voiceCountLabel, style: context.textTheme.bodySmall),
                     ],
                   ),
                 ),
@@ -387,8 +387,9 @@ class _VoiceRow extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: context.colors.primary
-                                      .withValues(alpha: 0.12),
+                                  color: context.colors.primary.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(
@@ -427,9 +428,7 @@ class _VoiceRow extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Icon(
-                    playing ? Icons.stop_rounded : Icons.play_arrow_rounded,
-                  ),
+                : Icon(playing ? Icons.stop_rounded : Icons.play_arrow_rounded),
           ),
         ],
       ),
@@ -519,7 +518,9 @@ class _SelectedVoiceCardState extends ConsumerState<SelectedVoiceCard> {
     setState(() => _phase = _PreviewPhase.loading);
     try {
       setState(() => _phase = _PreviewPhase.playing);
-      await ref.read(ttsServiceProvider).preview(
+      await ref
+          .read(ttsServiceProvider)
+          .preview(
             text: VoiceCatalog.previewSampleForLocale(widget.voice.locale),
             voiceId: widget.voice.id,
             locale: widget.voice.locale,
@@ -551,10 +552,7 @@ class _SelectedVoiceCardState extends ConsumerState<SelectedVoiceCard> {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  widget.friendlyName,
-                  style: context.textTheme.titleSmall,
-                ),
+                Text(widget.friendlyName, style: context.textTheme.titleSmall),
               ],
             ),
           ),
@@ -567,9 +565,7 @@ class _SelectedVoiceCardState extends ConsumerState<SelectedVoiceCard> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Icon(
-                    playing ? Icons.stop_rounded : Icons.play_arrow_rounded,
-                  ),
+                : Icon(playing ? Icons.stop_rounded : Icons.play_arrow_rounded),
           ),
         ],
       ),

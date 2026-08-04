@@ -61,7 +61,7 @@ class _VoiceSpeechSettingsScreenState
   }
 
   Future<List<TtsVoiceUiModel>> _scanVoices() async {
-    final voices = await ref.read(ttsServiceProvider).refreshVoices();
+    final voices = await ref.read(ttsServiceProvider).reloadVoices();
     ref.invalidate(ttsVoicesProvider);
     ref.invalidate(usableTtsVoicesProvider);
     await ref.read(ttsVoicesProvider.future);
@@ -100,14 +100,13 @@ class _VoiceSpeechSettingsScreenState
 
       final afterIds = voices.map((v) => v.id).toSet();
       final discovered = afterIds.difference(_snapshotBeforeDownload);
-      final engineChanged = engine != null &&
+      final engineChanged =
+          engine != null &&
           ((_snapshotEngineVoiceId != null &&
                   engine.id != _snapshotEngineVoiceId) ||
               (_snapshotEngineLocale != null &&
                   VoiceCatalog.normalizeLocaleTag(engine.locale) !=
-                      VoiceCatalog.normalizeLocaleTag(
-                        _snapshotEngineLocale!,
-                      )));
+                      VoiceCatalog.normalizeLocaleTag(_snapshotEngineLocale!)));
 
       setState(() => _newlyInstalledIds = discovered);
 
@@ -124,8 +123,10 @@ class _VoiceSpeechSettingsScreenState
           matched?.locale ?? engine.locale,
         );
         final language = VoiceCatalog.languageCodeOf(locale);
-        await ref.read(preferredVoiceProvider.notifier).setVoice(
-              id: matched?.id ?? engine.id,
+        await ref
+            .read(preferredVoiceProvider.notifier)
+            .setVoice(
+              id: matched?.id ?? 'system-default|$locale',
               locale: locale,
               language: language,
             );
@@ -140,9 +141,22 @@ class _VoiceSpeechSettingsScreenState
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.voicesNoChange)),
+      final preferred = ref.read(preferredVoiceProvider);
+      final locale = VoiceCatalog.normalizeLocaleTag(
+        _snapshotEngineLocale ?? preferred.locale ?? 'en-US',
       );
+      await ref
+          .read(preferredVoiceProvider.notifier)
+          .setVoice(
+            id: 'system-default|$locale',
+            locale: locale,
+            language: VoiceCatalog.languageCodeOf(locale),
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.voicesNoChange)));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -163,17 +177,15 @@ class _VoiceSpeechSettingsScreenState
         return voice;
       }
     }
-    final lang = VoiceCatalog.languageCodeOf(engine.locale);
-    for (final voice in voices) {
-      if (VoiceCatalog.languageCodeOf(voice.locale) == lang) return voice;
-    }
     return null;
   }
 
   Future<void> _saveVoice(TtsVoiceUiModel voice) async {
     final l10n = AppLocalizations.of(context);
     final locale = VoiceCatalog.normalizeLocaleTag(voice.locale);
-    await ref.read(preferredVoiceProvider.notifier).setVoice(
+    await ref
+        .read(preferredVoiceProvider.notifier)
+        .setVoice(
           id: voice.id,
           locale: locale,
           language: VoiceCatalog.languageCodeOf(locale),
@@ -184,9 +196,9 @@ class _VoiceSpeechSettingsScreenState
         content: Text(
           l10n.voicesSelectedSaved(
             VoiceCatalog.friendlyLabels(
-              ref.read(ttsVoicesProvider).asData?.value ?? [voice],
-              labelFor: l10n.voiceFriendlyName,
-            )[voice.id] ??
+                  ref.read(ttsVoicesProvider).asData?.value ?? [voice],
+                  labelFor: l10n.voiceFriendlyName,
+                )[voice.id] ??
                 l10n.voiceFriendlyName('01'),
           ),
         ),
@@ -199,9 +211,9 @@ class _VoiceSpeechSettingsScreenState
     final bridge = ref.read(ttsPlatformBridgeProvider);
 
     if (kIsWeb) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.voicesWebUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.voicesWebUnavailable)));
       return;
     }
 
@@ -225,16 +237,17 @@ class _VoiceSpeechSettingsScreenState
       );
       if (proceed != true || !mounted) return;
       final current =
-          ref.read(ttsVoicesProvider).asData?.value ?? const <TtsVoiceUiModel>[];
+          ref.read(ttsVoicesProvider).asData?.value ??
+          const <TtsVoiceUiModel>[];
       await _captureDownloadSnapshot(current.where((v) => v.isUsable).toList());
       _awaitingDownloadReturn = true;
       final opened = await bridge.openDownloadMoreVoices();
       if (!opened) {
         _awaitingDownloadReturn = false;
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.voicesOpenManagerFailed)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.voicesOpenManagerFailed)));
         }
       }
       return;
@@ -250,9 +263,9 @@ class _VoiceSpeechSettingsScreenState
       if (!opened) {
         _awaitingDownloadReturn = false;
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.voicesOpenManagerFailed)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.voicesOpenManagerFailed)));
         }
       }
     } finally {
@@ -283,19 +296,7 @@ class _VoiceSpeechSettingsScreenState
         }
       }
     }
-    if (preferredLocale != null) {
-      final normalized = VoiceCatalog.normalizeLocaleTag(preferredLocale);
-      for (final voice in voices) {
-        if (VoiceCatalog.normalizeLocaleTag(voice.locale) == normalized) {
-          return voice;
-        }
-      }
-      final lang = VoiceCatalog.languageCodeOf(preferredLocale);
-      for (final voice in voices) {
-        if (VoiceCatalog.languageCodeOf(voice.locale) == lang) return voice;
-      }
-    }
-    return voices.isEmpty ? null : voices.first;
+    return null;
   }
 
   @override
@@ -303,8 +304,9 @@ class _VoiceSpeechSettingsScreenState
     final l10n = AppLocalizations.of(context);
     final voicesAsync = ref.watch(ttsVoicesProvider);
     final preferred = ref.watch(preferredVoiceProvider);
-    final canManage =
-        ref.watch(ttsPlatformBridgeProvider).canManageSystemVoicePacks;
+    final canManage = ref
+        .watch(ttsPlatformBridgeProvider)
+        .canManageSystemVoicePacks;
 
     return AppScaffold(
       showBack: true,
@@ -333,10 +335,11 @@ class _VoiceSpeechSettingsScreenState
                   preferred.id,
                   preferred.locale,
                 );
-                final newVoices = usable
-                    .where((v) => _newlyInstalledIds.contains(v.id))
-                    .toList()
-                  ..sort((a, b) => a.id.compareTo(b.id));
+                final newVoices =
+                    usable
+                        .where((v) => _newlyInstalledIds.contains(v.id))
+                        .toList()
+                      ..sort((a, b) => a.id.compareTo(b.id));
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -352,8 +355,10 @@ class _VoiceSpeechSettingsScreenState
                     else
                       SelectedVoiceCard(
                         voice: selected,
-                        friendlyName: labels[selected.id] ??
-                            l10n.voiceFriendlyName('01'),
+                        friendlyName: selected.isSystemDefault
+                            ? l10n.voiceSystemDefault
+                            : labels[selected.id] ??
+                                  l10n.voiceFriendlyName('01'),
                       ),
                     if (newVoices.isNotEmpty) ...[
                       const SizedBox(height: AppConstants.spaceXl),
@@ -365,7 +370,8 @@ class _VoiceSpeechSettingsScreenState
                           ),
                           child: _NewVoiceTile(
                             voice: voice,
-                            name: labels[voice.id] ??
+                            name:
+                                labels[voice.id] ??
                                 l10n.voiceFriendlyName('01'),
                             selected: preferred.id == voice.id,
                             onSelect: () => _saveVoice(voice),
@@ -412,7 +418,8 @@ class _VoiceSpeechSettingsScreenState
                         showAvailability: true,
                         friendlyLabels: labels,
                         newlyInstalledIds: _newlyInstalledIds,
-                        initiallyExpandedLanguage: preferred.language ??
+                        initiallyExpandedLanguage:
+                            preferred.language ??
                             (selected == null
                                 ? null
                                 : VoiceCatalog.languageCodeOf(selected.locale)),
@@ -463,7 +470,9 @@ class _NewVoiceTileState extends ConsumerState<_NewVoiceTile> {
     }
     setState(() => _playing = true);
     try {
-      await ref.read(ttsServiceProvider).preview(
+      await ref
+          .read(ttsServiceProvider)
+          .preview(
             text: VoiceCatalog.previewSampleForLocale(widget.voice.locale),
             voiceId: widget.voice.id,
             locale: widget.voice.locale,
@@ -573,9 +582,7 @@ class _DownloadVoicesCard extends StatelessWidget {
                 colors.tertiary.withValues(alpha: 0.10),
               ],
             ),
-            border: Border.all(
-              color: colors.primary.withValues(alpha: 0.28),
-            ),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.28)),
           ),
           child: Padding(
             padding: const EdgeInsets.all(AppConstants.spaceLg),
@@ -624,10 +631,7 @@ class _DownloadVoicesCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  color: colors.primary,
-                ),
+                Icon(Icons.arrow_forward_rounded, color: colors.primary),
               ],
             ),
           ),

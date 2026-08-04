@@ -1289,6 +1289,12 @@ abstract class AppLocalizations {
   /// **'System Default'**
   String get voiceSystemDefault;
 
+  /// No description provided for @voiceSystemDefaultHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Managed in device settings'**
+  String get voiceSystemDefaultHint;
+
   /// No description provided for @notificationChannelAlarms.
   ///
   /// In en, this message translates to:
@@ -1598,7 +1604,7 @@ abstract class AppLocalizations {
   /// No description provided for @voicesNoChange.
   ///
   /// In en, this message translates to:
-  /// **'No voice changes detected.'**
+  /// **'Device voice settings were refreshed.'**
   String get voicesNoChange;
 
   /// No description provided for @voicesNewBadge.

@@ -645,6 +645,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get voiceSystemDefault => 'Predefinita di sistema';
 
   @override
+  String get voiceSystemDefaultHint =>
+      'Gestita nelle impostazioni del dispositivo';
+
+  @override
   String get notificationChannelAlarms => 'Sveglie';
 
   @override

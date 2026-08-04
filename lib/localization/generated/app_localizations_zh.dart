@@ -633,6 +633,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voiceSystemDefault => '系统默认';
 
   @override
+  String get voiceSystemDefaultHint => '由设备设置管理';
+
+  @override
   String get notificationChannelAlarms => '闹钟';
 
   @override
@@ -1447,6 +1450,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get voiceSystemDefault => '系統預設';
+
+  @override
+  String get voiceSystemDefaultHint => '由裝置設定管理';
 
   @override
   String get notificationChannelAlarms => '鬧鐘';

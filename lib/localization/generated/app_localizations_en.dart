@@ -646,6 +646,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceSystemDefault => 'System Default';
 
   @override
+  String get voiceSystemDefaultHint => 'Managed in device settings';
+
+  @override
   String get notificationChannelAlarms => 'Alarms';
 
   @override
@@ -828,7 +831,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get voicesNoChange => 'No voice changes detected.';
+  String get voicesNoChange => 'Device voice settings were refreshed.';
 
   @override
   String get voicesNewBadge => 'New';

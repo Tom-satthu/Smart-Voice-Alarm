@@ -230,6 +230,7 @@
   "aboutWebsiteValue": "www.smartvoicealarm.app",
   "aboutWebsitePlaceholder": "Binnenkort",
   "voiceSystemDefault": "Systeemstandaard",
+  "voiceSystemDefaultHint": "Beheerd in de apparaatinstellingen",
   "notificationChannelAlarms": "Alarmen",
   "notificationChannelAlarmsDesc": "Spraakalarmmeldingen",
   "notificationChannelReminders": "Herinneringen",

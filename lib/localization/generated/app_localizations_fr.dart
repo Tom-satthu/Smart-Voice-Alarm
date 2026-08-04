@@ -646,6 +646,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get voiceSystemDefault => 'Voix système';
 
   @override
+  String get voiceSystemDefaultHint => 'Gérée dans les réglages de l’appareil';
+
+  @override
   String get notificationChannelAlarms => 'Alarmes';
 
   @override

@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../localization/locale_codes.dart';
-
 /// Snapshot of the default TTS engine voice selection.
 class TtsEngineVoiceInfo {
   const TtsEngineVoiceInfo({
@@ -26,10 +24,9 @@ class TtsEngineVoiceInfo {
 
   factory TtsEngineVoiceInfo.fromMap(Map<dynamic, dynamic> map) {
     final name = (map['name'] ?? map['identifier'] ?? 'Voice').toString();
-    final locale = LocaleCodes.normalizeLocaleTag(
-      (map['locale'] ?? 'en').toString(),
-    );
-    final network = map['networkRequired'] ??
+    final locale = (map['locale'] ?? 'en').toString();
+    final network =
+        map['networkRequired'] ??
         map['network_required'] ??
         map['requiresNetwork'];
     final identifier = (map['identifier'] ?? map['name'])?.toString();
@@ -43,10 +40,7 @@ class TtsEngineVoiceInfo {
 }
 
 class TtsEngineVoiceState {
-  const TtsEngineVoiceState({
-    this.current,
-    this.defaultVoice,
-  });
+  const TtsEngineVoiceState({this.current, this.defaultVoice});
 
   final TtsEngineVoiceInfo? current;
   final TtsEngineVoiceInfo? defaultVoice;
@@ -140,6 +134,38 @@ class TtsPlatformBridge {
       );
     } catch (error) {
       debugPrint('getEngineVoiceState failed: $error');
+      return null;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>?> getPlatformVoices() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return null;
+    try {
+      final raw = await _channel.invokeMethod<List<dynamic>>('getTtsVoices');
+      return raw
+          ?.whereType<Map>()
+          .map((value) => Map<String, dynamic>.from(value))
+          .toList();
+    } catch (error) {
+      debugPrint('getTtsVoices failed: $error');
+      return null;
+    }
+  }
+
+  /// Selects a voice on a silent native TTS instance and reads it back.
+  Future<TtsEngineVoiceInfo?> probeVoice({
+    required String name,
+    required String locale,
+  }) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return null;
+    try {
+      final raw = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'probeTtsVoice',
+        {'name': name, 'locale': locale},
+      );
+      return raw == null ? null : TtsEngineVoiceInfo.fromMap(raw);
+    } catch (error) {
+      debugPrint('probeTtsVoice($name, $locale) failed: $error');
       return null;
     }
   }

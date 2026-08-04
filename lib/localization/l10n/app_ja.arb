@@ -230,6 +230,7 @@
   "aboutWebsiteValue": "www.smartvoicealarm.app",
   "aboutWebsitePlaceholder": "近日公開",
   "voiceSystemDefault": "システムデフォルト",
+  "voiceSystemDefaultHint": "デバイスの設定で管理されます",
   "notificationChannelAlarms": "アラーム",
   "notificationChannelAlarmsDesc": "音声アラームの通知",
   "notificationChannelReminders": "リマインダー",
