@@ -33,7 +33,7 @@ Tùy cách bạn dùng ứng dụng, Smart Voice Alarm có thể xử lý:
 - Âm thanh bạn ghi để làm đoạn giọng tùy chỉnh (micro)
 - Tùy chọn ứng dụng (giao diện, ngôn ngữ, nhắc nhở)
 - Trạng thái quyền thông báo và báo thức chính xác
-- Quyền lợi Premium Lifetime (xử lý qua Google Play Billing)
+- Trạng thái dùng thử bảy ngày cục bộ và quyền lợi gói đăng ký năm (xử lý qua Google Play Billing)
 
 Ứng dụng **không** có tài khoản trong app, đăng nhập, hay hồ sơ đám mây.
 
@@ -56,7 +56,7 @@ Theo rà soát mã nguồn hiện tại:
 - Khi mua hoặc khôi phục Premium, Google Play Billing xử lý giao dịch theo chính sách của Google.
 - Khi bạn mở Hỗ trợ, ứng dụng email trên thiết bị có thể gửi thư bạn soạn tới timeforwork789@gmail.com. Các trường chẩn đoán có thể điền sẵn (phiên bản, nền tảng) **không** gồm nội dung báo thức hay định danh cá nhân ngoài những gì bạn tự viết.
 - Khi bạn mở liên kết (GitHub hoặc trang chính sách/hỗ trợ đã host), trình duyệt hoặc hệ thống sẽ tải trang đó.
-- Ứng dụng dùng `google_fonts`. Tệp font có thể được tải qua mạng nếu chưa có trên thiết bị. Chủ ứng dụng nên xác nhận có đóng gói font offline trước khi trả lời mục “thu thập dữ liệu” trên cửa hàng.
+- Google Play Billing trả về metadata sản phẩm, trạng thái mua và token giao dịch cần cho xác minh quyền lợi phía client. Mã ứng dụng không nhận dữ liệu thẻ và không ghi log token.
 
 Chính sách này **không** tuyên bố ứng dụng không bao giờ gửi dữ liệu ra ngoài thiết bị. Dịch vụ nền tảng và việc tải font (nếu xảy ra) có thể tạo hoạt động mạng.
 
@@ -81,7 +81,6 @@ Bạn có thể từ chối quyền tùy chọn; độ tin cậy báo thức có
 - **Công cụ TTS trên thiết bị** — đọc nội dung bằng giọng đã cài
 - **API thông báo và báo thức của hệ điều hành**
 - **GitHub** (nếu bạn mở liên kết kho mã nguồn)
-- **google_fonts** (có thể tải font)
 
 Các dịch vụ này tuân theo điều khoản và chính sách riêng của họ.
 
@@ -118,6 +117,6 @@ Kế hoạch dự kiến: kho GitHub Pages riêng (tên đề xuất `smart-voic
 - `/privacy-policy/index.html`
 - `/support/index.html`
 
-**URL Chính sách quyền riêng tư công khai:** `PENDING` (chưa tạo; không bịa URL đang hoạt động)
+**URL Chính sách quyền riêng tư công khai:** `https://tom-deptrai.github.io/smart-voice-alarm-legal/privacy-policy/` (HTTPS đang hoạt động)
 
-Cần chủ ứng dụng cho phép trước khi tạo repo pháp lý, bật Pages, hoặc gắn URL vào ứng dụng.
+Kho pháp lý, GitHub Pages và URL trong ứng dụng đã được cấu hình.

@@ -1006,4 +1006,87 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get permissionStatusUnknown => 'Sconosciuto';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count giorni di prova rimanenti';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Meno di 1 giorno di prova rimanente';
+
+  @override
+  String get premiumUpgrade => 'Passa a Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium per un anno';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Continua a usare tutte le funzioni di Smart Voice Alarm dopo la prova di 7 giorni.';
+
+  @override
+  String get premiumAnnualPlan => 'Piano Premium annuale';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Si rinnova automaticamente ogni anno fino alla disdetta.';
+
+  @override
+  String get premiumAnnualCancelInPlay =>
+      'Gestisci o annulla tramite Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'L’accesso completo continua finché l’abbonamento è attivo.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Abbonati a Premium per un anno';
+
+  @override
+  String get premiumDefer => 'Più tardi';
+
+  @override
+  String get premiumRestoreTransactions => 'Ripristina transazioni';
+
+  @override
+  String get premiumManageSubscription => 'Gestisci abbonamento';
+
+  @override
+  String get premiumProductUnavailable =>
+      'L’abbonamento annuale non è ancora disponibile su Google Play.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'Google Play Billing non è disponibile.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium è attivo';
+
+  @override
+  String get premiumTrialExpiredTitle => 'La prova è terminata';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Abbonati per continuare a usare le funzioni principali. Le sveglie esistenti possono ancora suonare ed essere disattivate o eliminate.';
+
+  @override
+  String get premiumRetryVerification => 'Riprova';
+
+  @override
+  String get premiumViewExistingAlarms => 'Visualizza sveglie esistenti';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'Lo stato dell’abbonamento viene verificato su questo dispositivo tramite lo store.';
+
+  @override
+  String get premiumUnableToVerify => 'Impossibile verificare l’abbonamento.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Accesso limitato alle sveglie';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'Puoi disattivare o eliminare le sveglie esistenti. Abbonati per crearle o modificarle.';
 }

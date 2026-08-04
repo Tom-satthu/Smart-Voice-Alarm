@@ -1,12 +1,14 @@
-# App access notes
+# App access / reviewer notes
 
-All core app functionality is available without account creation, login, invitation code or server access. No review credentials are required.
+No account, login, invitation code or credentials are required. A first successful foreground launch starts a full-feature seven-day app-managed trial without asking for a payment method.
 
-Reviewer steps:
+Reviewer path:
 
-1. Launch and choose a language/theme.
-2. Create an alarm and respond to notification permission in context.
-3. Add a ringtone, system TTS segment or recording; microphone is requested only when Record is pressed.
-4. Open Settings for permission states, support, privacy and open-source licenses.
+1. Launch the app; the trial starts only after the foreground UI initializes.
+2. Create/edit alarms and add ringtone, device TTS or a local recording. Microphone permission is requested only after Record is pressed.
+3. Open Voice Sequence to see the genuine remaining-trial countdown and optional Premium entry point.
+4. Open Settings > Premium to inspect the annual subscription, Restore and Google Play management actions.
 
-Current blocker: Privacy/Support URLs are not live until the separate legal repository is published.
+The production app contains no hidden entitlement bypass. An expired state is covered by automated fake-clock tests; real purchase/expiry must be checked from an internal Play testing track with a license tester after `premium_annual` / `annual-auto` is active. Sideloaded builds may correctly show Product unavailable.
+
+Public legal pages are live at `https://tom-deptrai.github.io/smart-voice-alarm-legal/`.

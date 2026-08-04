@@ -413,5 +413,36 @@
   "openSystemSettingsHint": "Gestisci notifiche e autorizzazioni correlate",
   "permissionStatusGranted": "Concessa",
   "permissionStatusDenied": "Non concessa",
-  "permissionStatusUnknown": "Sconosciuto"
+  "permissionStatusUnknown": "Sconosciuto",
+  "trialDaysRemaining": "{count} giorni di prova rimanenti",
+  "trialLessThanOneDay": "Meno di 1 giorno di prova rimanente",
+  "premiumUpgrade": "Passa a Premium",
+  "premiumAnnualTitle": "Premium per un anno",
+  "premiumAnnualDescription": "Continua a usare tutte le funzioni di Smart Voice Alarm dopo la prova di 7 giorni.",
+  "premiumAnnualPlan": "Piano Premium annuale",
+  "premiumAnnualAutoRenew": "Si rinnova automaticamente ogni anno fino alla disdetta.",
+  "premiumAnnualCancelInPlay": "Gestisci o annulla tramite Google Play.",
+  "premiumAnnualAccess": "L’accesso completo continua finché l’abbonamento è attivo.",
+  "premiumSubscribeAnnual": "Abbonati a Premium per un anno",
+  "premiumDefer": "Più tardi",
+  "premiumRestoreTransactions": "Ripristina transazioni",
+  "premiumManageSubscription": "Gestisci abbonamento",
+  "premiumProductUnavailable": "L’abbonamento annuale non è ancora disponibile su Google Play.",
+  "premiumBillingUnavailable": "Google Play Billing non è disponibile.",
+  "premiumPurchaseActive": "Premium è attivo",
+  "premiumTrialExpiredTitle": "La prova è terminata",
+  "premiumTrialExpiredBody": "Abbonati per continuare a usare le funzioni principali. Le sveglie esistenti possono ancora suonare ed essere disattivate o eliminate.",
+  "premiumRetryVerification": "Riprova",
+  "premiumViewExistingAlarms": "Visualizza sveglie esistenti",
+  "premiumClientVerificationNotice": "Lo stato dell’abbonamento viene verificato su questo dispositivo tramite lo store.",
+  "premiumUnableToVerify": "Impossibile verificare l’abbonamento.",
+  "premiumRestrictedAlarmsTitle": "Accesso limitato alle sveglie",
+  "premiumRestrictedAlarmsBody": "Puoi disattivare o eliminare le sveglie esistenti. Abbonati per crearle o modificarle.",
+  "@trialDaysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

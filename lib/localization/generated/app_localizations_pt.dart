@@ -1005,4 +1005,88 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get permissionStatusUnknown => 'Desconhecido';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count dias de teste restantes';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Resta menos de 1 dia de teste';
+
+  @override
+  String get premiumUpgrade => 'Atualizar para Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium por um ano';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Continue a usar todas as funcionalidades do Smart Voice Alarm após o teste de 7 dias.';
+
+  @override
+  String get premiumAnnualPlan => 'Plano Premium anual';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Renova automaticamente todos os anos até ser cancelado.';
+
+  @override
+  String get premiumAnnualCancelInPlay =>
+      'Faça a gestão ou cancele no Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'O acesso total continua enquanto a subscrição estiver ativa.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Subscrever Premium por um ano';
+
+  @override
+  String get premiumDefer => 'Mais tarde';
+
+  @override
+  String get premiumRestoreTransactions => 'Restaurar transações';
+
+  @override
+  String get premiumManageSubscription => 'Gerir subscrição';
+
+  @override
+  String get premiumProductUnavailable =>
+      'A subscrição anual ainda não está disponível no Google Play.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'O Google Play Billing está indisponível.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium está ativo';
+
+  @override
+  String get premiumTrialExpiredTitle => 'O período de teste terminou';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Subscreva para continuar a usar as funcionalidades principais. Os alarmes existentes continuam a tocar e podem ser desativados ou eliminados.';
+
+  @override
+  String get premiumRetryVerification => 'Tentar novamente';
+
+  @override
+  String get premiumViewExistingAlarms => 'Ver alarmes existentes';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'O estado da subscrição é verificado neste dispositivo através da loja.';
+
+  @override
+  String get premiumUnableToVerify =>
+      'Não foi possível verificar a subscrição.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Acesso limitado aos alarmes';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'Pode desativar ou eliminar alarmes existentes. Subscreva para criar ou editar alarmes.';
 }

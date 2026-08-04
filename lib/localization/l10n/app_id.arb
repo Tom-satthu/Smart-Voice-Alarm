@@ -413,5 +413,36 @@
   "openSystemSettingsHint": "Kelola notifikasi dan izin terkait",
   "permissionStatusGranted": "Diberikan",
   "permissionStatusDenied": "Tidak diberikan",
-  "permissionStatusUnknown": "Tidak diketahui"
+  "permissionStatusUnknown": "Tidak diketahui",
+  "trialDaysRemaining": "{count} hari masa uji coba tersisa",
+  "trialLessThanOneDay": "Masa uji coba tersisa kurang dari 1 hari",
+  "premiumUpgrade": "Tingkatkan ke Premium",
+  "premiumAnnualTitle": "Premium selama satu tahun",
+  "premiumAnnualDescription": "Terus gunakan semua fitur Smart Voice Alarm setelah uji coba 7 hari.",
+  "premiumAnnualPlan": "Paket Premium tahunan",
+  "premiumAnnualAutoRenew": "Diperpanjang otomatis setiap tahun hingga dibatalkan.",
+  "premiumAnnualCancelInPlay": "Kelola atau batalkan melalui Google Play.",
+  "premiumAnnualAccess": "Akses penuh berlanjut selama langganan aktif.",
+  "premiumSubscribeAnnual": "Berlangganan Premium satu tahun",
+  "premiumDefer": "Nanti saja",
+  "premiumRestoreTransactions": "Pulihkan transaksi",
+  "premiumManageSubscription": "Kelola langganan",
+  "premiumProductUnavailable": "Langganan tahunan belum tersedia di Google Play.",
+  "premiumBillingUnavailable": "Google Play Billing sedang tidak tersedia.",
+  "premiumPurchaseActive": "Premium aktif",
+  "premiumTrialExpiredTitle": "Masa uji coba telah berakhir",
+  "premiumTrialExpiredBody": "Berlangganan untuk terus memakai fitur utama. Alarm yang ada tetap dapat berbunyi dan dapat dinonaktifkan atau dihapus.",
+  "premiumRetryVerification": "Coba lagi",
+  "premiumViewExistingAlarms": "Lihat alarm yang ada",
+  "premiumClientVerificationNotice": "Status langganan diverifikasi di perangkat ini melalui toko aplikasi.",
+  "premiumUnableToVerify": "Tidak dapat memverifikasi status langganan.",
+  "premiumRestrictedAlarmsTitle": "Akses alarm terbatas",
+  "premiumRestrictedAlarmsBody": "Anda dapat menonaktifkan atau menghapus alarm yang ada. Berlangganan untuk membuat atau mengedit alarm.",
+  "@trialDaysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -1,13 +1,13 @@
 # Privacy / data handling audit for Smart Voice Alarm
 # Generated from code inspection. Not a legal privacy policy.
 
-**Status:** `PRIVACY_POLICY_URL_REQUIRED` — no public Privacy Policy URL is configured in app constants.
+**Status:** Public Privacy Policy, Support and Subscription Terms URLs are live and configured in app constants.
 
 Configured support email: `timeforwork789@gmail.com`  
 Android public developer name: **Nguyên Đức**  
 Play Console: owner confirmed account purchased and verified.
 
-**Privacy Policy URL:** still required (`PRIVACY_POLICY_URL_REQUIRED`). Hosting plan: proposed separate GitHub Pages repo `smart-voice-alarm-legal` (not created yet). URL status: **PENDING**.
+**Privacy Policy URL:** `https://tom-deptrai.github.io/smart-voice-alarm-legal/privacy-policy/` — verified HTTPS 200.
 
 iOS seller name planned later: Trần Thị Cẩm Mỹ — `IOS_SELLER_NAME_NEEDS_VERIFICATION_AGAINST_APPLE_ACCOUNT` (do not put on Android legal pages).
 
@@ -44,7 +44,7 @@ These remain on the device unless the user exports/shares them themselves (no in
 | Cloud TTS | No | Uses on-device `flutter_tts` |
 | Store billing | Yes (platform) | `in_app_purchase` talks to Play Billing / StoreKit when user buys or restores |
 | URL opens (support mailto, GitHub, future privacy URL) | User-initiated | `url_launcher` |
-| Google Fonts | Possible | `google_fonts` may fetch fonts when not cached — confirm for Data Safety answers |
+| Google Play Billing | Yes (platform) | Product metadata and purchase state/token for annual entitlement; no card data in app |
 
 **Do not claim “no data collection” in store forms without confirming Google Fonts runtime behavior and store billing disclosures.**
 
@@ -57,10 +57,9 @@ These remain on the device unless the user exports/shares them themselves (no in
 | `record` | Microphone recording | Local audio files |
 | `just_audio` / `audio_session` | Playback | Local |
 | `flutter_tts` | Device TTS | May use vendor TTS engines on device |
-| `in_app_purchase` | Premium lifetime | Purchase tokens handled by stores |
+| `in_app_purchase` | Annual Premium subscription | Purchase tokens handled by stores and never logged by app code |
 | `url_launcher` | mailto / https | User-initiated |
 | `package_info_plus` | Version/build in UI & support mail | Local metadata |
-| `google_fonts` | Typography | May download font files |
 | `hive` / `shared_preferences` | Local persistence | Local |
 | No Firebase / Sentry / Ads / social SDK | — | Not declared in dependencies |
 
@@ -123,8 +122,8 @@ Owner must answer in Play Console; these are **code-based suggestions only**:
 
 | Item | Status |
 |------|--------|
-| `AppConstants.privacyPolicyUrl` | **Empty** (`PRIVACY_POLICY_URL_REQUIRED`) |
-| In-app Privacy row | **Hidden** until URL is set |
+| `AppConstants.privacyPolicyUrl` | Live GitHub Pages HTTPS URL |
+| In-app Privacy row | Visible and opens the public policy |
 | Broken GitHub Pages URLs previously | Removed from app constants |
 | Email used as privacy URL | **Must not** |
 

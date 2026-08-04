@@ -970,6 +970,80 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get permissionStatusUnknown => '未知';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count 天试用期剩余';
+  }
+
+  @override
+  String get trialLessThanOneDay => '试用期剩余不到1天';
+
+  @override
+  String get premiumUpgrade => '升级到 Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium 一年';
+
+  @override
+  String get premiumAnnualDescription => '7天试用结束后继续使用 Smart Voice Alarm 的全部功能。';
+
+  @override
+  String get premiumAnnualPlan => 'Premium 年度方案';
+
+  @override
+  String get premiumAnnualAutoRenew => '每年自动续订，直至取消。';
+
+  @override
+  String get premiumAnnualCancelInPlay => '通过 Google Play 管理或取消。';
+
+  @override
+  String get premiumAnnualAccess => '订阅有效期间可继续完整使用。';
+
+  @override
+  String get premiumSubscribeAnnual => '订阅一年 Premium';
+
+  @override
+  String get premiumDefer => '以后再说';
+
+  @override
+  String get premiumRestoreTransactions => '恢复交易';
+
+  @override
+  String get premiumManageSubscription => '管理订阅';
+
+  @override
+  String get premiumProductUnavailable => '年度订阅尚未在 Google Play 上提供。';
+
+  @override
+  String get premiumBillingUnavailable => 'Google Play Billing 当前不可用。';
+
+  @override
+  String get premiumPurchaseActive => 'Premium 已启用';
+
+  @override
+  String get premiumTrialExpiredTitle => '试用期已结束';
+
+  @override
+  String get premiumTrialExpiredBody => '订阅后可继续使用主要功能。现有闹钟仍会响起，并可停用或删除。';
+
+  @override
+  String get premiumRetryVerification => '重试';
+
+  @override
+  String get premiumViewExistingAlarms => '查看现有闹钟';
+
+  @override
+  String get premiumClientVerificationNotice => '订阅状态通过应用商店在此设备上验证。';
+
+  @override
+  String get premiumUnableToVerify => '无法验证订阅状态。';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => '受限的闹钟访问';
+
+  @override
+  String get premiumRestrictedAlarmsBody => '您可以停用或删除现有闹钟。订阅后可创建或编辑闹钟。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1938,4 +2012,78 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get permissionStatusUnknown => '未知';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count 天試用期剩餘';
+  }
+
+  @override
+  String get trialLessThanOneDay => '試用期剩餘不到1天';
+
+  @override
+  String get premiumUpgrade => '升級至 Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium 一年';
+
+  @override
+  String get premiumAnnualDescription => '7天試用結束後繼續使用 Smart Voice Alarm 的所有功能。';
+
+  @override
+  String get premiumAnnualPlan => 'Premium 年度方案';
+
+  @override
+  String get premiumAnnualAutoRenew => '每年自動續訂，直到取消。';
+
+  @override
+  String get premiumAnnualCancelInPlay => '透過 Google Play 管理或取消。';
+
+  @override
+  String get premiumAnnualAccess => '訂閱有效期間可繼續完整使用。';
+
+  @override
+  String get premiumSubscribeAnnual => '訂閱一年 Premium';
+
+  @override
+  String get premiumDefer => '稍後再說';
+
+  @override
+  String get premiumRestoreTransactions => '恢復交易';
+
+  @override
+  String get premiumManageSubscription => '管理訂閱';
+
+  @override
+  String get premiumProductUnavailable => '年度訂閱尚未在 Google Play 提供。';
+
+  @override
+  String get premiumBillingUnavailable => 'Google Play Billing 目前無法使用。';
+
+  @override
+  String get premiumPurchaseActive => 'Premium 已啟用';
+
+  @override
+  String get premiumTrialExpiredTitle => '試用期已結束';
+
+  @override
+  String get premiumTrialExpiredBody => '訂閱後可繼續使用主要功能。現有鬧鐘仍會響起，並可停用或刪除。';
+
+  @override
+  String get premiumRetryVerification => '重試';
+
+  @override
+  String get premiumViewExistingAlarms => '查看現有鬧鐘';
+
+  @override
+  String get premiumClientVerificationNotice => '訂閱狀態透過應用程式商店在此裝置上驗證。';
+
+  @override
+  String get premiumUnableToVerify => '無法驗證訂閱狀態。';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => '受限的鬧鐘存取';
+
+  @override
+  String get premiumRestrictedAlarmsBody => '您可以停用或刪除現有鬧鐘。訂閱後可建立或編輯鬧鐘。';
 }

@@ -29,7 +29,7 @@ Do **not** send passwords, payment card numbers, or unnecessary personal data.
 
 ## Common topics
 
-- **Free limit:** Free includes up to 3 alarms. Premium Lifetime unlocks unlimited alarms (one-time purchase via Google Play).
+- **Trial and Premium:** The free download includes seven days of full access. Continued ordinary use requires the annual auto-renewing Premium subscription managed through Google Play.
 - **Notifications:** Allow notifications so alarms can alert you.
 - **Exact alarms (Android):** Allow exact alarms / alarms & reminders for on-time wake-ups.
 - **Battery optimizations:** On some devices, unrestricted battery use improves reliability. There is no single universal Android API for all OEM autostart settings.

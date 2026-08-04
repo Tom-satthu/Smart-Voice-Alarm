@@ -9,13 +9,13 @@ import '../../core/localization/voice_catalog.dart';
 import '../../core/services/alarm_engine.dart';
 import '../../core/services/audio_player_service.dart';
 import '../../core/services/notification_service.dart';
-import '../../core/services/premium_entitlement_service.dart';
 import '../../core/services/premium_purchase_service.dart';
 import '../../core/services/recording_file_store.dart';
 import '../../core/services/recording_service.dart';
 import '../../core/services/storage_paths.dart';
 import '../../core/services/tts_platform_bridge.dart';
 import '../../core/services/tts_service.dart';
+import '../../core/services/trial_entitlement_service.dart';
 import '../data/local_store.dart';
 import '../models/ui_models.dart';
 
@@ -37,14 +37,8 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
 });
 
-final premiumEntitlementProvider = Provider<PremiumEntitlementService>((ref) {
-  return PremiumEntitlementService(ref.watch(settingsRepositoryProvider));
-});
-
 final premiumPurchaseServiceProvider = Provider<PremiumPurchaseService>((ref) {
-  final service = PremiumPurchaseService(
-    entitlement: ref.watch(premiumEntitlementProvider),
-  );
+  final service = PremiumPurchaseService();
   ref.onDispose(service.dispose);
   return service;
 });
@@ -73,6 +67,8 @@ class PremiumPurchaseController extends StateNotifier<PremiumPurchaseState> {
   Future<void> buy() => _service.buy();
   Future<void> restore() => _service.restore();
   Future<void> refreshProducts() => _service.refreshProducts();
+  Future<void> syncEntitlementsFromStore() =>
+      _service.syncEntitlementsFromStore();
 
   @override
   void dispose() {
@@ -81,10 +77,76 @@ class PremiumPurchaseController extends StateNotifier<PremiumPurchaseState> {
   }
 }
 
-final isPremiumProvider = Provider<bool>((ref) {
-  final purchase = ref.watch(premiumPurchaseProvider);
-  final local = ref.watch(premiumEntitlementProvider).isPremium;
-  return purchase.isPremium || local;
+final trialEntitlementServiceProvider = Provider<TrialEntitlementService>((
+  ref,
+) {
+  return TrialEntitlementService(
+    store: SettingsTrialEntitlementStore(ref.watch(settingsRepositoryProvider)),
+  );
+});
+
+final trialEntitlementProvider =
+    StateNotifierProvider<TrialEntitlementController, TrialEntitlementState>((
+      ref,
+    ) {
+      final controller = TrialEntitlementController(
+        trial: ref.watch(trialEntitlementServiceProvider),
+        initializeBilling: () async {
+          await ref.read(premiumPurchaseProvider.notifier).init();
+          return ref.read(premiumPurchaseProvider);
+        },
+        refreshBilling: () async {
+          await ref
+              .read(premiumPurchaseProvider.notifier)
+              .syncEntitlementsFromStore();
+          return ref.read(premiumPurchaseProvider);
+        },
+      );
+      ref.listen<PremiumPurchaseState>(premiumPurchaseProvider, (_, next) {
+        controller.applyPurchaseState(next);
+      });
+      return controller;
+    });
+
+class TrialEntitlementController extends StateNotifier<TrialEntitlementState> {
+  TrialEntitlementController({
+    required TrialEntitlementService trial,
+    required Future<PremiumPurchaseState> Function() initializeBilling,
+    required Future<PremiumPurchaseState> Function() refreshBilling,
+  }) : _trial = trial,
+       _initializeBilling = initializeBilling,
+       _refreshBilling = refreshBilling,
+       super(const TrialEntitlementState.initializing());
+
+  final TrialEntitlementService _trial;
+  final Future<PremiumPurchaseState> Function() _initializeBilling;
+  final Future<PremiumPurchaseState> Function() _refreshBilling;
+  bool _initialized = false;
+
+  Future<void> initializeSuccessfulLaunch() async {
+    if (_initialized) return;
+    _initialized = true;
+    state = const TrialEntitlementState.initializing();
+    await _trial.initializeSuccessfulLaunch();
+    final purchase = await _initializeBilling();
+    state = await _trial.applySubscriptionVerification(purchase.verification);
+  }
+
+  Future<void> refreshOnResume() async {
+    if (!_initialized) return;
+    state = await _trial.refreshLocalTime();
+    final purchase = await _refreshBilling();
+    state = await _trial.applySubscriptionVerification(purchase.verification);
+  }
+
+  Future<void> applyPurchaseState(PremiumPurchaseState purchase) async {
+    if (!_initialized || !mounted) return;
+    state = await _trial.applySubscriptionVerification(purchase.verification);
+  }
+}
+
+final canUseMainFeaturesProvider = Provider<bool>((ref) {
+  return ref.watch(trialEntitlementProvider).hasFullAccess;
 });
 
 final audioPlayerServiceProvider = Provider<AudioPlayerService>((ref) {

@@ -19,7 +19,7 @@ Statuses: `READY` | `MISSING` | `NEEDS OWNER INPUT` | `NOT APPLICABLE` | `NEEDS 
 
 Owner has **no custom domain**. Recommended approach: a **separate public legal docs repo** (proposed name `smart-voice-alarm-legal`), then enable GitHub Pages.
 
-**Do not create the repo or enable Pages until the owner explicitly allows it.**
+The owner authorized publication. The public repository and HTTPS Pages site are live.
 
 Proposed structure:
 
@@ -32,9 +32,9 @@ Proposed structure:
 
 | URL | Status |
 |-----|--------|
-| Legal site base URL | PENDING |
-| Privacy Policy URL | PENDING (`PRIVACY_POLICY_URL_REQUIRED`) |
-| Support page URL | PENDING |
+| Legal site base URL | `https://tom-deptrai.github.io/smart-voice-alarm-legal/` — LIVE |
+| Privacy Policy URL | `https://tom-deptrai.github.io/smart-voice-alarm-legal/privacy-policy/` — LIVE |
+| Support page URL | `https://tom-deptrai.github.io/smart-voice-alarm-legal/support/` — LIVE |
 
 Local drafts ready for owner review:
 
@@ -65,9 +65,9 @@ After Pages is live and approved, set `AppConstants.privacyPolicyUrl` (and optio
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Privacy Policy public HTTPS URL | MISSING / PENDING | Host via legal Pages plan |
+| Privacy Policy public HTTPS URL | READY | Live GitHub Pages URL wired into app |
 | Support email on listing | READY | timeforwork789@gmail.com |
-| Support website / page | PENDING | `/support/` on legal site |
+| Support website / page | READY | Live `/support/` page |
 | Data Safety form | NEEDS OWNER INPUT | Use `privacy_data_audit.md` |
 | Ads declaration | READY (code: no ads) | Still answer in Console |
 | App access (no login) | READY / NOT APPLICABLE | No restricted features behind login |
@@ -78,8 +78,8 @@ After Pages is live and approved, set `AppConstants.privacyPolicyUrl` (and optio
 | Short + full description | NEEDS OWNER INPUT | |
 | Feature graphic 1024×500 | MISSING | |
 | Phone screenshots | MISSING | |
-| Category / tags / countries / pricing | NEEDS OWNER INPUT | Free + Premium lifetime |
-| Premium product configured in Play Console | NEEDS VERIFICATION | `smart_voice_alarm_unlimited` |
+| Category / tags / countries / pricing | NEEDS OWNER INPUT | Free download + annual subscription |
+| Premium product configured in Play Console | NEEDS VERIFICATION | `premium_annual` / `annual-auto` |
 | Testing track requirements | NEEDS OWNER INPUT | Follow current personal/org account rules |
 | Release notes | NEEDS OWNER INPUT | |
 
@@ -91,7 +91,7 @@ After Pages is live and approved, set `AppConstants.privacyPolicyUrl` (and optio
 | Custom domain for legal pages | NOT APPLICABLE unless owner buys one later |
 | Marketing site | NOT APPLICABLE currently |
 | Tablet screenshots | NEEDS OWNER INPUT only if listing tablets |
-| Terms of Use page | NOT required for current local + lifetime IAP model; optional |
+| Subscription Terms page | REQUIRED BEFORE SUBMISSION | Prepared in deployable legal site |
 
 ### D. iOS only — defer
 
@@ -123,8 +123,8 @@ iOS work must not block Android submission.
 | App category | NEEDS OWNER INPUT | |
 | Tags | NEEDS OWNER INPUT | |
 | Support email | READY | timeforwork789@gmail.com |
-| Support website | PENDING | GitHub Pages plan |
-| Privacy Policy URL | PENDING | |
+| Support website | READY | Live GitHub Pages URL |
+| Privacy Policy URL | READY | Live and wired into app |
 | Data Safety | NEEDS OWNER INPUT | |
 | Content rating | NEEDS OWNER INPUT | |
 | Target audience | NEEDS OWNER INPUT | |
@@ -161,14 +161,14 @@ Tracked for later only — see bucket D. Do not treat as Android blockers.
 | iOS display name (static) | Smart Voice Alarm |
 | In-app developer string | Nguyên Đức |
 | Support email constant | timeforwork789@gmail.com |
-| Privacy URL constant | empty until PENDING URL is live |
+| Privacy URL constant | Live GitHub Pages privacy URL |
 | GitHub (app source) | https://github.com/Tom-deptrai/Smart-Voice-Alarm |
-| Legal Pages repo | Not created — proposed `smart-voice-alarm-legal` |
+| Legal Pages repo | Public `Tom-deptrai/smart-voice-alarm-legal` |
 
 ## Owner actions still needed (Android path)
 
 1. Approve privacy/support drafts  
-2. Allow creation of `smart-voice-alarm-legal` + GitHub Pages  
+2. Enter the verified legal URLs in Play Console
 3. Confirm effective date on privacy policy  
 4. Wire real Privacy URL into app after publish  
 5. Prepare feature graphic + screenshots  

@@ -413,5 +413,36 @@
   "openSystemSettingsHint": "Benachrichtigungen und verwandte Berechtigungen verwalten",
   "permissionStatusGranted": "Erlaubt",
   "permissionStatusDenied": "Nicht erlaubt",
-  "permissionStatusUnknown": "Unbekannt"
+  "permissionStatusUnknown": "Unbekannt",
+  "trialDaysRemaining": "{count} Tage Testzeit verbleiben",
+  "trialLessThanOneDay": "Weniger als 1 Tag Testzeit verbleibt",
+  "premiumUpgrade": "Auf Premium upgraden",
+  "premiumAnnualTitle": "Premium für ein Jahr",
+  "premiumAnnualDescription": "Nutze nach der 7-tägigen Testphase weiterhin alle Funktionen von Smart Voice Alarm.",
+  "premiumAnnualPlan": "Premium-Jahresabo",
+  "premiumAnnualAutoRenew": "Verlängert sich automatisch jährlich, bis es gekündigt wird.",
+  "premiumAnnualCancelInPlay": "Verwaltung oder Kündigung über Google Play.",
+  "premiumAnnualAccess": "Voller Zugriff, solange das Abonnement aktiv ist.",
+  "premiumSubscribeAnnual": "Premium für ein Jahr abonnieren",
+  "premiumDefer": "Später",
+  "premiumRestoreTransactions": "Transaktionen wiederherstellen",
+  "premiumManageSubscription": "Abonnement verwalten",
+  "premiumProductUnavailable": "Das Jahresabo ist bei Google Play noch nicht verfügbar.",
+  "premiumBillingUnavailable": "Google Play Billing ist derzeit nicht verfügbar.",
+  "premiumPurchaseActive": "Premium ist aktiv",
+  "premiumTrialExpiredTitle": "Deine Testphase ist beendet",
+  "premiumTrialExpiredBody": "Abonniere, um die Hauptfunktionen weiter zu nutzen. Bestehende Wecker können weiterhin klingeln sowie deaktiviert oder gelöscht werden.",
+  "premiumRetryVerification": "Erneut versuchen",
+  "premiumViewExistingAlarms": "Bestehende Wecker anzeigen",
+  "premiumClientVerificationNotice": "Der Abonnementstatus wird auf diesem Gerät über den App-Store geprüft.",
+  "premiumUnableToVerify": "Abonnementstatus kann nicht geprüft werden.",
+  "premiumRestrictedAlarmsTitle": "Eingeschränkter Weckerzugriff",
+  "premiumRestrictedAlarmsBody": "Du kannst bestehende Wecker deaktivieren oder löschen. Zum Erstellen oder Bearbeiten ist ein Abo erforderlich.",
+  "@trialDaysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

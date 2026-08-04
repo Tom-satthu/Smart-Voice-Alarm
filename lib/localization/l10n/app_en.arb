@@ -413,5 +413,36 @@
   "openSystemSettingsHint": "Manage notifications and related permissions",
   "permissionStatusGranted": "Granted",
   "permissionStatusDenied": "Not granted",
-  "permissionStatusUnknown": "Unknown"
+  "permissionStatusUnknown": "Unknown",
+  "trialDaysRemaining": "{count} days left in your trial",
+  "trialLessThanOneDay": "Less than 1 day left in your trial",
+  "premiumUpgrade": "Upgrade to Premium",
+  "premiumAnnualTitle": "Premium for one year",
+  "premiumAnnualDescription": "Continue using every Smart Voice Alarm feature after your 7-day trial.",
+  "premiumAnnualPlan": "Premium annual plan",
+  "premiumAnnualAutoRenew": "Automatically renews every year until cancelled.",
+  "premiumAnnualCancelInPlay": "Manage or cancel through Google Play.",
+  "premiumAnnualAccess": "Full access continues while the subscription is active.",
+  "premiumSubscribeAnnual": "Subscribe to Premium for one year",
+  "premiumDefer": "Maybe later",
+  "premiumRestoreTransactions": "Restore transactions",
+  "premiumManageSubscription": "Manage subscription",
+  "premiumProductUnavailable": "The annual subscription is not available from Google Play yet.",
+  "premiumBillingUnavailable": "Google Play Billing is currently unavailable.",
+  "premiumPurchaseActive": "Premium is active",
+  "premiumTrialExpiredTitle": "Your trial has ended",
+  "premiumTrialExpiredBody": "Subscribe to continue using the main features. Existing alarms can still ring and can be disabled or deleted.",
+  "premiumRetryVerification": "Try again",
+  "premiumViewExistingAlarms": "View existing alarms",
+  "premiumClientVerificationNotice": "Subscription status is verified on this device through the app store.",
+  "premiumUnableToVerify": "Unable to verify subscription status.",
+  "premiumRestrictedAlarmsTitle": "Limited alarm access",
+  "premiumRestrictedAlarmsBody": "You can disable or delete existing alarms. Subscribe to create or edit alarms.",
+  "@trialDaysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

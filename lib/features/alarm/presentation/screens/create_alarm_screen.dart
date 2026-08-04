@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/config/release_config.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/utils/time_formatters.dart';
@@ -120,19 +119,6 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     final sequenceId = _ensureSequenceId();
     // Ensure sequence document exists before linking.
     ref.read(voiceSequenceProvider(sequenceId));
-
-    if (!_isEdit && ReleaseConfig.enforceFreeAlarmLimit) {
-      final entitlement = ref.read(premiumEntitlementProvider);
-      final isPremium = ref.read(isPremiumProvider);
-      final count = ref.read(alarmListProvider).length;
-      if (!isPremium && !entitlement.canCreateAlarm(count)) {
-        final unlocked = await context.push<bool>(
-          '${AppRoutes.premium}?resumeCreate=1',
-        );
-        if (unlocked != true) return;
-        if (!ref.read(isPremiumProvider)) return;
-      }
-    }
 
     final wantsEnabled = _isEdit ? _enabled : true;
     final notificationAllowed =

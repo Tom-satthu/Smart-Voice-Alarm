@@ -976,4 +976,82 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get permissionStatusUnknown => '알 수 없음';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count 일의 체험 기간이 남았습니다';
+  }
+
+  @override
+  String get trialLessThanOneDay => '체험 기간이 1일 미만 남았습니다';
+
+  @override
+  String get premiumUpgrade => 'Premium으로 업그레이드';
+
+  @override
+  String get premiumAnnualTitle => '1년 Premium';
+
+  @override
+  String get premiumAnnualDescription =>
+      '7일 체험 후에도 Smart Voice Alarm의 모든 기능을 계속 사용하세요.';
+
+  @override
+  String get premiumAnnualPlan => 'Premium 연간 요금제';
+
+  @override
+  String get premiumAnnualAutoRenew => '취소할 때까지 매년 자동 갱신됩니다.';
+
+  @override
+  String get premiumAnnualCancelInPlay => 'Google Play에서 관리하거나 취소할 수 있습니다.';
+
+  @override
+  String get premiumAnnualAccess => '구독이 활성 상태인 동안 전체 기능을 사용할 수 있습니다.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Premium 1년 구독';
+
+  @override
+  String get premiumDefer => '나중에';
+
+  @override
+  String get premiumRestoreTransactions => '거래 복원';
+
+  @override
+  String get premiumManageSubscription => '구독 관리';
+
+  @override
+  String get premiumProductUnavailable => '연간 구독을 아직 Google Play에서 사용할 수 없습니다.';
+
+  @override
+  String get premiumBillingUnavailable => '현재 Google Play Billing을 사용할 수 없습니다.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium 활성화됨';
+
+  @override
+  String get premiumTrialExpiredTitle => '체험 기간이 종료되었습니다';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      '주요 기능을 계속 사용하려면 구독하세요. 기존 알람은 계속 울리며 비활성화하거나 삭제할 수 있습니다.';
+
+  @override
+  String get premiumRetryVerification => '다시 시도';
+
+  @override
+  String get premiumViewExistingAlarms => '기존 알람 보기';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      '구독 상태는 이 기기에서 앱 스토어를 통해 확인됩니다.';
+
+  @override
+  String get premiumUnableToVerify => '구독 상태를 확인할 수 없습니다.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => '제한된 알람 접근';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      '기존 알람을 비활성화하거나 삭제할 수 있습니다. 알람 생성 또는 편집에는 구독이 필요합니다.';
 }

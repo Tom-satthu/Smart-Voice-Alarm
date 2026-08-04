@@ -10,6 +10,7 @@ import '../../../../core/services/io_dir_stub.dart'
     if (dart.library.io) '../../../../core/services/io_dir_io.dart'
     as io_dir;
 import '../../../../localization/generated/app_localizations.dart';
+import '../../../../core/services/trial_entitlement_service.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/models/ui_models.dart';
 import '../../../../shared/providers/prototype_providers.dart';
@@ -153,6 +154,7 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
     final l10n = AppLocalizations.of(context);
     final sequence = ref.watch(voiceSequenceProvider(_sequenceId));
     final segments = sequence.segments;
+    final entitlement = ref.watch(trialEntitlementProvider);
 
     return AppScaffold(
       showBack: true,
@@ -163,74 +165,128 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
         label: Text(l10n.voiceSequenceAdd),
       ),
       body: ResponsiveCenter(
-        child: segments.isEmpty
-            ? EmptyStateView(
-                icon: Icons.mic_none_rounded,
-                title: l10n.voiceSequenceEmptyTitle,
-                subtitle: l10n.voiceSequenceEmptySubtitle,
-                actionLabel: l10n.voiceSequenceAdd,
-                onAction: () =>
-                    context.push(AppRoutes.addVoicePath(_sequenceId)),
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: AppConstants.spaceMd,
-                      bottom: AppConstants.spaceSm,
-                    ),
-                    child: SectionHeader(
-                      title: sequence.name,
-                      subtitle:
-                          '${l10n.segmentsLabel(segments.length)} · ${l10n.voiceSequenceReorderHint}',
-                    ),
-                  ),
-                  Expanded(
-                    child: ReorderableListView.builder(
-                      padding: const EdgeInsets.only(bottom: 100),
-                      itemCount: segments.length,
-                      proxyDecorator: (child, index, animation) {
-                        return Material(
-                          elevation: 4,
-                          borderRadius: BorderRadius.circular(
-                            AppConstants.radiusMd,
-                          ),
-                          color: context.colors.surface,
-                          child: child,
-                        );
-                      },
-                      onReorderItem: (oldIndex, newIndex) {
-                        ref
-                            .read(voiceSequenceProvider(_sequenceId).notifier)
-                            .reorder(oldIndex, newIndex);
-                      },
-                      itemBuilder: (context, index) {
-                        final segment = segments[index];
-                        return Padding(
-                          key: ValueKey(segment.id),
-                          padding: const EdgeInsets.only(
-                            bottom: AppConstants.spaceMd,
-                          ),
-                          child: VoiceSegmentTile(
-                            segment: segment,
-                            index: index,
-                            orderNumber: index + 1,
-                            isPlaying:
-                                _playingSegmentId == segment.id &&
-                                !_loadingPreview,
-                            isLoading:
-                                _playingSegmentId == segment.id &&
-                                _loadingPreview,
-                            onPlayStop: () => _togglePreview(segment),
-                            onDelete: () => _confirmDelete(index),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+        child: Column(
+          children: [
+            if (entitlement.status == EntitlementStatus.trialActive)
+              Padding(
+                padding: const EdgeInsets.only(top: AppConstants.spaceMd),
+                child: _TrialStatusCard(entitlement: entitlement),
               ),
+            Expanded(
+              child: segments.isEmpty
+                  ? EmptyStateView(
+                      icon: Icons.mic_none_rounded,
+                      title: l10n.voiceSequenceEmptyTitle,
+                      subtitle: l10n.voiceSequenceEmptySubtitle,
+                      actionLabel: l10n.voiceSequenceAdd,
+                      onAction: () =>
+                          context.push(AppRoutes.addVoicePath(_sequenceId)),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: AppConstants.spaceMd,
+                            bottom: AppConstants.spaceSm,
+                          ),
+                          child: SectionHeader(
+                            title: sequence.name,
+                            subtitle:
+                                '${l10n.segmentsLabel(segments.length)} · ${l10n.voiceSequenceReorderHint}',
+                          ),
+                        ),
+                        Expanded(
+                          child: ReorderableListView.builder(
+                            padding: const EdgeInsets.only(bottom: 100),
+                            itemCount: segments.length,
+                            proxyDecorator: (child, index, animation) {
+                              return Material(
+                                elevation: 4,
+                                borderRadius: BorderRadius.circular(
+                                  AppConstants.radiusMd,
+                                ),
+                                color: context.colors.surface,
+                                child: child,
+                              );
+                            },
+                            onReorderItem: (oldIndex, newIndex) {
+                              ref
+                                  .read(
+                                    voiceSequenceProvider(_sequenceId).notifier,
+                                  )
+                                  .reorder(oldIndex, newIndex);
+                            },
+                            itemBuilder: (context, index) {
+                              final segment = segments[index];
+                              return Padding(
+                                key: ValueKey(segment.id),
+                                padding: const EdgeInsets.only(
+                                  bottom: AppConstants.spaceMd,
+                                ),
+                                child: VoiceSegmentTile(
+                                  segment: segment,
+                                  index: index,
+                                  orderNumber: index + 1,
+                                  isPlaying:
+                                      _playingSegmentId == segment.id &&
+                                      !_loadingPreview,
+                                  isLoading:
+                                      _playingSegmentId == segment.id &&
+                                      _loadingPreview,
+                                  onPlayStop: () => _togglePreview(segment),
+                                  onDelete: () => _confirmDelete(index),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TrialStatusCard extends StatelessWidget {
+  const _TrialStatusCard({required this.entitlement});
+
+  final TrialEntitlementState entitlement;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final countdown = entitlement.hasLessThanOneDay
+        ? l10n.trialLessThanOneDay
+        : l10n.trialDaysRemaining(entitlement.countdownDays);
+    return SurfacePanel(
+      emphasized: true,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spaceMd,
+        vertical: AppConstants.spaceSm,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.timer_outlined, color: context.colors.primary),
+          const SizedBox(width: AppConstants.spaceSm),
+          Expanded(child: Text(countdown, style: context.textTheme.titleSmall)),
+          TextButton(
+            style: TextButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
+            onPressed: () => context.push(AppRoutes.premium),
+            child: Text(
+              l10n.premiumUpgrade,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
       ),
     );
   }

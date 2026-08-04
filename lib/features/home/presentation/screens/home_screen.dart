@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/config/release_config.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
@@ -15,20 +14,8 @@ class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   Future<void> _openCreate(BuildContext context, WidgetRef ref) async {
-    if (!ReleaseConfig.enforceFreeAlarmLimit) {
-      context.push(AppRoutes.createAlarm);
-      return;
-    }
-    final entitlement = ref.read(premiumEntitlementProvider);
-    final isPremium = ref.read(isPremiumProvider);
-    final count = ref.read(alarmListProvider).length;
-    if (!isPremium && !entitlement.canCreateAlarm(count)) {
-      final unlocked = await context.push<bool>(
-        '${AppRoutes.premium}?resumeCreate=1',
-      );
-      if (unlocked == true && context.mounted) {
-        context.push(AppRoutes.createAlarm);
-      }
+    if (!ref.read(canUseMainFeaturesProvider)) {
+      context.push(AppRoutes.premium);
       return;
     }
     context.push(AppRoutes.createAlarm);
@@ -39,19 +26,8 @@ class HomeScreen extends ConsumerWidget {
     WidgetRef ref,
     String alarmId,
   ) async {
-    if (!ReleaseConfig.enforceFreeAlarmLimit) {
-      final newId = await ref
-          .read(alarmListProvider.notifier)
-          .duplicate(alarmId);
-      if (!context.mounted) return;
-      context.push(AppRoutes.editAlarmPath(newId));
-      return;
-    }
-    final entitlement = ref.read(premiumEntitlementProvider);
-    final isPremium = ref.read(isPremiumProvider);
-    final count = ref.read(alarmListProvider).length;
-    if (!isPremium && !entitlement.canDuplicateAlarm(count)) {
-      await context.push('${AppRoutes.premium}?resumeCreate=1');
+    if (!ref.read(canUseMainFeaturesProvider)) {
+      await context.push(AppRoutes.premium);
       return;
     }
     final newId = await ref.read(alarmListProvider.notifier).duplicate(alarmId);
@@ -63,6 +39,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final alarms = ref.watch(alarmListProvider);
+    final canUseMainFeatures = ref.watch(canUseMainFeaturesProvider);
 
     return AppScaffold(
       title: l10n.homeTitle,
@@ -89,6 +66,36 @@ class HomeScreen extends ConsumerWidget {
               )
             : CustomScrollView(
                 slivers: [
+                  if (!canUseMainFeatures)
+                    SliverToBoxAdapter(
+                      child: SurfacePanel(
+                        emphasized: true,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.lock_outline_rounded),
+                            const SizedBox(width: AppConstants.spaceMd),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.premiumRestrictedAlarmsTitle,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
+                                  ),
+                                  Text(l10n.premiumRestrictedAlarmsBody),
+                                ],
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => context.push(AppRoutes.premium),
+                              child: Text(l10n.premiumUpgrade),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   const SliverToBoxAdapter(
                     child: SizedBox(height: AppConstants.spaceSm),
                   ),
@@ -102,6 +109,7 @@ class HomeScreen extends ConsumerWidget {
                         delay: Duration(milliseconds: 35 * index),
                         child: AlarmListTile(
                           alarm: alarm,
+                          canModify: canUseMainFeatures,
                           onToggle: () async {
                             final wasEnabled = alarm.isEnabled;
                             await ref

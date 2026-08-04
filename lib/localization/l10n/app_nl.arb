@@ -413,5 +413,36 @@
   "openSystemSettingsHint": "Meldingen en gerelateerde machtigingen beheren",
   "permissionStatusGranted": "Toegestaan",
   "permissionStatusDenied": "Niet toegestaan",
-  "permissionStatusUnknown": "Onbekend"
+  "permissionStatusUnknown": "Onbekend",
+  "trialDaysRemaining": "{count} proefdagen resterend",
+  "trialLessThanOneDay": "Minder dan 1 proefdag resterend",
+  "premiumUpgrade": "Upgraden naar Premium",
+  "premiumAnnualTitle": "Premium voor één jaar",
+  "premiumAnnualDescription": "Blijf na de proefperiode van 7 dagen alle functies van Smart Voice Alarm gebruiken.",
+  "premiumAnnualPlan": "Jaarlijks Premium-abonnement",
+  "premiumAnnualAutoRenew": "Wordt elk jaar automatisch verlengd totdat je opzegt.",
+  "premiumAnnualCancelInPlay": "Beheer of annuleer via Google Play.",
+  "premiumAnnualAccess": "Volledige toegang blijft zolang het abonnement actief is.",
+  "premiumSubscribeAnnual": "Premium voor één jaar nemen",
+  "premiumDefer": "Later",
+  "premiumRestoreTransactions": "Transacties herstellen",
+  "premiumManageSubscription": "Abonnement beheren",
+  "premiumProductUnavailable": "Het jaarabonnement is nog niet beschikbaar in Google Play.",
+  "premiumBillingUnavailable": "Google Play Billing is momenteel niet beschikbaar.",
+  "premiumPurchaseActive": "Premium is actief",
+  "premiumTrialExpiredTitle": "Je proefperiode is afgelopen",
+  "premiumTrialExpiredBody": "Neem een abonnement om de hoofdfuncties te blijven gebruiken. Bestaande alarmen kunnen blijven afgaan en kunnen worden uitgeschakeld of verwijderd.",
+  "premiumRetryVerification": "Opnieuw proberen",
+  "premiumViewExistingAlarms": "Bestaande alarmen bekijken",
+  "premiumClientVerificationNotice": "De abonnementsstatus wordt op dit apparaat via de appwinkel gecontroleerd.",
+  "premiumUnableToVerify": "Kan de abonnementsstatus niet controleren.",
+  "premiumRestrictedAlarmsTitle": "Beperkte alarmtoegang",
+  "premiumRestrictedAlarmsBody": "Je kunt bestaande alarmen uitschakelen of verwijderen. Neem een abonnement om alarmen te maken of bewerken.",
+  "@trialDaysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -413,5 +413,36 @@
   "openSystemSettingsHint": "Quản lý thông báo và quyền liên quan",
   "permissionStatusGranted": "Đã cấp",
   "permissionStatusDenied": "Chưa cấp",
-  "permissionStatusUnknown": "Chưa xác định"
+  "permissionStatusUnknown": "Chưa xác định",
+  "trialDaysRemaining": "{count} ngày dùng thử còn lại",
+  "trialLessThanOneDay": "Còn dưới 1 ngày dùng thử",
+  "premiumUpgrade": "Nâng cấp Premium",
+  "premiumAnnualTitle": "Premium trong một năm",
+  "premiumAnnualDescription": "Tiếp tục sử dụng đầy đủ Smart Voice Alarm sau 7 ngày dùng thử.",
+  "premiumAnnualPlan": "Gói Premium 1 năm",
+  "premiumAnnualAutoRenew": "Tự động gia hạn hằng năm cho đến khi hủy.",
+  "premiumAnnualCancelInPlay": "Quản lý hoặc hủy qua Google Play.",
+  "premiumAnnualAccess": "Duy trì toàn bộ quyền truy cập khi gói đăng ký còn hiệu lực.",
+  "premiumSubscribeAnnual": "Đăng ký Premium 1 năm",
+  "premiumDefer": "Để sau",
+  "premiumRestoreTransactions": "Khôi phục giao dịch",
+  "premiumManageSubscription": "Quản lý gói đăng ký",
+  "premiumProductUnavailable": "Gói đăng ký năm chưa khả dụng trên Google Play.",
+  "premiumBillingUnavailable": "Google Play Billing hiện không khả dụng.",
+  "premiumPurchaseActive": "Premium đang hoạt động",
+  "premiumTrialExpiredTitle": "Thời gian dùng thử đã kết thúc",
+  "premiumTrialExpiredBody": "Đăng ký để tiếp tục dùng các tính năng chính. Báo thức hiện có vẫn có thể reo và có thể được tắt hoặc xóa.",
+  "premiumRetryVerification": "Thử lại",
+  "premiumViewExistingAlarms": "Xem báo thức hiện có",
+  "premiumClientVerificationNotice": "Trạng thái đăng ký được xác minh trên thiết bị này qua cửa hàng ứng dụng.",
+  "premiumUnableToVerify": "Không thể xác minh trạng thái đăng ký.",
+  "premiumRestrictedAlarmsTitle": "Quyền truy cập báo thức giới hạn",
+  "premiumRestrictedAlarmsBody": "Bạn có thể tắt hoặc xóa báo thức hiện có. Hãy đăng ký để tạo hoặc sửa báo thức.",
+  "@trialDaysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

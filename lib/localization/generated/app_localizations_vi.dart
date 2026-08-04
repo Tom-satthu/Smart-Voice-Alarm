@@ -998,4 +998,86 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get permissionStatusUnknown => 'Chưa xác định';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count ngày dùng thử còn lại';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Còn dưới 1 ngày dùng thử';
+
+  @override
+  String get premiumUpgrade => 'Nâng cấp Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium trong một năm';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Tiếp tục sử dụng đầy đủ Smart Voice Alarm sau 7 ngày dùng thử.';
+
+  @override
+  String get premiumAnnualPlan => 'Gói Premium 1 năm';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Tự động gia hạn hằng năm cho đến khi hủy.';
+
+  @override
+  String get premiumAnnualCancelInPlay => 'Quản lý hoặc hủy qua Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'Duy trì toàn bộ quyền truy cập khi gói đăng ký còn hiệu lực.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Đăng ký Premium 1 năm';
+
+  @override
+  String get premiumDefer => 'Để sau';
+
+  @override
+  String get premiumRestoreTransactions => 'Khôi phục giao dịch';
+
+  @override
+  String get premiumManageSubscription => 'Quản lý gói đăng ký';
+
+  @override
+  String get premiumProductUnavailable =>
+      'Gói đăng ký năm chưa khả dụng trên Google Play.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'Google Play Billing hiện không khả dụng.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium đang hoạt động';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Thời gian dùng thử đã kết thúc';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Đăng ký để tiếp tục dùng các tính năng chính. Báo thức hiện có vẫn có thể reo và có thể được tắt hoặc xóa.';
+
+  @override
+  String get premiumRetryVerification => 'Thử lại';
+
+  @override
+  String get premiumViewExistingAlarms => 'Xem báo thức hiện có';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'Trạng thái đăng ký được xác minh trên thiết bị này qua cửa hàng ứng dụng.';
+
+  @override
+  String get premiumUnableToVerify => 'Không thể xác minh trạng thái đăng ký.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Quyền truy cập báo thức giới hạn';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'Bạn có thể tắt hoặc xóa báo thức hiện có. Hãy đăng ký để tạo hoặc sửa báo thức.';
 }

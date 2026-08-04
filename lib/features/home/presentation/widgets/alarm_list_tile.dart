@@ -16,6 +16,7 @@ class AlarmListTile extends StatelessWidget {
     required this.onEdit,
     required this.onDuplicate,
     required this.onDelete,
+    this.canModify = true,
   });
 
   final AlarmUiModel alarm;
@@ -23,6 +24,7 @@ class AlarmListTile extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDuplicate;
   final VoidCallback onDelete;
+  final bool canModify;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,7 @@ class AlarmListTile extends StatelessWidget {
     final muted = !alarm.isEnabled;
 
     return SurfacePanel(
-      onTap: onEdit,
+      onTap: canModify ? onEdit : null,
       padding: const EdgeInsets.fromLTRB(20, 18, 10, 18),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,14 +105,16 @@ class AlarmListTile extends StatelessWidget {
                   }
                 },
                 itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: _AlarmMenuAction.edit,
-                    child: Text(l10n.homeEdit),
-                  ),
-                  PopupMenuItem(
-                    value: _AlarmMenuAction.duplicate,
-                    child: Text(l10n.homeDuplicate),
-                  ),
+                  if (canModify)
+                    PopupMenuItem(
+                      value: _AlarmMenuAction.edit,
+                      child: Text(l10n.homeEdit),
+                    ),
+                  if (canModify)
+                    PopupMenuItem(
+                      value: _AlarmMenuAction.duplicate,
+                      child: Text(l10n.homeDuplicate),
+                    ),
                   PopupMenuItem(
                     value: _AlarmMenuAction.delete,
                     child: Text(

@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'app/app.dart';
-import 'core/config/release_config.dart';
 import 'core/navigation/root_navigator.dart';
 import 'core/services/notification_service.dart';
 import 'router/routes.dart';
@@ -36,11 +35,6 @@ Future<void> main() async {
   final container = ProviderContainer(
     overrides: [notificationServiceProvider.overrideWithValue(notifications)],
   );
-
-  // Sync store entitlement before schedules so free-limit gates are correct.
-  if (ReleaseConfig.initializeBilling) {
-    await container.read(premiumPurchaseProvider.notifier).init();
-  }
 
   // Sync native / local schedules with persisted alarms.
   await notifications.rescheduleAll(container.read(alarmListProvider));

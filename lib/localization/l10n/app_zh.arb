@@ -413,5 +413,36 @@
   "openSystemSettingsHint": "管理通知及相关权限",
   "permissionStatusGranted": "已授予",
   "permissionStatusDenied": "未授予",
-  "permissionStatusUnknown": "未知"
+  "permissionStatusUnknown": "未知",
+  "trialDaysRemaining": "{count} 天试用期剩余",
+  "trialLessThanOneDay": "试用期剩余不到1天",
+  "premiumUpgrade": "升级到 Premium",
+  "premiumAnnualTitle": "Premium 一年",
+  "premiumAnnualDescription": "7天试用结束后继续使用 Smart Voice Alarm 的全部功能。",
+  "premiumAnnualPlan": "Premium 年度方案",
+  "premiumAnnualAutoRenew": "每年自动续订，直至取消。",
+  "premiumAnnualCancelInPlay": "通过 Google Play 管理或取消。",
+  "premiumAnnualAccess": "订阅有效期间可继续完整使用。",
+  "premiumSubscribeAnnual": "订阅一年 Premium",
+  "premiumDefer": "以后再说",
+  "premiumRestoreTransactions": "恢复交易",
+  "premiumManageSubscription": "管理订阅",
+  "premiumProductUnavailable": "年度订阅尚未在 Google Play 上提供。",
+  "premiumBillingUnavailable": "Google Play Billing 当前不可用。",
+  "premiumPurchaseActive": "Premium 已启用",
+  "premiumTrialExpiredTitle": "试用期已结束",
+  "premiumTrialExpiredBody": "订阅后可继续使用主要功能。现有闹钟仍会响起，并可停用或删除。",
+  "premiumRetryVerification": "重试",
+  "premiumViewExistingAlarms": "查看现有闹钟",
+  "premiumClientVerificationNotice": "订阅状态通过应用商店在此设备上验证。",
+  "premiumUnableToVerify": "无法验证订阅状态。",
+  "premiumRestrictedAlarmsTitle": "受限的闹钟访问",
+  "premiumRestrictedAlarmsBody": "您可以停用或删除现有闹钟。订阅后可创建或编辑闹钟。",
+  "@trialDaysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

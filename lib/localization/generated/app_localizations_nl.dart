@@ -1002,4 +1002,87 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get permissionStatusUnknown => 'Onbekend';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count proefdagen resterend';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Minder dan 1 proefdag resterend';
+
+  @override
+  String get premiumUpgrade => 'Upgraden naar Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium voor één jaar';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Blijf na de proefperiode van 7 dagen alle functies van Smart Voice Alarm gebruiken.';
+
+  @override
+  String get premiumAnnualPlan => 'Jaarlijks Premium-abonnement';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Wordt elk jaar automatisch verlengd totdat je opzegt.';
+
+  @override
+  String get premiumAnnualCancelInPlay => 'Beheer of annuleer via Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'Volledige toegang blijft zolang het abonnement actief is.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Premium voor één jaar nemen';
+
+  @override
+  String get premiumDefer => 'Later';
+
+  @override
+  String get premiumRestoreTransactions => 'Transacties herstellen';
+
+  @override
+  String get premiumManageSubscription => 'Abonnement beheren';
+
+  @override
+  String get premiumProductUnavailable =>
+      'Het jaarabonnement is nog niet beschikbaar in Google Play.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'Google Play Billing is momenteel niet beschikbaar.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium is actief';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Je proefperiode is afgelopen';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Neem een abonnement om de hoofdfuncties te blijven gebruiken. Bestaande alarmen kunnen blijven afgaan en kunnen worden uitgeschakeld of verwijderd.';
+
+  @override
+  String get premiumRetryVerification => 'Opnieuw proberen';
+
+  @override
+  String get premiumViewExistingAlarms => 'Bestaande alarmen bekijken';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'De abonnementsstatus wordt op dit apparaat via de appwinkel gecontroleerd.';
+
+  @override
+  String get premiumUnableToVerify =>
+      'Kan de abonnementsstatus niet controleren.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Beperkte alarmtoegang';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'Je kunt bestaande alarmen uitschakelen of verwijderen. Neem een abonnement om alarmen te maken of bewerken.';
 }

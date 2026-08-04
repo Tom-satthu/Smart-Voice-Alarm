@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../localization/generated/app_localizations.dart';
+import '../features/premium/presentation/widgets/entitlement_gate.dart';
 import '../router/app_router.dart';
 import '../shared/providers/prototype_providers.dart';
 import '../theme/app_theme.dart';
@@ -20,9 +21,38 @@ class SmartVoiceAlarmApp extends ConsumerStatefulWidget {
   ConsumerState<SmartVoiceAlarmApp> createState() => _SmartVoiceAlarmAppState();
 }
 
-class _SmartVoiceAlarmAppState extends ConsumerState<SmartVoiceAlarmApp> {
+class _SmartVoiceAlarmAppState extends ConsumerState<SmartVoiceAlarmApp>
+    with WidgetsBindingObserver {
   late final _router = createAppRouter(initialLocation: widget.initialLocation);
   Locale? _localizedFor;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _router.routerDelegate.addListener(_onRouteChanged);
+  }
+
+  void _onRouteChanged() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(ref.read(trialEntitlementProvider.notifier).refreshOnResume());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _router.routerDelegate.removeListener(_onRouteChanged);
+    _router.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +76,10 @@ class _SmartVoiceAlarmAppState extends ConsumerState<SmartVoiceAlarmApp> {
       routerConfig: _router,
       builder: (context, child) {
         _syncLocalizedServices(context);
-        return child ?? const SizedBox.shrink();
+        return EntitlementGate(
+          currentPath: _router.routerDelegate.currentConfiguration.uri.path,
+          child: child ?? const SizedBox.shrink(),
+        );
       },
     );
   }

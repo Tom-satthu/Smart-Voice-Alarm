@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_voice_alarm/app/app.dart';
 import 'package:smart_voice_alarm/core/services/notification_service.dart';
+import 'package:smart_voice_alarm/core/services/premium_purchase_service.dart';
+import 'package:smart_voice_alarm/core/services/trial_entitlement_service.dart';
 import 'package:smart_voice_alarm/router/routes.dart';
 import 'package:smart_voice_alarm/shared/models/ui_models.dart';
 import 'package:smart_voice_alarm/shared/providers/prototype_providers.dart';
@@ -16,6 +18,30 @@ class _GrantedNotificationService extends NotificationService {
 
   @override
   Future<bool> requestNotificationPermission() async => true;
+}
+
+class _ActiveTrialController extends TrialEntitlementController {
+  _ActiveTrialController(MemorySettingsRepository repository)
+    : super(
+        trial: TrialEntitlementService(
+          store: SettingsTrialEntitlementStore(repository),
+        ),
+        initializeBilling: () async => const PremiumPurchaseState.initial(),
+        refreshBilling: () async => const PremiumPurchaseState.initial(),
+      ) {
+    state = TrialEntitlementState(
+      status: EntitlementStatus.trialActive,
+      trialStartedAtUtc: DateTime.utc(2026, 8, 4),
+      latestTrustedLocalTimeUtc: DateTime.utc(2026, 8, 4),
+      remaining: const Duration(days: 7),
+    );
+  }
+
+  @override
+  Future<void> initializeSuccessfulLaunch() async {}
+
+  @override
+  Future<void> refreshOnResume() async {}
 }
 
 List<Override> _memoryOverrides({
@@ -37,6 +63,9 @@ List<Override> _memoryOverrides({
     sequenceRepositoryProvider.overrideWithValue(sequenceRepo),
     settingsRepositoryProvider.overrideWithValue(settingsRepo),
     notificationServiceProvider.overrideWithValue(notifications),
+    trialEntitlementProvider.overrideWith(
+      (ref) => _ActiveTrialController(settingsRepo),
+    ),
     alarmListProvider.overrideWith(
       (ref) => AlarmListController(alarmRepo, notifications, sequenceRepo),
     ),
@@ -327,7 +356,7 @@ void main() {
     expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Theme'), findsOneWidget);
     expect(find.text('Voices'), findsWidgets);
-    expect(find.text('Premium'), findsNothing);
+    expect(find.text('Premium'), findsWidgets);
     expect(find.textContaining('GitHub'), findsNothing);
     expect(
       find.text('Get a gentle nudge if no alarm is scheduled'),
@@ -335,14 +364,16 @@ void main() {
     );
   });
 
-  testWidgets('13. Premium route is hidden for paid-app release', (
-    tester,
-  ) async {
-    await _pumpApp(tester, initialLocation: AppRoutes.premium);
-    expect(find.text('Alarms'), findsOneWidget);
-    expect(find.text('Unlock Unlimited Alarms'), findsNothing);
-    expect(find.textContaining('Free includes up to 3 alarms'), findsNothing);
-  });
+  testWidgets(
+    '13. Premium route shows annual subscription without fake price',
+    (tester) async {
+      await _pumpApp(tester, initialLocation: AppRoutes.premium);
+      expect(find.text('Premium for one year'), findsOneWidget);
+      expect(find.text('Subscribe to Premium for one year'), findsOneWidget);
+      expect(find.textContaining(r'$2.99'), findsNothing);
+      expect(find.textContaining('Free includes up to 3 alarms'), findsNothing);
+    },
+  );
 
   testWidgets('14. No overflow on common phone size', (tester) async {
     final overflows = <String>[];

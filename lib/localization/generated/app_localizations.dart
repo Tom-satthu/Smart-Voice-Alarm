@@ -1888,6 +1888,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get permissionStatusUnknown;
+
+  /// No description provided for @trialDaysRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days left in your trial'**
+  String trialDaysRemaining(int count);
+
+  /// No description provided for @trialLessThanOneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than 1 day left in your trial'**
+  String get trialLessThanOneDay;
+
+  /// No description provided for @premiumUpgrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium'**
+  String get premiumUpgrade;
+
+  /// No description provided for @premiumAnnualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium for one year'**
+  String get premiumAnnualTitle;
+
+  /// No description provided for @premiumAnnualDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue using every Smart Voice Alarm feature after your 7-day trial.'**
+  String get premiumAnnualDescription;
+
+  /// No description provided for @premiumAnnualPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium annual plan'**
+  String get premiumAnnualPlan;
+
+  /// No description provided for @premiumAnnualAutoRenew.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically renews every year until cancelled.'**
+  String get premiumAnnualAutoRenew;
+
+  /// No description provided for @premiumAnnualCancelInPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage or cancel through Google Play.'**
+  String get premiumAnnualCancelInPlay;
+
+  /// No description provided for @premiumAnnualAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Full access continues while the subscription is active.'**
+  String get premiumAnnualAccess;
+
+  /// No description provided for @premiumSubscribeAnnual.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to Premium for one year'**
+  String get premiumSubscribeAnnual;
+
+  /// No description provided for @premiumDefer.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get premiumDefer;
+
+  /// No description provided for @premiumRestoreTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore transactions'**
+  String get premiumRestoreTransactions;
+
+  /// No description provided for @premiumManageSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get premiumManageSubscription;
+
+  /// No description provided for @premiumProductUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The annual subscription is not available from Google Play yet.'**
+  String get premiumProductUnavailable;
+
+  /// No description provided for @premiumBillingUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play Billing is currently unavailable.'**
+  String get premiumBillingUnavailable;
+
+  /// No description provided for @premiumPurchaseActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium is active'**
+  String get premiumPurchaseActive;
+
+  /// No description provided for @premiumTrialExpiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your trial has ended'**
+  String get premiumTrialExpiredTitle;
+
+  /// No description provided for @premiumTrialExpiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to continue using the main features. Existing alarms can still ring and can be disabled or deleted.'**
+  String get premiumTrialExpiredBody;
+
+  /// No description provided for @premiumRetryVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get premiumRetryVerification;
+
+  /// No description provided for @premiumViewExistingAlarms.
+  ///
+  /// In en, this message translates to:
+  /// **'View existing alarms'**
+  String get premiumViewExistingAlarms;
+
+  /// No description provided for @premiumClientVerificationNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription status is verified on this device through the app store.'**
+  String get premiumClientVerificationNotice;
+
+  /// No description provided for @premiumUnableToVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to verify subscription status.'**
+  String get premiumUnableToVerify;
+
+  /// No description provided for @premiumRestrictedAlarmsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited alarm access'**
+  String get premiumRestrictedAlarmsTitle;
+
+  /// No description provided for @premiumRestrictedAlarmsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You can disable or delete existing alarms. Subscribe to create or edit alarms.'**
+  String get premiumRestrictedAlarmsBody;
 }
 
 class _AppLocalizationsDelegate

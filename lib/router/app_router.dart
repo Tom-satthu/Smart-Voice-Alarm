@@ -1,7 +1,6 @@
 import 'package:go_router/go_router.dart';
 
 import '../core/navigation/root_navigator.dart';
-import '../core/config/release_config.dart';
 import '../features/alarm/presentation/screens/alarm_ringing_screen.dart';
 import '../features/alarm/presentation/screens/create_alarm_screen.dart';
 import '../features/home/presentation/screens/home_screen.dart';
@@ -97,11 +96,8 @@ GoRouter createAppRouter({String? initialLocation}) {
       GoRoute(
         path: AppRoutes.premium,
         name: 'premium',
-        redirect: (context, state) =>
-            ReleaseConfig.showPremium ? null : AppRoutes.home,
         builder: (context, state) {
-          final resume = state.uri.queryParameters['resumeCreate'] == '1';
-          return PremiumScreen(resumeCreateAfterPurchase: resume);
+          return const PremiumScreen();
         },
       ),
       GoRoute(

@@ -33,7 +33,7 @@ Depending on how you use the app, Smart Voice Alarm may process:
 - Audio you record for custom voice segments (microphone)
 - App preferences (theme, language, reminder settings)
 - Permission states needed for notifications and exact alarms
-- Purchase entitlement for Premium Lifetime (processed through Google Play Billing)
+- Local seven-day trial state and annual subscription entitlement (processed through Google Play Billing)
 
 The app does **not** provide an in-app account, login, or cloud profile.
 
@@ -56,7 +56,7 @@ Based on current code review:
 - If you purchase or restore Premium, Google Play Billing handles the transaction. Purchase-related data is processed under Google’s policies.
 - If you open Support, the device email app may send a message you compose to timeforwork789@gmail.com. Diagnostic fields that may be pre-filled (version, platform) do not include alarm contents or personal identifiers beyond what you choose to write.
 - If you open links (for example GitHub or a hosted privacy/support page), your browser or system handler loads those pages.
-- The app uses `google_fonts`. Font files may be fetched over the network when not already available on the device. Owner should confirm whether fonts will be vendored offline before finalizing store “data collection” answers.
+- Google Play Billing returns product metadata, purchase state and an opaque purchase token used for client-side entitlement checks. App code does not receive card details or log purchase tokens.
 
 This policy does **not** claim that the app never sends any data off-device. Platform services and optional network font loading may involve network activity.
 
@@ -80,8 +80,7 @@ The app may interact with:
 - **Google Play / Play Billing** — distribution and in-app purchases
 - **Device TTS engines** — speak alarm text using voices installed on the device
 - **Operating system notification and alarm APIs**
-- **GitHub** (if you open the public repository link)
-- **google_fonts** packaging (possible font download)
+- **Public legal/support website** (only after the user opens a link)
 
 These services are governed by their own terms and privacy policies.
 
@@ -118,6 +117,6 @@ Intended hosting plan: separate public GitHub Pages repo (proposed name `smart-v
 - `/privacy-policy/index.html`
 - `/support/index.html`
 
-**Public Privacy Policy URL:** `PENDING` (not created; do not invent a live URL)
+**Public Privacy Policy URL:** `https://tom-deptrai.github.io/smart-voice-alarm-legal/privacy-policy/` (live HTTPS)
 
-Owner approval required before creating the legal repo, enabling Pages, or wiring the URL into the app.
+The legal repository, Pages deployment and in-app URL are now configured.

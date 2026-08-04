@@ -1,25 +1,25 @@
 # Data Safety draft
 
-This is a Console-entry draft, not a submitted declaration. Reconfirm against the final signed AAB and Play SDK Index before submission.
+This is a Console-entry draft, not a submitted declaration. Reconfirm it against the final signed AAB and the Play SDK Index before submission.
 
 ## Collection and sharing
 
-- **Audio files:** accessed on-device only when the user records. Stored in app-specific storage; not sent off-device by app code; therefore not declared as collected by the developer. Excluded from Android cloud backup/device transfer.
-- **Alarm labels, schedules, voice choice and settings:** stored locally in Hive/preferences; not sent to developer servers.
-- **Support email:** user-initiated external email. The generated draft contains support subject, app version/build and platform; it does not attach recordings, alarm labels or device identifiers. Information the user manually adds to email is collected for support and is not shared for advertising.
-- **Payments:** current mode is a paid Play listing; no in-app billing is initialized. Google Play processes purchase/account/payment data outside app code.
-- **Third-party SDKs:** no Firebase, analytics, crash reporting or ads SDK found. System TTS engines can access network for voices marked network-required under their own provider policies.
+- Alarm schedules, labels, settings, trial timestamps, entitlement cache, voice choices and recordings are stored in app-private local storage. App code does not send them to a developer server.
+- Recording is user-initiated, stored locally, excluded from Android backup/device transfer, and never uploaded by app code.
+- Google Play Billing processes the annual subscription. The app receives purchase state, an opaque purchase token and product metadata needed for client-side entitlement. It does not receive or store card numbers and does not log or share purchase tokens.
+- Support email is user-initiated. The prepared message contains app/build/platform diagnostics, not alarm labels, recordings or device identifiers.
+- No Firebase, analytics, crash-reporting or advertising SDK is present. There is no account system or developer backend.
+- A device TTS engine can use its own network service for voices it marks network-required, under that provider's policy.
 
-## Security and deletion
+## Trial and deletion
 
-- No app-operated server transport exists, so transport encryption is not applicable to local data. HTTPS is used for legal/support links.
-- Users delete recordings by deleting the segment/alarm where unreferenced, or by uninstalling/clearing app data.
-- Support emails can be deleted on request by contacting `timeforwork789@gmail.com` with enough information to identify the message; never request a recording or password.
+The free download includes a seven-day app-managed trial. Trial start, latest trusted UTC time and expiry are stored locally without IMEI, Advertising ID, fingerprinting or another device identifier. Clearing app data or uninstalling deletes these trial records and other local app data. Google Play retains purchase records under Google's policies, so Restore can recover an active subscription.
 
 ## Console answers requiring owner confirmation
 
-- Data collection: likely **No** for automatic app collection; support email is user-initiated and must be assessed against current Google definitions at submission time.
-- Data sharing: **No** by app code.
+- Data collection: assess Google Play Billing's current SDK disclosure in the Play SDK Index; app-owned alarm/recording data is not transmitted off device.
+- Data sharing by app code: **No**.
 - Ads: **No**.
 - Account creation: **No**.
-- Independent security review: **No**, unless later completed.
+- Financial information: the app does not collect card/payment credentials; Google Play processes payment.
+- Independent security review: **No**, unless one is later completed.

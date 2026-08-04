@@ -13,6 +13,7 @@ import '../../../../core/localization/app_locale_support.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/services/app_version_info.dart';
 import '../../../../core/services/support_contact.dart';
+import '../../../../core/services/trial_entitlement_service.dart';
 import '../../../../core/utils/time_formatters.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
@@ -165,6 +166,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final reminder = ref.watch(reminderSettingsProvider);
     final locale = ref.watch(localeProvider);
     final versionAsync = ref.watch(appVersionInfoProvider);
+    final entitlement = ref.watch(trialEntitlementProvider);
+    final purchase = ref.watch(premiumPurchaseProvider);
     final versionLabel = versionAsync.maybeWhen(
       data: (info) => info.label,
       orElse: () => AppConstants.appVersion,
@@ -176,6 +179,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         ThemeMode.light => l10n.settingsThemeLight,
         ThemeMode.dark => l10n.settingsThemeDark,
       };
+    }
+
+    String premiumLabel() {
+      final base = switch (entitlement.status) {
+        EntitlementStatus.trialActive =>
+          entitlement.hasLessThanOneDay
+              ? l10n.trialLessThanOneDay
+              : l10n.trialDaysRemaining(entitlement.countdownDays),
+        EntitlementStatus.subscriptionActive => l10n.premiumPurchaseActive,
+        EntitlementStatus.subscriptionPending => l10n.premiumStatusPending,
+        EntitlementStatus.initializing => l10n.premiumStatusLoading,
+        EntitlementStatus.trialExpired => l10n.premiumTrialExpiredTitle,
+        EntitlementStatus.billingUnavailable => l10n.premiumBillingUnavailable,
+        EntitlementStatus.entitlementCheckFailed => l10n.premiumUnableToVerify,
+      };
+      final price = purchase.localizedPrice;
+      return price == null ||
+              entitlement.status == EntitlementStatus.subscriptionActive
+          ? base
+          : '$base · $price';
     }
 
     return AppScaffold(
@@ -265,7 +288,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               SettingTile(
                 icon: Icons.workspace_premium_rounded,
                 title: l10n.settingsPremium,
-                subtitle: l10n.settingsPremiumSubtitle,
+                subtitle: premiumLabel(),
                 onTap: () => context.push(AppRoutes.premium),
               ),
             ],

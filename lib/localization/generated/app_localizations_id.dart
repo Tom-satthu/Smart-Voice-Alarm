@@ -997,4 +997,88 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get permissionStatusUnknown => 'Tidak diketahui';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count hari masa uji coba tersisa';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Masa uji coba tersisa kurang dari 1 hari';
+
+  @override
+  String get premiumUpgrade => 'Tingkatkan ke Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium selama satu tahun';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Terus gunakan semua fitur Smart Voice Alarm setelah uji coba 7 hari.';
+
+  @override
+  String get premiumAnnualPlan => 'Paket Premium tahunan';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Diperpanjang otomatis setiap tahun hingga dibatalkan.';
+
+  @override
+  String get premiumAnnualCancelInPlay =>
+      'Kelola atau batalkan melalui Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'Akses penuh berlanjut selama langganan aktif.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Berlangganan Premium satu tahun';
+
+  @override
+  String get premiumDefer => 'Nanti saja';
+
+  @override
+  String get premiumRestoreTransactions => 'Pulihkan transaksi';
+
+  @override
+  String get premiumManageSubscription => 'Kelola langganan';
+
+  @override
+  String get premiumProductUnavailable =>
+      'Langganan tahunan belum tersedia di Google Play.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'Google Play Billing sedang tidak tersedia.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium aktif';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Masa uji coba telah berakhir';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Berlangganan untuk terus memakai fitur utama. Alarm yang ada tetap dapat berbunyi dan dapat dinonaktifkan atau dihapus.';
+
+  @override
+  String get premiumRetryVerification => 'Coba lagi';
+
+  @override
+  String get premiumViewExistingAlarms => 'Lihat alarm yang ada';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'Status langganan diverifikasi di perangkat ini melalui toko aplikasi.';
+
+  @override
+  String get premiumUnableToVerify =>
+      'Tidak dapat memverifikasi status langganan.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Akses alarm terbatas';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'Anda dapat menonaktifkan atau menghapus alarm yang ada. Berlangganan untuk membuat atau mengedit alarm.';
 }

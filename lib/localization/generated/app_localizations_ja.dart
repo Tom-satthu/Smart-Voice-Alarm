@@ -973,4 +973,82 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get permissionStatusUnknown => '不明';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count 日間の試用期間が残っています';
+  }
+
+  @override
+  String get trialLessThanOneDay => '試用期間は残り1日未満です';
+
+  @override
+  String get premiumUpgrade => 'Premiumにアップグレード';
+
+  @override
+  String get premiumAnnualTitle => '1年間のPremium';
+
+  @override
+  String get premiumAnnualDescription =>
+      '7日間の試用後もSmart Voice Alarmの全機能を利用できます。';
+
+  @override
+  String get premiumAnnualPlan => 'Premium年間プラン';
+
+  @override
+  String get premiumAnnualAutoRenew => 'キャンセルするまで毎年自動更新されます。';
+
+  @override
+  String get premiumAnnualCancelInPlay => 'Google Playで管理またはキャンセルできます。';
+
+  @override
+  String get premiumAnnualAccess => 'サブスクリプションが有効な間は全機能を利用できます。';
+
+  @override
+  String get premiumSubscribeAnnual => 'Premiumを1年間購読';
+
+  @override
+  String get premiumDefer => '後で';
+
+  @override
+  String get premiumRestoreTransactions => '購入を復元';
+
+  @override
+  String get premiumManageSubscription => 'サブスクリプションを管理';
+
+  @override
+  String get premiumProductUnavailable => '年間サブスクリプションはまだGoogle Playで利用できません。';
+
+  @override
+  String get premiumBillingUnavailable => 'Google Play Billingを現在利用できません。';
+
+  @override
+  String get premiumPurchaseActive => 'Premiumは有効です';
+
+  @override
+  String get premiumTrialExpiredTitle => '試用期間が終了しました';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      '主な機能を引き続き利用するには購読してください。既存のアラームは鳴動し、無効化または削除できます。';
+
+  @override
+  String get premiumRetryVerification => '再試行';
+
+  @override
+  String get premiumViewExistingAlarms => '既存のアラームを表示';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'サブスクリプション状態はこの端末でストアを通じて確認されます。';
+
+  @override
+  String get premiumUnableToVerify => 'サブスクリプション状態を確認できません。';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'アラームへの制限付きアクセス';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      '既存のアラームを無効化または削除できます。作成や編集には購読が必要です。';
 }

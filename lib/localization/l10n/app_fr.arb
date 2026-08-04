@@ -413,5 +413,36 @@
   "openSystemSettingsHint": "Gérer les notifications et autorisations associées",
   "permissionStatusGranted": "Accordée",
   "permissionStatusDenied": "Non accordée",
-  "permissionStatusUnknown": "Inconnu"
+  "permissionStatusUnknown": "Inconnu",
+  "trialDaysRemaining": "{count} jours d’essai restants",
+  "trialLessThanOneDay": "Moins d’un jour d’essai restant",
+  "premiumUpgrade": "Passer à Premium",
+  "premiumAnnualTitle": "Premium pendant un an",
+  "premiumAnnualDescription": "Continuez à utiliser toutes les fonctions de Smart Voice Alarm après l’essai de 7 jours.",
+  "premiumAnnualPlan": "Formule Premium annuelle",
+  "premiumAnnualAutoRenew": "Renouvellement automatique chaque année jusqu’à résiliation.",
+  "premiumAnnualCancelInPlay": "Gérez ou résiliez via Google Play.",
+  "premiumAnnualAccess": "L’accès complet continue tant que l’abonnement est actif.",
+  "premiumSubscribeAnnual": "S’abonner à Premium pour un an",
+  "premiumDefer": "Plus tard",
+  "premiumRestoreTransactions": "Restaurer les transactions",
+  "premiumManageSubscription": "Gérer l’abonnement",
+  "premiumProductUnavailable": "L’abonnement annuel n’est pas encore disponible sur Google Play.",
+  "premiumBillingUnavailable": "La facturation Google Play est indisponible.",
+  "premiumPurchaseActive": "Premium est actif",
+  "premiumTrialExpiredTitle": "Votre essai est terminé",
+  "premiumTrialExpiredBody": "Abonnez-vous pour continuer à utiliser les fonctions principales. Les alarmes existantes peuvent toujours sonner, être désactivées ou supprimées.",
+  "premiumRetryVerification": "Réessayer",
+  "premiumViewExistingAlarms": "Voir les alarmes existantes",
+  "premiumClientVerificationNotice": "L’état de l’abonnement est vérifié sur cet appareil via la boutique.",
+  "premiumUnableToVerify": "Impossible de vérifier l’abonnement.",
+  "premiumRestrictedAlarmsTitle": "Accès limité aux alarmes",
+  "premiumRestrictedAlarmsBody": "Vous pouvez désactiver ou supprimer les alarmes existantes. Abonnez-vous pour en créer ou les modifier.",
+  "@trialDaysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -4,11 +4,11 @@
 |---|---|
 | Application ID | `com.smartvoicealarm.app` |
 | Version name/code | `1.0.0` / `1` |
-| Expected artifact | `build/app/outputs/bundle/release/app-release.aab` |
-| Signing | `RELEASE_SIGNING_BLOCKED` — no local ignored keystore configuration found |
-| Debug fallback | Disabled; release Gradle build fails instead |
-| AAB path/size/certificate | Pending valid upload key |
-| Bundletool validation | Pending AAB |
-| AAB-derived smoke test | Pending AAB |
+| Expected AAB | `build/app/outputs/bundle/release/app-release.aab` |
+| Signing | `RELEASE_SIGNING_BLOCKED` — upload keystore/properties absent; debug fallback correctly refused |
+| AAB path/size/certificate | Not available because release build stopped at signing guard |
+| Bundletool validation | Blocked until signed AAB exists |
+| AAB-derived Samsung smoke test | Blocked until signed AAB exists |
+| Debug APK smoke artifact | Built and installed, but is not a Play upload artifact |
 
-Never commit `.jks`, `.keystore` or `android/keystore.properties`. After the owner restores the existing upload key, run `flutter build appbundle --release`, validate with bundletool, inspect the artifact certificate without printing secrets, and record SHA-256 of the AAB here.
+Never commit `.jks`, `.keystore`, `android/keystore.properties`, APK or AAB files. Create/restore the upload key interactively, then follow `upload_key_backup_guide.md`, build the release AAB, validate it with bundletool, inspect its signing certificate and record its SHA-256 here.

@@ -13,11 +13,15 @@ abstract final class AppConstants {
   /// Public support inbox for users and store listings.
   static const String supportEmail = 'timeforwork789@gmail.com';
 
-  /// Leave empty until the separately hosted legal site is live.
-  static const String websiteUrl = '';
-  static const String privacyPolicyUrl = '';
-  static const String supportUrl = '';
-  static const String termsOfUseUrl = '';
+  /// Public legal site hosted separately from the application source.
+  static const String websiteUrl =
+      'https://tom-deptrai.github.io/smart-voice-alarm-legal/';
+  static const String privacyPolicyUrl =
+      'https://tom-deptrai.github.io/smart-voice-alarm-legal/privacy-policy/';
+  static const String supportUrl =
+      'https://tom-deptrai.github.io/smart-voice-alarm-legal/support/';
+  static const String termsOfUseUrl =
+      'https://tom-deptrai.github.io/smart-voice-alarm-legal/subscription-terms/';
 
   /// Play / App Store public URLs — empty until published.
   static const String playStoreUrl = '';
@@ -32,12 +36,8 @@ abstract final class AppConstants {
   static bool get hasAppStoreUrl =>
       appStoreUrl.trim().isNotEmpty || appStoreId.trim().isNotEmpty;
 
-  /// Non-consumable product shared conceptually on App Store and Play.
-  static const String premiumProductId = 'smart_voice_alarm_unlimited';
-  static const int freeAlarmLimit = 3;
-
-  /// Display hint only when the store has not returned a localized price yet.
-  static const String premiumPriceHintUsd = '\$1.99';
+  static const String premiumSubscriptionId = 'premium_annual';
+  static const String premiumAnnualBasePlanId = 'annual-auto';
 
   static const Duration splashDuration = Duration(milliseconds: 1600);
   static const Duration animationFast = Duration(milliseconds: 200);

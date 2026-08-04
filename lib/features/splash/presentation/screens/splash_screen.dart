@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -6,15 +7,16 @@ import '../../../../core/extensions/context_extensions.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/widgets/visual_widgets.dart';
+import '../../../../shared/providers/prototype_providers.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fade;
@@ -33,10 +35,17 @@ class _SplashScreenState extends State<SplashScreen>
       end: 0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
-    Future<void>.delayed(AppConstants.splashDuration, _goHome);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeAndContinue();
+    });
   }
 
-  void _goHome() {
+  Future<void> _initializeAndContinue() async {
+    final minimumSplash = Future<void>.delayed(AppConstants.splashDuration);
+    await ref
+        .read(trialEntitlementProvider.notifier)
+        .initializeSuccessfulLaunch();
+    await minimumSplash;
     if (!mounted) return;
     context.go(AppRoutes.home);
   }

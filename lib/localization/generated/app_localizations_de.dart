@@ -1009,4 +1009,88 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get permissionStatusUnknown => 'Unbekannt';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count Tage Testzeit verbleiben';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Weniger als 1 Tag Testzeit verbleibt';
+
+  @override
+  String get premiumUpgrade => 'Auf Premium upgraden';
+
+  @override
+  String get premiumAnnualTitle => 'Premium für ein Jahr';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Nutze nach der 7-tägigen Testphase weiterhin alle Funktionen von Smart Voice Alarm.';
+
+  @override
+  String get premiumAnnualPlan => 'Premium-Jahresabo';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Verlängert sich automatisch jährlich, bis es gekündigt wird.';
+
+  @override
+  String get premiumAnnualCancelInPlay =>
+      'Verwaltung oder Kündigung über Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'Voller Zugriff, solange das Abonnement aktiv ist.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Premium für ein Jahr abonnieren';
+
+  @override
+  String get premiumDefer => 'Später';
+
+  @override
+  String get premiumRestoreTransactions => 'Transaktionen wiederherstellen';
+
+  @override
+  String get premiumManageSubscription => 'Abonnement verwalten';
+
+  @override
+  String get premiumProductUnavailable =>
+      'Das Jahresabo ist bei Google Play noch nicht verfügbar.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'Google Play Billing ist derzeit nicht verfügbar.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium ist aktiv';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Deine Testphase ist beendet';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Abonniere, um die Hauptfunktionen weiter zu nutzen. Bestehende Wecker können weiterhin klingeln sowie deaktiviert oder gelöscht werden.';
+
+  @override
+  String get premiumRetryVerification => 'Erneut versuchen';
+
+  @override
+  String get premiumViewExistingAlarms => 'Bestehende Wecker anzeigen';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'Der Abonnementstatus wird auf diesem Gerät über den App-Store geprüft.';
+
+  @override
+  String get premiumUnableToVerify =>
+      'Abonnementstatus kann nicht geprüft werden.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Eingeschränkter Weckerzugriff';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'Du kannst bestehende Wecker deaktivieren oder löschen. Zum Erstellen oder Bearbeiten ist ein Abo erforderlich.';
 }

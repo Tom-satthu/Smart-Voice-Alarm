@@ -15,36 +15,34 @@ void main() {
       expect(AppConstants.developerName.contains('Đức'), isTrue);
     });
 
-    test('no placeholder privacy/terms/website/store URLs', () {
-      expect(AppConstants.privacyPolicyUrl, isEmpty);
-      expect(AppConstants.termsOfUseUrl, isEmpty);
-      expect(AppConstants.websiteUrl, isEmpty);
+    test('uses live legal URLs and no placeholder store URLs', () {
+      expect(AppConstants.privacyPolicyUrl, startsWith('https://'));
+      expect(AppConstants.termsOfUseUrl, startsWith('https://'));
+      expect(AppConstants.websiteUrl, startsWith('https://'));
       expect(AppConstants.playStoreUrl, isEmpty);
       expect(AppConstants.appStoreUrl, isEmpty);
       expect(AppConstants.appStoreId, isEmpty);
-      expect(AppConstants.hasPrivacyPolicyUrl, isFalse);
-      expect(AppConstants.hasTermsOfUseUrl, isFalse);
-      expect(AppConstants.hasWebsiteUrl, isFalse);
+      expect(AppConstants.hasPrivacyPolicyUrl, isTrue);
+      expect(AppConstants.hasTermsOfUseUrl, isTrue);
+      expect(AppConstants.hasWebsiteUrl, isTrue);
       expect(AppConstants.hasPlayStoreUrl, isFalse);
       expect(AppConstants.hasAppStoreUrl, isFalse);
 
-      for (final url in [
-        AppConstants.privacyPolicyUrl,
-        AppConstants.termsOfUseUrl,
-        AppConstants.websiteUrl,
-        AppConstants.playStoreUrl,
-        AppConstants.appStoreUrl,
-      ]) {
+      for (final url in [AppConstants.playStoreUrl, AppConstants.appStoreUrl]) {
         expect(url.contains('example.com'), isFalse);
         expect(url.contains('tom-satthu.github.io'), isFalse);
       }
     });
 
-    test('release does not expose source or unfinished billing', () {
-      expect(ReleaseConfig.monetizationMode, MonetizationMode.paidApp);
-      expect(ReleaseConfig.showPremium, isFalse);
-      expect(ReleaseConfig.initializeBilling, isFalse);
-      expect(ReleaseConfig.enforceFreeAlarmLimit, isFalse);
+    test('release uses the app-managed trial and annual subscription', () {
+      expect(
+        ReleaseConfig.monetizationMode,
+        MonetizationMode.trialWithAnnualSubscription,
+      );
+      expect(ReleaseConfig.showPremium, isTrue);
+      expect(ReleaseConfig.initializeBilling, isTrue);
+      expect(AppConstants.premiumSubscriptionId, 'premium_annual');
+      expect(AppConstants.premiumAnnualBasePlanId, 'annual-auto');
     });
   });
 

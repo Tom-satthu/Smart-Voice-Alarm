@@ -143,7 +143,12 @@ class SettingsRepository {
   static const _preferredVoiceLanguageKey = 'preferredVoiceLanguage';
   static const _newVoiceIdsKey = 'newVoiceIds';
   static const _systemVoiceChangeEventsKey = 'systemVoiceChangeEvents';
-  static const _premiumUnlockedKey = 'premiumLifetimeUnlocked';
+  static const _trialStartedAtUtcKey = 'trialStartedAtUtc';
+  static const _latestTrustedLocalTimeUtcKey = 'latestTrustedLocalTimeUtc';
+  static const _trialExpiredPermanentlyKey = 'trialExpiredPermanently';
+  static const _cachedSubscriptionActiveKey = 'cachedSubscriptionActive';
+  static const _lastSubscriptionVerifiedAtUtcKey =
+      'lastSubscriptionVerifiedAtUtc';
 
   ThemeMode loadThemeMode() {
     final raw = LocalDatabase.settingsBox.get(_themeKey) as String?;
@@ -295,10 +300,45 @@ class SettingsRepository {
     );
   }
 
-  bool loadPremiumUnlocked() =>
-      LocalDatabase.settingsBox.get(_premiumUnlockedKey) as bool? ?? false;
+  DateTime? loadTrialStartedAtUtc() => _loadUtcDateTime(_trialStartedAtUtcKey);
 
-  Future<void> savePremiumUnlocked(bool unlocked) async {
-    await LocalDatabase.settingsBox.put(_premiumUnlockedKey, unlocked);
+  Future<void> saveTrialStartedAtUtc(DateTime value) => LocalDatabase
+      .settingsBox
+      .put(_trialStartedAtUtcKey, value.toUtc().toIso8601String());
+
+  DateTime? loadLatestTrustedLocalTimeUtc() =>
+      _loadUtcDateTime(_latestTrustedLocalTimeUtcKey);
+
+  Future<void> saveLatestTrustedLocalTimeUtc(DateTime value) => LocalDatabase
+      .settingsBox
+      .put(_latestTrustedLocalTimeUtcKey, value.toUtc().toIso8601String());
+
+  bool loadTrialExpiredPermanently() =>
+      LocalDatabase.settingsBox.get(_trialExpiredPermanentlyKey) as bool? ??
+      false;
+
+  Future<void> saveTrialExpiredPermanently(bool value) =>
+      LocalDatabase.settingsBox.put(_trialExpiredPermanentlyKey, value);
+
+  bool loadCachedSubscriptionActive() =>
+      LocalDatabase.settingsBox.get(_cachedSubscriptionActiveKey) as bool? ??
+      false;
+
+  Future<void> saveCachedSubscriptionActive(bool value) =>
+      LocalDatabase.settingsBox.put(_cachedSubscriptionActiveKey, value);
+
+  DateTime? loadLastSubscriptionVerifiedAtUtc() =>
+      _loadUtcDateTime(_lastSubscriptionVerifiedAtUtcKey);
+
+  Future<void> saveLastSubscriptionVerifiedAtUtc(DateTime value) =>
+      LocalDatabase.settingsBox.put(
+        _lastSubscriptionVerifiedAtUtcKey,
+        value.toUtc().toIso8601String(),
+      );
+
+  DateTime? _loadUtcDateTime(String key) {
+    final raw = LocalDatabase.settingsBox.get(key);
+    if (raw is! String) return null;
+    return DateTime.tryParse(raw)?.toUtc();
   }
 }

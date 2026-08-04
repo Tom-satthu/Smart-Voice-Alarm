@@ -413,5 +413,36 @@
   "openSystemSettingsHint": "通知と関連権限を管理",
   "permissionStatusGranted": "許可済み",
   "permissionStatusDenied": "未許可",
-  "permissionStatusUnknown": "不明"
+  "permissionStatusUnknown": "不明",
+  "trialDaysRemaining": "{count} 日間の試用期間が残っています",
+  "trialLessThanOneDay": "試用期間は残り1日未満です",
+  "premiumUpgrade": "Premiumにアップグレード",
+  "premiumAnnualTitle": "1年間のPremium",
+  "premiumAnnualDescription": "7日間の試用後もSmart Voice Alarmの全機能を利用できます。",
+  "premiumAnnualPlan": "Premium年間プラン",
+  "premiumAnnualAutoRenew": "キャンセルするまで毎年自動更新されます。",
+  "premiumAnnualCancelInPlay": "Google Playで管理またはキャンセルできます。",
+  "premiumAnnualAccess": "サブスクリプションが有効な間は全機能を利用できます。",
+  "premiumSubscribeAnnual": "Premiumを1年間購読",
+  "premiumDefer": "後で",
+  "premiumRestoreTransactions": "購入を復元",
+  "premiumManageSubscription": "サブスクリプションを管理",
+  "premiumProductUnavailable": "年間サブスクリプションはまだGoogle Playで利用できません。",
+  "premiumBillingUnavailable": "Google Play Billingを現在利用できません。",
+  "premiumPurchaseActive": "Premiumは有効です",
+  "premiumTrialExpiredTitle": "試用期間が終了しました",
+  "premiumTrialExpiredBody": "主な機能を引き続き利用するには購読してください。既存のアラームは鳴動し、無効化または削除できます。",
+  "premiumRetryVerification": "再試行",
+  "premiumViewExistingAlarms": "既存のアラームを表示",
+  "premiumClientVerificationNotice": "サブスクリプション状態はこの端末でストアを通じて確認されます。",
+  "premiumUnableToVerify": "サブスクリプション状態を確認できません。",
+  "premiumRestrictedAlarmsTitle": "アラームへの制限付きアクセス",
+  "premiumRestrictedAlarmsBody": "既存のアラームを無効化または削除できます。作成や編集には購読が必要です。",
+  "@trialDaysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
