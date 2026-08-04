@@ -395,4 +395,33 @@ void main() {
     await _pumpFrames(tester);
     expect(overflows, isEmpty);
   });
+
+  testWidgets('15. Premium stays compact on a small phone', (tester) async {
+    final overflows = <String>[];
+    final original = FlutterError.onError;
+    FlutterError.onError = (details) {
+      final message = details.exceptionAsString();
+      if (message.contains('A RenderFlex overflowed')) {
+        overflows.add(message);
+      }
+      original?.call(details);
+    };
+    addTearDown(() => FlutterError.onError = original);
+
+    await _pumpApp(
+      tester,
+      initialLocation: AppRoutes.premium,
+      size: const Size(320, 568),
+    );
+
+    expect(find.text('Subscribe to Premium for one year'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Open-source licenses'),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Restore transactions'), findsOneWidget);
+    expect(find.text('Manage subscription'), findsOneWidget);
+    expect(overflows, isEmpty);
+  });
 }

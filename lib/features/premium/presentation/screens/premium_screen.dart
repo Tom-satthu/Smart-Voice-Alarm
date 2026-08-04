@@ -120,6 +120,20 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
         purchase.status == PurchaseFlowStatus.purchasing ||
         purchase.status == PurchaseFlowStatus.pending;
     final status = _statusMessage(l10n, purchase);
+    final showRetry =
+        purchase.status == PurchaseFlowStatus.error ||
+        purchase.status == PurchaseFlowStatus.unavailable ||
+        purchase.status == PurchaseFlowStatus.productUnavailable;
+    final title = active
+        ? l10n.premiumPurchaseActive
+        : widget.mandatory
+        ? l10n.premiumTrialExpiredTitle
+        : l10n.premiumAnnualTitle;
+    final description = active
+        ? l10n.premiumAnnualAccess
+        : widget.mandatory
+        ? l10n.premiumTrialExpiredBody
+        : l10n.premiumAnnualDescription;
 
     return Scaffold(
       body: AmbientBackground(
@@ -127,172 +141,170 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
           child: ResponsiveCenter(
             child: Column(
               children: [
-                if (!widget.mandatory)
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      tooltip: l10n.commonClose,
-                      onPressed: () => context.pop(),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                  ),
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.only(
-                      top: AppConstants.spaceMd,
-                      bottom: AppConstants.spaceLg,
+                      bottom: AppConstants.spaceMd,
                     ),
                     children: [
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(32),
-                            gradient: AppColors.premiumGradient,
+                      if (!widget.mandatory)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                            tooltip: l10n.commonClose,
+                            onPressed: () => context.pop(),
+                            icon: const Icon(Icons.close_rounded),
                           ),
-                          child: Container(
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              color: context.colors.surface,
-                              borderRadius: BorderRadius.circular(29),
-                            ),
-                            child: const BrandMark(size: 62),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppConstants.spaceLg),
-                      Text(
-                        active
-                            ? l10n.premiumPurchaseActive
-                            : widget.mandatory
-                            ? l10n.premiumTrialExpiredTitle
-                            : l10n.premiumAnnualTitle,
-                        textAlign: TextAlign.center,
-                        style: context.textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: AppConstants.spaceSm),
-                      Text(
-                        active
-                            ? l10n.premiumAnnualAccess
-                            : widget.mandatory
-                            ? l10n.premiumTrialExpiredBody
-                            : l10n.premiumAnnualDescription,
-                        textAlign: TextAlign.center,
-                        style: context.textTheme.bodyLarge?.copyWith(
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: AppConstants.spaceLg),
+                        )
+                      else
+                        const SizedBox(height: AppConstants.spaceMd),
+                      _PremiumHeader(title: title, description: description),
+                      const SizedBox(height: AppConstants.spaceMd),
                       SurfacePanel(
                         emphasized: true,
+                        padding: const EdgeInsets.all(AppConstants.spaceMd),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              l10n.premiumAnnualPlan,
-                              style: context.textTheme.titleLarge,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    l10n.premiumAnnualPlan,
+                                    style: context.textTheme.titleMedium,
+                                  ),
+                                ),
+                                if (purchase.localizedPrice != null) ...[
+                                  const SizedBox(width: AppConstants.spaceSm),
+                                  Flexible(
+                                    child: Text(
+                                      purchase.localizedPrice!,
+                                      textAlign: TextAlign.end,
+                                      style: context.textTheme.titleLarge
+                                          ?.copyWith(
+                                            color: context.colors.primary,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
-                            if (purchase.localizedPrice != null) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                purchase.localizedPrice!,
-                                style: context.textTheme.headlineSmall
-                                    ?.copyWith(color: context.colors.primary),
-                              ),
-                            ],
-                            const SizedBox(height: AppConstants.spaceMd),
+                            const SizedBox(height: 10),
                             _DisclosureRow(text: l10n.premiumAnnualAutoRenew),
                             _DisclosureRow(
                               text: l10n.premiumAnnualCancelInPlay,
                             ),
-                            _DisclosureRow(text: l10n.premiumAnnualAccess),
+                            _DisclosureRow(
+                              text: l10n.premiumAnnualAccess,
+                              addBottomPadding: false,
+                            ),
                           ],
                         ),
                       ),
                       if (status.isNotEmpty) ...[
-                        const SizedBox(height: AppConstants.spaceMd),
-                        Text(
-                          status,
-                          textAlign: TextAlign.center,
-                          style: context.textTheme.bodyMedium?.copyWith(
-                            color: context.colors.onSurfaceVariant,
-                          ),
+                        const SizedBox(height: AppConstants.spaceSm),
+                        _StatusBanner(
+                          message: status,
+                          showRetry: showRetry,
+                          busy: busy,
+                          retryLabel: l10n.premiumRetryVerification,
+                          onRetry: _retry,
                         ),
                       ],
-                      const SizedBox(height: AppConstants.spaceMd),
-                      Text(
-                        l10n.premiumClientVerificationNotice,
-                        textAlign: TextAlign.center,
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: context.colors.onSurfaceVariant,
-                        ),
+                      const SizedBox(height: AppConstants.spaceSm),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.verified_user_outlined,
+                            size: 16,
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              l10n.premiumClientVerificationNotice,
+                              style: context.textTheme.bodySmall?.copyWith(
+                                color: context.colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: AppConstants.spaceMd),
+                      _AccountActions(
+                        busy: busy,
+                        restoreLabel: l10n.premiumRestoreTransactions,
+                        manageLabel: l10n.premiumManageSubscription,
+                        onRestore: _restore,
+                        onManage: _manageSubscription,
+                      ),
+                      const SizedBox(height: AppConstants.spaceSm),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 2,
+                        children: [
+                          if (AppConstants.hasPrivacyPolicyUrl)
+                            TextButton(
+                              onPressed: _openPrivacy,
+                              child: Text(l10n.settingsPrivacy),
+                            ),
+                          if (AppConstants.hasTermsOfUseUrl)
+                            TextButton(
+                              onPressed: _openTerms,
+                              child: Text(l10n.settingsTerms),
+                            ),
+                          TextButton(
+                            onPressed: _contactSupport,
+                            child: Text(l10n.contactSupport),
+                          ),
+                          TextButton(
+                            onPressed: () => showLicensePage(
+                              context: context,
+                              applicationName: l10n.appName,
+                            ),
+                            child: Text(l10n.openSourceLicenses),
+                          ),
+                        ],
+                      ),
+                      if (!widget.mandatory && !active)
+                        Center(
+                          child: TextButton(
+                            onPressed: () => context.pop(),
+                            child: Text(l10n.premiumDefer),
+                          ),
+                        ),
+                      if (widget.mandatory &&
+                          widget.onViewExistingAlarms != null)
+                        Center(
+                          child: TextButton(
+                            onPressed: widget.onViewExistingAlarms,
+                            child: Text(l10n.premiumViewExistingAlarms),
+                          ),
+                        ),
                     ],
                   ),
                 ),
                 if (!active)
-                  PrimaryActionButton(
-                    label: l10n.premiumSubscribeAnnual,
-                    icon: Icons.workspace_premium_rounded,
-                    onPressed: busy || purchase.product == null
-                        ? null
-                        : _subscribe,
-                  ),
-                if (purchase.status == PurchaseFlowStatus.error ||
-                    purchase.status == PurchaseFlowStatus.unavailable ||
-                    purchase.status ==
-                        PurchaseFlowStatus.productUnavailable) ...[
-                  const SizedBox(height: AppConstants.spaceSm),
-                  OutlinedButton.icon(
-                    onPressed: busy ? null : _retry,
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: Text(l10n.premiumRetryVerification),
-                  ),
-                ],
-                const SizedBox(height: AppConstants.spaceSm),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: busy ? null : _restore,
-                      child: Text(l10n.premiumRestoreTransactions),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppConstants.spaceSm,
                     ),
-                    TextButton(
-                      onPressed: _manageSubscription,
-                      child: Text(l10n.premiumManageSubscription),
-                    ),
-                    if (AppConstants.hasPrivacyPolicyUrl)
-                      TextButton(
-                        onPressed: _openPrivacy,
-                        child: Text(l10n.settingsPrivacy),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: context.colors.outline.withValues(alpha: 0.28),
+                        ),
                       ),
-                    if (AppConstants.hasTermsOfUseUrl)
-                      TextButton(
-                        onPressed: _openTerms,
-                        child: Text(l10n.settingsTerms),
-                      ),
-                    TextButton(
-                      onPressed: _contactSupport,
-                      child: Text(l10n.contactSupport),
                     ),
-                    TextButton(
-                      onPressed: () => showLicensePage(
-                        context: context,
-                        applicationName: l10n.appName,
-                      ),
-                      child: Text(l10n.openSourceLicenses),
+                    child: PrimaryActionButton(
+                      label: l10n.premiumSubscribeAnnual,
+                      icon: Icons.workspace_premium_rounded,
+                      onPressed: busy || purchase.product == null
+                          ? null
+                          : _subscribe,
                     ),
-                  ],
-                ),
-                if (!widget.mandatory && !active)
-                  TextButton(
-                    onPressed: () => context.pop(),
-                    child: Text(l10n.premiumDefer),
-                  ),
-                if (widget.mandatory && widget.onViewExistingAlarms != null)
-                  TextButton(
-                    onPressed: widget.onViewExistingAlarms,
-                    child: Text(l10n.premiumViewExistingAlarms),
                   ),
               ],
             ),
@@ -303,25 +315,164 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
   }
 }
 
+class _PremiumHeader extends StatelessWidget {
+  const _PremiumHeader({required this.title, required this.description});
+
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: AppColors.premiumGradient,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: context.colors.surface,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const BrandMark(size: 40),
+          ),
+        ),
+        const SizedBox(width: AppConstants.spaceMd),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: context.textTheme.headlineSmall),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: context.colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusBanner extends StatelessWidget {
+  const _StatusBanner({
+    required this.message,
+    required this.showRetry,
+    required this.busy,
+    required this.retryLabel,
+    required this.onRetry,
+  });
+
+  final String message;
+  final bool showRetry;
+  final bool busy;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainerHighest.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              message,
+              style: context.textTheme.bodySmall?.copyWith(
+                color: context.colors.onSurfaceVariant,
+              ),
+            ),
+          ),
+          if (showRetry) ...[
+            const SizedBox(width: 4),
+            TextButton(
+              onPressed: busy ? null : onRetry,
+              child: Text(retryLabel),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountActions extends StatelessWidget {
+  const _AccountActions({
+    required this.busy,
+    required this.restoreLabel,
+    required this.manageLabel,
+    required this.onRestore,
+    required this.onManage,
+  });
+
+  final bool busy;
+  final String restoreLabel;
+  final String manageLabel;
+  final VoidCallback onRestore;
+  final VoidCallback onManage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: busy ? null : onRestore,
+            icon: const Icon(Icons.restore_rounded, size: 18),
+            label: Text(
+              restoreLabel,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+        const SizedBox(width: AppConstants.spaceSm),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onManage,
+            icon: const Icon(Icons.manage_accounts_outlined, size: 18),
+            label: Text(
+              manageLabel,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _DisclosureRow extends StatelessWidget {
-  const _DisclosureRow({required this.text});
+  const _DisclosureRow({required this.text, this.addBottomPadding = true});
 
   final String text;
+  final bool addBottomPadding;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppConstants.spaceSm),
+      padding: EdgeInsets.only(bottom: addBottomPadding ? 7 : 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.check_circle_outline_rounded,
-            size: 20,
-            color: context.colors.primary,
-          ),
-          const SizedBox(width: AppConstants.spaceSm),
-          Expanded(child: Text(text)),
+          Icon(Icons.check_rounded, size: 18, color: context.colors.primary),
+          const SizedBox(width: 7),
+          Expanded(child: Text(text, style: context.textTheme.bodyMedium)),
         ],
       ),
     );
