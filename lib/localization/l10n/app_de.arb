@@ -353,5 +353,25 @@
         "type": "String"
       }
     }
+  },
+  "currentVoice": "Aktuelle Stimme",
+  "scanDeviceVoices": "Stimmen auf dem Gerät scannen",
+  "availableDeviceVoices": "Verfügbare Stimmen auf dem Gerät",
+  "scanVoicesHint": "Tippen Sie auf Stimmen scannen, um installierte Stimmen anzuzeigen.",
+  "noDeviceVoicesFound": "Keine geeigneten Stimmen auf dem Gerät gefunden.",
+  "scanVoicesFailed": "Stimmen konnten nicht gescannt werden. Erneut versuchen.",
+  "voiceSetupGuide": "So fügen Sie Stimmen hinzu",
+  "openVoiceSettings": "Stimmeinstellungen öffnen",
+  "androidVoiceSetupSteps": "1. Öffnen Sie die Geräteeinstellungen.\n2. Suchen Sie nach Text-zu-Sprache.\n3. Öffnen Sie die verwendete TTS-Engine.\n4. Öffnen Sie Sprachen oder Sprachdaten.\n5. Installieren Sie eine neue Stimme.\n6. Kehren Sie zurück und tippen Sie auf Stimmen scannen.",
+  "iosVoiceSetupSteps": "1. Öffnen Sie Einstellungen.\n2. Öffnen Sie Bedienungshilfen.\n3. Öffnen Sie Gesprochene Inhalte oder Stimmen.\n4. Sprache wählen und Stimme laden.\n5. Zurückkehren und erneut scannen.\nMenünamen können je nach iOS-Version abweichen.",
+  "webVoiceAvailabilityInfo": "Im Web stammen verfügbare Stimmen von Browser und Betriebssystem.",
+  "lastScanned": "Zuletzt gescannt: {time}",
+  "voiceInUse": "Aktiv",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

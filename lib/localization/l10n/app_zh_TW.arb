@@ -353,5 +353,25 @@
         "type": "String"
       }
     }
+  },
+  "currentVoice": "目前語音",
+  "scanDeviceVoices": "掃描裝置上的語音",
+  "availableDeviceVoices": "裝置上可用的語音",
+  "scanVoicesHint": "點一下「掃描裝置上的語音」以查看已安裝的語音。",
+  "noDeviceVoicesFound": "在裝置上找不到合適的語音。",
+  "scanVoicesFailed": "無法掃描語音，請再試一次。",
+  "voiceSetupGuide": "如何新增語音",
+  "openVoiceSettings": "開啟語音設定",
+  "androidVoiceSetupSteps": "1. 開啟裝置設定。\n2. 搜尋「文字轉語音」或 Text-to-speech。\n3. 開啟目前使用的 TTS 引擎。\n4. 開啟語言或語音資料。\n5. 安裝新語音。\n6. 返回應用程式並點「掃描裝置上的語音」。",
+  "iosVoiceSetupSteps": "1. 開啟設定。\n2. 開啟輔助使用。\n3. 開啟朗讀內容或聲音。\n4. 選擇語言並下載可用語音。\n5. 返回應用程式並再次掃描。\n不同 iOS 版本的選單名稱可能不同。",
+  "webVoiceAvailabilityInfo": "在網頁上，可用語音由瀏覽器和作業系統提供。",
+  "lastScanned": "上次掃描：{time}",
+  "voiceInUse": "使用中",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

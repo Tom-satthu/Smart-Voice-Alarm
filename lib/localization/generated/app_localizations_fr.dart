@@ -866,4 +866,50 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get voicesOpenManagerFailed =>
       'Impossible d’ouvrir le gestionnaire de voix. Ouvrez les réglages TTS système.';
+
+  @override
+  String get currentVoice => 'Voix actuelle';
+
+  @override
+  String get scanDeviceVoices => 'Analyser les voix de l\'appareil';
+
+  @override
+  String get availableDeviceVoices => 'Voix disponibles sur l\'appareil';
+
+  @override
+  String get scanVoicesHint =>
+      'Appuyez sur Analyser les voix pour lister les voix installées.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'Aucune voix adaptée n\'a été trouvée sur l\'appareil.';
+
+  @override
+  String get scanVoicesFailed => 'Impossible d\'analyser les voix. Réessayez.';
+
+  @override
+  String get voiceSetupGuide => 'Comment ajouter des voix';
+
+  @override
+  String get openVoiceSettings => 'Ouvrir les réglages voix';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Ouvrez les Réglages de l\'appareil.\n2. Cherchez Synthèse vocale ou Text-to-speech.\n3. Ouvrez le moteur TTS utilisé.\n4. Ouvrez langues ou données vocales.\n5. Installez une nouvelle voix.\n6. Revenez ici et appuyez sur Analyser les voix.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Ouvrez Réglages.\n2. Ouvrez Accessibilité.\n3. Ouvrez Contenu lu ou Voix.\n4. Choisissez une langue et téléchargez une voix.\n5. Revenez ici et analysez à nouveau.\nLes noms de menus peuvent varier selon iOS.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'Sur le Web, les voix disponibles viennent du navigateur et du système.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Dernière analyse : $time';
+  }
+
+  @override
+  String get voiceInUse => 'En cours d\'utilisation';
 }

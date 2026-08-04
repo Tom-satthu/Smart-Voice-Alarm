@@ -11,42 +11,59 @@ Do **not** mark a row pass unless that check was actually run.
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| `flutter analyze` | Pass | No issues |
-| `flutter test test/voice_catalog_test.dart` | Pass | Includes exact-locale snapshot, legacy ID, preferred retarget, corrupted event |
-| `flutter build apk --debug` | Pass | Local debug APK |
-| `flutter build appbundle --release` | Pass | Built with **debug signing fallback** (no `android/keystore.properties` in repo — not store-upload ready) |
-| `flutter build web` | Pass | Compile OK; Wasm dry-run warnings from deps only; no deploy |
+| `flutter analyze` | Pending / see report | Re-run after Voices UX simplification |
+| `flutter test test/voice_catalog_test.dart` | Pending / see report | |
+| `flutter test test/voice_discovery_scan_test.dart` | Pending / see report | Scan generation / VoiceLoadContext |
+| `flutter build apk --debug` | Pending / see report | |
+| `flutter build web` | Pending / see report | Compile only; no deploy |
+| `flutter build appbundle --release` | Prior pass | Debug signing fallback when keystore absent |
 
 ---
 
-## Cần người dùng nghe / kiểm tra (chưa pass)
+## Voices UX (manual — Samsung / người dùng)
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| Preview đúng voice (On-device) | Not verified | Listen on device |
-| Đổi Vietnamese Voice I–V | Not verified | |
-| Concrete Google/Samsung voice | Not verified | |
-| Alarm TTS phát đúng khi reo | Not verified | Must hear audio |
-| Math dismiss → thoát app (không về Home toggle) | Not verified | After correct answer, app should leave UI |
-| Notification Stop → mở challenge | Not verified | Must show math, not silent-stop |
-| Stop trong app + math | Not verified | |
-| App background / killed khi reo | Not verified | FGS handoff still drops notification after Flutter takes over — listen carefully |
-| Reboot reschedule | Not verified | |
-| iOS simulator/device | Not verified | No macOS in this audit environment |
-| Web runtime (speechSynthesis delay / refresh) | Not verified | Compile only |
+| Chỉ còn một màn (không TabBar) | Not verified | Current + Scan + Guide |
+| Không còn tab “Giọng nói mới cài đặt” | Not verified | |
+| Card “Giọng nói đang dùng” hiện đúng | Not verified | |
+| Quét hiển thị giọng trên Samsung | Not verified | |
+| Quét sau khi cài voice trong Settings cập nhật list | Not verified | |
+| Quét không đổi giọng đang dùng (nếu vẫn còn) | Not verified | |
+| Preview dùng đúng voice đã chọn | Not verified | Must listen |
+| Alarm dùng cùng voice với preview | Not verified | Must listen |
+| Voice giữ sau restart | Not verified | |
+| Gỡ voice hệ thống không crash app | Not verified | |
+| Hướng dẫn Android + nút mở settings | Not verified | |
+| iOS / Web runtime guide | Not verified | Static only unless tested |
 
 ---
 
-## Known residual risks (not marked release-blocking this pass)
+## Alarm / khác (manual)
 
-1. After Flutter handoff, native FGS/notification/vibration/wake lock are stopped by design to avoid dual audio. Background OEM kill risk remains until a silent FGS holder is added.
-2. Web may briefly expose an empty voice list until browser `speechSynthesis` voices load; reloadVoices on resume mitigates, but runtime not tested here.
-3. Store upload still needs a real upload keystore (not in repo).
+| Check | Status | Notes |
+|-------|--------|-------|
+| Preview đúng voice | Not verified | Listen on device |
+| Alarm TTS phát đúng khi reo | Not verified | Must hear audio |
+| Math dismiss → thoát app | Not verified | |
+| Notification Stop → challenge | Not verified | |
+| App background / killed khi reo | Not verified | |
+| Reboot reschedule | Not verified | |
+| iOS simulator/device | Not verified | No macOS in this environment |
+| Web runtime | Not verified | Compile only |
+
+---
+
+## Known residual risks
+
+1. After Flutter handoff, native FGS/notification/vibration/wake lock are stopped to avoid dual audio.
+2. Web may briefly expose an empty voice list until browser voices load.
+3. Store upload needs a real upload keystore (not in repo).
 
 ---
 
 ## Product decisions locked
 
-- Keep current Voices screen / tab names.
-- No Google-voices redesign, Cloud TTS, offline model, Firebase/R2, or large Voices refactor.
+- Voices: single scroll screen (current / scan / setup guide). No newly-installed tab.
+- No Google-voices redesign, Cloud TTS, offline model, Firebase/R2.
 - Do not commit `docs/offline_voice_model_research_*.md` unless explicitly requested.

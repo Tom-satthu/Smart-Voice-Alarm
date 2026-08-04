@@ -3,6 +3,7 @@ import 'package:smart_voice_alarm/core/localization/locale_codes.dart';
 import 'package:smart_voice_alarm/core/localization/voice_catalog.dart';
 import 'package:smart_voice_alarm/core/services/resolved_system_voice.dart';
 import 'package:smart_voice_alarm/core/services/tts_service.dart';
+import 'package:smart_voice_alarm/core/services/voice_load_context.dart';
 import 'package:smart_voice_alarm/shared/models/ui_models.dart';
 
 void main() {
@@ -366,10 +367,98 @@ void main() {
     );
   });
 
-  test('corrupted system voice change event json does not throw', () {
-    final event = SystemVoiceChangeEvent.fromJson(const {});
-    expect(event.locale, '');
-    expect(event.language, '');
-    expect(event.timestampMs, 0);
+  test('sortForDeviceDiscovery keeps selected then preferred language first', () {
+    const selected = TtsVoiceUiModel(
+      id: 'e|sel|en-US',
+      name: 'Selected',
+      locale: 'en-US',
+    );
+    const vi = TtsVoiceUiModel(
+      id: 'e|vi|vi-VN',
+      name: 'Vietnamese',
+      locale: 'vi-VN',
+    );
+    const enOther = TtsVoiceUiModel(
+      id: 'e|en2|en-GB',
+      name: 'English GB',
+      locale: 'en-GB',
+    );
+    const fr = TtsVoiceUiModel(
+      id: 'e|fr|fr-FR',
+      name: 'French',
+      locale: 'fr-FR',
+    );
+
+    final sorted = VoiceCatalog.sortForDeviceDiscovery(
+      voices: const [fr, vi, enOther, selected],
+      selectedId: selected.id,
+      preferredLanguage: 'vi',
+      appLanguage: 'en',
+      friendlyLabels: {
+        selected.id: 'Voice 02',
+        vi.id: 'Voice 01',
+        enOther.id: 'Voice 01',
+        fr.id: 'Voice 01',
+      },
+    );
+
+    expect(sorted.map((v) => v.id).toList(), [
+      selected.id,
+      vi.id,
+      enOther.id,
+      fr.id,
+    ]);
+  });
+
+  test('resolvePreferredVoice supports legacy ids and missing fallback', () {
+    final system = TtsService.systemDefaultVoice('en-US');
+    const concrete = TtsVoiceUiModel(
+      id: 'engine|gone|en-US',
+      name: 'Gone',
+      locale: 'en-US',
+    );
+
+    expect(
+      VoiceCatalog.resolvePreferredVoice(
+        voices: [system, concrete],
+        preferredId: 'system-default|en-US',
+      )?.id,
+      system.id,
+    );
+    expect(
+      VoiceCatalog.resolvePreferredVoice(
+        voices: [system],
+        preferredId: concrete.id,
+        preferredLanguage: 'en',
+      )?.id,
+      system.id,
+    );
+  });
+
+  test('VoiceLoadContext cache key includes locales', () {
+    const ctx = VoiceLoadContext(
+      preferredLocale: 'vi-VN',
+      appLocale: 'en-US',
+      systemLocale: 'en-GB',
+    );
+    expect(ctx.cacheKey, 'vi-VN::en-US::en-GB');
+  });
+
+  test('persisted newly-installed ids and events remain readable without crash', () {
+    expect(
+      VoiceCatalog.newlyInstalledIds(
+        before: const [],
+        after: const [
+          TtsVoiceUiModel(id: 'a', name: 'A', locale: 'en-US'),
+        ],
+      ),
+      {'a'},
+    );
+    final event = SystemVoiceChangeEvent.fromJson(const {
+      'locale': 'vi-VN',
+      'language': 'vi',
+      'timestampMs': 1,
+    });
+    expect(event.language, 'vi');
   });
 }

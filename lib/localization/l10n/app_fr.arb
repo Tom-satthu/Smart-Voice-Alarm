@@ -353,5 +353,25 @@
         "type": "String"
       }
     }
+  },
+  "currentVoice": "Voix actuelle",
+  "scanDeviceVoices": "Analyser les voix de l'appareil",
+  "availableDeviceVoices": "Voix disponibles sur l'appareil",
+  "scanVoicesHint": "Appuyez sur Analyser les voix pour lister les voix installées.",
+  "noDeviceVoicesFound": "Aucune voix adaptée n'a été trouvée sur l'appareil.",
+  "scanVoicesFailed": "Impossible d'analyser les voix. Réessayez.",
+  "voiceSetupGuide": "Comment ajouter des voix",
+  "openVoiceSettings": "Ouvrir les réglages voix",
+  "androidVoiceSetupSteps": "1. Ouvrez les Réglages de l'appareil.\n2. Cherchez Synthèse vocale ou Text-to-speech.\n3. Ouvrez le moteur TTS utilisé.\n4. Ouvrez langues ou données vocales.\n5. Installez une nouvelle voix.\n6. Revenez ici et appuyez sur Analyser les voix.",
+  "iosVoiceSetupSteps": "1. Ouvrez Réglages.\n2. Ouvrez Accessibilité.\n3. Ouvrez Contenu lu ou Voix.\n4. Choisissez une langue et téléchargez une voix.\n5. Revenez ici et analysez à nouveau.\nLes noms de menus peuvent varier selon iOS.",
+  "webVoiceAvailabilityInfo": "Sur le Web, les voix disponibles viennent du navigateur et du système.",
+  "lastScanned": "Dernière analyse : {time}",
+  "voiceInUse": "En cours d'utilisation",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -512,10 +512,12 @@ class SelectedVoiceCard extends ConsumerStatefulWidget {
     super.key,
     required this.voice,
     required this.friendlyName,
+    this.showInUseLabel = false,
   });
 
   final TtsVoiceUiModel voice;
   final String friendlyName;
+  final bool showInUseLabel;
 
   @override
   ConsumerState<SelectedVoiceCard> createState() => _SelectedVoiceCardState();
@@ -553,6 +555,26 @@ class _SelectedVoiceCardState extends ConsumerState<SelectedVoiceCard> {
     }
   }
 
+  String _subtitle(AppLocalizations l10n) {
+    final parts = <String>[
+      LocaleDisplayNames.friendly(widget.voice.locale),
+    ];
+    final engine = widget.voice.platformEngine?.trim();
+    if (engine != null && engine.isNotEmpty) {
+      parts.add(engine.contains('.') ? engine.split('.').last : engine);
+    }
+    if (widget.voice.isSystemDefault) {
+      parts.add(l10n.voiceSystemDefault);
+    } else if (widget.voice.availability ==
+        TtsVoiceAvailability.networkRequired) {
+      parts.add(l10n.voiceAvailabilityNetwork);
+    } else if (widget.voice.availability ==
+        TtsVoiceAvailability.installedOffline) {
+      parts.add(l10n.voiceAvailabilityOffline);
+    }
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -569,13 +591,23 @@ class _SelectedVoiceCardState extends ConsumerState<SelectedVoiceCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  LocaleDisplayNames.friendly(widget.voice.locale),
+                  _subtitle(l10n),
                   style: context.textTheme.bodySmall?.copyWith(
                     color: context.colors.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(widget.friendlyName, style: context.textTheme.titleSmall),
+                if (widget.showInUseLabel) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.voiceInUse,
+                    style: context.textTheme.labelSmall?.copyWith(
+                      color: context.colors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

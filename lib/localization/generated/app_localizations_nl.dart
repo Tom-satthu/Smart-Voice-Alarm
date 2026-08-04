@@ -863,4 +863,50 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get voicesOpenManagerFailed =>
       'Kon stembeheer niet openen. Open de systeem-TTS-instellingen.';
+
+  @override
+  String get currentVoice => 'Huidige stem';
+
+  @override
+  String get scanDeviceVoices => 'Stemmen op apparaat scannen';
+
+  @override
+  String get availableDeviceVoices => 'Beschikbare stemmen op dit apparaat';
+
+  @override
+  String get scanVoicesHint =>
+      'Tik op Stemmen scannen om geïnstalleerde stemmen te tonen.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'Geen geschikte stemmen gevonden op dit apparaat.';
+
+  @override
+  String get scanVoicesFailed => 'Stemmen scannen mislukt. Probeer opnieuw.';
+
+  @override
+  String get voiceSetupGuide => 'Stemmen toevoegen';
+
+  @override
+  String get openVoiceSettings => 'Steminstellingen openen';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Open Instellingen op het apparaat.\n2. Zoek Tekst-naar-spraak of Text-to-speech.\n3. Open de TTS-engine die je gebruikt.\n4. Open talen of stemgegevens.\n5. Installeer een nieuwe stem.\n6. Kom terug en tik op Stemmen scannen.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Open Instellingen.\n2. Open Toegankelijkheid.\n3. Open Gesproken inhoud of Stemmen.\n4. Kies een taal en download een stem.\n5. Kom terug en scan opnieuw.\nMenunamen kunnen per iOS-versie verschillen.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'Op het web komen beschikbare stemmen van browser en besturingssysteem.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Laatst gescand: $time';
+  }
+
+  @override
+  String get voiceInUse => 'In gebruik';
 }

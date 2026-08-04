@@ -841,4 +841,47 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get voicesOpenManagerFailed => '음성 관리를 열 수 없습니다. 시스템 TTS 설정을 여세요.';
+
+  @override
+  String get currentVoice => '현재 음성';
+
+  @override
+  String get scanDeviceVoices => '기기 음성 스캔';
+
+  @override
+  String get availableDeviceVoices => '기기에 있는 음성';
+
+  @override
+  String get scanVoicesHint => '기기 음성 스캔을 눌러 설치된 음성을 확인하세요.';
+
+  @override
+  String get noDeviceVoicesFound => '기기에서 적합한 음성을 찾지 못했습니다.';
+
+  @override
+  String get scanVoicesFailed => '음성을 스캔할 수 없습니다. 다시 시도하세요.';
+
+  @override
+  String get voiceSetupGuide => '음성 추가 방법';
+
+  @override
+  String get openVoiceSettings => '음성 설정 열기';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. 기기 설정을 엽니다.\n2. 텍스트 음성 변환 또는 Text-to-speech를 검색합니다.\n3. 사용 중인 TTS 엔진을 엽니다.\n4. 언어 또는 음성 데이터 화면을 엽니다.\n5. 새 음성을 설치합니다.\n6. 앱으로 돌아와 기기 음성 스캔을 누릅니다.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. 설정을 엽니다.\n2. 손쉬운 사용을 엽니다.\n3. 읽어주기 또는 음성을 엽니다.\n4. 언어를 선택하고 음성을 다운로드합니다.\n5. 앱으로 돌아와 다시 스캔합니다.\niOS 버전에 따라 메뉴 이름이 다를 수 있습니다.';
+
+  @override
+  String get webVoiceAvailabilityInfo => '웹에서는 브라우저와 운영체제가 제공하는 음성을 사용합니다.';
+
+  @override
+  String lastScanned(String time) {
+    return '마지막 스캔: $time';
+  }
+
+  @override
+  String get voiceInUse => '사용 중';
 }

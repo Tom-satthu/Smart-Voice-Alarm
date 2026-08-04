@@ -353,5 +353,25 @@
         "type": "String"
       }
     }
+  },
+  "currentVoice": "当前语音",
+  "scanDeviceVoices": "扫描设备上的语音",
+  "availableDeviceVoices": "设备上可用的语音",
+  "scanVoicesHint": "点按“扫描设备上的语音”以查看已安装的语音。",
+  "noDeviceVoicesFound": "未在设备上找到合适的语音。",
+  "scanVoicesFailed": "无法扫描语音，请重试。",
+  "voiceSetupGuide": "如何添加语音",
+  "openVoiceSettings": "打开语音设置",
+  "androidVoiceSetupSteps": "1. 打开设备设置。\n2. 搜索“文字转语音”或 Text-to-speech。\n3. 打开当前使用的 TTS 引擎。\n4. 打开语言或语音数据。\n5. 安装新语音。\n6. 返回应用并点按“扫描设备上的语音”。",
+  "iosVoiceSetupSteps": "1. 打开设置。\n2. 打开辅助功能。\n3. 打开朗读内容或声音。\n4. 选择语言并下载可用语音。\n5. 返回应用并再次扫描。\n不同 iOS 版本的菜单名称可能不同。",
+  "webVoiceAvailabilityInfo": "在网页上，可用语音由浏览器和操作系统提供。",
+  "lastScanned": "上次扫描：{time}",
+  "voiceInUse": "使用中",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

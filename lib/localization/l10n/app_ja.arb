@@ -353,5 +353,25 @@
         "type": "String"
       }
     }
+  },
+  "currentVoice": "現在の音声",
+  "scanDeviceVoices": "端末の音声をスキャン",
+  "availableDeviceVoices": "端末で利用できる音声",
+  "scanVoicesHint": "「端末の音声をスキャン」をタップして、インストール済みの音声を表示します。",
+  "noDeviceVoicesFound": "端末に適した音声が見つかりませんでした。",
+  "scanVoicesFailed": "音声をスキャンできませんでした。もう一度お試しください。",
+  "voiceSetupGuide": "音声の追加方法",
+  "openVoiceSettings": "音声設定を開く",
+  "androidVoiceSetupSteps": "1. 端末の設定を開きます。\n2. テキスト読み上げ / Text-to-speech を探します。\n3. 使用中の TTS エンジンを開きます。\n4. 言語または音声データの画面を開きます。\n5. 新しい音声をインストールします。\n6. アプリに戻り、端末の音声をスキャンします。",
+  "iosVoiceSetupSteps": "1. 設定を開きます。\n2. アクセシビリティを開きます。\n3. 読み上げコンテンツまたは声を開きます。\n4. 言語を選び、利用可能な音声をダウンロードします。\n5. アプリに戻り、再度スキャンします。\niOS のバージョンによってメニュー名は異なる場合があります。",
+  "webVoiceAvailabilityInfo": "Web では、利用可能な音声はブラウザと OS が提供します。",
+  "lastScanned": "最終スキャン: {time}",
+  "voiceInUse": "使用中",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -839,4 +839,47 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get voicesOpenManagerFailed => '音声管理を開けませんでした。システムの読み上げ設定を開いてください。';
+
+  @override
+  String get currentVoice => '現在の音声';
+
+  @override
+  String get scanDeviceVoices => '端末の音声をスキャン';
+
+  @override
+  String get availableDeviceVoices => '端末で利用できる音声';
+
+  @override
+  String get scanVoicesHint => '「端末の音声をスキャン」をタップして、インストール済みの音声を表示します。';
+
+  @override
+  String get noDeviceVoicesFound => '端末に適した音声が見つかりませんでした。';
+
+  @override
+  String get scanVoicesFailed => '音声をスキャンできませんでした。もう一度お試しください。';
+
+  @override
+  String get voiceSetupGuide => '音声の追加方法';
+
+  @override
+  String get openVoiceSettings => '音声設定を開く';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. 端末の設定を開きます。\n2. テキスト読み上げ / Text-to-speech を探します。\n3. 使用中の TTS エンジンを開きます。\n4. 言語または音声データの画面を開きます。\n5. 新しい音声をインストールします。\n6. アプリに戻り、端末の音声をスキャンします。';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. 設定を開きます。\n2. アクセシビリティを開きます。\n3. 読み上げコンテンツまたは声を開きます。\n4. 言語を選び、利用可能な音声をダウンロードします。\n5. アプリに戻り、再度スキャンします。\niOS のバージョンによってメニュー名は異なる場合があります。';
+
+  @override
+  String get webVoiceAvailabilityInfo => 'Web では、利用可能な音声はブラウザと OS が提供します。';
+
+  @override
+  String lastScanned(String time) {
+    return '最終スキャン: $time';
+  }
+
+  @override
+  String get voiceInUse => '使用中';
 }

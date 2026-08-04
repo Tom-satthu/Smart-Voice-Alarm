@@ -869,4 +869,51 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get voicesOpenManagerFailed =>
       'Sprachverwaltung konnte nicht geöffnet werden. Öffnen Sie die System-TTS-Einstellungen.';
+
+  @override
+  String get currentVoice => 'Aktuelle Stimme';
+
+  @override
+  String get scanDeviceVoices => 'Stimmen auf dem Gerät scannen';
+
+  @override
+  String get availableDeviceVoices => 'Verfügbare Stimmen auf dem Gerät';
+
+  @override
+  String get scanVoicesHint =>
+      'Tippen Sie auf Stimmen scannen, um installierte Stimmen anzuzeigen.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'Keine geeigneten Stimmen auf dem Gerät gefunden.';
+
+  @override
+  String get scanVoicesFailed =>
+      'Stimmen konnten nicht gescannt werden. Erneut versuchen.';
+
+  @override
+  String get voiceSetupGuide => 'So fügen Sie Stimmen hinzu';
+
+  @override
+  String get openVoiceSettings => 'Stimmeinstellungen öffnen';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Öffnen Sie die Geräteeinstellungen.\n2. Suchen Sie nach Text-zu-Sprache.\n3. Öffnen Sie die verwendete TTS-Engine.\n4. Öffnen Sie Sprachen oder Sprachdaten.\n5. Installieren Sie eine neue Stimme.\n6. Kehren Sie zurück und tippen Sie auf Stimmen scannen.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Öffnen Sie Einstellungen.\n2. Öffnen Sie Bedienungshilfen.\n3. Öffnen Sie Gesprochene Inhalte oder Stimmen.\n4. Sprache wählen und Stimme laden.\n5. Zurückkehren und erneut scannen.\nMenünamen können je nach iOS-Version abweichen.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'Im Web stammen verfügbare Stimmen von Browser und Betriebssystem.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Zuletzt gescannt: $time';
+  }
+
+  @override
+  String get voiceInUse => 'Aktiv';
 }

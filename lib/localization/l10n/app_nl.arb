@@ -353,5 +353,25 @@
         "type": "String"
       }
     }
+  },
+  "currentVoice": "Huidige stem",
+  "scanDeviceVoices": "Stemmen op apparaat scannen",
+  "availableDeviceVoices": "Beschikbare stemmen op dit apparaat",
+  "scanVoicesHint": "Tik op Stemmen scannen om geïnstalleerde stemmen te tonen.",
+  "noDeviceVoicesFound": "Geen geschikte stemmen gevonden op dit apparaat.",
+  "scanVoicesFailed": "Stemmen scannen mislukt. Probeer opnieuw.",
+  "voiceSetupGuide": "Stemmen toevoegen",
+  "openVoiceSettings": "Steminstellingen openen",
+  "androidVoiceSetupSteps": "1. Open Instellingen op het apparaat.\n2. Zoek Tekst-naar-spraak of Text-to-speech.\n3. Open de TTS-engine die je gebruikt.\n4. Open talen of stemgegevens.\n5. Installeer een nieuwe stem.\n6. Kom terug en tik op Stemmen scannen.",
+  "iosVoiceSetupSteps": "1. Open Instellingen.\n2. Open Toegankelijkheid.\n3. Open Gesproken inhoud of Stemmen.\n4. Kies een taal en download een stem.\n5. Kom terug en scan opnieuw.\nMenunamen kunnen per iOS-versie verschillen.",
+  "webVoiceAvailabilityInfo": "Op het web komen beschikbare stemmen van browser en besturingssysteem.",
+  "lastScanned": "Laatst gescand: {time}",
+  "voiceInUse": "In gebruik",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

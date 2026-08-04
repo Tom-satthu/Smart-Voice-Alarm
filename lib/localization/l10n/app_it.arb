@@ -353,5 +353,25 @@
         "type": "String"
       }
     }
+  },
+  "currentVoice": "Voce attuale",
+  "scanDeviceVoices": "Scansiona voci sul dispositivo",
+  "availableDeviceVoices": "Voci disponibili sul dispositivo",
+  "scanVoicesHint": "Tocca Scansiona voci sul dispositivo per vedere le voci installate.",
+  "noDeviceVoicesFound": "Nessuna voce adatta trovata sul dispositivo.",
+  "scanVoicesFailed": "Impossibile scansionare le voci. Riprova.",
+  "voiceSetupGuide": "Come aggiungere voci",
+  "openVoiceSettings": "Apri impostazioni voce",
+  "androidVoiceSetupSteps": "1. Apri Impostazioni del dispositivo.\n2. Cerca Sintesi vocale o Text-to-speech.\n3. Apri il motore TTS in uso.\n4. Apri lingue o dati vocali.\n5. Installa una nuova voce.\n6. Torna qui e tocca Scansiona voci.",
+  "iosVoiceSetupSteps": "1. Apri Impostazioni.\n2. Apri Accessibilità.\n3. Apri Contenuti letti o Voci.\n4. Scegli una lingua e scarica una voce.\n5. Torna qui e scansiona di nuovo.\nI nomi dei menu possono variare con iOS.",
+  "webVoiceAvailabilityInfo": "Sul Web le voci disponibili dipendono dal browser e dal sistema.",
+  "lastScanned": "Ultima scansione: {time}",
+  "voiceInUse": "In uso",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

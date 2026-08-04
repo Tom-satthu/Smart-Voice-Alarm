@@ -299,6 +299,81 @@ abstract final class VoiceCatalog {
     return matched ? language : null;
   }
 
+  /// Stable device-list order: selected → preferred/app language → others → name.
+  static List<TtsVoiceUiModel> sortForDeviceDiscovery({
+    required List<TtsVoiceUiModel> voices,
+    String? selectedId,
+    String? preferredLanguage,
+    String? appLanguage,
+    Map<String, String> friendlyLabels = const {},
+  }) {
+    final preferredLang = normalizeLanguageCode(preferredLanguage ?? '');
+    final appLang = normalizeLanguageCode(appLanguage ?? '');
+    final normalizedSelected =
+        normalizeSystemDefaultVoiceId(selectedId) ?? selectedId;
+
+    int rank(TtsVoiceUiModel voice) {
+      if (normalizedSelected != null && voice.id == normalizedSelected) {
+        return 0;
+      }
+      final lang = languageCodeOf(voice.locale);
+      if (preferredLang.isNotEmpty && lang == preferredLang) return 1;
+      if (appLang.isNotEmpty && lang == appLang) return 2;
+      return 3;
+    }
+
+    String label(TtsVoiceUiModel voice) {
+      if (voice.isSystemDefault) return '0';
+      return friendlyLabels[voice.id] ?? voice.name;
+    }
+
+    final sorted = List<TtsVoiceUiModel>.from(voices);
+    sorted.sort((a, b) {
+      final byRank = rank(a).compareTo(rank(b));
+      if (byRank != 0) return byRank;
+      final byLabel = label(a).toLowerCase().compareTo(label(b).toLowerCase());
+      if (byLabel != 0) return byLabel;
+      return a.id.compareTo(b.id);
+    });
+    return sorted;
+  }
+
+  /// Resolve preferred voice from a list, with legacy system-default id support.
+  static TtsVoiceUiModel? resolvePreferredVoice({
+    required List<TtsVoiceUiModel> voices,
+    String? preferredId,
+    String? preferredLanguage,
+  }) {
+    if (preferredId != null) {
+      final normalized = normalizeSystemDefaultVoiceId(preferredId) ?? preferredId;
+      for (final voice in voices) {
+        if (voice.id == preferredId || voice.id == normalized) return voice;
+      }
+      if (preferredId.startsWith('system-default|')) {
+        final language = languageCodeOf(
+          preferredId.substring('system-default|'.length),
+        );
+        for (final voice in voices) {
+          if (voice.isSystemDefault && languageCodeOf(voice.locale) == language) {
+            return voice;
+          }
+        }
+      }
+    }
+    final language = normalizeLanguageCode(preferredLanguage ?? '');
+    if (language.isNotEmpty) {
+      for (final voice in voices) {
+        if (voice.isSystemDefault && languageCodeOf(voice.locale) == language) {
+          return voice;
+        }
+      }
+    }
+    for (final voice in voices) {
+      if (voice.isSystemDefault) return voice;
+    }
+    return voices.isEmpty ? null : voices.first;
+  }
+
   /// Stable friendly labels per locale: Voice 01, Voice 02, …
   /// Sorted by technical voice [TtsVoiceUiModel.id], never using the number as id.
   static Map<String, String> friendlyLabels(

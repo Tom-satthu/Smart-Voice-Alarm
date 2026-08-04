@@ -1654,6 +1654,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open the device voice manager. Open system Text-to-speech settings and install voices there.'**
   String get voicesOpenManagerFailed;
+
+  /// No description provided for @currentVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Current voice'**
+  String get currentVoice;
+
+  /// No description provided for @scanDeviceVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan voices on this device'**
+  String get scanDeviceVoices;
+
+  /// No description provided for @availableDeviceVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Voices available on this device'**
+  String get availableDeviceVoices;
+
+  /// No description provided for @scanVoicesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Scan voices on this device to list the voices currently installed.'**
+  String get scanVoicesHint;
+
+  /// No description provided for @noDeviceVoicesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No suitable voices were found on this device.'**
+  String get noDeviceVoicesFound;
+
+  /// No description provided for @scanVoicesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not scan device voices. Try again.'**
+  String get scanVoicesFailed;
+
+  /// No description provided for @voiceSetupGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'How to add voices'**
+  String get voiceSetupGuide;
+
+  /// No description provided for @openVoiceSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open voice settings'**
+  String get openVoiceSettings;
+
+  /// No description provided for @androidVoiceSetupSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Open your device Settings.\n2. Search for Text-to-speech or Text to speech output.\n3. Open the TTS engine you use.\n4. Open languages or install voice data.\n5. Install a new voice.\n6. Return here and tap Scan voices on this device.'**
+  String get androidVoiceSetupSteps;
+
+  /// No description provided for @iosVoiceSetupSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Open Settings.\n2. Open Accessibility.\n3. Open Spoken Content or Voices.\n4. Choose a language and download an available voice.\n5. Return here and scan again.\nMenu names can vary by iOS version.'**
+  String get iosVoiceSetupSteps;
+
+  /// No description provided for @webVoiceAvailabilityInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'On the web, available voices come from your browser and operating system.'**
+  String get webVoiceAvailabilityInfo;
+
+  /// No description provided for @lastScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Last scanned: {time}'**
+  String lastScanned(String time);
+
+  /// No description provided for @voiceInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'In use'**
+  String get voiceInUse;
 }
 
 class _AppLocalizationsDelegate

@@ -859,4 +859,50 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get voicesOpenManagerFailed =>
       'Tidak dapat membuka pengelola suara. Buka pengaturan TTS sistem.';
+
+  @override
+  String get currentVoice => 'Suara yang digunakan';
+
+  @override
+  String get scanDeviceVoices => 'Pindai suara di perangkat';
+
+  @override
+  String get availableDeviceVoices => 'Suara tersedia di perangkat';
+
+  @override
+  String get scanVoicesHint =>
+      'Ketuk Pindai suara di perangkat untuk melihat suara yang terpasang.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'Tidak ditemukan suara yang cocok di perangkat.';
+
+  @override
+  String get scanVoicesFailed => 'Gagal memindai suara. Coba lagi.';
+
+  @override
+  String get voiceSetupGuide => 'Cara menambah suara';
+
+  @override
+  String get openVoiceSettings => 'Buka pengaturan suara';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Buka Pengaturan perangkat.\n2. Cari Text-to-speech.\n3. Buka mesin TTS yang digunakan.\n4. Buka bahasa atau data suara.\n5. Pasang suara baru.\n6. Kembali ke sini dan ketuk Pindai suara.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Buka Pengaturan.\n2. Buka Aksesibilitas.\n3. Buka Konten ucapan atau Suara.\n4. Pilih bahasa dan unduh suara.\n5. Kembali ke sini dan pindai lagi.\nNama menu dapat berbeda antar versi iOS.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'Di Web, daftar suara disediakan oleh browser dan sistem operasi.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Terakhir dipindai: $time';
+  }
+
+  @override
+  String get voiceInUse => 'Sedang digunakan';
 }

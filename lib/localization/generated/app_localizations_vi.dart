@@ -860,4 +860,50 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get voicesOpenManagerFailed =>
       'Không mở được quản lý giọng nói. Hãy mở cài đặt Text-to-speech hệ thống để cài giọng.';
+
+  @override
+  String get currentVoice => 'Giọng nói đang dùng';
+
+  @override
+  String get scanDeviceVoices => 'Quét giọng nói trên thiết bị';
+
+  @override
+  String get availableDeviceVoices => 'Giọng nói có sẵn trên thiết bị';
+
+  @override
+  String get scanVoicesHint =>
+      'Nhấn Quét giọng nói trên thiết bị để xem các giọng hiện có.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'Không tìm thấy giọng nói phù hợp trên thiết bị.';
+
+  @override
+  String get scanVoicesFailed => 'Không quét được giọng nói. Thử lại.';
+
+  @override
+  String get voiceSetupGuide => 'Hướng dẫn thêm giọng nói';
+
+  @override
+  String get openVoiceSettings => 'Mở cài đặt giọng nói';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Mở Cài đặt của thiết bị.\n2. Tìm Chuyển văn bản thành giọng nói hoặc Text-to-speech.\n3. Chọn công cụ TTS đang dùng.\n4. Mở phần ngôn ngữ hoặc cài dữ liệu giọng nói.\n5. Cài giọng mới.\n6. Quay lại ứng dụng và nhấn Quét giọng nói trên thiết bị.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Mở Cài đặt.\n2. Mở Trợ năng.\n3. Mở Nội dung được đọc hoặc Giọng nói.\n4. Chọn ngôn ngữ và tải giọng có sẵn.\n5. Quay lại ứng dụng và quét lại.\nTên menu có thể khác nhau tùy phiên bản iOS.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'Danh sách giọng nói trên Web do trình duyệt và hệ điều hành cung cấp.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Đã quét: $time';
+  }
+
+  @override
+  String get voiceInUse => 'Đang dùng';
 }

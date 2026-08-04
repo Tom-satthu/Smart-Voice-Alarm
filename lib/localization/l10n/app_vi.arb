@@ -353,5 +353,25 @@
         "type": "String"
       }
     }
+  },
+  "currentVoice": "Giọng nói đang dùng",
+  "scanDeviceVoices": "Quét giọng nói trên thiết bị",
+  "availableDeviceVoices": "Giọng nói có sẵn trên thiết bị",
+  "scanVoicesHint": "Nhấn Quét giọng nói trên thiết bị để xem các giọng hiện có.",
+  "noDeviceVoicesFound": "Không tìm thấy giọng nói phù hợp trên thiết bị.",
+  "scanVoicesFailed": "Không quét được giọng nói. Thử lại.",
+  "voiceSetupGuide": "Hướng dẫn thêm giọng nói",
+  "openVoiceSettings": "Mở cài đặt giọng nói",
+  "androidVoiceSetupSteps": "1. Mở Cài đặt của thiết bị.\n2. Tìm Chuyển văn bản thành giọng nói hoặc Text-to-speech.\n3. Chọn công cụ TTS đang dùng.\n4. Mở phần ngôn ngữ hoặc cài dữ liệu giọng nói.\n5. Cài giọng mới.\n6. Quay lại ứng dụng và nhấn Quét giọng nói trên thiết bị.",
+  "iosVoiceSetupSteps": "1. Mở Cài đặt.\n2. Mở Trợ năng.\n3. Mở Nội dung được đọc hoặc Giọng nói.\n4. Chọn ngôn ngữ và tải giọng có sẵn.\n5. Quay lại ứng dụng và quét lại.\nTên menu có thể khác nhau tùy phiên bản iOS.",
+  "webVoiceAvailabilityInfo": "Danh sách giọng nói trên Web do trình duyệt và hệ điều hành cung cấp.",
+  "lastScanned": "Đã quét: {time}",
+  "voiceInUse": "Đang dùng",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

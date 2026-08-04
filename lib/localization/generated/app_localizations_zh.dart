@@ -838,6 +838,49 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get voicesOpenManagerFailed => '无法打开语音管理。请打开系统文字转语音设置。';
+
+  @override
+  String get currentVoice => '当前语音';
+
+  @override
+  String get scanDeviceVoices => '扫描设备上的语音';
+
+  @override
+  String get availableDeviceVoices => '设备上可用的语音';
+
+  @override
+  String get scanVoicesHint => '点按“扫描设备上的语音”以查看已安装的语音。';
+
+  @override
+  String get noDeviceVoicesFound => '未在设备上找到合适的语音。';
+
+  @override
+  String get scanVoicesFailed => '无法扫描语音，请重试。';
+
+  @override
+  String get voiceSetupGuide => '如何添加语音';
+
+  @override
+  String get openVoiceSettings => '打开语音设置';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. 打开设备设置。\n2. 搜索“文字转语音”或 Text-to-speech。\n3. 打开当前使用的 TTS 引擎。\n4. 打开语言或语音数据。\n5. 安装新语音。\n6. 返回应用并点按“扫描设备上的语音”。';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. 打开设置。\n2. 打开辅助功能。\n3. 打开朗读内容或声音。\n4. 选择语言并下载可用语音。\n5. 返回应用并再次扫描。\n不同 iOS 版本的菜单名称可能不同。';
+
+  @override
+  String get webVoiceAvailabilityInfo => '在网页上，可用语音由浏览器和操作系统提供。';
+
+  @override
+  String lastScanned(String time) {
+    return '上次扫描：$time';
+  }
+
+  @override
+  String get voiceInUse => '使用中';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1674,4 +1717,47 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get voicesOpenManagerFailed => '無法開啟語音管理。請開啟系統文字轉語音設定。';
+
+  @override
+  String get currentVoice => '目前語音';
+
+  @override
+  String get scanDeviceVoices => '掃描裝置上的語音';
+
+  @override
+  String get availableDeviceVoices => '裝置上可用的語音';
+
+  @override
+  String get scanVoicesHint => '點一下「掃描裝置上的語音」以查看已安裝的語音。';
+
+  @override
+  String get noDeviceVoicesFound => '在裝置上找不到合適的語音。';
+
+  @override
+  String get scanVoicesFailed => '無法掃描語音，請再試一次。';
+
+  @override
+  String get voiceSetupGuide => '如何新增語音';
+
+  @override
+  String get openVoiceSettings => '開啟語音設定';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. 開啟裝置設定。\n2. 搜尋「文字轉語音」或 Text-to-speech。\n3. 開啟目前使用的 TTS 引擎。\n4. 開啟語言或語音資料。\n5. 安裝新語音。\n6. 返回應用程式並點「掃描裝置上的語音」。';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. 開啟設定。\n2. 開啟輔助使用。\n3. 開啟朗讀內容或聲音。\n4. 選擇語言並下載可用語音。\n5. 返回應用程式並再次掃描。\n不同 iOS 版本的選單名稱可能不同。';
+
+  @override
+  String get webVoiceAvailabilityInfo => '在網頁上，可用語音由瀏覽器和作業系統提供。';
+
+  @override
+  String lastScanned(String time) {
+    return '上次掃描：$time';
+  }
+
+  @override
+  String get voiceInUse => '使用中';
 }

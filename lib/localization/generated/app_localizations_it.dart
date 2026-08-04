@@ -866,4 +866,50 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get voicesOpenManagerFailed =>
       'Impossibile aprire la gestione voci. Apri le impostazioni TTS di sistema.';
+
+  @override
+  String get currentVoice => 'Voce attuale';
+
+  @override
+  String get scanDeviceVoices => 'Scansiona voci sul dispositivo';
+
+  @override
+  String get availableDeviceVoices => 'Voci disponibili sul dispositivo';
+
+  @override
+  String get scanVoicesHint =>
+      'Tocca Scansiona voci sul dispositivo per vedere le voci installate.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'Nessuna voce adatta trovata sul dispositivo.';
+
+  @override
+  String get scanVoicesFailed => 'Impossibile scansionare le voci. Riprova.';
+
+  @override
+  String get voiceSetupGuide => 'Come aggiungere voci';
+
+  @override
+  String get openVoiceSettings => 'Apri impostazioni voce';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Apri Impostazioni del dispositivo.\n2. Cerca Sintesi vocale o Text-to-speech.\n3. Apri il motore TTS in uso.\n4. Apri lingue o dati vocali.\n5. Installa una nuova voce.\n6. Torna qui e tocca Scansiona voci.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Apri Impostazioni.\n2. Apri Accessibilità.\n3. Apri Contenuti letti o Voci.\n4. Scegli una lingua e scarica una voce.\n5. Torna qui e scansiona di nuovo.\nI nomi dei menu possono variare con iOS.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'Sul Web le voci disponibili dipendono dal browser e dal sistema.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Ultima scansione: $time';
+  }
+
+  @override
+  String get voiceInUse => 'In uso';
 }
