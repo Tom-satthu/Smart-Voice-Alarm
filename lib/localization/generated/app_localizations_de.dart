@@ -916,4 +916,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get voiceInUse => 'Aktiv';
+
+  @override
+  String get otherLanguages => 'Andere Sprachen';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Stimmen',
+      one: '1 Stimme',
+      zero: 'Keine Stimmen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => 'Sprachstimmen erweitern';
+
+  @override
+  String get collapseLanguageVoices => 'Sprachstimmen einklappen';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return '$name anhören';
+  }
 }

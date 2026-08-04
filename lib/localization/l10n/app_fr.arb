@@ -373,5 +373,24 @@
         "type": "String"
       }
     }
+  },
+  "otherLanguages": "Autres langues",
+  "voicesInLanguage": "{count, plural, =0{Aucune voix} =1{1 voix} other{{count} voix}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "Développer les voix de la langue",
+  "collapseLanguageVoices": "Réduire les voix de la langue",
+  "voicePreviewNamed": "Écouter {name}",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

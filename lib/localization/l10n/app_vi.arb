@@ -373,5 +373,24 @@
         "type": "String"
       }
     }
+  },
+  "otherLanguages": "Ngôn ngữ khác",
+  "voicesInLanguage": "{count, plural, =0{Không có giọng} =1{1 giọng} other{{count} giọng}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "Mở danh sách giọng của ngôn ngữ",
+  "collapseLanguageVoices": "Thu gọn danh sách giọng của ngôn ngữ",
+  "voicePreviewNamed": "Nghe thử {name}",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

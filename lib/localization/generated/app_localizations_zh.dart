@@ -881,6 +881,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get voiceInUse => '使用中';
+
+  @override
+  String get otherLanguages => '其他语言';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个语音',
+      one: '1 个语音',
+      zero: '没有语音',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => '展开语言语音';
+
+  @override
+  String get collapseLanguageVoices => '收起语言语音';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return '试听 $name';
+  }
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1760,4 +1786,30 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get voiceInUse => '使用中';
+
+  @override
+  String get otherLanguages => '其他語言';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 個語音',
+      one: '1 個語音',
+      zero: '沒有語音',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => '展開語言語音';
+
+  @override
+  String get collapseLanguageVoices => '收合語言語音';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return '預聽 $name';
+  }
 }

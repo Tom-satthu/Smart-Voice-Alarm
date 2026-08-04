@@ -905,4 +905,30 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get voiceInUse => 'Sedang digunakan';
+
+  @override
+  String get otherLanguages => 'Bahasa lain';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suara',
+      one: '1 suara',
+      zero: 'Tidak ada suara',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => 'Perluas suara bahasa';
+
+  @override
+  String get collapseLanguageVoices => 'Ciutkan suara bahasa';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return 'Pratinjau $name';
+  }
 }

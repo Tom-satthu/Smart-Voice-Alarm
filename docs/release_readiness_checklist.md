@@ -27,13 +27,18 @@ Do **not** mark a row pass unless that check was actually run.
 | Chỉ còn một màn (không TabBar) | Not verified | Current + Scan + Guide |
 | Không còn tab “Giọng nói mới cài đặt” | Not verified | |
 | Card “Giọng nói đang dùng” hiện đúng | Not verified | |
+| Quét nhóm theo ngôn ngữ | Not verified | en-US/en-GB cùng English |
+| Selected language mở mặc định | Not verified | |
+| Có thể mở nhiều nhóm | Not verified | |
+| Voice row compact, locale phân biệt | Not verified | |
+| Preview không chọn voice | Not verified | |
+| Expansion không tự đóng sau preview | Not verified | |
 | Quét hiển thị giọng trên Samsung | Not verified | |
-| Quét sau khi cài voice trong Settings cập nhật list | Not verified | |
 | Quét không đổi giọng đang dùng (nếu vẫn còn) | Not verified | |
-| Preview dùng đúng voice đã chọn | Not verified | Must listen |
-| Alarm dùng cùng voice với preview | Not verified | Must listen |
+| Preview/alarm nghe đúng | Not verified | Must listen |
 | Voice giữ sau restart | Not verified | |
-| Gỡ voice hệ thống không crash app | Not verified | |
+| German/French/Portuguese không overflow | Not verified | |
+| TalkBack semantics hợp lý | Not verified | |
 | Hướng dẫn Android + nút mở settings | Not verified | |
 | iOS / Web runtime guide | Not verified | Static only unless tested |
 

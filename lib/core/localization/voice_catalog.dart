@@ -18,6 +18,22 @@ class VoiceLanguageGroup {
       locales.fold(0, (sum, locale) => sum + locale.voices.length);
 }
 
+/// Flat language bucket used by the device voice discovery list.
+class DeviceVoiceLanguageGroup {
+  const DeviceVoiceLanguageGroup({
+    required this.languageCode,
+    required this.voices,
+  });
+
+  /// ISO 639-1 code, or [VoiceCatalog.otherLanguageKey] for unknown locales.
+  final String languageCode;
+  final List<TtsVoiceUiModel> voices;
+
+  int get voiceCount => voices.length;
+
+  bool get isOther => languageCode == VoiceCatalog.otherLanguageKey;
+}
+
 class VoiceLocaleGroup {
   const VoiceLocaleGroup({
     required this.localeTag,
@@ -372,6 +388,196 @@ abstract final class VoiceCatalog {
       if (voice.isSystemDefault) return voice;
     }
     return voices.isEmpty ? null : voices.first;
+  }
+
+  /// Sentinel group key for malformed / undetermined locales.
+  static const otherLanguageKey = '__other__';
+
+  /// Group key by normalized ISO 639-1 language (not region, not engine).
+  static String discoveryGroupKey(String locale) {
+    final trimmed = locale.trim();
+    if (trimmed.isEmpty) return otherLanguageKey;
+    final rawLang = trimmed
+        .replaceAll('_', '-')
+        .split('-')
+        .firstWhere((part) => part.isNotEmpty, orElse: () => '');
+    if (rawLang.isEmpty) return otherLanguageKey;
+    final lang = normalizeLanguageCode(rawLang);
+    if (lang.isEmpty ||
+        lang == 'und' ||
+        lang == 'zxx' ||
+        !RegExp(r'^[a-z]{2,3}$').hasMatch(lang)) {
+      return otherLanguageKey;
+    }
+    return lang;
+  }
+
+  /// Deduplicate by stable identity while keeping different engines separate.
+  static List<TtsVoiceUiModel> dedupeForDiscovery(Iterable<TtsVoiceUiModel> voices) {
+    final seen = <String>{};
+    final out = <TtsVoiceUiModel>[];
+    for (final voice in voices) {
+      final key = [
+        voice.isSystemDefault ? 'system-default' : (voice.platformEngine ?? ''),
+        voice.isSystemDefault
+            ? discoveryGroupKey(voice.locale)
+            : voice.platformName,
+        normalizeLocaleTag(voice.locale),
+        voice.id,
+      ].join('|');
+      if (!seen.add(key)) continue;
+      out.add(voice);
+    }
+    return out;
+  }
+
+  static List<TtsVoiceUiModel> sortVoicesInLanguageGroup({
+    required List<TtsVoiceUiModel> voices,
+    String? selectedId,
+    String? appLocale,
+    String? systemLocale,
+    Map<String, String> friendlyLabels = const {},
+  }) {
+    final normalizedSelected =
+        normalizeSystemDefaultVoiceId(selectedId) ?? selectedId;
+    final appTag = appLocale == null || appLocale.isEmpty
+        ? ''
+        : normalizeLocaleTag(appLocale);
+    final systemTag = systemLocale == null || systemLocale.isEmpty
+        ? ''
+        : normalizeLocaleTag(systemLocale);
+
+    int rank(TtsVoiceUiModel voice) {
+      if (normalizedSelected != null &&
+          (voice.id == normalizedSelected || voice.id == selectedId)) {
+        return 0;
+      }
+      if (voice.isSystemDefault) return 1;
+      final locale = normalizeLocaleTag(voice.locale);
+      if (appTag.isNotEmpty && locale == appTag) return 2;
+      if (systemTag.isNotEmpty && locale == systemTag) return 3;
+      if (voice.availability == TtsVoiceAvailability.installedOffline) {
+        return 4;
+      }
+      return 5;
+    }
+
+    String label(TtsVoiceUiModel voice) {
+      if (voice.isSystemDefault) return '0';
+      return (friendlyLabels[voice.id] ?? voice.name).toLowerCase();
+    }
+
+    final sorted = List<TtsVoiceUiModel>.from(voices);
+    sorted.sort((a, b) {
+      final byRank = rank(a).compareTo(rank(b));
+      if (byRank != 0) return byRank;
+      final byLabel = label(a).compareTo(label(b));
+      if (byLabel != 0) return byLabel;
+      return a.id.compareTo(b.id);
+    });
+    return sorted;
+  }
+
+  /// Group usable device voices by language for the expandable discovery list.
+  static List<DeviceVoiceLanguageGroup> groupForDeviceDiscovery({
+    required Iterable<TtsVoiceUiModel> voices,
+    String? selectedId,
+    String? selectedLanguage,
+    String? appLocale,
+    String? systemLocale,
+    Map<String, String> friendlyLabels = const {},
+    String Function(String languageCode)? languageLabelFor,
+  }) {
+    final deduped = dedupeForDiscovery(voices.where((v) => v.isUsable));
+    final byLanguage = <String, List<TtsVoiceUiModel>>{};
+    for (final voice in deduped) {
+      final key = discoveryGroupKey(voice.locale);
+      byLanguage.putIfAbsent(key, () => []).add(voice);
+    }
+
+    final selectedLang = () {
+      if (selectedLanguage != null && selectedLanguage.isNotEmpty) {
+        return discoveryGroupKey(selectedLanguage);
+      }
+      if (selectedId == null) return null;
+      for (final voice in deduped) {
+        if (voice.id == selectedId ||
+            voice.id == normalizeSystemDefaultVoiceId(selectedId)) {
+          return discoveryGroupKey(voice.locale);
+        }
+      }
+      if (selectedId.startsWith('system-default|')) {
+        return discoveryGroupKey(
+          selectedId.substring('system-default|'.length),
+        );
+      }
+      return null;
+    }();
+
+    final appLang = appLocale == null || appLocale.isEmpty
+        ? null
+        : discoveryGroupKey(appLocale);
+    final systemLang = systemLocale == null || systemLocale.isEmpty
+        ? null
+        : discoveryGroupKey(systemLocale);
+
+    int groupRank(String code) {
+      if (selectedLang != null && code == selectedLang) return 0;
+      if (appLang != null && code == appLang) return 1;
+      if (systemLang != null && code == systemLang) return 2;
+      if (code == otherLanguageKey) return 100;
+      return 10;
+    }
+
+    String label(String code) {
+      if (code == otherLanguageKey) return '\uFFFF';
+      return (languageLabelFor?.call(code) ?? LocaleDisplayNames.friendly(code))
+          .toLowerCase();
+    }
+
+    final codes = byLanguage.keys.toList()
+      ..sort((a, b) {
+        final byRank = groupRank(a).compareTo(groupRank(b));
+        if (byRank != 0) return byRank;
+        return label(a).compareTo(label(b));
+      });
+
+    return [
+      for (final code in codes)
+        DeviceVoiceLanguageGroup(
+          languageCode: code,
+          voices: sortVoicesInLanguageGroup(
+            voices: byLanguage[code]!,
+            selectedId: selectedId,
+            appLocale: appLocale,
+            systemLocale: systemLocale,
+            friendlyLabels: friendlyLabels,
+          ),
+        ),
+    ];
+  }
+
+  /// Default expanded language after scan / first display.
+  static String? defaultExpandedLanguage({
+    required List<DeviceVoiceLanguageGroup> groups,
+    String? selectedLanguage,
+    String? appLanguage,
+  }) {
+    if (groups.isEmpty) return null;
+    final selected = selectedLanguage == null || selectedLanguage.isEmpty
+        ? null
+        : discoveryGroupKey(selectedLanguage);
+    if (selected != null &&
+        groups.any((group) => group.languageCode == selected)) {
+      return selected;
+    }
+    final app = appLanguage == null || appLanguage.isEmpty
+        ? null
+        : discoveryGroupKey(appLanguage);
+    if (app != null && groups.any((group) => group.languageCode == app)) {
+      return app;
+    }
+    return groups.first.languageCode;
   }
 
   /// Stable friendly labels per locale: Voice 01, Voice 02, …

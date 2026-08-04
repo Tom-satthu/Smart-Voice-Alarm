@@ -34,6 +34,10 @@ class _VoiceSpeechSettingsScreenState
   List<TtsVoiceUiModel> _scannedVoices = const [];
   String? _scanError;
   DateTime? _lastScannedAt;
+  final Set<String> _expandedLanguages = {};
+  bool _expansionSeeded = false;
+  String? _previewingVoiceId;
+  String? _lastAutoExpandedForSelected;
 
   @override
   void deactivate() {
@@ -59,6 +63,7 @@ class _VoiceSpeechSettingsScreenState
     setState(() {
       _scanning = true;
       _scanError = null;
+      _previewingVoiceId = null;
     });
 
     try {
@@ -120,6 +125,12 @@ class _VoiceSpeechSettingsScreenState
         _lastScannedAt = DateTime.now();
         _scanning = false;
         _scanError = null;
+        _syncExpansionAfterScan(
+          voices: sorted,
+          selectedId: preferred.id,
+          selectedLanguage: preferred.language ?? preferred.locale,
+          appLocale: context.appLocale,
+        );
       });
 
       // If a concrete preferred voice vanished from the device, fall back once.
@@ -166,6 +177,68 @@ class _VoiceSpeechSettingsScreenState
     }
   }
 
+  void _syncExpansionAfterScan({
+    required List<TtsVoiceUiModel> voices,
+    String? selectedId,
+    String? selectedLanguage,
+    String? appLocale,
+  }) {
+    final groups = VoiceCatalog.groupForDeviceDiscovery(
+      voices: voices,
+      selectedId: selectedId,
+      selectedLanguage: selectedLanguage,
+      appLocale: appLocale,
+    );
+    final alive = groups.map((group) => group.languageCode).toSet();
+    _expandedLanguages.removeWhere((code) => !alive.contains(code));
+    if (!_expansionSeeded || _expandedLanguages.isEmpty) {
+      final open = VoiceCatalog.defaultExpandedLanguage(
+        groups: groups,
+        selectedLanguage: selectedLanguage,
+        appLanguage: appLocale,
+      );
+      if (open != null) {
+        _expandedLanguages.add(open);
+        _lastAutoExpandedForSelected = open;
+      }
+      _expansionSeeded = true;
+    }
+  }
+
+  void _ensureSelectedLanguageExpanded(String? selectedLanguage) {
+    if (selectedLanguage == null || selectedLanguage.isEmpty) return;
+    final key = VoiceCatalog.discoveryGroupKey(selectedLanguage);
+    if (_lastAutoExpandedForSelected == key) return;
+    if (_expandedLanguages.contains(key)) {
+      _lastAutoExpandedForSelected = key;
+      return;
+    }
+    _expandedLanguages.add(key);
+    _lastAutoExpandedForSelected = key;
+  }
+
+  Future<void> _togglePreview(TtsVoiceUiModel voice) async {
+    if (_previewingVoiceId == voice.id) {
+      await ref.read(ttsServiceProvider).stop();
+      if (mounted) setState(() => _previewingVoiceId = null);
+      return;
+    }
+    await ref.read(ttsServiceProvider).stop();
+    if (!mounted) return;
+    setState(() => _previewingVoiceId = voice.id);
+    try {
+      await ref.read(ttsServiceProvider).preview(
+            text: VoiceCatalog.previewSampleForLocale(voice.locale),
+            voiceId: voice.id,
+            locale: voice.locale,
+          );
+    } finally {
+      if (mounted && _previewingVoiceId == voice.id) {
+        setState(() => _previewingVoiceId = null);
+      }
+    }
+  }
+
   Future<void> _saveVoice(TtsVoiceUiModel voice) async {
     final l10n = AppLocalizations.of(context);
     final locale = VoiceCatalog.normalizeLocaleTag(voice.locale);
@@ -191,6 +264,7 @@ class _VoiceSpeechSettingsScreenState
           ),
           friendlyLabels: labels,
         );
+        _ensureSelectedLanguageExpanded(locale);
       });
     }
     ScaffoldMessenger.of(context).showSnackBar(
@@ -263,6 +337,21 @@ class _VoiceSpeechSettingsScreenState
       preferredId: preferred.id,
       preferredLanguage: preferred.language,
     );
+
+    if (_hasScanned) {
+      final selectedLang =
+          preferred.language ?? preferred.locale ?? selected?.locale;
+      if (selectedLang != null) {
+        final key = VoiceCatalog.discoveryGroupKey(selectedLang);
+        if (_lastAutoExpandedForSelected != key &&
+            !_expandedLanguages.contains(key)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() => _ensureSelectedLanguageExpanded(selectedLang));
+          });
+        }
+      }
+    }
 
     return AppScaffold(
       showBack: true,
@@ -362,17 +451,32 @@ class _VoiceSpeechSettingsScreenState
                 subtitle: l10n.voicesOfflineHint,
               )
             else if (_hasScanned)
-              for (final voice in _scannedVoices)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppConstants.spaceSm),
-                  child: _DeviceVoiceTile(
-                    voice: voice,
-                    friendlyName: _friendlyName(l10n, voice, labels),
-                    selected: preferred.id == voice.id ||
-                        selected?.id == voice.id,
-                    onSelect: () => _saveVoice(voice),
-                  ),
-                ),
+              _GroupedDeviceVoiceList(
+                voices: _scannedVoices,
+                labels: labels,
+                selectedId: preferred.id ?? selected?.id,
+                selectedLanguage: preferred.language ??
+                    preferred.locale ??
+                    selected?.locale,
+                appLocale: ref.watch(localeProvider).toLanguageTag(),
+                systemLocale: WidgetsBinding
+                    .instance.platformDispatcher.locale
+                    .toLanguageTag(),
+                expandedLanguages: _expandedLanguages,
+                previewingVoiceId: _previewingVoiceId,
+                onToggleExpanded: (languageCode) {
+                  setState(() {
+                    if (_expandedLanguages.contains(languageCode)) {
+                      _expandedLanguages.remove(languageCode);
+                    } else {
+                      _expandedLanguages.add(languageCode);
+                    }
+                  });
+                },
+                onSelect: _saveVoice,
+                onPreview: _togglePreview,
+                friendlyNameFor: (voice) => _friendlyName(l10n, voice, labels),
+              ),
             const SizedBox(height: AppConstants.spaceLg),
             SectionHeader(title: l10n.voiceSetupGuide),
             _VoiceSetupGuideCard(
@@ -467,60 +571,212 @@ class _ScanVoicesButton extends StatelessWidget {
   }
 }
 
-class _DeviceVoiceTile extends ConsumerStatefulWidget {
-  const _DeviceVoiceTile({
+class _GroupedDeviceVoiceList extends StatelessWidget {
+  const _GroupedDeviceVoiceList({
+    required this.voices,
+    required this.labels,
+    required this.selectedId,
+    required this.selectedLanguage,
+    required this.appLocale,
+    required this.systemLocale,
+    required this.expandedLanguages,
+    required this.previewingVoiceId,
+    required this.onToggleExpanded,
+    required this.onSelect,
+    required this.onPreview,
+    required this.friendlyNameFor,
+  });
+
+  final List<TtsVoiceUiModel> voices;
+  final Map<String, String> labels;
+  final String? selectedId;
+  final String? selectedLanguage;
+  final String appLocale;
+  final String systemLocale;
+  final Set<String> expandedLanguages;
+  final String? previewingVoiceId;
+  final ValueChanged<String> onToggleExpanded;
+  final ValueChanged<TtsVoiceUiModel> onSelect;
+  final ValueChanged<TtsVoiceUiModel> onPreview;
+  final String Function(TtsVoiceUiModel voice) friendlyNameFor;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
+    final groups = VoiceCatalog.groupForDeviceDiscovery(
+      voices: voices,
+      selectedId: selectedId,
+      selectedLanguage: selectedLanguage,
+      appLocale: appLocale,
+      systemLocale: systemLocale,
+      friendlyLabels: labels,
+      languageLabelFor: (code) => code == VoiceCatalog.otherLanguageKey
+          ? l10n.otherLanguages
+          : LocaleDisplayNames.friendly(code),
+    );
+
+    return SurfacePanel(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) ...[
+            if (groupIndex > 0)
+              Divider(height: 1, color: colors.outlineVariant.withValues(alpha: 0.5)),
+            _LanguageGroupSection(
+              group: groups[groupIndex],
+              languageLabel: groups[groupIndex].isOther
+                  ? l10n.otherLanguages
+                  : LocaleDisplayNames.friendly(groups[groupIndex].languageCode),
+              expanded: expandedLanguages.contains(groups[groupIndex].languageCode),
+              selectedId: selectedId,
+              previewingVoiceId: previewingVoiceId,
+              onToggleExpanded: onToggleExpanded,
+              onSelect: onSelect,
+              onPreview: onPreview,
+              friendlyNameFor: friendlyNameFor,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageGroupSection extends StatelessWidget {
+  const _LanguageGroupSection({
+    required this.group,
+    required this.languageLabel,
+    required this.expanded,
+    required this.selectedId,
+    required this.previewingVoiceId,
+    required this.onToggleExpanded,
+    required this.onSelect,
+    required this.onPreview,
+    required this.friendlyNameFor,
+  });
+
+  final DeviceVoiceLanguageGroup group;
+  final String languageLabel;
+  final bool expanded;
+  final String? selectedId;
+  final String? previewingVoiceId;
+  final ValueChanged<String> onToggleExpanded;
+  final ValueChanged<TtsVoiceUiModel> onSelect;
+  final ValueChanged<TtsVoiceUiModel> onPreview;
+  final String Function(TtsVoiceUiModel voice) friendlyNameFor;
+
+  bool get _containsSelected {
+    final normalized = VoiceCatalog.normalizeSystemDefaultVoiceId(selectedId);
+    return group.voices.any(
+      (voice) => voice.id == selectedId || voice.id == normalized,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
+    final countLabel = l10n.voicesInLanguage(group.voiceCount);
+    final semanticsLabel = [
+      languageLabel,
+      countLabel,
+      expanded ? l10n.collapseLanguageVoices : l10n.expandLanguageVoices,
+      if (_containsSelected) l10n.voiceInUse,
+    ].join(', ');
+
+    return Column(
+      children: [
+        Semantics(
+          button: true,
+          expanded: expanded,
+          label: semanticsLabel,
+          child: InkWell(
+            onTap: () => onToggleExpanded(group.languageCode),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Row(
+                  children: [
+                    Icon(
+                      expanded
+                          ? Icons.expand_more_rounded
+                          : Icons.chevron_right_rounded,
+                      color: colors.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '$languageLabel · $countLabel',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (_containsSelected)
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 18,
+                        color: colors.primary,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (expanded)
+          for (var i = 0; i < group.voices.length; i++) ...[
+            Divider(height: 1, indent: 16, color: colors.outlineVariant.withValues(alpha: 0.45)),
+            _CompactVoiceRow(
+              voice: group.voices[i],
+              friendlyName: friendlyNameFor(group.voices[i]),
+              selected: group.voices[i].id == selectedId ||
+                  group.voices[i].id ==
+                      VoiceCatalog.normalizeSystemDefaultVoiceId(selectedId),
+              previewing: previewingVoiceId == group.voices[i].id,
+              onSelect: () => onSelect(group.voices[i]),
+              onPreview: () => onPreview(group.voices[i]),
+            ),
+          ],
+      ],
+    );
+  }
+}
+
+class _CompactVoiceRow extends StatelessWidget {
+  const _CompactVoiceRow({
     required this.voice,
     required this.friendlyName,
     required this.selected,
+    required this.previewing,
     required this.onSelect,
+    required this.onPreview,
   });
 
   final TtsVoiceUiModel voice;
   final String friendlyName;
   final bool selected;
+  final bool previewing;
   final VoidCallback onSelect;
+  final VoidCallback onPreview;
 
-  @override
-  ConsumerState<_DeviceVoiceTile> createState() => _DeviceVoiceTileState();
-}
-
-class _DeviceVoiceTileState extends ConsumerState<_DeviceVoiceTile> {
-  bool _previewing = false;
-
-  Future<void> _togglePreview() async {
-    if (_previewing) {
-      await ref.read(ttsServiceProvider).stop();
-      if (mounted) setState(() => _previewing = false);
-      return;
-    }
-    setState(() => _previewing = true);
-    try {
-      await ref.read(ttsServiceProvider).preview(
-            text: VoiceCatalog.previewSampleForLocale(widget.voice.locale),
-            voiceId: widget.voice.id,
-            locale: widget.voice.locale,
-          );
-    } finally {
-      if (mounted) setState(() => _previewing = false);
-    }
-  }
-
-  String? _meta(AppLocalizations l10n) {
+  String _meta(AppLocalizations l10n) {
     final parts = <String>[
-      LocaleDisplayNames.friendly(widget.voice.locale),
+      VoiceCatalog.normalizeLocaleTag(voice.locale),
     ];
-    final engine = widget.voice.platformEngine?.trim();
+    final engine = voice.platformEngine?.trim();
     if (engine != null && engine.isNotEmpty) {
-      final short = engine.contains('.') ? engine.split('.').last : engine;
-      parts.add(short);
+      parts.add(engine.contains('.') ? engine.split('.').last : engine);
     }
-    if (widget.voice.isSystemDefault) {
+    if (voice.isSystemDefault) {
       parts.add(l10n.voiceSystemDefault);
-    } else if (widget.voice.availability ==
-        TtsVoiceAvailability.networkRequired) {
+    } else if (voice.availability == TtsVoiceAvailability.networkRequired) {
       parts.add(l10n.voiceAvailabilityNetwork);
-    } else if (widget.voice.availability ==
-        TtsVoiceAvailability.installedOffline) {
+    } else if (voice.availability == TtsVoiceAvailability.installedOffline) {
       parts.add(l10n.voiceAvailabilityOffline);
     }
     return parts.join(' · ');
@@ -530,66 +786,87 @@ class _DeviceVoiceTileState extends ConsumerState<_DeviceVoiceTile> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = context.colors;
-    return SurfacePanel(
-      emphasized: widget.selected,
-      onTap: widget.onSelect,
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-      child: Row(
-        children: [
-          Icon(
-            widget.selected
-                ? Icons.check_circle_rounded
-                : Icons.record_voice_over_outlined,
-            color: widget.selected ? colors.primary : colors.onSurfaceVariant,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.friendlyName,
-                  style: context.textTheme.titleSmall?.copyWith(
-                    fontWeight:
-                        widget.selected ? FontWeight.w700 : FontWeight.w600,
-                  ),
+    final previewLabel = l10n.voicePreviewNamed(friendlyName);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: [
+        friendlyName,
+        _meta(l10n),
+        if (selected) l10n.voiceInUse,
+      ].join(', '),
+      child: InkWell(
+        onTap: onSelect,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 28,
+                child: Icon(
+                  selected
+                      ? Icons.check_circle_rounded
+                      : Icons.record_voice_over_outlined,
+                  size: 20,
+                  color: selected ? colors.primary : colors.onSurfaceVariant,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  _meta(l10n) ?? widget.voice.locale,
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
-                ),
-                if (widget.selected) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.voiceInUse,
-                    style: context.textTheme.labelSmall?.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w700,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      friendlyName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ],
-            ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _meta(l10n),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Semantics(
+                button: true,
+                label: previewLabel,
+                excludeSemantics: true,
+                child: IconButton(
+                  tooltip: previewing ? l10n.alarmStop : previewLabel,
+                  onPressed: onPreview,
+                  visualDensity: VisualDensity.compact,
+                  icon: previewing
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.play_arrow_rounded),
+                ),
+              ),
+              TextButton(
+                onPressed: onSelect,
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                child: Text(selected ? l10n.voiceInUse : l10n.voiceSelect),
+              ),
+            ],
           ),
-          IconButton(
-            tooltip: _previewing ? l10n.alarmStop : l10n.ttsPreview,
-            onPressed: _togglePreview,
-            icon: _previewing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.play_arrow_rounded),
-          ),
-          TextButton(
-            onPressed: widget.onSelect,
-            child: Text(widget.selected ? l10n.voiceInUse : l10n.voiceSelect),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -653,3 +930,4 @@ class _VoiceSetupGuideCard extends StatelessWidget {
     );
   }
 }
+

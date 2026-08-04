@@ -884,4 +884,30 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get voiceInUse => '사용 중';
+
+  @override
+  String get otherLanguages => '기타 언어';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '음성 $count개',
+      one: '음성 1개',
+      zero: '음성 없음',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => '언어 음성 펼치기';
+
+  @override
+  String get collapseLanguageVoices => '언어 음성 접기';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return '$name 미리듣기';
+  }
 }

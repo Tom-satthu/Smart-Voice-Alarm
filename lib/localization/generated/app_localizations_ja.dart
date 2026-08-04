@@ -882,4 +882,30 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get voiceInUse => '使用中';
+
+  @override
+  String get otherLanguages => 'その他の言語';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '音声 $count',
+      one: '音声 1',
+      zero: '音声なし',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => '言語の音声を展開';
+
+  @override
+  String get collapseLanguageVoices => '言語の音声を折りたたむ';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return '$name をプレビュー';
+  }
 }

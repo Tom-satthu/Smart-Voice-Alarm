@@ -906,4 +906,30 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get voiceInUse => 'Đang dùng';
+
+  @override
+  String get otherLanguages => 'Ngôn ngữ khác';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giọng',
+      one: '1 giọng',
+      zero: 'Không có giọng',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => 'Mở danh sách giọng của ngôn ngữ';
+
+  @override
+  String get collapseLanguageVoices => 'Thu gọn danh sách giọng của ngôn ngữ';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return 'Nghe thử $name';
+  }
 }

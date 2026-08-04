@@ -1732,6 +1732,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In use'**
   String get voiceInUse;
+
+  /// No description provided for @otherLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Other languages'**
+  String get otherLanguages;
+
+  /// No description provided for @voicesInLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No voices} =1{1 voice} other{{count} voices}}'**
+  String voicesInLanguage(int count);
+
+  /// No description provided for @expandLanguageVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand language voices'**
+  String get expandLanguageVoices;
+
+  /// No description provided for @collapseLanguageVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse language voices'**
+  String get collapseLanguageVoices;
+
+  /// No description provided for @voicePreviewNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview {name}'**
+  String voicePreviewNamed(String name);
 }
 
 class _AppLocalizationsDelegate

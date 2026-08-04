@@ -912,4 +912,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get voiceInUse => 'En uso';
+
+  @override
+  String get otherLanguages => 'Otros idiomas';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voces',
+      one: '1 voz',
+      zero: 'Sin voces',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => 'Expandir voces del idioma';
+
+  @override
+  String get collapseLanguageVoices => 'Contraer voces del idioma';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return 'Vista previa de $name';
+  }
 }
