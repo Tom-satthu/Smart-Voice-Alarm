@@ -804,6 +804,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get voicesNoNewFound => '새 음성이 감지되지 않았습니다.';
 
   @override
+  String voicesSystemUpdated(String language) {
+    return '기기 설정에서 $language 음성을 업데이트했습니다.';
+  }
+
+  @override
+  String get voicesNoChange => '음성 변경이 감지되지 않았습니다.';
+
+  @override
   String get voicesNewBadge => '신규';
 
   @override

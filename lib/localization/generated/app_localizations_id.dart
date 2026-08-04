@@ -819,6 +819,14 @@ class AppLocalizationsId extends AppLocalizations {
   String get voicesNoNewFound => 'Tidak ada suara baru terdeteksi.';
 
   @override
+  String voicesSystemUpdated(String language) {
+    return 'Suara $language diperbarui dari pengaturan perangkat.';
+  }
+
+  @override
+  String get voicesNoChange => 'Tidak ada perubahan suara terdeteksi.';
+
+  @override
   String get voicesNewBadge => 'Baru';
 
   @override

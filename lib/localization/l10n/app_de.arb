@@ -308,6 +308,15 @@
   "voicesRescanResult": "{count} nutzbare Stimmen gefunden",
   "voicesNewFound": "{count} neue Stimmen gefunden.",
   "voicesNoNewFound": "Keine neuen Stimmen erkannt.",
+  "voicesSystemUpdated": "Die {language}-Stimme wurde aus den Geräteeinstellungen aktualisiert.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "Keine Stimmänderungen erkannt.",
   "voicesNewBadge": "Neu",
   "voiceFriendlyName": "Stimme {number}",
   "voicesOpenManagerFailed": "Sprachverwaltung konnte nicht geöffnet werden. Öffnen Sie die System-TTS-Einstellungen.",

@@ -1,5 +1,6 @@
 import '../localization/locale_display_names.dart';
 import '../../shared/models/ui_models.dart';
+import 'locale_codes.dart';
 
 class VoiceLanguageGroup {
   const VoiceLanguageGroup({
@@ -30,11 +31,14 @@ class VoiceLocaleGroup {
 
 /// Groups system TTS voices by language, then by locale/region.
 abstract final class VoiceCatalog {
-  static String languageCodeOf(String locale) {
-    final normalized = locale.replaceAll('_', '-');
-    final parts = normalized.split('-');
-    return parts.first.toLowerCase();
-  }
+  static String normalizeLocaleTag(String locale) =>
+      LocaleCodes.normalizeLocaleTag(locale);
+
+  static String normalizeLanguageCode(String code) =>
+      LocaleCodes.normalizeLanguageCode(code);
+
+  static String languageCodeOf(String locale) =>
+      LocaleCodes.languageCodeOf(locale);
 
   /// Stable friendly labels per locale: Voice 01, Voice 02, …
   /// Sorted by technical voice [TtsVoiceUiModel.id], never using the number as id.
@@ -44,7 +48,7 @@ abstract final class VoiceCatalog {
   }) {
     final byLocale = <String, List<TtsVoiceUiModel>>{};
     for (final voice in voices) {
-      final key = voice.locale.replaceAll('_', '-').toLowerCase();
+      final key = normalizeLocaleTag(voice.locale).toLowerCase();
       byLocale.putIfAbsent(key, () => []).add(voice);
     }
     final labels = <String, String>{};
@@ -73,6 +77,7 @@ abstract final class VoiceCatalog {
       'ja' => 'こんにちは。これは音声の短いプレビューです。',
       'ko' => '안녕하세요. 이 음성의 짧은 미리듣기입니다.',
       'zh' => '你好。这是此语音的简短预览。',
+      'ru' => 'Здравствуйте. Это короткий образец этого голоса.',
       _ => 'Hello. This is a short voice preview.',
     };
   }
@@ -84,6 +89,13 @@ abstract final class VoiceCatalog {
     String? systemLanguage,
     String query = '',
   }) {
+    final preferred = preferredLanguage == null
+        ? null
+        : normalizeLanguageCode(preferredLanguage);
+    final app = appLanguage == null ? null : normalizeLanguageCode(appLanguage);
+    final system =
+        systemLanguage == null ? null : normalizeLanguageCode(systemLanguage);
+
     final q = query.trim().toLowerCase();
     final filtered = q.isEmpty
         ? voices
@@ -100,7 +112,7 @@ abstract final class VoiceCatalog {
     final byLanguage = <String, Map<String, List<TtsVoiceUiModel>>>{};
     for (final voice in filtered) {
       final lang = languageCodeOf(voice.locale);
-      final localeKey = voice.locale.replaceAll('_', '-');
+      final localeKey = normalizeLocaleTag(voice.locale);
       byLanguage.putIfAbsent(lang, () => {});
       byLanguage[lang]!.putIfAbsent(localeKey, () => []).add(voice);
     }
@@ -128,9 +140,9 @@ abstract final class VoiceCatalog {
     }
 
     int rank(String code) {
-      if (code == preferredLanguage) return 0;
-      if (code == appLanguage) return 1;
-      if (code == systemLanguage) return 2;
+      if (code == preferred) return 0;
+      if (code == app) return 1;
+      if (code == system) return 2;
       return 10;
     }
 

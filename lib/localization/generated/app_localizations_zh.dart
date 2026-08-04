@@ -801,6 +801,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voicesNoNewFound => '未检测到新语音。';
 
   @override
+  String voicesSystemUpdated(String language) {
+    return '已从设备设置更新$language语音。';
+  }
+
+  @override
+  String get voicesNoChange => '未检测到语音更改。';
+
+  @override
   String get voicesNewBadge => '新';
 
   @override
@@ -1607,6 +1615,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get voicesNoNewFound => '未偵測到新語音。';
+
+  @override
+  String voicesSystemUpdated(String language) {
+    return '已從裝置設定更新$language語音。';
+  }
+
+  @override
+  String get voicesNoChange => '未偵測到語音變更。';
 
   @override
   String get voicesNewBadge => '新';

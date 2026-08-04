@@ -136,11 +136,6 @@ class _VoiceBrowserState extends ConsumerState<VoiceBrowser> {
 
   Future<void> _select(TtsVoiceUiModel voice) async {
     widget.onSelected(voice);
-    await ref.read(preferredVoiceProvider.notifier).setVoice(
-          id: voice.id,
-          locale: voice.locale,
-          language: VoiceCatalog.languageCodeOf(voice.locale),
-        );
   }
 
   @override

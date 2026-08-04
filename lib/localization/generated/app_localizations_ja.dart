@@ -802,6 +802,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get voicesNoNewFound => '新しい音声は検出されませんでした。';
 
   @override
+  String voicesSystemUpdated(String language) {
+    return '端末設定から$languageの音声を更新しました。';
+  }
+
+  @override
+  String get voicesNoChange => '音声の変更は検出されませんでした。';
+
+  @override
   String get voicesNewBadge => '新規';
 
   @override

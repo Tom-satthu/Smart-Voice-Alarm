@@ -1,7 +1,9 @@
+import 'locale_codes.dart';
+
 /// Human-readable labels for common TTS locale tags.
 abstract final class LocaleDisplayNames {
   static String friendly(String raw) {
-    final normalized = raw.replaceAll('_', '-');
+    final normalized = LocaleCodes.normalizeLocaleTag(raw);
     final known = _names[normalized] ??
         _names[normalized.toLowerCase()] ??
         _byLanguage(normalized);
@@ -9,7 +11,7 @@ abstract final class LocaleDisplayNames {
   }
 
   static String? _byLanguage(String tag) {
-    final lang = tag.split('-').first.toLowerCase();
+    final lang = LocaleCodes.languageCodeOf(tag);
     return switch (lang) {
       'en' => 'English',
       'es' => 'Spanish',
@@ -23,6 +25,23 @@ abstract final class LocaleDisplayNames {
       'zh' => 'Chinese',
       'id' => 'Indonesian',
       'vi' => 'Vietnamese',
+      'ru' => 'Russian',
+      'ar' => 'Arabic',
+      'hi' => 'Hindi',
+      'th' => 'Thai',
+      'tr' => 'Turkish',
+      'pl' => 'Polish',
+      'uk' => 'Ukrainian',
+      'cs' => 'Czech',
+      'sv' => 'Swedish',
+      'da' => 'Danish',
+      'no' => 'Norwegian',
+      'fi' => 'Finnish',
+      'hu' => 'Hungarian',
+      'ro' => 'Romanian',
+      'el' => 'Greek',
+      'he' => 'Hebrew',
+      'ms' => 'Malay',
       _ => null,
     };
   }
@@ -49,5 +68,6 @@ abstract final class LocaleDisplayNames {
     'zh-HK': 'Chinese (Hong Kong)',
     'id-ID': 'Indonesian (Indonesia)',
     'vi-VN': 'Vietnamese (Vietnam)',
+    'ru-RU': 'Russian (Russia)',
   };
 }

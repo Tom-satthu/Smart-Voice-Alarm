@@ -2,12 +2,63 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../localization/locale_codes.dart';
+
+/// Snapshot of the default TTS engine voice selection.
+class TtsEngineVoiceInfo {
+  const TtsEngineVoiceInfo({
+    required this.name,
+    required this.locale,
+    this.networkRequired = false,
+    this.identifier,
+  });
+
+  final String name;
+  final String locale;
+  final bool networkRequired;
+  final String? identifier;
+
+  String get id {
+    final key = identifier?.trim();
+    if (key != null && key.isNotEmpty) return '$key|$locale';
+    return '$name|$locale';
+  }
+
+  factory TtsEngineVoiceInfo.fromMap(Map<dynamic, dynamic> map) {
+    final name = (map['name'] ?? map['identifier'] ?? 'Voice').toString();
+    final locale = LocaleCodes.normalizeLocaleTag(
+      (map['locale'] ?? 'en').toString(),
+    );
+    final network = map['networkRequired'] ??
+        map['network_required'] ??
+        map['requiresNetwork'];
+    final identifier = (map['identifier'] ?? map['name'])?.toString();
+    return TtsEngineVoiceInfo(
+      name: name,
+      locale: locale,
+      networkRequired: network == true || network?.toString() == '1',
+      identifier: identifier,
+    );
+  }
+}
+
+class TtsEngineVoiceState {
+  const TtsEngineVoiceState({
+    this.current,
+    this.defaultVoice,
+  });
+
+  final TtsEngineVoiceInfo? current;
+  final TtsEngineVoiceInfo? defaultVoice;
+
+  TtsEngineVoiceInfo? get effective => current ?? defaultVoice;
+}
+
 /// Opens system TTS voice install / settings screens.
 class TtsPlatformBridge {
   TtsPlatformBridge();
 
-  static const _channel =
-      MethodChannel('com.smartvoicealarm.app/tts');
+  static const _channel = MethodChannel('com.smartvoicealarm.app/tts');
 
   bool get canManageSystemVoicePacks =>
       !kIsWeb &&
@@ -67,5 +118,29 @@ class TtsPlatformBridge {
       debugPrint('openSystemTtsSettings failed: $error');
     }
     return false;
+  }
+
+  /// Reads [TextToSpeech.getVoice] / defaultVoice from the default engine.
+  Future<TtsEngineVoiceState?> getEngineVoiceState() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return null;
+    }
+    try {
+      final raw = await _channel.invokeMethod<dynamic>('getEngineVoiceState');
+      if (raw is! Map) return null;
+      final map = Map<dynamic, dynamic>.from(raw);
+      TtsEngineVoiceInfo? parse(dynamic value) {
+        if (value is! Map) return null;
+        return TtsEngineVoiceInfo.fromMap(Map<dynamic, dynamic>.from(value));
+      }
+
+      return TtsEngineVoiceState(
+        current: parse(map['current']),
+        defaultVoice: parse(map['default']),
+      );
+    } catch (error) {
+      debugPrint('getEngineVoiceState failed: $error');
+      return null;
+    }
   }
 }

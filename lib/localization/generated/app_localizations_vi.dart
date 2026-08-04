@@ -820,6 +820,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get voicesNoNewFound => 'Không phát hiện giọng nói mới.';
 
   @override
+  String voicesSystemUpdated(String language) {
+    return 'Đã cập nhật giọng $language từ cài đặt thiết bị.';
+  }
+
+  @override
+  String get voicesNoChange => 'Không phát hiện thay đổi về giọng nói.';
+
+  @override
   String get voicesNewBadge => 'Mới';
 
   @override

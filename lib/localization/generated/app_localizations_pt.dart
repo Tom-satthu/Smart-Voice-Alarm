@@ -824,6 +824,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get voicesNoNewFound => 'Nenhuma voz nova detetada.';
 
   @override
+  String voicesSystemUpdated(String language) {
+    return 'Voz de $language atualizada nas definições do dispositivo.';
+  }
+
+  @override
+  String get voicesNoChange => 'Nenhuma alteração de voz detetada.';
+
+  @override
   String get voicesNewBadge => 'Nova';
 
   @override

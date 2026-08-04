@@ -1589,6 +1589,18 @@ abstract class AppLocalizations {
   /// **'No new voices detected.'**
   String get voicesNoNewFound;
 
+  /// No description provided for @voicesSystemUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated the {language} voice from device settings.'**
+  String voicesSystemUpdated(String language);
+
+  /// No description provided for @voicesNoChange.
+  ///
+  /// In en, this message translates to:
+  /// **'No voice changes detected.'**
+  String get voicesNoChange;
+
   /// No description provided for @voicesNewBadge.
   ///
   /// In en, this message translates to:

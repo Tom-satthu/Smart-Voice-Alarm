@@ -308,6 +308,15 @@
   "voicesRescanResult": "{count} bruikbare stemmen gevonden",
   "voicesNewFound": "{count} nieuwe stemmen gevonden.",
   "voicesNoNewFound": "Geen nieuwe stemmen gevonden.",
+  "voicesSystemUpdated": "{language}-stem bijgewerkt vanuit apparaatinstellingen.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "Geen stemwijzigingen gevonden.",
   "voicesNewBadge": "Nieuw",
   "voiceFriendlyName": "Stem {number}",
   "voicesOpenManagerFailed": "Kon stembeheer niet openen. Open de systeem-TTS-instellingen.",

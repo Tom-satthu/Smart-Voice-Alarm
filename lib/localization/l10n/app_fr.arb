@@ -308,6 +308,15 @@
   "voicesRescanResult": "{count} voix utilisables trouvées",
   "voicesNewFound": "{count} nouvelles voix trouvées.",
   "voicesNoNewFound": "Aucune nouvelle voix détectée.",
+  "voicesSystemUpdated": "Voix {language} mise à jour depuis les réglages de l'appareil.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "Aucun changement de voix détecté.",
   "voicesNewBadge": "Nouveau",
   "voiceFriendlyName": "Voix {number}",
   "voicesOpenManagerFailed": "Impossible d’ouvrir le gestionnaire de voix. Ouvrez les réglages TTS système.",

@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/localization/locale_display_names.dart';
+import '../../../../core/localization/voice_catalog.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
@@ -198,6 +199,7 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
     await ref.read(preferredVoiceProvider.notifier).setVoice(
           id: resolved.id,
           locale: resolved.locale,
+          language: VoiceCatalog.languageCodeOf(resolved.locale),
         );
 
     if (!mounted) return;

@@ -308,6 +308,15 @@
   "voicesRescanResult": "找到 {count} 个可用语音",
   "voicesNewFound": "找到 {count} 个新语音。",
   "voicesNoNewFound": "未检测到新语音。",
+  "voicesSystemUpdated": "已从设备设置更新{language}语音。",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "未检测到语音更改。",
   "voicesNewBadge": "新",
   "voiceFriendlyName": "语音 {number}",
   "voicesOpenManagerFailed": "无法打开语音管理。请打开系统文字转语音设置。",

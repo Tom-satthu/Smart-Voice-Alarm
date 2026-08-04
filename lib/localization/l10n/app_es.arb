@@ -308,6 +308,15 @@
   "voicesRescanResult": "Se encontraron {count} voces utilizables",
   "voicesNewFound": "Se encontraron {count} voces nuevas.",
   "voicesNoNewFound": "No se detectaron voces nuevas.",
+  "voicesSystemUpdated": "Se actualizó la voz de {language} desde los ajustes del dispositivo.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "No se detectaron cambios de voz.",
   "voicesNewBadge": "Nueva",
   "voiceFriendlyName": "Voz {number}",
   "voicesOpenManagerFailed": "No se pudo abrir el administrador de voces. Abre los ajustes de texto a voz del sistema.",

@@ -823,6 +823,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get voicesNoNewFound => 'Geen nieuwe stemmen gevonden.';
 
   @override
+  String voicesSystemUpdated(String language) {
+    return '$language-stem bijgewerkt vanuit apparaatinstellingen.';
+  }
+
+  @override
+  String get voicesNoChange => 'Geen stemwijzigingen gevonden.';
+
+  @override
   String get voicesNewBadge => 'Nieuw';
 
   @override

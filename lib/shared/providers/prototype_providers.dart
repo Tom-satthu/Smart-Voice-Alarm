@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/localization/app_locale_support.dart';
+import '../../core/localization/voice_catalog.dart';
 import '../../core/services/alarm_engine.dart';
 import '../../core/services/audio_player_service.dart';
 import '../../core/services/notification_service.dart';
@@ -97,7 +98,7 @@ final recordingServiceProvider = Provider<RecordingService>((ref) {
 });
 
 final ttsServiceProvider = Provider<TtsService>((ref) {
-  return TtsService();
+  return TtsService(bridge: ref.watch(ttsPlatformBridgeProvider));
 });
 
 final ttsPlatformBridgeProvider = Provider<TtsPlatformBridge>((ref) {
@@ -347,9 +348,12 @@ class PreferredVoiceController extends StateNotifier<
     required String locale,
     String? language,
   }) async {
-    final lang = language ?? locale.split(RegExp('[-_]')).first.toLowerCase();
-    state = (id: id, locale: locale, language: lang);
-    await _repo.savePreferredVoice(voiceId: id, localeId: locale);
+    final normalizedLocale = VoiceCatalog.normalizeLocaleTag(locale);
+    final lang = VoiceCatalog.normalizeLanguageCode(
+      language ?? VoiceCatalog.languageCodeOf(normalizedLocale),
+    );
+    state = (id: id, locale: normalizedLocale, language: lang);
+    await _repo.savePreferredVoice(voiceId: id, localeId: normalizedLocale);
     await _repo.savePreferredVoiceLanguage(lang);
   }
 

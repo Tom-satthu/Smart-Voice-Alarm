@@ -308,6 +308,15 @@
   "voicesRescanResult": "Tìm thấy {count} giọng dùng được",
   "voicesNewFound": "Đã tìm thấy {count} giọng nói mới.",
   "voicesNoNewFound": "Không phát hiện giọng nói mới.",
+  "voicesSystemUpdated": "Đã cập nhật giọng {language} từ cài đặt thiết bị.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "Không phát hiện thay đổi về giọng nói.",
   "voicesNewBadge": "Mới",
   "voiceFriendlyName": "Giọng nói {number}",
   "voicesOpenManagerFailed": "Không mở được quản lý giọng nói. Hãy mở cài đặt Text-to-speech hệ thống để cài giọng.",

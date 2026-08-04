@@ -6,8 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/localization/locale_display_names.dart';
 import '../../../../core/localization/voice_catalog.dart';
 import '../../../../core/responsive/responsive.dart';
+import '../../../../core/services/tts_platform_bridge.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../shared/models/ui_models.dart';
 import '../../../../shared/providers/prototype_providers.dart';
@@ -28,6 +30,8 @@ class _VoiceSpeechSettingsScreenState
   bool _busy = false;
   bool _awaitingDownloadReturn = false;
   Set<String> _snapshotBeforeDownload = {};
+  String? _snapshotEngineVoiceId;
+  String? _snapshotEngineLocale;
   Set<String> _newlyInstalledIds = {};
 
   @override
@@ -64,6 +68,13 @@ class _VoiceSpeechSettingsScreenState
     return voices.where((v) => v.isUsable).toList();
   }
 
+  Future<void> _captureDownloadSnapshot(List<TtsVoiceUiModel> current) async {
+    _snapshotBeforeDownload = current.map((v) => v.id).toSet();
+    final engine = await ref.read(ttsServiceProvider).loadEngineVoice();
+    _snapshotEngineVoiceId = engine?.id;
+    _snapshotEngineLocale = engine?.locale;
+  }
+
   Future<void> _rescan() async {
     final l10n = AppLocalizations.of(context);
     setState(() => _busy = true);
@@ -84,29 +95,88 @@ class _VoiceSpeechSettingsScreenState
     setState(() => _busy = true);
     try {
       final voices = await _scanVoices();
+      final engine = await ref.read(ttsServiceProvider).loadEngineVoice();
       if (!mounted) return;
+
       final afterIds = voices.map((v) => v.id).toSet();
       final discovered = afterIds.difference(_snapshotBeforeDownload);
+      final engineChanged = engine != null &&
+          ((_snapshotEngineVoiceId != null &&
+                  engine.id != _snapshotEngineVoiceId) ||
+              (_snapshotEngineLocale != null &&
+                  VoiceCatalog.normalizeLocaleTag(engine.locale) !=
+                      VoiceCatalog.normalizeLocaleTag(
+                        _snapshotEngineLocale!,
+                      )));
+
       setState(() => _newlyInstalledIds = discovered);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            discovered.isEmpty
-                ? l10n.voicesNoNewFound
-                : l10n.voicesNewFound(discovered.length),
+
+      if (discovered.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.voicesNewFound(discovered.length))),
+        );
+        return;
+      }
+
+      if (engine != null && engineChanged) {
+        final matched = _matchEngineVoice(voices, engine);
+        final locale = VoiceCatalog.normalizeLocaleTag(
+          matched?.locale ?? engine.locale,
+        );
+        final language = VoiceCatalog.languageCodeOf(locale);
+        await ref.read(preferredVoiceProvider.notifier).setVoice(
+              id: matched?.id ?? engine.id,
+              locale: locale,
+              language: language,
+            );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.voicesSystemUpdated(LocaleDisplayNames.friendly(language)),
+            ),
           ),
-        ),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.voicesNoChange)),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
+  TtsVoiceUiModel? _matchEngineVoice(
+    List<TtsVoiceUiModel> voices,
+    TtsEngineVoiceInfo engine,
+  ) {
+    for (final voice in voices) {
+      if (voice.id == engine.id) return voice;
+    }
+    final engineName = engine.name.toLowerCase();
+    final engineLocale = VoiceCatalog.normalizeLocaleTag(engine.locale);
+    for (final voice in voices) {
+      if (voice.name.toLowerCase() == engineName &&
+          VoiceCatalog.normalizeLocaleTag(voice.locale) == engineLocale) {
+        return voice;
+      }
+    }
+    final lang = VoiceCatalog.languageCodeOf(engine.locale);
+    for (final voice in voices) {
+      if (VoiceCatalog.languageCodeOf(voice.locale) == lang) return voice;
+    }
+    return null;
+  }
+
   Future<void> _saveVoice(TtsVoiceUiModel voice) async {
     final l10n = AppLocalizations.of(context);
+    final locale = VoiceCatalog.normalizeLocaleTag(voice.locale);
     await ref.read(preferredVoiceProvider.notifier).setVoice(
           id: voice.id,
-          locale: voice.locale,
+          locale: locale,
+          language: VoiceCatalog.languageCodeOf(locale),
         );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -156,7 +226,7 @@ class _VoiceSpeechSettingsScreenState
       if (proceed != true || !mounted) return;
       final current =
           ref.read(ttsVoicesProvider).asData?.value ?? const <TtsVoiceUiModel>[];
-      _snapshotBeforeDownload = current.map((v) => v.id).toSet();
+      await _captureDownloadSnapshot(current.where((v) => v.isUsable).toList());
       _awaitingDownloadReturn = true;
       final opened = await bridge.openDownloadMoreVoices();
       if (!opened) {
@@ -172,10 +242,10 @@ class _VoiceSpeechSettingsScreenState
 
     final current =
         ref.read(ttsVoicesProvider).asData?.value ?? const <TtsVoiceUiModel>[];
-    _snapshotBeforeDownload = current.map((v) => v.id).toSet();
-    _awaitingDownloadReturn = true;
     setState(() => _busy = true);
     try {
+      await _captureDownloadSnapshot(current.where((v) => v.isUsable).toList());
+      _awaitingDownloadReturn = true;
       final opened = await bridge.openDownloadMoreVoices();
       if (!opened) {
         _awaitingDownloadReturn = false;
@@ -199,10 +269,24 @@ class _VoiceSpeechSettingsScreenState
       for (final voice in voices) {
         if (voice.id == preferredId) return voice;
       }
+      final preferredName = preferredId.contains('|')
+          ? preferredId.split('|').first
+          : preferredId;
+      for (final voice in voices) {
+        if (voice.name == preferredName ||
+            voice.id.split('|').first == preferredName) {
+          if (preferredLocale == null ||
+              VoiceCatalog.languageCodeOf(voice.locale) ==
+                  VoiceCatalog.languageCodeOf(preferredLocale)) {
+            return voice;
+          }
+        }
+      }
     }
     if (preferredLocale != null) {
+      final normalized = VoiceCatalog.normalizeLocaleTag(preferredLocale);
       for (final voice in voices) {
-        if (voice.locale.toLowerCase() == preferredLocale.toLowerCase()) {
+        if (VoiceCatalog.normalizeLocaleTag(voice.locale) == normalized) {
           return voice;
         }
       }

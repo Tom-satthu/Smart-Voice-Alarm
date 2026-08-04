@@ -823,6 +823,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voicesNoNewFound => 'No new voices detected.';
 
   @override
+  String voicesSystemUpdated(String language) {
+    return 'Updated the $language voice from device settings.';
+  }
+
+  @override
+  String get voicesNoChange => 'No voice changes detected.';
+
+  @override
   String get voicesNewBadge => 'New';
 
   @override

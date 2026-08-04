@@ -308,6 +308,15 @@
   "voicesRescanResult": "找到 {count} 個可用語音",
   "voicesNewFound": "找到 {count} 個新語音。",
   "voicesNoNewFound": "未偵測到新語音。",
+  "voicesSystemUpdated": "已從裝置設定更新{language}語音。",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "未偵測到語音變更。",
   "voicesNewBadge": "新",
   "voiceFriendlyName": "語音 {number}",
   "voicesOpenManagerFailed": "無法開啟語音管理。請開啟系統文字轉語音設定。",

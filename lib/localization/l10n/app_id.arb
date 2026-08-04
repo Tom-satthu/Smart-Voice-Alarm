@@ -308,6 +308,15 @@
   "voicesRescanResult": "Ditemukan {count} suara yang dapat digunakan",
   "voicesNewFound": "Ditemukan {count} suara baru.",
   "voicesNoNewFound": "Tidak ada suara baru terdeteksi.",
+  "voicesSystemUpdated": "Suara {language} diperbarui dari pengaturan perangkat.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "Tidak ada perubahan suara terdeteksi.",
   "voicesNewBadge": "Baru",
   "voiceFriendlyName": "Suara {number}",
   "voicesOpenManagerFailed": "Tidak dapat membuka pengelola suara. Buka pengaturan TTS sistem.",

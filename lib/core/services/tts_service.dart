@@ -1,12 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../localization/locale_codes.dart';
 import '../../shared/models/ui_models.dart';
+import 'tts_platform_bridge.dart';
 
 class TtsService {
-  TtsService() : _tts = FlutterTts();
+  TtsService({TtsPlatformBridge? bridge})
+      : _tts = FlutterTts(),
+        _bridge = bridge ?? TtsPlatformBridge();
 
   FlutterTts _tts;
+  final TtsPlatformBridge _bridge;
   bool _ready = false;
 
   Future<void> init() async {
@@ -56,7 +61,9 @@ class TtsService {
         if (item is! Map) continue;
         final map = Map<String, dynamic>.from(item);
         final name = (map['name'] ?? map['voiceURI'] ?? 'Voice').toString();
-        final locale = (map['locale'] ?? 'en-US').toString();
+        final locale = LocaleCodes.normalizeLocaleTag(
+          (map['locale'] ?? 'en-US').toString(),
+        );
         final quality = _parseQuality(map);
         final availability = _parseAvailability(map);
         final usable = availability != TtsVoiceAvailability.notInstalled;
@@ -84,6 +91,25 @@ class TtsService {
     }
   }
 
+  /// Current / default voice from the platform TTS engine.
+  ///
+  /// Prefers Android [TextToSpeech.getVoice] via the platform bridge.
+  /// Falls back to flutter_tts [FlutterTts.getDefaultVoice] when needed.
+  Future<TtsEngineVoiceInfo?> loadEngineVoice() async {
+    final fromBridge = await _bridge.getEngineVoiceState();
+    final bridged = fromBridge?.effective;
+    if (bridged != null) return bridged;
+
+    await init();
+    try {
+      final raw = await _tts.getDefaultVoice;
+      if (raw is Map && raw.isNotEmpty) {
+        return TtsEngineVoiceInfo.fromMap(Map<dynamic, dynamic>.from(raw));
+      }
+    } catch (_) {}
+    return null;
+  }
+
   /// Picks [preferredId] when still installed; otherwise same-locale default.
   Future<TtsVoiceUiModel> resolveVoice({
     String? preferredId,
@@ -95,13 +121,13 @@ class TtsService {
         if (voice.id == preferredId) return voice;
       }
     }
-    final locale = preferredLocale ?? 'en-US';
+    final locale = LocaleCodes.normalizeLocaleTag(preferredLocale ?? 'en-US');
     for (final voice in voices) {
       if (voice.locale.toLowerCase() == locale.toLowerCase()) return voice;
     }
-    final lang = locale.split(RegExp('[-_]')).first.toLowerCase();
+    final lang = LocaleCodes.languageCodeOf(locale);
     for (final voice in voices) {
-      if (voice.locale.toLowerCase().startsWith(lang)) return voice;
+      if (LocaleCodes.languageCodeOf(voice.locale) == lang) return voice;
     }
     return voices.first;
   }

@@ -308,6 +308,15 @@
   "voicesRescanResult": "사용 가능한 음성 {count}개 발견",
   "voicesNewFound": "새 음성 {count}개를 찾았습니다.",
   "voicesNoNewFound": "새 음성이 감지되지 않았습니다.",
+  "voicesSystemUpdated": "기기 설정에서 {language} 음성을 업데이트했습니다.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "음성 변경이 감지되지 않았습니다.",
   "voicesNewBadge": "신규",
   "voiceFriendlyName": "음성 {number}",
   "voicesOpenManagerFailed": "음성 관리를 열 수 없습니다. 시스템 TTS 설정을 여세요.",

@@ -308,6 +308,15 @@
   "voicesRescanResult": "利用可能な音声が {count} 件見つかりました",
   "voicesNewFound": "新しい音声が {count} 件見つかりました。",
   "voicesNoNewFound": "新しい音声は検出されませんでした。",
+  "voicesSystemUpdated": "端末設定から{language}の音声を更新しました。",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "音声の変更は検出されませんでした。",
   "voicesNewBadge": "新規",
   "voiceFriendlyName": "音声 {number}",
   "voicesOpenManagerFailed": "音声管理を開けませんでした。システムの読み上げ設定を開いてください。",

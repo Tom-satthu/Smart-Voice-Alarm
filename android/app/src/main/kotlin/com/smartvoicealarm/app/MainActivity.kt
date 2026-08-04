@@ -5,14 +5,18 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.speech.tts.Voice
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 
 class MainActivity : FlutterActivity() {
     private val alarmsChannel = "com.smartvoicealarm.app/alarms"
     private val ttsChannel = "com.smartvoicealarm.app/tts"
     private var launchAlarmId: String? = null
+    private var probeTts: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,12 +155,68 @@ class MainActivity : FlutterActivity() {
                             }
                         }
                     }
+                    "getEngineVoiceState" -> getEngineVoiceState(result)
                     else -> result.notImplemented()
                 }
             }
     }
 
+    private fun getEngineVoiceState(result: MethodChannel.Result) {
+        val replied = AtomicBoolean(false)
+        fun reply(value: Any?) {
+            if (replied.compareAndSet(false, true)) {
+                result.success(value)
+            }
+        }
+
+        try {
+            probeTts?.shutdown()
+            probeTts = TextToSpeech(applicationContext) { status ->
+                val tts = probeTts
+                if (status != TextToSpeech.SUCCESS || tts == null) {
+                    reply(null)
+                    tts?.shutdown()
+                    probeTts = null
+                    return@TextToSpeech
+                }
+                try {
+                    val payload = hashMapOf<String, Any?>(
+                        "current" to voiceToMap(tts.voice),
+                        "default" to voiceToMap(tts.defaultVoice),
+                        "voices" to (tts.voices?.map { voiceToMap(it) } ?: emptyList<Map<String, Any?>>()),
+                    )
+                    reply(payload)
+                } catch (e: Exception) {
+                    if (replied.compareAndSet(false, true)) {
+                        result.error("tts_probe", e.message, null)
+                    }
+                } finally {
+                    tts.shutdown()
+                    if (probeTts === tts) {
+                        probeTts = null
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            reply(null)
+        }
+    }
+
+    private fun voiceToMap(voice: Voice?): Map<String, Any?>? {
+        if (voice == null) return null
+        val locale: Locale = voice.locale
+        return hashMapOf(
+            "name" to voice.name,
+            "identifier" to voice.name,
+            "locale" to locale.toLanguageTag(),
+            "networkRequired" to voice.isNetworkConnectionRequired,
+            "network_required" to if (voice.isNetworkConnectionRequired) "1" else "0",
+        )
+    }
+
     override fun onDestroy() {
+        probeTts?.shutdown()
+        probeTts = null
         if (alarmsMethodChannel != null) {
             alarmsMethodChannel = null
         }

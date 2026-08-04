@@ -322,6 +322,15 @@
     }
   },
   "voicesNoNewFound": "No new voices detected.",
+  "voicesSystemUpdated": "Updated the {language} voice from device settings.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "No voice changes detected.",
   "voicesNewBadge": "New",
   "voiceFriendlyName": "Voice {number}",
   "@voiceFriendlyName": {
