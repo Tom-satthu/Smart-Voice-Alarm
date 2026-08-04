@@ -274,5 +274,30 @@
   "recordingFileMissing": "Opnamebestand ontbreekt. Verwijder dit segment of neem opnieuw op.",
   "voiceDetails": "Stemdetails",
   "ttsSelectedVoice": "Geselecteerde stem",
-  "voicePreviewSample": "Dit is een korte preview van deze stem."
+  "voicePreviewSample": "Dit is een korte preview van deze stem.",
+  "alarmDismissTitle": "Los op om te stoppen",
+  "alarmDismissHint": "Beantwoord juist om de wekker uit te zetten.",
+  "alarmDismissWrong": "Onjuist. Nieuwe vraag.",
+  "alarmDismissCheck": "Controleren",
+  "alarmDismissAnswerHint": "Jouw antwoord",
+  "voicesRefreshed": "Vernieuwd: {count} stemmen gevonden",
+  "voicesSelectedSaved": "Stem opgeslagen: {name}",
+  "voicesDownloadThenSelect": "Installeer een stempakket, keer terug, vernieuw stemmen en selecteer in de taal.",
+  "voicesRefreshHint": "Stemmen vernieuwen herlaadt systeems TTS-stemmen na installatie.",
+  "ringtonePreview": "Voorbeeld",
+  "ringtonePreviewHint": "Tik op afspelen om te beluisteren, tik op de naam om te kiezen.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

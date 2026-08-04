@@ -735,4 +735,41 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get voicePreviewSample => 'これはこの音声の短いプレビューです。';
+
+  @override
+  String get alarmDismissTitle => '解いて停止';
+
+  @override
+  String get alarmDismissHint => '正しく答えるとアラームが止まります。';
+
+  @override
+  String get alarmDismissWrong => '不正解です。別の問題です。';
+
+  @override
+  String get alarmDismissCheck => '確認';
+
+  @override
+  String get alarmDismissAnswerHint => '答え';
+
+  @override
+  String voicesRefreshed(int count) {
+    return '更新しました: $count 件の音声';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return '保存した音声: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect => '音声パックをインストールし、戻って更新し、言語から選択してください。';
+
+  @override
+  String get voicesRefreshHint => '音声を更新すると、インストール後のシステムTTS音声を再読み込みします。';
+
+  @override
+  String get ringtonePreview => 'プレビュー';
+
+  @override
+  String get ringtonePreviewHint => '再生で試聴し、名前をタップして選択します。';
 }

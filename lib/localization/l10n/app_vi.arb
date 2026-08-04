@@ -274,5 +274,30 @@
   "recordingFileMissing": "Thiếu tệp ghi âm. Xóa đoạn này hoặc ghi lại.",
   "voiceDetails": "Chi tiết giọng",
   "ttsSelectedVoice": "Giọng đã chọn",
-  "voicePreviewSample": "Đây là bản xem trước ngắn của giọng này."
+  "voicePreviewSample": "Đây là bản xem trước ngắn của giọng này.",
+  "alarmDismissTitle": "Giải toán để tắt",
+  "alarmDismissHint": "Trả lời đúng để tắt báo thức.",
+  "alarmDismissWrong": "Sai rồi. Thử câu mới.",
+  "alarmDismissCheck": "Kiểm tra",
+  "alarmDismissAnswerHint": "Câu trả lời",
+  "voicesRefreshed": "Đã làm mới: tìm thấy {count} giọng",
+  "voicesSelectedSaved": "Đã lưu giọng: {name}",
+  "voicesDownloadThenSelect": "Cài gói giọng, quay lại, bấm Làm mới giọng nói, rồi mở ngôn ngữ và bấm Chọn.",
+  "voicesRefreshHint": "Làm mới giọng nói tải lại danh sách TTS hệ thống sau khi cài gói mới.",
+  "ringtonePreview": "Nghe thử",
+  "ringtonePreviewHint": "Bấm phát để nghe thử, rồi chạm tên để chọn.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

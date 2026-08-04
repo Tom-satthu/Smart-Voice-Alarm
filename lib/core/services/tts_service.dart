@@ -6,7 +6,7 @@ import '../../shared/models/ui_models.dart';
 class TtsService {
   TtsService() : _tts = FlutterTts();
 
-  final FlutterTts _tts;
+  FlutterTts _tts;
   bool _ready = false;
 
   Future<void> init() async {
@@ -18,6 +18,16 @@ class TtsService {
       } catch (_) {}
     }
     _ready = true;
+  }
+
+  /// Force a fresh voice query from the platform TTS engine.
+  Future<List<TtsVoiceUiModel>> reloadVoices() async {
+    try {
+      await _tts.stop();
+    } catch (_) {}
+    _ready = false;
+    _tts = FlutterTts();
+    return loadVoices();
   }
 
   /// Returns only voices that can be selected for preview / alarms.

@@ -274,5 +274,30 @@
   "recordingFileMissing": "缺少錄音檔。請刪除此區段或重新錄音。",
   "voiceDetails": "語音詳細資料",
   "ttsSelectedVoice": "已選語音",
-  "voicePreviewSample": "這是此語音的簡短預覽。"
+  "voicePreviewSample": "這是此語音的簡短預覽。",
+  "alarmDismissTitle": "解題以停止",
+  "alarmDismissHint": "答對後才能關閉鬧鐘。",
+  "alarmDismissWrong": "不正確。請試新題。",
+  "alarmDismissCheck": "檢查",
+  "alarmDismissAnswerHint": "你的答案",
+  "voicesRefreshed": "已重新整理：找到 {count} 個語音",
+  "voicesSelectedSaved": "已儲存語音：{name}",
+  "voicesDownloadThenSelect": "安裝語音套件後返回，點重新整理語音，再開啟語言並選擇。",
+  "voicesRefreshHint": "重新整理語音會在安裝新套件後重新載入系統 TTS 語音。",
+  "ringtonePreview": "預覽",
+  "ringtonePreviewHint": "點播放試聽，再點名稱選擇。",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

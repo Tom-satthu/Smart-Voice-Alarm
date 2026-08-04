@@ -24,8 +24,23 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         if (intent?.action == ACTION_STOP) {
-            AlarmForegroundService.stop(app)
-            MainActivity.notifyNativeAlarmStopped()
+            // Bring the ringing UI forward so the user must solve the dismiss
+            // challenge. Do not silently kill playback from the notification.
+            val alarmId = intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID)
+            val activity = Intent(app, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+                if (!alarmId.isNullOrBlank()) {
+                    putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId)
+                }
+                putExtra("from_native_alarm", true)
+                putExtra("request_dismiss_challenge", true)
+            }
+            app.startActivity(activity)
+            if (!alarmId.isNullOrBlank()) {
+                MainActivity.notifyAlarmTriggered(alarmId)
+            }
             return
         }
 

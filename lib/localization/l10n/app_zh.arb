@@ -274,5 +274,30 @@
   "recordingFileMissing": "录音文件缺失。请删除此片段或重新录制。",
   "voiceDetails": "语音详情",
   "ttsSelectedVoice": "已选语音",
-  "voicePreviewSample": "这是此语音的简短预览。"
+  "voicePreviewSample": "这是此语音的简短预览。",
+  "alarmDismissTitle": "答题以停止",
+  "alarmDismissHint": "答对后才能关闭闹钟。",
+  "alarmDismissWrong": "不正确。请试新题。",
+  "alarmDismissCheck": "检查",
+  "alarmDismissAnswerHint": "你的答案",
+  "voicesRefreshed": "已刷新：找到 {count} 个语音",
+  "voicesSelectedSaved": "已保存语音：{name}",
+  "voicesDownloadThenSelect": "安装语音包后返回，点刷新语音，再打开语言并选择。",
+  "voicesRefreshHint": "刷新语音会在安装新语音包后重新加载系统 TTS 语音。",
+  "ringtonePreview": "试听",
+  "ringtonePreviewHint": "点播放试听，再点名称选择。",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

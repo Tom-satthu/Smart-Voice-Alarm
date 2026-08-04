@@ -748,4 +748,44 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get voicePreviewSample => 'Ini adalah pratinjau singkat suara ini.';
+
+  @override
+  String get alarmDismissTitle => 'Selesaikan untuk berhenti';
+
+  @override
+  String get alarmDismissHint => 'Jawab dengan benar untuk mematikan alarm.';
+
+  @override
+  String get alarmDismissWrong => 'Salah. Soal baru.';
+
+  @override
+  String get alarmDismissCheck => 'Periksa';
+
+  @override
+  String get alarmDismissAnswerHint => 'Jawaban Anda';
+
+  @override
+  String voicesRefreshed(int count) {
+    return 'Diperbarui: $count suara ditemukan';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return 'Suara disimpan: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect =>
+      'Pasang paket suara, kembali, segarkan suara, lalu pilih di bahasa.';
+
+  @override
+  String get voicesRefreshHint =>
+      'Segarkan suara memuat ulang suara TTS sistem setelah memasang paket.';
+
+  @override
+  String get ringtonePreview => 'Pratinjau';
+
+  @override
+  String get ringtonePreviewHint =>
+      'Ketuk putar untuk mendengar, lalu ketuk nama untuk memilih.';
 }

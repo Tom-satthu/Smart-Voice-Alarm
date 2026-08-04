@@ -274,5 +274,30 @@
   "recordingFileMissing": "Aufnahmedatei fehlt. Segment löschen oder erneut aufnehmen.",
   "voiceDetails": "Stimmendetails",
   "ttsSelectedVoice": "Ausgewählte Stimme",
-  "voicePreviewSample": "Dies ist eine kurze Vorschau dieser Stimme."
+  "voicePreviewSample": "Dies ist eine kurze Vorschau dieser Stimme.",
+  "alarmDismissTitle": "Losung zum Stoppen",
+  "alarmDismissHint": "Richtig antworten, um den Alarm auszuschalten.",
+  "alarmDismissWrong": "Falsch. Neue Frage.",
+  "alarmDismissCheck": "Prufen",
+  "alarmDismissAnswerHint": "Ihre Antwort",
+  "voicesRefreshed": "Aktualisiert: {count} Stimmen gefunden",
+  "voicesSelectedSaved": "Stimme gespeichert: {name}",
+  "voicesDownloadThenSelect": "Sprachpaket installieren, zuruckkehren, Stimmen aktualisieren, Sprache offnen und Auswahlen tippen.",
+  "voicesRefreshHint": "Stimmen aktualisieren laedt System-TTS-Stimmen nach der Installation neu.",
+  "ringtonePreview": "Vorschau",
+  "ringtonePreviewHint": "Abspielen tippen zum Anhoren, dann Namen tippen zum Auswahlen.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

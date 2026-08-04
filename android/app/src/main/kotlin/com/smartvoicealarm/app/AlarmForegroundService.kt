@@ -168,7 +168,6 @@ class AlarmForegroundService : Service() {
             .setContentIntent(open)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(0, "Stop", stop)
-            .setDeleteIntent(stop)
             .build()
     }
 

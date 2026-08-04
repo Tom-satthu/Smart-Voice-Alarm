@@ -12,6 +12,7 @@ import '../../../../router/routes.dart';
 import '../../../../shared/providers/prototype_providers.dart';
 import '../../../../shared/widgets/app_widgets.dart';
 import '../../../../shared/widgets/visual_widgets.dart';
+import '../widgets/alarm_math_challenge.dart';
 
 class AlarmRingingScreen extends ConsumerStatefulWidget {
   const AlarmRingingScreen({super.key, required this.alarmId});
@@ -28,6 +29,7 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
   String? _activeId;
   StreamSubscription<AlarmEnginePhase>? _phaseSub;
   StreamSubscription<String?>? _activeSub;
+  bool _showChallenge = false;
 
   @override
   void initState() {
@@ -54,34 +56,16 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
     super.dispose();
   }
 
-  Future<void> _stopCurrent() async {
-    await _engine.stopCurrent();
-    // Ensure native FGS / notification are gone even if handoff raced.
-    await ref.read(notificationServiceProvider).native.stopForegroundAlarm();
-    if (!mounted) return;
-    // Give the queue a moment to promote the next alarm.
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    if (!mounted) return;
-    if (_engine.isRunning && _engine.activeAlarmId != null) {
-      setState(() => _activeId = _engine.activeAlarmId);
-      return;
-    }
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go(AppRoutes.home);
-    }
+  void _requestStop() {
+    setState(() => _showChallenge = true);
   }
 
-  Future<void> _stopAll() async {
+  Future<void> _completeDismiss() async {
     await _engine.stopAll();
     await ref.read(notificationServiceProvider).native.stopForegroundAlarm();
     if (!mounted) return;
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go(AppRoutes.home);
-    }
+    // Always reset to Home so we never land on a previous settings route.
+    context.go(AppRoutes.home);
   }
 
   @override
@@ -93,6 +77,16 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
     final active = _phase == AlarmEnginePhase.playingVoice ||
         _phase == AlarmEnginePhase.playingRingtone;
     final queued = _engine.queuedCount;
+
+    if (_showChallenge) {
+      return Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: AlarmMathChallenge(
+          onCancel: () => setState(() => _showChallenge = false),
+          onSolved: _completeDismiss,
+        ),
+      );
+    }
 
     return Scaffold(
       body: AmbientBackground(
@@ -137,13 +131,7 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
                 PrimaryActionButton(
                   label: l10n.alarmStop,
                   icon: Icons.alarm_off_rounded,
-                  onPressed: _stopCurrent,
-                ),
-                const SizedBox(height: AppConstants.spaceMd),
-                OutlinedButton.icon(
-                  onPressed: _stopAll,
-                  icon: const Icon(Icons.stop_circle_outlined),
-                  label: Text(l10n.alarmStopAll),
+                  onPressed: _requestStop,
                 ),
               ],
             ),

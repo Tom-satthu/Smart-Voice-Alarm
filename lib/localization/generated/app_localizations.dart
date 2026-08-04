@@ -1474,6 +1474,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This is a short preview of this voice.'**
   String get voicePreviewSample;
+
+  /// No description provided for @alarmDismissTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Solve to stop'**
+  String get alarmDismissTitle;
+
+  /// No description provided for @alarmDismissHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer correctly to turn off the alarm.'**
+  String get alarmDismissHint;
+
+  /// No description provided for @alarmDismissWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect. Try a new question.'**
+  String get alarmDismissWrong;
+
+  /// No description provided for @alarmDismissCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check answer'**
+  String get alarmDismissCheck;
+
+  /// No description provided for @alarmDismissAnswerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answer'**
+  String get alarmDismissAnswerHint;
+
+  /// No description provided for @voicesRefreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshed: {count} voices found'**
+  String voicesRefreshed(int count);
+
+  /// No description provided for @voicesSelectedSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved voice: {name}'**
+  String voicesSelectedSaved(String name);
+
+  /// No description provided for @voicesDownloadThenSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Install a voice pack, return here, tap Refresh Voices, then open a language and tap Select.'**
+  String get voicesDownloadThenSelect;
+
+  /// No description provided for @voicesRefreshHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh Voices reloads system TTS voices after you install new packs.'**
+  String get voicesRefreshHint;
+
+  /// No description provided for @ringtonePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get ringtonePreview;
+
+  /// No description provided for @ringtonePreviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap play to preview, then tap a name to select it.'**
+  String get ringtonePreviewHint;
 }
 
 class _AppLocalizationsDelegate

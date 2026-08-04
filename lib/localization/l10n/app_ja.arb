@@ -274,5 +274,30 @@
   "recordingFileMissing": "録音ファイルがありません。このセグメントを削除するか、再録音してください。",
   "voiceDetails": "音声の詳細",
   "ttsSelectedVoice": "選択中の音声",
-  "voicePreviewSample": "これはこの音声の短いプレビューです。"
+  "voicePreviewSample": "これはこの音声の短いプレビューです。",
+  "alarmDismissTitle": "解いて停止",
+  "alarmDismissHint": "正しく答えるとアラームが止まります。",
+  "alarmDismissWrong": "不正解です。別の問題です。",
+  "alarmDismissCheck": "確認",
+  "alarmDismissAnswerHint": "答え",
+  "voicesRefreshed": "更新しました: {count} 件の音声",
+  "voicesSelectedSaved": "保存した音声: {name}",
+  "voicesDownloadThenSelect": "音声パックをインストールし、戻って更新し、言語から選択してください。",
+  "voicesRefreshHint": "音声を更新すると、インストール後のシステムTTS音声を再読み込みします。",
+  "ringtonePreview": "プレビュー",
+  "ringtonePreviewHint": "再生で試聴し、名前をタップして選択します。",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

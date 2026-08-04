@@ -109,7 +109,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       id: widget.alarmId ?? const Uuid().v4(),
       time: _time,
       repeatDays: Set<Weekday>.from(_repeatDays),
-      isEnabled: _enabled,
+      // New alarms are always enabled so users do not forget to turn them on.
+      isEnabled: _isEdit ? _enabled : true,
       type: _type,
       label: _label.trim().isEmpty ? l10n.alarmDefaultLabel : _label.trim(),
       voiceSequenceId: sequenceId,
@@ -144,40 +145,121 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   Future<void> _pickRingtone() async {
     final l10n = AppLocalizations.of(context);
     final ringtones = ref.read(ringtonesProvider);
+    final audio = ref.read(audioPlayerServiceProvider);
+    String? previewing;
+
     final selected = await showModalBottomSheet<String>(
       context: context,
+      isScrollControlled: true,
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                  child: Text(
-                    l10n.alarmRingtone,
-                    style: context.textTheme.titleLarge,
-                  ),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> togglePreview(String name, String path) async {
+              if (previewing == name) {
+                await audio.stop();
+                setModalState(() => previewing = null);
+                return;
+              }
+              await audio.stop();
+              setModalState(() => previewing = name);
+              try {
+                await audio.playAsset(path);
+              } finally {
+                if (context.mounted) {
+                  setModalState(() {
+                    if (previewing == name) previewing = null;
+                  });
+                }
+              }
+            }
+
+            return SafeArea(
+              child: SizedBox(
+                height: MediaQuery.sizeOf(context).height * 0.7,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.alarmRingtone,
+                              style: context.textTheme.titleLarge,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: l10n.commonClose,
+                            onPressed: () async {
+                              await audio.stop();
+                              if (context.mounted) Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                      child: Text(
+                        l10n.ringtonePreviewHint,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: ringtones.length,
+                        itemBuilder: (context, index) {
+                          final ringtone = ringtones[index];
+                          final selected = _ringtoneName == ringtone.name;
+                          final playing = previewing == ringtone.name;
+                          return ListTile(
+                            title: Text(localizedRingtone(l10n, ringtone.name)),
+                            selected: selected,
+                            leading: Icon(
+                              selected
+                                  ? Icons.radio_button_checked_rounded
+                                  : Icons.radio_button_off_rounded,
+                              color: selected
+                                  ? context.colors.primary
+                                  : context.colors.onSurfaceVariant,
+                            ),
+                            trailing: IconButton(
+                              tooltip: playing
+                                  ? l10n.alarmStop
+                                  : l10n.ringtonePreview,
+                              onPressed: () => togglePreview(
+                                ringtone.name,
+                                ringtone.assetPath,
+                              ),
+                              icon: Icon(
+                                playing
+                                    ? Icons.stop_rounded
+                                    : Icons.play_arrow_rounded,
+                              ),
+                            ),
+                            onTap: () async {
+                              await audio.stop();
+                              if (context.mounted) {
+                                Navigator.pop(context, ringtone.name);
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                for (final ringtone in ringtones)
-                  ListTile(
-                    title: Text(localizedRingtone(l10n, ringtone.name)),
-                    trailing: _ringtoneName == ringtone.name
-                        ? Icon(
-                            Icons.check_circle_rounded,
-                            color: context.colors.primary,
-                          )
-                        : null,
-                    onTap: () => Navigator.pop(context, ringtone.name),
-                  ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
+    await audio.stop();
     if (selected != null) setState(() => _ringtoneName = selected);
   }
 

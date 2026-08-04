@@ -734,6 +734,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get voicePreviewSample => '这是此语音的简短预览。';
+
+  @override
+  String get alarmDismissTitle => '答题以停止';
+
+  @override
+  String get alarmDismissHint => '答对后才能关闭闹钟。';
+
+  @override
+  String get alarmDismissWrong => '不正确。请试新题。';
+
+  @override
+  String get alarmDismissCheck => '检查';
+
+  @override
+  String get alarmDismissAnswerHint => '你的答案';
+
+  @override
+  String voicesRefreshed(int count) {
+    return '已刷新：找到 $count 个语音';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return '已保存语音：$name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect => '安装语音包后返回，点刷新语音，再打开语言并选择。';
+
+  @override
+  String get voicesRefreshHint => '刷新语音会在安装新语音包后重新加载系统 TTS 语音。';
+
+  @override
+  String get ringtonePreview => '试听';
+
+  @override
+  String get ringtonePreviewHint => '点播放试听，再点名称选择。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1466,4 +1503,41 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get voicePreviewSample => '這是此語音的簡短預覽。';
+
+  @override
+  String get alarmDismissTitle => '解題以停止';
+
+  @override
+  String get alarmDismissHint => '答對後才能關閉鬧鐘。';
+
+  @override
+  String get alarmDismissWrong => '不正確。請試新題。';
+
+  @override
+  String get alarmDismissCheck => '檢查';
+
+  @override
+  String get alarmDismissAnswerHint => '你的答案';
+
+  @override
+  String voicesRefreshed(int count) {
+    return '已重新整理：找到 $count 個語音';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return '已儲存語音：$name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect => '安裝語音套件後返回，點重新整理語音，再開啟語言並選擇。';
+
+  @override
+  String get voicesRefreshHint => '重新整理語音會在安裝新套件後重新載入系統 TTS 語音。';
+
+  @override
+  String get ringtonePreview => '預覽';
+
+  @override
+  String get ringtonePreviewHint => '點播放試聽，再點名稱選擇。';
 }

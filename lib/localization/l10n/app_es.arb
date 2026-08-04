@@ -274,5 +274,30 @@
   "recordingFileMissing": "Falta el archivo de grabación. Elimina este segmento o vuelve a grabar.",
   "voiceDetails": "Detalles de la voz",
   "ttsSelectedVoice": "Voz seleccionada",
-  "voicePreviewSample": "Esta es una vista previa breve de esta voz."
+  "voicePreviewSample": "Esta es una vista previa breve de esta voz.",
+  "alarmDismissTitle": "Resuelve para detener",
+  "alarmDismissHint": "Responde correctamente para apagar la alarma.",
+  "alarmDismissWrong": "Incorrecto. Prueba otra pregunta.",
+  "alarmDismissCheck": "Comprobar",
+  "alarmDismissAnswerHint": "Tu respuesta",
+  "voicesRefreshed": "Actualizado: {count} voces encontradas",
+  "voicesSelectedSaved": "Voz guardada: {name}",
+  "voicesDownloadThenSelect": "Instala un paquete de voz, vuelve, toca Actualizar voces y selecciona en el idioma.",
+  "voicesRefreshHint": "Actualizar voces recarga las voces TTS del sistema tras instalar paquetes.",
+  "ringtonePreview": "Vista previa",
+  "ringtonePreviewHint": "Toca reproducir para escuchar y el nombre para elegir.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

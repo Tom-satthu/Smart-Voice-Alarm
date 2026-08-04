@@ -753,4 +753,45 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get voicePreviewSample =>
       'Questa è una breve anteprima di questa voce.';
+
+  @override
+  String get alarmDismissTitle => 'Risolvi per interrompere';
+
+  @override
+  String get alarmDismissHint =>
+      'Rispondi correttamente per spegnere la sveglia.';
+
+  @override
+  String get alarmDismissWrong => 'Errato. Nuova domanda.';
+
+  @override
+  String get alarmDismissCheck => 'Verifica';
+
+  @override
+  String get alarmDismissAnswerHint => 'La tua risposta';
+
+  @override
+  String voicesRefreshed(int count) {
+    return 'Aggiornato: $count voci trovate';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return 'Voce salvata: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect =>
+      'Installa un pacchetto, torna, aggiorna le voci, apri la lingua e seleziona.';
+
+  @override
+  String get voicesRefreshHint =>
+      'Aggiorna voci ricarica le voci TTS di sistema dopo l installazione.';
+
+  @override
+  String get ringtonePreview => 'Anteprima';
+
+  @override
+  String get ringtonePreviewHint =>
+      'Tocca play per ascoltare, poi il nome per selezionare.';
 }

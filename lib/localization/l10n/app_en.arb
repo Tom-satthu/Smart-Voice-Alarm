@@ -274,5 +274,30 @@
   "recordingFileMissing": "Recording file missing. Delete this segment or record again.",
   "voiceDetails": "Voice details",
   "ttsSelectedVoice": "Selected voice",
-  "voicePreviewSample": "This is a short preview of this voice."
+  "voicePreviewSample": "This is a short preview of this voice.",
+  "alarmDismissTitle": "Solve to stop",
+  "alarmDismissHint": "Answer correctly to turn off the alarm.",
+  "alarmDismissWrong": "Incorrect. Try a new question.",
+  "alarmDismissCheck": "Check answer",
+  "alarmDismissAnswerHint": "Your answer",
+  "voicesRefreshed": "Refreshed: {count} voices found",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voicesSelectedSaved": "Saved voice: {name}",
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadThenSelect": "Install a voice pack, return here, tap Refresh Voices, then open a language and tap Select.",
+  "voicesRefreshHint": "Refresh Voices reloads system TTS voices after you install new packs.",
+  "ringtonePreview": "Preview",
+  "ringtonePreviewHint": "Tap play to preview, then tap a name to select it."
 }

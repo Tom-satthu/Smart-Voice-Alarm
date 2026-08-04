@@ -274,5 +274,30 @@
   "recordingFileMissing": "녹음 파일이 없습니다. 이 세그먼트를 삭제하거나 다시 녹음하세요.",
   "voiceDetails": "음성 세부정보",
   "ttsSelectedVoice": "선택한 음성",
-  "voicePreviewSample": "이 음성의 짧은 미리듣기입니다."
+  "voicePreviewSample": "이 음성의 짧은 미리듣기입니다.",
+  "alarmDismissTitle": "풀어서 중지",
+  "alarmDismissHint": "정답을 맞혀야 알람이 꺼집니다.",
+  "alarmDismissWrong": "틀렸습니다. 새 문제입니다.",
+  "alarmDismissCheck": "확인",
+  "alarmDismissAnswerHint": "답",
+  "voicesRefreshed": "새로고침됨: 음성 {count}개 발견",
+  "voicesSelectedSaved": "저장된 음성: {name}",
+  "voicesDownloadThenSelect": "음성 팩을 설치한 뒤 돌아와 새로고침하고 언어에서 선택하세요.",
+  "voicesRefreshHint": "음성 새로고침은 팩 설치 후 시스템 TTS 음성을 다시 불러옵니다.",
+  "ringtonePreview": "미리듣기",
+  "ringtonePreviewHint": "재생으로 들어보고 이름을 눌러 선택하세요.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

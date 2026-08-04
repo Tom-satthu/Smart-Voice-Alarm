@@ -754,4 +754,45 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get voicePreviewSample => 'Ceci est un court aperçu de cette voix.';
+
+  @override
+  String get alarmDismissTitle => 'Resolvez pour arreter';
+
+  @override
+  String get alarmDismissHint =>
+      'Repondez correctement pour eteindre l alarme.';
+
+  @override
+  String get alarmDismissWrong => 'Incorrect. Nouvelle question.';
+
+  @override
+  String get alarmDismissCheck => 'Verifier';
+
+  @override
+  String get alarmDismissAnswerHint => 'Votre reponse';
+
+  @override
+  String voicesRefreshed(int count) {
+    return 'Actualise : $count voix trouvees';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return 'Voix enregistree : $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect =>
+      'Installez un pack, revenez, actualisez les voix, puis selectionnez dans la langue.';
+
+  @override
+  String get voicesRefreshHint =>
+      'Actualiser les voix recharge les voix TTS systeme apres installation.';
+
+  @override
+  String get ringtonePreview => 'Apercu';
+
+  @override
+  String get ringtonePreviewHint =>
+      'Appuyez sur lecture pour ecouter, puis sur le nom pour choisir.';
 }

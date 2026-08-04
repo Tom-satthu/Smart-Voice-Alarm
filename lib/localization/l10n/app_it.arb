@@ -274,5 +274,30 @@
   "recordingFileMissing": "File di registrazione mancante. Elimina questo segmento o registra di nuovo.",
   "voiceDetails": "Dettagli voce",
   "ttsSelectedVoice": "Voce selezionata",
-  "voicePreviewSample": "Questa è una breve anteprima di questa voce."
+  "voicePreviewSample": "Questa è una breve anteprima di questa voce.",
+  "alarmDismissTitle": "Risolvi per interrompere",
+  "alarmDismissHint": "Rispondi correttamente per spegnere la sveglia.",
+  "alarmDismissWrong": "Errato. Nuova domanda.",
+  "alarmDismissCheck": "Verifica",
+  "alarmDismissAnswerHint": "La tua risposta",
+  "voicesRefreshed": "Aggiornato: {count} voci trovate",
+  "voicesSelectedSaved": "Voce salvata: {name}",
+  "voicesDownloadThenSelect": "Installa un pacchetto, torna, aggiorna le voci, apri la lingua e seleziona.",
+  "voicesRefreshHint": "Aggiorna voci ricarica le voci TTS di sistema dopo l installazione.",
+  "ringtonePreview": "Anteprima",
+  "ringtonePreviewHint": "Tocca play per ascoltare, poi il nome per selezionare.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

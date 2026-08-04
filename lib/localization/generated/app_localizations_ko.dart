@@ -737,4 +737,41 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get voicePreviewSample => '이 음성의 짧은 미리듣기입니다.';
+
+  @override
+  String get alarmDismissTitle => '풀어서 중지';
+
+  @override
+  String get alarmDismissHint => '정답을 맞혀야 알람이 꺼집니다.';
+
+  @override
+  String get alarmDismissWrong => '틀렸습니다. 새 문제입니다.';
+
+  @override
+  String get alarmDismissCheck => '확인';
+
+  @override
+  String get alarmDismissAnswerHint => '답';
+
+  @override
+  String voicesRefreshed(int count) {
+    return '새로고침됨: 음성 $count개 발견';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return '저장된 음성: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect => '음성 팩을 설치한 뒤 돌아와 새로고침하고 언어에서 선택하세요.';
+
+  @override
+  String get voicesRefreshHint => '음성 새로고침은 팩 설치 후 시스템 TTS 음성을 다시 불러옵니다.';
+
+  @override
+  String get ringtonePreview => '미리듣기';
+
+  @override
+  String get ringtonePreviewHint => '재생으로 들어보고 이름을 눌러 선택하세요.';
 }

@@ -749,4 +749,44 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get voicePreviewSample => 'Đây là bản xem trước ngắn của giọng này.';
+
+  @override
+  String get alarmDismissTitle => 'Giải toán để tắt';
+
+  @override
+  String get alarmDismissHint => 'Trả lời đúng để tắt báo thức.';
+
+  @override
+  String get alarmDismissWrong => 'Sai rồi. Thử câu mới.';
+
+  @override
+  String get alarmDismissCheck => 'Kiểm tra';
+
+  @override
+  String get alarmDismissAnswerHint => 'Câu trả lời';
+
+  @override
+  String voicesRefreshed(int count) {
+    return 'Đã làm mới: tìm thấy $count giọng';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return 'Đã lưu giọng: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect =>
+      'Cài gói giọng, quay lại, bấm Làm mới giọng nói, rồi mở ngôn ngữ và bấm Chọn.';
+
+  @override
+  String get voicesRefreshHint =>
+      'Làm mới giọng nói tải lại danh sách TTS hệ thống sau khi cài gói mới.';
+
+  @override
+  String get ringtonePreview => 'Nghe thử';
+
+  @override
+  String get ringtonePreviewHint =>
+      'Bấm phát để nghe thử, rồi chạm tên để chọn.';
 }

@@ -274,5 +274,30 @@
   "recordingFileMissing": "File rekaman hilang. Hapus segmen ini atau rekam ulang.",
   "voiceDetails": "Detail suara",
   "ttsSelectedVoice": "Suara terpilih",
-  "voicePreviewSample": "Ini adalah pratinjau singkat suara ini."
+  "voicePreviewSample": "Ini adalah pratinjau singkat suara ini.",
+  "alarmDismissTitle": "Selesaikan untuk berhenti",
+  "alarmDismissHint": "Jawab dengan benar untuk mematikan alarm.",
+  "alarmDismissWrong": "Salah. Soal baru.",
+  "alarmDismissCheck": "Periksa",
+  "alarmDismissAnswerHint": "Jawaban Anda",
+  "voicesRefreshed": "Diperbarui: {count} suara ditemukan",
+  "voicesSelectedSaved": "Suara disimpan: {name}",
+  "voicesDownloadThenSelect": "Pasang paket suara, kembali, segarkan suara, lalu pilih di bahasa.",
+  "voicesRefreshHint": "Segarkan suara memuat ulang suara TTS sistem setelah memasang paket.",
+  "ringtonePreview": "Pratinjau",
+  "ringtonePreviewHint": "Ketuk putar untuk mendengar, lalu ketuk nama untuk memilih.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

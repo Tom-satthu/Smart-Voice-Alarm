@@ -752,4 +752,44 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get voicePreviewSample => 'Dit is een korte preview van deze stem.';
+
+  @override
+  String get alarmDismissTitle => 'Los op om te stoppen';
+
+  @override
+  String get alarmDismissHint => 'Beantwoord juist om de wekker uit te zetten.';
+
+  @override
+  String get alarmDismissWrong => 'Onjuist. Nieuwe vraag.';
+
+  @override
+  String get alarmDismissCheck => 'Controleren';
+
+  @override
+  String get alarmDismissAnswerHint => 'Jouw antwoord';
+
+  @override
+  String voicesRefreshed(int count) {
+    return 'Vernieuwd: $count stemmen gevonden';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return 'Stem opgeslagen: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect =>
+      'Installeer een stempakket, keer terug, vernieuw stemmen en selecteer in de taal.';
+
+  @override
+  String get voicesRefreshHint =>
+      'Stemmen vernieuwen herlaadt systeems TTS-stemmen na installatie.';
+
+  @override
+  String get ringtonePreview => 'Voorbeeld';
+
+  @override
+  String get ringtonePreviewHint =>
+      'Tik op afspelen om te beluisteren, tik op de naam om te kiezen.';
 }

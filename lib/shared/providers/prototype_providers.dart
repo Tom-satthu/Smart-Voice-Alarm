@@ -367,32 +367,13 @@ final preferredVoiceProvider = StateNotifierProvider<
 });
 
 final ringtonesProvider = Provider<List<RingtoneUiModel>>((ref) {
-  return const [
-    RingtoneUiModel(
-      id: 'ring-1',
-      name: 'Soft Chime',
-      assetPath: RingtoneAssets.softChime,
-    ),
-    RingtoneUiModel(
-      id: 'ring-2',
-      name: 'Ocean Breeze',
-      assetPath: RingtoneAssets.oceanBreeze,
-    ),
-    RingtoneUiModel(
-      id: 'ring-3',
-      name: 'Night Pulse',
-      assetPath: RingtoneAssets.nightPulse,
-    ),
-    RingtoneUiModel(
-      id: 'ring-4',
-      name: 'Forest Dawn',
-      assetPath: RingtoneAssets.forestDawn,
-    ),
-    RingtoneUiModel(
-      id: 'ring-5',
-      name: 'Crystal Bell',
-      assetPath: RingtoneAssets.crystalBell,
-    ),
+  return [
+    for (final tone in RingtoneAssets.all)
+      RingtoneUiModel(
+        id: tone.name,
+        name: tone.name,
+        assetPath: tone.assetPath,
+      ),
   ];
 });
 
