@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "Keine Stimmänderungen erkannt.",
+  "voicesSettingsRefreshed": "Gerätestimmeinstellungen wurden aktualisiert.",
+  "voicesSystemChanges": "Gerätestimm-Updates",
+  "voicesSystemChangeEvent": "Die {language}-Stimmeinstellungen auf dem Gerät wurden aktualisiert.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Neue Stimmen und Gerätestimm-Updates erscheinen hier.",
+  "commonClear": "Löschen",
   "voicesNewBadge": "Neu",
   "voiceFriendlyName": "Stimme {number}",
   "voicesOpenManagerFailed": "Sprachverwaltung konnte nicht geöffnet werden. Öffnen Sie die System-TTS-Einstellungen.",

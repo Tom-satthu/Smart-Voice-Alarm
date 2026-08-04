@@ -1,4 +1,5 @@
 import '../localization/locale_display_names.dart';
+import '../services/resolved_system_voice.dart';
 import '../../shared/models/ui_models.dart';
 import 'locale_codes.dart';
 
@@ -67,27 +68,174 @@ abstract final class VoiceCatalog {
     return unique.values.toList();
   }
 
-  /// Exactly one device-managed default per language, not per region.
-  static List<TtsVoiceUiModel> systemDefaultsForLanguages(
-    List<TtsVoiceUiModel> voices,
-  ) {
-    final localeByLanguage = <String, String>{};
+  /// Locales to probe for system-default changes (deduped).
+  static List<String> localesForSystemDefaultProbe({
+    required Iterable<TtsVoiceUiModel> voices,
+    String? preferredLocale,
+    String? appLocale,
+    String? systemLocale,
+  }) {
+    final out = <String>{};
+    void add(String? raw) {
+      if (raw == null) return;
+      final trimmed = raw.trim();
+      if (trimmed.isEmpty) return;
+      out.add(trimmed.replaceAll('_', '-'));
+    }
+
     for (final voice in voices) {
       if (voice.isSystemDefault) continue;
-      final language = languageCodeOf(voice.locale);
-      localeByLanguage.putIfAbsent(language, () => voice.platformLocale);
+      add(voice.platformLocale);
     }
+    add(preferredLocale);
+    add(appLocale);
+    add(systemLocale);
+    final list = out.toList()..sort();
+    return list;
+  }
+
+  /// Exactly one device-managed default per language, not per region.
+  ///
+  /// Locale priority: preferred → app/system → platform-resolved → stable first.
+  static List<TtsVoiceUiModel> systemDefaultsForLanguages(
+    List<TtsVoiceUiModel> voices, {
+    String? preferredLocale,
+    String? appLocale,
+    String? systemLocale,
+    Map<String, ResolvedSystemVoiceState>? resolvedByLocale,
+  }) {
+    final byLanguage = <String, List<TtsVoiceUiModel>>{};
+    for (final voice in voices) {
+      if (voice.isSystemDefault) continue;
+      byLanguage.putIfAbsent(languageCodeOf(voice.locale), () => []).add(voice);
+    }
+
+    final preferred = preferredLocale == null
+        ? null
+        : normalizeLocaleTag(preferredLocale);
+    final app = appLocale == null ? null : normalizeLocaleTag(appLocale);
+    final system =
+        systemLocale == null ? null : normalizeLocaleTag(systemLocale);
+
     return [
-      for (final entry in localeByLanguage.entries)
-        TtsVoiceUiModel(
-          id: 'system-default|${entry.key}',
-          name: 'System Default',
-          locale: normalizeLocaleTag(entry.value),
-          platformName: '',
-          platformLocale: entry.value,
-          isSystemDefault: true,
+      for (final entry in byLanguage.entries)
+        _systemDefaultForLanguage(
+          language: entry.key,
+          candidates: entry.value,
+          preferredLocale: preferred,
+          appLocale: app,
+          systemLocale: system,
+          resolvedByLocale: resolvedByLocale ?? const {},
         ),
     ];
+  }
+
+  static TtsVoiceUiModel _systemDefaultForLanguage({
+    required String language,
+    required List<TtsVoiceUiModel> candidates,
+    required String? preferredLocale,
+    required String? appLocale,
+    required String? systemLocale,
+    required Map<String, ResolvedSystemVoiceState> resolvedByLocale,
+  }) {
+    TtsVoiceUiModel? matchNormalized(String? locale) {
+      if (locale == null || languageCodeOf(locale) != language) return null;
+      for (final voice in candidates) {
+        if (normalizeLocaleTag(voice.locale) == locale ||
+            normalizeLocaleTag(voice.platformLocale) == locale) {
+          return voice;
+        }
+      }
+      return null;
+    }
+
+    ResolvedSystemVoiceState? platformForLanguage() {
+      ResolvedSystemVoiceState? best;
+      for (final entry in resolvedByLocale.entries) {
+        if (languageCodeOf(entry.key) != language) continue;
+        if (!entry.value.hasResolvedVoice) continue;
+        best ??= entry.value;
+        if (preferredLocale != null &&
+            normalizeLocaleTag(entry.key) == preferredLocale) {
+          return entry.value;
+        }
+      }
+      return best;
+    }
+
+    final preferredMatch = matchNormalized(preferredLocale);
+    final appMatch = matchNormalized(appLocale);
+    final systemMatch = matchNormalized(systemLocale);
+    final platform = platformForLanguage();
+
+    late final String platformLocale;
+    String? platformEngine;
+    String uiLocale;
+
+    if (preferredMatch != null) {
+      platformLocale = preferredMatch.platformLocale;
+      platformEngine = preferredMatch.platformEngine;
+      uiLocale = preferredMatch.locale;
+    } else if (appMatch != null) {
+      platformLocale = appMatch.platformLocale;
+      platformEngine = appMatch.platformEngine;
+      uiLocale = appMatch.locale;
+    } else if (systemMatch != null) {
+      platformLocale = systemMatch.platformLocale;
+      platformEngine = systemMatch.platformEngine;
+      uiLocale = systemMatch.locale;
+    } else if (platform != null) {
+      platformLocale = platform.resolvedLocale?.isNotEmpty == true
+          ? platform.resolvedLocale!
+          : platform.requestedLocale;
+      platformEngine = platform.enginePackage;
+      uiLocale = normalizeLocaleTag(platformLocale);
+    } else {
+      final sorted = List<TtsVoiceUiModel>.from(candidates)
+        ..sort((a, b) => a.platformLocale.compareTo(b.platformLocale));
+      final pick = sorted.first;
+      platformLocale = pick.platformLocale;
+      platformEngine = pick.platformEngine;
+      uiLocale = pick.locale;
+    }
+
+    // Prefer an engine from any concrete voice of this language when missing.
+    if (platformEngine == null || platformEngine.isEmpty) {
+      for (final voice in candidates) {
+        final engine = voice.platformEngine;
+        if (engine != null && engine.isNotEmpty) {
+          platformEngine = engine;
+          break;
+        }
+      }
+    }
+
+    return TtsVoiceUiModel(
+      id: 'system-default|$language',
+      name: 'System Default',
+      locale: uiLocale,
+      platformName: '',
+      platformLocale: platformLocale,
+      platformEngine: platformEngine,
+      isSystemDefault: true,
+    );
+  }
+
+  static TtsSpeakPlan speakPlanFor(TtsVoiceUiModel voice) {
+    if (voice.isSystemDefault) {
+      return TtsSpeakPlan(
+        recreateEngine: true,
+        engine: voice.platformEngine,
+        languageLocale: voice.platformLocale,
+      );
+    }
+    return TtsSpeakPlan(
+      recreateEngine: false,
+      engine: voice.platformEngine,
+      languageLocale: voice.platformLocale,
+      voiceName: voice.platformName,
+      voiceLocale: voice.platformLocale,
+    );
   }
 
   static Set<String> newlyInstalledIds({

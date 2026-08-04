@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "Nessuna modifica alle voci rilevata.",
+  "voicesSettingsRefreshed": "Impostazioni voce del dispositivo aggiornate.",
+  "voicesSystemChanges": "Aggiornamenti voce dispositivo",
+  "voicesSystemChangeEvent": "Le impostazioni voce {language} del dispositivo sono state aggiornate.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Le nuove voci e gli aggiornamenti appariranno qui.",
+  "commonClear": "Cancella",
   "voicesNewBadge": "Nuova",
   "voiceFriendlyName": "Voce {number}",
   "voicesOpenManagerFailed": "Impossibile aprire la gestione voci. Apri le impostazioni TTS di sistema.",

@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'resolved_system_voice.dart';
+
 /// Snapshot of the default TTS engine voice selection.
 class TtsEngineVoiceInfo {
   const TtsEngineVoiceInfo({
@@ -130,6 +132,36 @@ class TtsPlatformBridge {
     } catch (error) {
       debugPrint('getEngineVoiceState failed: $error');
       return null;
+    }
+  }
+
+  /// Per-locale system defaults: setLanguage only, then read current voice.
+  Future<Map<String, ResolvedSystemVoiceState>> resolveSystemDefaultsForLocales(
+    List<String> locales,
+  ) async {
+    if (locales.isEmpty) return const {};
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return const {};
+    }
+    try {
+      final raw = await _channel.invokeMethod<List<dynamic>>(
+        'resolveSystemDefaultsForLocales',
+        {'locales': locales},
+      );
+      if (raw == null) return const {};
+      final out = <String, ResolvedSystemVoiceState>{};
+      for (final item in raw) {
+        if (item is! Map) continue;
+        final state = ResolvedSystemVoiceState.fromMap(
+          Map<dynamic, dynamic>.from(item),
+        );
+        if (state.requestedLocale.isEmpty) continue;
+        out[state.requestedLocale.replaceAll('_', '-')] = state;
+      }
+      return out;
+    } catch (error) {
+      debugPrint('resolveSystemDefaultsForLocales failed: $error');
+      return const {};
     }
   }
 

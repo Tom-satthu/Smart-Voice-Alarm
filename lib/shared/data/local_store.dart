@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../core/services/resolved_system_voice.dart';
 import '../models/ui_models.dart';
 
 abstract final class AppBoxes {
@@ -141,6 +142,7 @@ class SettingsRepository {
   static const _preferredVoiceLocaleKey = 'preferredVoiceLocale';
   static const _preferredVoiceLanguageKey = 'preferredVoiceLanguage';
   static const _newVoiceIdsKey = 'newVoiceIds';
+  static const _systemVoiceChangeEventsKey = 'systemVoiceChangeEvents';
   static const _premiumUnlockedKey = 'premiumLifetimeUnlocked';
 
   ThemeMode loadThemeMode() {
@@ -256,6 +258,41 @@ class SettingsRepository {
 
   Future<void> saveNewVoiceIds(Set<String> voiceIds) async {
     await LocalDatabase.settingsBox.put(_newVoiceIdsKey, voiceIds.toList());
+  }
+
+  List<SystemVoiceChangeEvent> loadSystemVoiceChangeEvents() {
+    final raw = LocalDatabase.settingsBox.get(_systemVoiceChangeEventsKey);
+    if (raw is! List) return const [];
+    final events = <SystemVoiceChangeEvent>[];
+    for (final item in raw) {
+      if (item is Map) {
+        events.add(
+          SystemVoiceChangeEvent.fromJson(Map<String, dynamic>.from(item)),
+        );
+      } else if (item is String) {
+        try {
+          final decoded = jsonDecode(item);
+          if (decoded is Map) {
+            events.add(
+              SystemVoiceChangeEvent.fromJson(
+                Map<String, dynamic>.from(decoded),
+              ),
+            );
+          }
+        } catch (_) {}
+      }
+    }
+    return events;
+  }
+
+  Future<void> saveSystemVoiceChangeEvents(
+    List<SystemVoiceChangeEvent> events,
+  ) async {
+    final trimmed = events.length > 20 ? events.sublist(0, 20) : events;
+    await LocalDatabase.settingsBox.put(
+      _systemVoiceChangeEventsKey,
+      trimmed.map((event) => event.toJson()).toList(),
+    );
   }
 
   bool loadPremiumUnlocked() =>

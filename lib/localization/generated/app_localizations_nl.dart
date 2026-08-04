@@ -834,7 +834,26 @@ class AppLocalizationsNl extends AppLocalizations {
   String get voicesNoChange => 'Geen stemwijzigingen gevonden.';
 
   @override
+  String get voicesSettingsRefreshed =>
+      'Apparaatsteminstellingen zijn vernieuwd.';
+
+  @override
+  String get voicesSystemChanges => 'Apparaatstem-updates';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return 'Apparaatinstellingen voor $language-stem zijn bijgewerkt.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty =>
+      'Nieuwe stemmen en apparaatupdates verschijnen hier.';
+
+  @override
   String get voicesNewBadge => 'Nieuw';
+
+  @override
+  String get commonClear => 'Wissen';
 
   @override
   String voiceFriendlyName(String number) {

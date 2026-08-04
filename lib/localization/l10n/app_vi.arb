@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "Đã làm mới cài đặt giọng nói của thiết bị.",
+  "voicesSettingsRefreshed": "Đã làm mới cài đặt giọng nói của thiết bị.",
+  "voicesSystemChanges": "Cập nhật giọng thiết bị",
+  "voicesSystemChangeEvent": "Cài đặt giọng {language} trên thiết bị vừa được cập nhật.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Giọng mới và cập nhật giọng thiết bị sẽ hiện ở đây sau khi bạn cài hoặc thay đổi.",
+  "commonClear": "Xóa",
   "voicesNewBadge": "Mới",
   "voiceFriendlyName": "Giọng nói {number}",
   "voicesOpenManagerFailed": "Không mở được quản lý giọng nói. Hãy mở cài đặt Text-to-speech hệ thống để cài giọng.",

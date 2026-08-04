@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_voice_alarm/core/services/resolved_system_voice.dart';
 import 'package:smart_voice_alarm/shared/data/local_store.dart';
 import 'package:smart_voice_alarm/shared/models/ui_models.dart';
 
@@ -137,6 +138,7 @@ class MemorySettingsRepository extends SettingsRepository {
   String? _preferredVoiceLocale;
   String? _preferredVoiceLanguage;
   Set<String> _newVoiceIds = {};
+  List<SystemVoiceChangeEvent> _systemVoiceChangeEvents = [];
   bool _premiumUnlocked = false;
 
   @override
@@ -153,6 +155,17 @@ class MemorySettingsRepository extends SettingsRepository {
   @override
   Future<void> saveNewVoiceIds(Set<String> voiceIds) async {
     _newVoiceIds = Set<String>.from(voiceIds);
+  }
+
+  @override
+  List<SystemVoiceChangeEvent> loadSystemVoiceChangeEvents() =>
+      List<SystemVoiceChangeEvent>.from(_systemVoiceChangeEvents);
+
+  @override
+  Future<void> saveSystemVoiceChangeEvents(
+    List<SystemVoiceChangeEvent> events,
+  ) async {
+    _systemVoiceChangeEvents = List<SystemVoiceChangeEvent>.from(events);
   }
 
   @override

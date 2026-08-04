@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_voice_alarm/core/localization/locale_codes.dart';
 import 'package:smart_voice_alarm/core/localization/voice_catalog.dart';
+import 'package:smart_voice_alarm/core/services/resolved_system_voice.dart';
 import 'package:smart_voice_alarm/core/services/tts_service.dart';
 import 'package:smart_voice_alarm/shared/models/ui_models.dart';
 
@@ -83,9 +84,96 @@ void main() {
     expect(labels['en-us'], 'Voice 02');
   });
 
-  test('newly installed excludes defaults and unusable voices', () {
-    const oldVoice = TtsVoiceUiModel(id: 'old', name: 'Old', locale: 'en-US');
-    const newVoice = TtsVoiceUiModel(id: 'new', name: 'New', locale: 'en-US');
+  test('system-default locale prefers preferred then app/system then platform', () {
+    const us = TtsVoiceUiModel(
+      id: 'e|us|en-US',
+      name: 'US',
+      locale: 'en-US',
+      platformLocale: 'en-US',
+      platformEngine: 'com.google.tts',
+    );
+    const gb = TtsVoiceUiModel(
+      id: 'e|gb|en-GB',
+      name: 'UK',
+      locale: 'en-GB',
+      platformLocale: 'en-GB',
+      platformEngine: 'com.google.tts',
+    );
+
+    final preferred = VoiceCatalog.systemDefaultsForLanguages(
+      const [us, gb],
+      preferredLocale: 'en-GB',
+    ).single;
+    expect(preferred.platformLocale, 'en-GB');
+    expect(preferred.platformEngine, 'com.google.tts');
+
+    final app = VoiceCatalog.systemDefaultsForLanguages(
+      const [us, gb],
+      appLocale: 'en-US',
+    ).single;
+    expect(app.platformLocale, 'en-US');
+
+    final platform = VoiceCatalog.systemDefaultsForLanguages(
+      const [us, gb],
+      resolvedByLocale: {
+        'en-GB': const ResolvedSystemVoiceState(
+          requestedLocale: 'en-GB',
+          resolvedVoiceName: 'gb-default',
+          resolvedLocale: 'en-GB',
+          enginePackage: 'com.samsung.tts',
+        ),
+      },
+    ).single;
+    expect(platform.platformLocale, 'en-GB');
+    expect(platform.platformEngine, 'com.samsung.tts');
+  });
+
+  test('localesForSystemDefaultProbe dedupes preferred, listed, app, system', () {
+    const voices = [
+      TtsVoiceUiModel(
+        id: 'a',
+        name: 'A',
+        locale: 'vi-VN',
+        platformLocale: 'vie-VNM',
+      ),
+      TtsVoiceUiModel(
+        id: 'b',
+        name: 'B',
+        locale: 'en-US',
+        platformLocale: 'en-US',
+      ),
+      TtsVoiceUiModel(
+        id: 'sys',
+        name: 'System',
+        locale: 'vi-VN',
+        isSystemDefault: true,
+      ),
+    ];
+
+    final locales = VoiceCatalog.localesForSystemDefaultProbe(
+      voices: voices,
+      preferredLocale: 'en-GB',
+      appLocale: 'vi-VN',
+      systemLocale: 'en-US',
+    );
+
+    expect(locales, containsAll(['vie-VNM', 'en-US', 'en-GB', 'vi-VN']));
+    expect(locales.toSet().length, locales.length);
+  });
+
+  test('stable ids include engine and newly installed excludes system-default', () {
+    const oldVoice = TtsVoiceUiModel(
+      id: 'com.google.tts|old|en-US',
+      name: 'Old',
+      locale: 'en-US',
+      platformEngine: 'com.google.tts',
+    );
+    const newVoice = TtsVoiceUiModel(
+      id: 'com.google.tts|new|en-US',
+      name: 'New',
+      locale: 'en-US',
+      platformEngine: 'com.google.tts',
+    );
     const missing = TtsVoiceUiModel(
       id: 'missing',
       name: 'Missing',
@@ -94,12 +182,88 @@ void main() {
     );
     final system = TtsService.systemDefaultVoice('en-US');
 
+    expect(oldVoice.id.split('|').first, 'com.google.tts');
     expect(
       VoiceCatalog.newlyInstalledIds(
         before: const [oldVoice],
         after: [oldVoice, newVoice, missing, system],
       ),
-      {'new'},
+      {'com.google.tts|new|en-US'},
     );
+  });
+
+  test('concrete speak plan sets voice; system-default does not', () {
+    const concrete = TtsVoiceUiModel(
+      id: 'engine|name|en-US',
+      name: 'Name',
+      locale: 'en-US',
+      platformName: 'name',
+      platformLocale: 'en-US',
+      platformEngine: 'com.google.tts',
+    );
+    final system = VoiceCatalog.systemDefaultsForLanguages(const [concrete]).single;
+
+    final concretePlan = VoiceCatalog.speakPlanFor(concrete);
+    expect(concretePlan.engine, 'com.google.tts');
+    expect(concretePlan.shouldSetVoice, isTrue);
+    expect(concretePlan.voiceName, 'name');
+    expect(concretePlan.recreateEngine, isFalse);
+
+    final systemPlan = VoiceCatalog.speakPlanFor(system);
+    expect(systemPlan.shouldSetVoice, isFalse);
+    expect(systemPlan.voiceName, isNull);
+    expect(systemPlan.recreateEngine, isTrue);
+    expect(systemPlan.languageLocale, isNotEmpty);
+  });
+
+  test('system voice change events serialize for persistence', () {
+    const event = SystemVoiceChangeEvent(
+      locale: 'vi-VN',
+      language: 'vi',
+      timestampMs: 123,
+    );
+    final roundTrip = SystemVoiceChangeEvent.fromJson(event.toJson());
+    expect(roundTrip.locale, 'vi-VN');
+    expect(roundTrip.language, 'vi');
+    expect(roundTrip.timestampMs, 123);
+    expect(roundTrip.type, 'system_default_changed');
+  });
+
+  test('resolved system voice fingerprint detects per-locale changes', () {
+    const before = ResolvedSystemVoiceState(
+      requestedLocale: 'vi-VN',
+      resolvedVoiceName: 'vi-female',
+      resolvedLocale: 'vi-VN',
+      enginePackage: 'com.samsung.SMT',
+    );
+    const after = ResolvedSystemVoiceState(
+      requestedLocale: 'vi-VN',
+      resolvedVoiceName: 'vi-male',
+      resolvedLocale: 'vi-VN',
+      enginePackage: 'com.samsung.SMT',
+    );
+    const en = ResolvedSystemVoiceState(
+      requestedLocale: 'en-US',
+      resolvedVoiceName: 'en-us',
+      resolvedLocale: 'en-US',
+      enginePackage: 'com.google.tts',
+    );
+
+    expect(before.fingerprint, isNot(after.fingerprint));
+    expect(before.fingerprint, isNot(en.fingerprint));
+  });
+
+  test('no duplicate language rows for system defaults', () {
+    const voices = [
+      TtsVoiceUiModel(id: '1', name: 'A', locale: 'vi-VN', platformLocale: 'vi-VN'),
+      TtsVoiceUiModel(id: '2', name: 'B', locale: 'vi-VN', platformLocale: 'vi-VN'),
+      TtsVoiceUiModel(id: '3', name: 'C', locale: 'en-US', platformLocale: 'en-US'),
+    ];
+    final defaults = VoiceCatalog.systemDefaultsForLanguages(voices);
+    expect(defaults.map((v) => v.id).toSet(), {
+      'system-default|vi',
+      'system-default|en',
+    });
+    expect(defaults, hasLength(2));
   });
 }

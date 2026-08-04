@@ -317,12 +317,26 @@ const defaultSequenceId = 'seq-1';
 
 final ttsVoicesProvider =
     FutureProvider.autoDispose<List<TtsVoiceUiModel>>((ref) async {
-  return ref.watch(ttsServiceProvider).loadVoices();
+  final preferred = ref.watch(preferredVoiceProvider);
+  final app = ref.watch(localeProvider);
+  final system = WidgetsBinding.instance.platformDispatcher.locale;
+  return ref.watch(ttsServiceProvider).loadVoices(
+        preferredLocale: preferred.locale,
+        appLocale: app.toLanguageTag(),
+        systemLocale: system.toLanguageTag(),
+      );
 });
 
 final usableTtsVoicesProvider =
     FutureProvider.autoDispose<List<TtsVoiceUiModel>>((ref) async {
-  return ref.watch(ttsServiceProvider).loadUsableVoices();
+  final preferred = ref.watch(preferredVoiceProvider);
+  final app = ref.watch(localeProvider);
+  final system = WidgetsBinding.instance.platformDispatcher.locale;
+  return ref.watch(ttsServiceProvider).loadUsableVoices(
+        preferredLocale: preferred.locale,
+        appLocale: app.toLanguageTag(),
+        systemLocale: system.toLanguageTag(),
+      );
 });
 
 class PreferredVoiceController extends StateNotifier<

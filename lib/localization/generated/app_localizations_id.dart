@@ -830,7 +830,26 @@ class AppLocalizationsId extends AppLocalizations {
   String get voicesNoChange => 'Tidak ada perubahan suara terdeteksi.';
 
   @override
+  String get voicesSettingsRefreshed =>
+      'Pengaturan suara perangkat telah diperbarui.';
+
+  @override
+  String get voicesSystemChanges => 'Pembaruan suara perangkat';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return 'Pengaturan suara $language di perangkat baru saja diperbarui.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty =>
+      'Suara baru dan pembaruan perangkat akan muncul di sini.';
+
+  @override
   String get voicesNewBadge => 'Baru';
+
+  @override
+  String get commonClear => 'Hapus';
 
   @override
   String voiceFriendlyName(String number) {

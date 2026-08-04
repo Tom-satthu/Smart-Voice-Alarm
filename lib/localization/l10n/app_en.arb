@@ -332,7 +332,19 @@
     }
   },
   "voicesNoChange": "Device voice settings were refreshed.",
+  "voicesSettingsRefreshed": "Device voice settings were refreshed.",
+  "voicesSystemChanges": "Device voice updates",
+  "voicesSystemChangeEvent": "Device {language} voice settings were updated.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "New voices and device voice updates will appear here after you install or change them.",
   "voicesNewBadge": "New",
+  "commonClear": "Clear",
   "voiceFriendlyName": "Voice {number}",
   "@voiceFriendlyName": {
     "placeholders": {

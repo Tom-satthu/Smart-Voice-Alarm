@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "音声の変更は検出されませんでした。",
+  "voicesSettingsRefreshed": "端末の音声設定を更新しました。",
+  "voicesSystemChanges": "端末の音声更新",
+  "voicesSystemChangeEvent": "端末の{language}音声設定が更新されました。",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "新しい音声や端末の更新はここに表示されます。",
+  "commonClear": "クリア",
   "voicesNewBadge": "新規",
   "voiceFriendlyName": "音声 {number}",
   "voicesOpenManagerFailed": "音声管理を開けませんでした。システムの読み上げ設定を開いてください。",

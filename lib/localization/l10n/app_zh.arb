@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "未检测到语音更改。",
+  "voicesSettingsRefreshed": "已刷新设备语音设置。",
+  "voicesSystemChanges": "设备语音更新",
+  "voicesSystemChangeEvent": "设备上的{language}语音设置已更新。",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "新语音和设备更新将显示在这里。",
+  "commonClear": "清除",
   "voicesNewBadge": "新",
   "voiceFriendlyName": "语音 {number}",
   "voicesOpenManagerFailed": "无法打开语音管理。请打开系统文字转语音设置。",

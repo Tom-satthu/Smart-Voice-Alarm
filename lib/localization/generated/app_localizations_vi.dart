@@ -831,7 +831,26 @@ class AppLocalizationsVi extends AppLocalizations {
   String get voicesNoChange => 'Đã làm mới cài đặt giọng nói của thiết bị.';
 
   @override
+  String get voicesSettingsRefreshed =>
+      'Đã làm mới cài đặt giọng nói của thiết bị.';
+
+  @override
+  String get voicesSystemChanges => 'Cập nhật giọng thiết bị';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return 'Cài đặt giọng $language trên thiết bị vừa được cập nhật.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty =>
+      'Giọng mới và cập nhật giọng thiết bị sẽ hiện ở đây sau khi bạn cài hoặc thay đổi.';
+
+  @override
   String get voicesNewBadge => 'Mới';
+
+  @override
+  String get commonClear => 'Xóa';
 
   @override
   String voiceFriendlyName(String number) {

@@ -812,7 +812,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voicesNoChange => '未检测到语音更改。';
 
   @override
+  String get voicesSettingsRefreshed => '已刷新设备语音设置。';
+
+  @override
+  String get voicesSystemChanges => '设备语音更新';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return '设备上的$language语音设置已更新。';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty => '新语音和设备更新将显示在这里。';
+
+  @override
   String get voicesNewBadge => '新';
+
+  @override
+  String get commonClear => '清除';
 
   @override
   String voiceFriendlyName(String number) {
@@ -1631,7 +1648,24 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get voicesNoChange => '未偵測到語音變更。';
 
   @override
+  String get voicesSettingsRefreshed => '已重新整理裝置語音設定。';
+
+  @override
+  String get voicesSystemChanges => '裝置語音更新';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return '裝置上的$language語音設定已更新。';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty => '新語音與裝置更新會顯示在這裡。';
+
+  @override
   String get voicesNewBadge => '新';
+
+  @override
+  String get commonClear => '清除';
 
   @override
   String voiceFriendlyName(String number) {

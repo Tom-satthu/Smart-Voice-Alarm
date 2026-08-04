@@ -8,7 +8,7 @@ import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/localization/locale_display_names.dart';
 import '../../../../core/localization/voice_catalog.dart';
 import '../../../../core/responsive/responsive.dart';
-import '../../../../core/services/tts_platform_bridge.dart';
+import '../../../../core/services/resolved_system_voice.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../shared/models/ui_models.dart';
 import '../../../../shared/providers/prototype_providers.dart';
@@ -29,15 +29,17 @@ class _VoiceSpeechSettingsScreenState
   bool _busy = false;
   bool _awaitingDownloadReturn = false;
   Set<String> _snapshotBeforeDownload = {};
-  String? _snapshotEngineVoiceId;
-  String? _snapshotEngineLocale;
+  Map<String, ResolvedSystemVoiceState> _snapshotByLocale = {};
   Set<String> _newlyInstalledIds = {};
+  List<SystemVoiceChangeEvent> _systemChangeEvents = [];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _newlyInstalledIds = ref.read(settingsRepositoryProvider).loadNewVoiceIds();
+    final settings = ref.read(settingsRepositoryProvider);
+    _newlyInstalledIds = settings.loadNewVoiceIds();
+    _systemChangeEvents = settings.loadSystemVoiceChangeEvents();
   }
 
   @override
@@ -60,19 +62,52 @@ class _VoiceSpeechSettingsScreenState
     }
   }
 
-  Future<List<TtsVoiceUiModel>> _scanVoices() async {
-    final voices = await ref.read(ttsServiceProvider).reloadVoices();
+  String? get _appLocaleTag =>
+      ref.read(localeProvider).toLanguageTag();
+
+  String get _systemLocaleTag =>
+      WidgetsBinding.instance.platformDispatcher.locale.toLanguageTag();
+
+  Future<List<TtsVoiceUiModel>> _scanVoices({
+    Map<String, ResolvedSystemVoiceState>? resolvedDefaults,
+  }) async {
+    final preferred = ref.read(preferredVoiceProvider);
+    final voices = await ref.read(ttsServiceProvider).reloadVoices(
+          preferredLocale: preferred.locale,
+          appLocale: _appLocaleTag,
+          systemLocale: _systemLocaleTag,
+          resolvedDefaults: resolvedDefaults,
+        );
     ref.invalidate(ttsVoicesProvider);
     ref.invalidate(usableTtsVoicesProvider);
     await ref.read(ttsVoicesProvider.future);
     return voices.where((v) => v.isUsable).toList();
   }
 
+  List<String> _localesToProbe(List<TtsVoiceUiModel> voices) {
+    final preferred = ref.read(preferredVoiceProvider);
+    return VoiceCatalog.localesForSystemDefaultProbe(
+      voices: voices,
+      preferredLocale: preferred.locale,
+      appLocale: _appLocaleTag,
+      systemLocale: _systemLocaleTag,
+    );
+  }
+
+  Future<Map<String, ResolvedSystemVoiceState>> _probeLocales(
+    List<TtsVoiceUiModel> voices,
+  ) async {
+    final locales = _localesToProbe(voices);
+    if (locales.isEmpty) return const {};
+    return ref.read(ttsServiceProvider).probeSystemDefaults(locales);
+  }
+
   Future<void> _captureDownloadSnapshot(List<TtsVoiceUiModel> current) async {
-    _snapshotBeforeDownload = current.map((v) => v.id).toSet();
-    final engine = await ref.read(ttsServiceProvider).loadEngineVoice();
-    _snapshotEngineVoiceId = engine?.id;
-    _snapshotEngineLocale = engine?.locale;
+    _snapshotBeforeDownload = current
+        .where((voice) => !voice.isSystemDefault && voice.isUsable)
+        .map((voice) => voice.id)
+        .toSet();
+    _snapshotByLocale = await _probeLocales(current);
   }
 
   Future<void> _rescan() async {
@@ -82,7 +117,8 @@ class _VoiceSpeechSettingsScreenState
       final before =
           ref.read(ttsVoicesProvider).asData?.value ??
           const <TtsVoiceUiModel>[];
-      final voices = await _scanVoices();
+      final probed = await _probeLocales(before.where((v) => v.isUsable).toList());
+      final voices = await _scanVoices(resolvedDefaults: probed);
       await _rememberNewVoices(before: before, after: voices);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,62 +145,149 @@ class _VoiceSpeechSettingsScreenState
     if (mounted) setState(() {});
   }
 
+  Future<void> _persistSystemEvents(List<SystemVoiceChangeEvent> events) async {
+    _systemChangeEvents = events;
+    await ref
+        .read(settingsRepositoryProvider)
+        .saveSystemVoiceChangeEvents(events);
+    if (mounted) setState(() {});
+  }
+
   Future<void> _afterDownloadReturn() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context);
     setState(() => _busy = true);
     try {
+      final beforeSnapshot = _snapshotBeforeDownload;
+      final beforeLocales = Map<String, ResolvedSystemVoiceState>.from(
+        _snapshotByLocale,
+      );
+
+      // First reload list, then probe defaults with the fresh locale set.
       final voices = await _scanVoices();
-      final engine = await ref.read(ttsServiceProvider).loadEngineVoice();
+      final afterLocales = await _probeLocales(voices);
+      // Rebuild with probed defaults so "Giọng của thiết bị" uses platform data.
+      final refreshed = await _scanVoices(resolvedDefaults: afterLocales);
       if (!mounted) return;
 
-      final snapshot = voices
-          .where((voice) => _snapshotBeforeDownload.contains(voice.id))
+      final beforeVoices = refreshed
+          .where((voice) => beforeSnapshot.contains(voice.id))
           .toList();
       final discovered = VoiceCatalog.newlyInstalledIds(
-        before: snapshot,
-        after: voices,
+        before: beforeVoices.isEmpty
+            ? beforeSnapshot.map(
+                (id) => TtsVoiceUiModel(id: id, name: id, locale: 'und'),
+              )
+            : beforeVoices,
+        after: refreshed,
       );
-      final engineChanged =
-          engine != null &&
-          ((_snapshotEngineVoiceId != null &&
-                  engine.id != _snapshotEngineVoiceId) ||
-              (_snapshotEngineLocale != null &&
-                  VoiceCatalog.normalizeLocaleTag(engine.locale) !=
-                      VoiceCatalog.normalizeLocaleTag(_snapshotEngineLocale!)));
 
-      if (discovered.isNotEmpty) {
-        _newlyInstalledIds = {..._newlyInstalledIds, ...discovered};
+      // Prefer ID-only diff against the captured ID set.
+      final discoveredIds = refreshed
+          .where(
+            (voice) =>
+                !voice.isSystemDefault &&
+                voice.isUsable &&
+                !beforeSnapshot.contains(voice.id),
+          )
+          .map((voice) => voice.id)
+          .toSet();
+      final newIds = discovered.isNotEmpty ? discovered : discoveredIds;
+
+      final changedLocales = <String>[];
+      for (final entry in afterLocales.entries) {
+        ResolvedSystemVoiceState? before = beforeLocales[entry.key];
+        if (before == null) {
+          final language = VoiceCatalog.languageCodeOf(entry.key);
+          for (final candidate in beforeLocales.entries) {
+            if (VoiceCatalog.languageCodeOf(candidate.key) == language) {
+              before = candidate.value;
+              break;
+            }
+          }
+        }
+        if (before == null) {
+          if (entry.value.hasResolvedVoice) {
+            changedLocales.add(entry.key);
+          }
+          continue;
+        }
+        if (before.fingerprint != entry.value.fingerprint) {
+          changedLocales.add(entry.key);
+        }
+      }
+
+      if (newIds.isNotEmpty) {
+        _newlyInstalledIds = {..._newlyInstalledIds, ...newIds};
         await ref
             .read(settingsRepositoryProvider)
             .saveNewVoiceIds(_newlyInstalledIds);
+        if (changedLocales.isNotEmpty) {
+          final now = DateTime.now().millisecondsSinceEpoch;
+          final events = [
+            for (final locale in changedLocales)
+              SystemVoiceChangeEvent(
+                locale: VoiceCatalog.normalizeLocaleTag(locale),
+                language: VoiceCatalog.languageCodeOf(locale),
+                timestampMs: now,
+              ),
+            ..._systemChangeEvents,
+          ];
+          final byLanguage = <String, SystemVoiceChangeEvent>{};
+          for (final event in events) {
+            byLanguage.putIfAbsent(event.language, () => event);
+          }
+          await _persistSystemEvents(byLanguage.values.toList());
+        }
         if (!mounted) return;
         setState(() {});
-      }
-
-      if (discovered.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.voicesNewFound(discovered.length))),
+          SnackBar(content: Text(l10n.voicesNewFound(newIds.length))),
         );
         return;
       }
 
-      if (engine != null && engineChanged) {
-        final matched = _matchEngineVoice(voices, engine);
-        final locale = VoiceCatalog.normalizeLocaleTag(
-          matched?.locale ?? engine.locale,
+      if (changedLocales.isNotEmpty) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final events = [
+          for (final locale in changedLocales)
+            SystemVoiceChangeEvent(
+              locale: VoiceCatalog.normalizeLocaleTag(locale),
+              language: VoiceCatalog.languageCodeOf(locale),
+              timestampMs: now,
+            ),
+          ..._systemChangeEvents,
+        ];
+        final byLanguage = <String, SystemVoiceChangeEvent>{};
+        for (final event in events) {
+          byLanguage.putIfAbsent(event.language, () => event);
+        }
+        await _persistSystemEvents(byLanguage.values.toList());
+
+        final preferred = ref.read(preferredVoiceProvider);
+        final preferredLanguage = preferred.language ??
+            (preferred.locale == null
+                ? null
+                : VoiceCatalog.languageCodeOf(preferred.locale!));
+        final matchedChange = changedLocales.firstWhere(
+          (locale) =>
+              preferredLanguage != null &&
+              VoiceCatalog.languageCodeOf(locale) == preferredLanguage,
+          orElse: () => changedLocales.first,
         );
-        final language = VoiceCatalog.languageCodeOf(locale);
-        await ref
-            .read(preferredVoiceProvider.notifier)
-            .setVoice(
-              id:
-                  matched?.id ??
-                  'system-default|${VoiceCatalog.languageCodeOf(locale)}',
-              locale: locale,
-              language: language,
-            );
+        final language = VoiceCatalog.languageCodeOf(matchedChange);
+        final locale = VoiceCatalog.normalizeLocaleTag(matchedChange);
+        if (preferred.id == null ||
+            preferred.id!.startsWith('system-default|') ||
+            preferredLanguage == language) {
+          await ref.read(preferredVoiceProvider.notifier).setVoice(
+                id: 'system-default|$language',
+                locale: locale,
+                language: language,
+              );
+        }
         if (!mounted) return;
+        setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -175,51 +298,19 @@ class _VoiceSpeechSettingsScreenState
         return;
       }
 
-      final preferred = ref.read(preferredVoiceProvider);
-      final locale = VoiceCatalog.normalizeLocaleTag(
-        _snapshotEngineLocale ?? preferred.locale ?? 'en-US',
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.voicesSettingsRefreshed)),
       );
-      await ref
-          .read(preferredVoiceProvider.notifier)
-          .setVoice(
-            id: 'system-default|${VoiceCatalog.languageCodeOf(locale)}',
-            locale: locale,
-            language: VoiceCatalog.languageCodeOf(locale),
-          );
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.voicesNoChange)));
-      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  TtsVoiceUiModel? _matchEngineVoice(
-    List<TtsVoiceUiModel> voices,
-    TtsEngineVoiceInfo engine,
-  ) {
-    for (final voice in voices) {
-      if (voice.id == engine.id) return voice;
-    }
-    final engineName = engine.name.toLowerCase();
-    final engineLocale = VoiceCatalog.normalizeLocaleTag(engine.locale);
-    for (final voice in voices) {
-      if (voice.name.toLowerCase() == engineName &&
-          VoiceCatalog.normalizeLocaleTag(voice.locale) == engineLocale) {
-        return voice;
-      }
-    }
-    return null;
-  }
-
   Future<void> _saveVoice(TtsVoiceUiModel voice) async {
     final l10n = AppLocalizations.of(context);
     final locale = VoiceCatalog.normalizeLocaleTag(voice.locale);
-    await ref
-        .read(preferredVoiceProvider.notifier)
-        .setVoice(
+    await ref.read(preferredVoiceProvider.notifier).setVoice(
           id: voice.id,
           locale: locale,
           language: VoiceCatalog.languageCodeOf(locale),
@@ -256,14 +347,18 @@ class _VoiceSpeechSettingsScreenState
       if (!opened) {
         _awaitingDownloadReturn = false;
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.voicesOpenManagerFailed)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.voicesOpenManagerFailed)),
+          );
         }
       }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _clearSystemEvents() async {
+    await _persistSystemEvents(const []);
   }
 
   TtsVoiceUiModel? _resolveSelected(
@@ -275,15 +370,11 @@ class _VoiceSpeechSettingsScreenState
       for (final voice in voices) {
         if (voice.id == preferredId) return voice;
       }
-      final preferredName = preferredId.contains('|')
-          ? preferredId.split('|').first
-          : preferredId;
-      for (final voice in voices) {
-        if (voice.name == preferredName ||
-            voice.id.split('|').first == preferredName) {
-          if (preferredLocale == null ||
-              VoiceCatalog.languageCodeOf(voice.locale) ==
-                  VoiceCatalog.languageCodeOf(preferredLocale)) {
+      if (preferredId.startsWith('system-default|')) {
+        final language = preferredId.split('|').last;
+        for (final voice in voices) {
+          if (voice.isSystemDefault &&
+              VoiceCatalog.languageCodeOf(voice.locale) == language) {
             return voice;
           }
         }
@@ -341,8 +432,7 @@ class _VoiceSpeechSettingsScreenState
                 AppConstants.spaceMd,
                 AppConstants.space2xl,
               );
-              final expandedLanguage =
-                  preferred.language ??
+              final expandedLanguage = preferred.language ??
                   (selected == null
                       ? null
                       : VoiceCatalog.languageCodeOf(selected.locale));
@@ -359,7 +449,7 @@ class _VoiceSpeechSettingsScreenState
                           friendlyName: selected.isSystemDefault
                               ? l10n.voiceSystemDefault
                               : labels[selected.id] ??
-                                    l10n.voiceFriendlyName('01'),
+                                  l10n.voiceFriendlyName('01'),
                         ),
                       if (canManage) ...[
                         const SizedBox(height: AppConstants.spaceMd),
@@ -402,13 +492,37 @@ class _VoiceSpeechSettingsScreenState
                   ListView(
                     padding: padding,
                     children: [
-                      if (newVoices.isEmpty)
+                      if (_systemChangeEvents.isNotEmpty) ...[
+                        SectionHeader(
+                          title: l10n.voicesSystemChanges,
+                          trailing: TextButton(
+                            onPressed: _clearSystemEvents,
+                            child: Text(l10n.commonClear),
+                          ),
+                        ),
+                        for (final event in _systemChangeEvents)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppConstants.spaceSm,
+                            ),
+                            child: SurfacePanel(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                l10n.voicesSystemChangeEvent(
+                                  LocaleDisplayNames.friendly(event.language),
+                                ),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: AppConstants.spaceMd),
+                      ],
+                      if (newVoices.isEmpty && _systemChangeEvents.isEmpty)
                         EmptyStateView(
                           icon: Icons.new_releases_outlined,
                           title: l10n.voicesNewlyInstalled,
-                          subtitle: l10n.voicesNoChange,
+                          subtitle: l10n.voicesNewlyInstalledEmpty,
                         )
-                      else
+                      else if (newVoices.isNotEmpty)
                         VoiceBrowser(
                           voices: newVoices,
                           selectedVoiceId: preferred.id,

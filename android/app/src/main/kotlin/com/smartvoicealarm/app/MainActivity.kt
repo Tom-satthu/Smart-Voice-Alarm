@@ -156,6 +156,15 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                     "getEngineVoiceState" -> getEngineVoiceState(result)
+                    "resolveSystemDefaultsForLocales" -> {
+                        val locales = call.argument<List<String>>("locales")
+                            ?: emptyList()
+                        withFreshTts(result) { tts ->
+                            locales.map { tag ->
+                                resolveDefaultForLocale(tts, tag)
+                            }
+                        }
+                    }
                     "getTtsVoices" -> withFreshTts(result) { tts ->
                         tts.voices?.mapNotNull { requested ->
                             tts.language = requested.locale
@@ -194,6 +203,29 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    private fun resolveDefaultForLocale(
+        tts: TextToSpeech,
+        requestedTag: String,
+    ): Map<String, Any?> {
+        val locale = Locale.forLanguageTag(requestedTag.replace('_', '-'))
+        // setLanguage only — do not call setVoice. This mirrors what the
+        // system applies as the managed default for that language/locale.
+        @Suppress("DEPRECATION")
+        val availability = tts.setLanguage(locale)
+        val current = tts.voice
+        return hashMapOf(
+            "requestedLocale" to requestedTag,
+            "resolvedVoiceName" to current?.name,
+            "resolvedLocale" to current?.locale?.toLanguageTag(),
+            "enginePackage" to tts.defaultEngine,
+            "languageAvailability" to availability,
+            "name" to current?.name,
+            "identifier" to current?.name,
+            "locale" to (current?.locale?.toLanguageTag() ?: requestedTag),
+            "engine" to tts.defaultEngine,
+        )
     }
 
     private fun withFreshTts(result: MethodChannel.Result, block: (TextToSpeech) -> Any?) {

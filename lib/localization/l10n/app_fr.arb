@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "Aucun changement de voix détecté.",
+  "voicesSettingsRefreshed": "Les réglages de voix de l'appareil ont été actualisés.",
+  "voicesSystemChanges": "Mises à jour des voix de l'appareil",
+  "voicesSystemChangeEvent": "Les réglages de voix {language} de l'appareil ont été mis à jour.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Les nouvelles voix et mises à jour apparaîtront ici.",
+  "commonClear": "Effacer",
   "voicesNewBadge": "Nouveau",
   "voiceFriendlyName": "Voix {number}",
   "voicesOpenManagerFailed": "Impossible d’ouvrir le gestionnaire de voix. Ouvrez les réglages TTS système.",

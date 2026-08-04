@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "음성 변경이 감지되지 않았습니다.",
+  "voicesSettingsRefreshed": "기기 음성 설정을 새로고침했습니다.",
+  "voicesSystemChanges": "기기 음성 업데이트",
+  "voicesSystemChangeEvent": "기기의 {language} 음성 설정이 업데이트되었습니다.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "새 음성과 기기 업데이트는 여기에 표시됩니다.",
+  "commonClear": "지우기",
   "voicesNewBadge": "신규",
   "voiceFriendlyName": "음성 {number}",
   "voicesOpenManagerFailed": "음성 관리를 열 수 없습니다. 시스템 TTS 설정을 여세요.",

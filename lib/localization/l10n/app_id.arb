@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "Tidak ada perubahan suara terdeteksi.",
+  "voicesSettingsRefreshed": "Pengaturan suara perangkat telah diperbarui.",
+  "voicesSystemChanges": "Pembaruan suara perangkat",
+  "voicesSystemChangeEvent": "Pengaturan suara {language} di perangkat baru saja diperbarui.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Suara baru dan pembaruan perangkat akan muncul di sini.",
+  "commonClear": "Hapus",
   "voicesNewBadge": "Baru",
   "voiceFriendlyName": "Suara {number}",
   "voicesOpenManagerFailed": "Tidak dapat membuka pengelola suara. Buka pengaturan TTS sistem.",

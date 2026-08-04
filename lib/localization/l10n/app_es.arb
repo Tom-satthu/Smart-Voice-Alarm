@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "No se detectaron cambios de voz.",
+  "voicesSettingsRefreshed": "Se actualizaron los ajustes de voz del dispositivo.",
+  "voicesSystemChanges": "Actualizaciones de voz del dispositivo",
+  "voicesSystemChangeEvent": "Se actualizaron los ajustes de voz de {language} en el dispositivo.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Las voces nuevas y las actualizaciones del dispositivo aparecerán aquí.",
+  "commonClear": "Borrar",
   "voicesNewBadge": "Nueva",
   "voiceFriendlyName": "Voz {number}",
   "voicesOpenManagerFailed": "No se pudo abrir el administrador de voces. Abre los ajustes de texto a voz del sistema.",

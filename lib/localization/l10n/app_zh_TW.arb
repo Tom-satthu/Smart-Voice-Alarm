@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "未偵測到語音變更。",
+  "voicesSettingsRefreshed": "已重新整理裝置語音設定。",
+  "voicesSystemChanges": "裝置語音更新",
+  "voicesSystemChangeEvent": "裝置上的{language}語音設定已更新。",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "新語音與裝置更新會顯示在這裡。",
+  "commonClear": "清除",
   "voicesNewBadge": "新",
   "voiceFriendlyName": "語音 {number}",
   "voicesOpenManagerFailed": "無法開啟語音管理。請開啟系統文字轉語音設定。",

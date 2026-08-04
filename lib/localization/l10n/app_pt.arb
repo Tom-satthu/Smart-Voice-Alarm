@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "Nenhuma alteração de voz detetada.",
+  "voicesSettingsRefreshed": "Definições de voz do dispositivo foram atualizadas.",
+  "voicesSystemChanges": "Atualizações de voz do dispositivo",
+  "voicesSystemChangeEvent": "As definições de voz de {language} no dispositivo foram atualizadas.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Novas vozes e atualizações do dispositivo aparecerão aqui.",
+  "commonClear": "Limpar",
   "voicesNewBadge": "Nova",
   "voiceFriendlyName": "Voz {number}",
   "voicesOpenManagerFailed": "Não foi possível abrir o gestor de vozes. Abra as definições de TTS do sistema.",

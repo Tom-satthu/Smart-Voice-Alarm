@@ -813,7 +813,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get voicesNoChange => '音声の変更は検出されませんでした。';
 
   @override
+  String get voicesSettingsRefreshed => '端末の音声設定を更新しました。';
+
+  @override
+  String get voicesSystemChanges => '端末の音声更新';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return '端末の$language音声設定が更新されました。';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty => '新しい音声や端末の更新はここに表示されます。';
+
+  @override
   String get voicesNewBadge => '新規';
+
+  @override
+  String get commonClear => 'クリア';
 
   @override
   String voiceFriendlyName(String number) {

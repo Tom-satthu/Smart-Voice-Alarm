@@ -318,6 +318,18 @@
     }
   },
   "voicesNoChange": "Geen stemwijzigingen gevonden.",
+  "voicesSettingsRefreshed": "Apparaatsteminstellingen zijn vernieuwd.",
+  "voicesSystemChanges": "Apparaatstem-updates",
+  "voicesSystemChangeEvent": "Apparaatinstellingen voor {language}-stem zijn bijgewerkt.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Nieuwe stemmen en apparaatupdates verschijnen hier.",
+  "commonClear": "Wissen",
   "voicesNewBadge": "Nieuw",
   "voiceFriendlyName": "Stem {number}",
   "voicesOpenManagerFailed": "Kon stembeheer niet openen. Open de systeem-TTS-instellingen.",

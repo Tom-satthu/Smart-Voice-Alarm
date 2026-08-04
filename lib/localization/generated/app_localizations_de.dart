@@ -840,7 +840,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get voicesNoChange => 'Keine Stimmänderungen erkannt.';
 
   @override
+  String get voicesSettingsRefreshed =>
+      'Gerätestimmeinstellungen wurden aktualisiert.';
+
+  @override
+  String get voicesSystemChanges => 'Gerätestimm-Updates';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return 'Die $language-Stimmeinstellungen auf dem Gerät wurden aktualisiert.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty =>
+      'Neue Stimmen und Gerätestimm-Updates erscheinen hier.';
+
+  @override
   String get voicesNewBadge => 'Neu';
+
+  @override
+  String get commonClear => 'Löschen';
 
   @override
   String voiceFriendlyName(String number) {

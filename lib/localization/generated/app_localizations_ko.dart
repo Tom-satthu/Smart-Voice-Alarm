@@ -815,7 +815,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get voicesNoChange => '음성 변경이 감지되지 않았습니다.';
 
   @override
+  String get voicesSettingsRefreshed => '기기 음성 설정을 새로고침했습니다.';
+
+  @override
+  String get voicesSystemChanges => '기기 음성 업데이트';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return '기기의 $language 음성 설정이 업데이트되었습니다.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty => '새 음성과 기기 업데이트는 여기에 표시됩니다.';
+
+  @override
   String get voicesNewBadge => '신규';
+
+  @override
+  String get commonClear => '지우기';
 
   @override
   String voiceFriendlyName(String number) {

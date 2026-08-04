@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import 'resolved_system_voice.dart';
 import 'tts_platform_bridge.dart';
 
 enum VoicePlatformKind { android, apple, web, other }
@@ -10,11 +11,13 @@ class VoiceCapabilities {
     required this.platform,
     required this.supportsVoiceManagement,
     required this.validatesSelectability,
+    required this.supportsPerLocaleSystemDefaultProbe,
   });
 
   final VoicePlatformKind platform;
   final bool supportsVoiceManagement;
   final bool validatesSelectability;
+  final bool supportsPerLocaleSystemDefaultProbe;
 }
 
 abstract interface class VoiceSource {
@@ -27,6 +30,10 @@ abstract interface class VoiceSource {
 
   Future<TtsEngineVoiceInfo?> resolveSystemDefault(FlutterTts tts);
 
+  Future<Map<String, ResolvedSystemVoiceState>> resolveSystemDefaultsForLocales(
+    List<String> locales,
+  );
+
   bool validateSelectableVoice(Map<String, dynamic> voice);
 }
 
@@ -37,10 +44,11 @@ class AndroidVoiceSource implements VoiceSource {
 
   @override
   VoiceCapabilities get capabilities => const VoiceCapabilities(
-    platform: VoicePlatformKind.android,
-    supportsVoiceManagement: true,
-    validatesSelectability: true,
-  );
+        platform: VoicePlatformKind.android,
+        supportsVoiceManagement: true,
+        validatesSelectability: true,
+        supportsPerLocaleSystemDefaultProbe: true,
+      );
 
   @override
   Future<List<Map<String, dynamic>>> loadVoices(FlutterTts tts) async {
@@ -60,6 +68,12 @@ class AndroidVoiceSource implements VoiceSource {
     final state = await _bridge.getEngineVoiceState();
     return state?.effective ?? _flutterDefaultVoice(tts);
   }
+
+  @override
+  Future<Map<String, ResolvedSystemVoiceState>> resolveSystemDefaultsForLocales(
+    List<String> locales,
+  ) =>
+      _bridge.resolveSystemDefaultsForLocales(locales);
 
   @override
   bool validateSelectableVoice(Map<String, dynamic> voice) =>
@@ -85,6 +99,25 @@ class PublicApiVoiceSource implements VoiceSource {
       _flutterDefaultVoice(tts);
 
   @override
+  Future<Map<String, ResolvedSystemVoiceState>> resolveSystemDefaultsForLocales(
+    List<String> locales,
+  ) async {
+    // Public APIs only expose a single default voice, not per-locale defaults.
+    if (locales.isEmpty) return const {};
+    final fallback = await _flutterDefaultVoice(FlutterTts());
+    if (fallback == null) return const {};
+    return {
+      for (final locale in locales)
+        locale.replaceAll('_', '-'): ResolvedSystemVoiceState(
+          requestedLocale: locale,
+          resolvedVoiceName: fallback.name,
+          resolvedLocale: fallback.locale,
+          enginePackage: fallback.engine,
+        ),
+    };
+  }
+
+  @override
   bool validateSelectableVoice(Map<String, dynamic> voice) => true;
 }
 
@@ -95,25 +128,28 @@ VoiceSource createVoiceSource(TtsPlatformBridge bridge) {
         platform: VoicePlatformKind.web,
         supportsVoiceManagement: false,
         validatesSelectability: false,
+        supportsPerLocaleSystemDefaultProbe: false,
       ),
     );
   }
   return switch (defaultTargetPlatform) {
     TargetPlatform.android => AndroidVoiceSource(bridge),
     TargetPlatform.iOS || TargetPlatform.macOS => const PublicApiVoiceSource(
-      VoiceCapabilities(
-        platform: VoicePlatformKind.apple,
-        supportsVoiceManagement: false,
-        validatesSelectability: false,
+        VoiceCapabilities(
+          platform: VoicePlatformKind.apple,
+          supportsVoiceManagement: false,
+          validatesSelectability: false,
+          supportsPerLocaleSystemDefaultProbe: false,
+        ),
       ),
-    ),
     _ => const PublicApiVoiceSource(
-      VoiceCapabilities(
-        platform: VoicePlatformKind.other,
-        supportsVoiceManagement: false,
-        validatesSelectability: false,
+        VoiceCapabilities(
+          platform: VoicePlatformKind.other,
+          supportsVoiceManagement: false,
+          validatesSelectability: false,
+          supportsPerLocaleSystemDefaultProbe: false,
+        ),
       ),
-    ),
   };
 }
 

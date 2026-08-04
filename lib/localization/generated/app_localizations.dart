@@ -1607,11 +1607,41 @@ abstract class AppLocalizations {
   /// **'Device voice settings were refreshed.'**
   String get voicesNoChange;
 
+  /// No description provided for @voicesSettingsRefreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'Device voice settings were refreshed.'**
+  String get voicesSettingsRefreshed;
+
+  /// No description provided for @voicesSystemChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Device voice updates'**
+  String get voicesSystemChanges;
+
+  /// No description provided for @voicesSystemChangeEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Device {language} voice settings were updated.'**
+  String voicesSystemChangeEvent(String language);
+
+  /// No description provided for @voicesNewlyInstalledEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'New voices and device voice updates will appear here after you install or change them.'**
+  String get voicesNewlyInstalledEmpty;
+
   /// No description provided for @voicesNewBadge.
   ///
   /// In en, this message translates to:
   /// **'New'**
   String get voicesNewBadge;
+
+  /// No description provided for @commonClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get commonClear;
 
   /// No description provided for @voiceFriendlyName.
   ///
