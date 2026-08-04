@@ -343,31 +343,56 @@ class PreferredVoiceController extends StateNotifier<
     ({String? id, String? locale, String? language})> {
   PreferredVoiceController([SettingsRepository? repo])
       : _repo = repo ?? SettingsRepository(),
-        super((
-          id: (repo ?? SettingsRepository()).loadPreferredVoiceId(),
-          locale: (repo ?? SettingsRepository()).loadPreferredVoiceLocale(),
-          language: (repo ?? SettingsRepository()).loadPreferredVoiceLanguage(),
-        )) {
-    state = (
-      id: _repo.loadPreferredVoiceId(),
-      locale: _repo.loadPreferredVoiceLocale(),
-      language: _repo.loadPreferredVoiceLanguage(),
-    );
-  }
+        super(_loadAndMigrate(repo ?? SettingsRepository()));
 
   final SettingsRepository _repo;
+
+  static ({String? id, String? locale, String? language}) _loadAndMigrate(
+    SettingsRepository repo,
+  ) {
+    final rawId = repo.loadPreferredVoiceId();
+    final normalizedId = VoiceCatalog.normalizeSystemDefaultVoiceId(rawId);
+    final locale = repo.loadPreferredVoiceLocale();
+    var language = repo.loadPreferredVoiceLanguage();
+    if (normalizedId != null &&
+        normalizedId.startsWith('system-default|') &&
+        (language == null || language.isEmpty)) {
+      language = VoiceCatalog.languageCodeOf(
+        normalizedId.substring('system-default|'.length),
+      );
+    }
+    if (normalizedId != null &&
+        normalizedId != rawId &&
+        normalizedId.startsWith('system-default|')) {
+      // Persist legacy → language-scoped system-default id (idempotent).
+      unawaited(
+        repo.savePreferredVoice(
+          voiceId: normalizedId,
+          localeId: locale,
+        ),
+      );
+      if (language != null) {
+        unawaited(repo.savePreferredVoiceLanguage(language));
+      }
+    }
+    return (id: normalizedId, locale: locale, language: language);
+  }
 
   Future<void> setVoice({
     required String id,
     required String locale,
     String? language,
   }) async {
+    final normalizedId = VoiceCatalog.normalizeSystemDefaultVoiceId(id) ?? id;
     final normalizedLocale = VoiceCatalog.normalizeLocaleTag(locale);
     final lang = VoiceCatalog.normalizeLanguageCode(
       language ?? VoiceCatalog.languageCodeOf(normalizedLocale),
     );
-    state = (id: id, locale: normalizedLocale, language: lang);
-    await _repo.savePreferredVoice(voiceId: id, localeId: normalizedLocale);
+    state = (id: normalizedId, locale: normalizedLocale, language: lang);
+    await _repo.savePreferredVoice(
+      voiceId: normalizedId,
+      localeId: normalizedLocale,
+    );
     await _repo.savePreferredVoiceLanguage(lang);
   }
 

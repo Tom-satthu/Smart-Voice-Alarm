@@ -16,6 +16,7 @@ class MainActivity : FlutterActivity() {
     private val alarmsChannel = "com.smartvoicealarm.app/alarms"
     private val ttsChannel = "com.smartvoicealarm.app/tts"
     private var launchAlarmId: String? = null
+    private var launchDismissChallenge: Boolean = false
     private var probeTts: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,10 +32,19 @@ class MainActivity : FlutterActivity() {
 
     private fun captureAlarmExtra(intent: Intent?, notifyFlutter: Boolean) {
         val id = intent?.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID)
+        val requestChallenge =
+            intent?.getBooleanExtra(EXTRA_REQUEST_DISMISS_CHALLENGE, false) == true
         if (!id.isNullOrBlank()) {
             launchAlarmId = id
+            if (requestChallenge) {
+                launchDismissChallenge = true
+            }
             if (notifyFlutter) {
-                notifyAlarmTriggered(id)
+                if (requestChallenge) {
+                    notifyDismissChallenge(id)
+                } else {
+                    notifyAlarmTriggered(id)
+                }
             }
         }
         if (intent?.getBooleanExtra(EXTRA_STOP_ALARM, false) == true) {
@@ -103,6 +113,11 @@ class MainActivity : FlutterActivity() {
                     val id = launchAlarmId
                     launchAlarmId = null
                     result.success(id)
+                }
+                "consumeLaunchDismissChallenge" -> {
+                    val value = launchDismissChallenge
+                    launchDismissChallenge = false
+                    result.success(value)
                 }
                 else -> result.notImplemented()
             }
@@ -322,6 +337,7 @@ class MainActivity : FlutterActivity() {
     companion object {
         private const val REQ_CHECK_TTS = 9911
         const val EXTRA_STOP_ALARM = "stop_alarm"
+        const val EXTRA_REQUEST_DISMISS_CHALLENGE = "request_dismiss_challenge"
 
         @Volatile
         private var alarmsMethodChannel: MethodChannel? = null
@@ -331,6 +347,15 @@ class MainActivity : FlutterActivity() {
         fun notifyAlarmTriggered(alarmId: String) {
             mainHandler.post {
                 alarmsMethodChannel?.invokeMethod("onAlarmTriggered", alarmId)
+            }
+        }
+
+        fun notifyDismissChallenge(alarmId: String) {
+            mainHandler.post {
+                alarmsMethodChannel?.invokeMethod(
+                    "onRequestDismissChallenge",
+                    alarmId,
+                )
             }
         }
 

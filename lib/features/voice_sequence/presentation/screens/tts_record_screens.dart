@@ -48,7 +48,9 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
 
   @override
   void deactivate() {
-    ref.read(ttsServiceProvider).stop();
+    if (!ref.read(alarmEngineProvider).isRunning) {
+      ref.read(ttsServiceProvider).stop();
+    }
     super.deactivate();
   }
 
@@ -371,7 +373,9 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
 
   @override
   void deactivate() {
-    ref.read(audioPlayerServiceProvider).stop();
+    if (!ref.read(alarmEngineProvider).isRunning) {
+      ref.read(audioPlayerServiceProvider).stop();
+    }
     super.deactivate();
   }
 

@@ -71,6 +71,11 @@ class AlarmEngine {
 
   Future<void> enqueue(String alarmId) async {
     if (_queue.contains(alarmId) || activeAlarmId == alarmId) return;
+    // Prevent native FGS dual-play when a second alarm fires while Flutter
+    // already owns the ringing session.
+    if (_running) {
+      await _stopNativeOnly();
+    }
     _queue.addLast(alarmId);
     queuedCount = _queue.length;
     if (!_running) {

@@ -266,4 +266,110 @@ void main() {
     });
     expect(defaults, hasLength(2));
   });
+
+  test('exact-locale snapshot ignores siblings and newly probed locales', () {
+    const enUs = ResolvedSystemVoiceState(
+      requestedLocale: 'en-US',
+      resolvedVoiceName: 'en-us',
+      resolvedLocale: 'en-US',
+      enginePackage: 'com.google.tts',
+    );
+    const enUsChanged = ResolvedSystemVoiceState(
+      requestedLocale: 'en-US',
+      resolvedVoiceName: 'en-us-b',
+      resolvedLocale: 'en-US',
+      enginePackage: 'com.google.tts',
+    );
+    const enGb = ResolvedSystemVoiceState(
+      requestedLocale: 'en-GB',
+      resolvedVoiceName: 'en-gb',
+      resolvedLocale: 'en-GB',
+      enginePackage: 'com.google.tts',
+    );
+    const vi = ResolvedSystemVoiceState(
+      requestedLocale: 'vi-VN',
+      resolvedVoiceName: 'vi',
+      resolvedLocale: 'vi-VN',
+      enginePackage: 'com.samsung.SMT',
+    );
+
+    expect(
+      VoiceCatalog.changedSystemDefaultLocales(
+        before: const {'en-US': enUs},
+        after: const {'en-US': enUs, 'en-GB': enGb},
+      ),
+      isEmpty,
+    );
+    expect(
+      VoiceCatalog.changedSystemDefaultLocales(
+        before: const {'en-US': enUs},
+        after: const {'en-US': enUsChanged},
+      ),
+      ['en-US'],
+    );
+    expect(
+      VoiceCatalog.changedSystemDefaultLocales(
+        before: const {},
+        after: const {'vi-VN': vi},
+      ),
+      isEmpty,
+    );
+  });
+
+  test('legacy system-default id normalizes to language scope', () {
+    expect(
+      VoiceCatalog.normalizeSystemDefaultVoiceId('system-default|en-US'),
+      'system-default|en',
+    );
+    expect(
+      VoiceCatalog.normalizeSystemDefaultVoiceId('system-default|en'),
+      'system-default|en',
+    );
+    expect(
+      VoiceCatalog.normalizeSystemDefaultVoiceId('engine|voice|en-US'),
+      'engine|voice|en-US',
+    );
+  });
+
+  test('preferred retarget only for matching system-default language', () {
+    expect(
+      VoiceCatalog.preferredSystemDefaultLanguageToRetarget(
+        preferredId: 'engine|voice|en-US',
+        preferredLanguage: 'en',
+        changedLocales: const ['en-US'],
+      ),
+      isNull,
+    );
+    expect(
+      VoiceCatalog.preferredSystemDefaultLanguageToRetarget(
+        preferredId: 'system-default|en',
+        preferredLanguage: 'en',
+        changedLocales: const ['vi-VN'],
+      ),
+      isNull,
+    );
+    expect(
+      VoiceCatalog.preferredSystemDefaultLanguageToRetarget(
+        preferredId: 'system-default|en',
+        preferredLanguage: 'en',
+        changedLocales: const ['en-US', 'vi-VN'],
+      ),
+      'en',
+    );
+    expect(
+      VoiceCatalog.preferredSystemDefaultLanguageToRetarget(
+        preferredId: 'system-default|en-US',
+        preferredLanguage: null,
+        changedLocales: const ['en-GB'],
+      ),
+      'en',
+    );
+  });
+
+  test('corrupted system voice change event json does not throw', () {
+    final event = SystemVoiceChangeEvent.fromJson(const {});
+    expect(event.locale, '');
+    expect(event.language, '');
+    expect(event.timestampMs, 0);
+  });
 }

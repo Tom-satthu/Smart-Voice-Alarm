@@ -55,15 +55,25 @@ Future<void> main() async {
   native.onAlarmTriggered = (alarmId) {
     notifications.onAlarmTriggered?.call(alarmId);
   };
+  native.onRequestDismissChallenge = (alarmId) {
+    unawaited(_openRinging(container, alarmId, challenge: true));
+  };
   native.onNativeAlarmStopped = () {
     unawaited(container.read(alarmEngineProvider).stopAll());
   };
   native.attachPlatformHandlers();
 
   final launchAlarmId = await notifications.consumeLaunchAlarmId();
+  final launchChallenge = await notifications.consumeLaunchDismissChallenge();
   if (launchAlarmId != null) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(_openRinging(container, launchAlarmId));
+      unawaited(
+        _openRinging(
+          container,
+          launchAlarmId,
+          challenge: launchChallenge,
+        ),
+      );
     });
   }
 
@@ -82,17 +92,22 @@ Future<void> main() async {
   );
 }
 
-Future<void> _openRinging(ProviderContainer container, String alarmId) async {
+Future<void> _openRinging(
+  ProviderContainer container,
+  String alarmId, {
+  bool challenge = false,
+}) async {
   final engine = container.read(alarmEngineProvider);
   unawaited(engine.enqueue(alarmId));
   final ctx = rootNavigatorKey.currentContext;
+  final path = AppRoutes.ringingPath(alarmId, challenge: challenge);
   if (ctx != null && ctx.mounted) {
-    GoRouter.of(ctx).go(AppRoutes.ringingPath(alarmId));
+    GoRouter.of(ctx).go(path);
   } else {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final later = rootNavigatorKey.currentContext;
       if (later != null && later.mounted) {
-        GoRouter.of(later).go(AppRoutes.ringingPath(alarmId));
+        GoRouter.of(later).go(path);
       }
     });
   }

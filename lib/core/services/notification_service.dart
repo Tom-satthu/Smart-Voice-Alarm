@@ -287,6 +287,11 @@ class NotificationService {
     }
   }
 
+  Future<bool> consumeLaunchDismissChallenge() async {
+    if (kIsWeb) return false;
+    return _native.consumeLaunchDismissChallenge();
+  }
+
   tz.TZDateTime? nextOccurrence(AlarmUiModel alarm) => _nextOccurrence(alarm);
 
   void _ensureTimeZone() {

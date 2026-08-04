@@ -114,6 +114,10 @@ class HomeScreen extends ConsumerWidget {
                                 .remove(alarm.id);
                             final engine = ref.read(alarmEngineProvider);
                             await engine.dismissAlarm(alarm.id);
+                            await ref
+                                .read(notificationServiceProvider)
+                                .native
+                                .stopForegroundAlarm();
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(l10n.alarmDeleted)),

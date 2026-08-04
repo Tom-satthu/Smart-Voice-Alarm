@@ -44,7 +44,10 @@ class _VoiceSpeechSettingsScreenState
 
   @override
   void deactivate() {
-    ref.read(ttsServiceProvider).stop();
+    // Do not kill a live alarm that shares the same TtsService.
+    if (!ref.read(alarmEngineProvider).isRunning) {
+      ref.read(ttsServiceProvider).stop();
+    }
     super.deactivate();
   }
 
@@ -194,28 +197,10 @@ class _VoiceSpeechSettingsScreenState
           .toSet();
       final newIds = discovered.isNotEmpty ? discovered : discoveredIds;
 
-      final changedLocales = <String>[];
-      for (final entry in afterLocales.entries) {
-        ResolvedSystemVoiceState? before = beforeLocales[entry.key];
-        if (before == null) {
-          final language = VoiceCatalog.languageCodeOf(entry.key);
-          for (final candidate in beforeLocales.entries) {
-            if (VoiceCatalog.languageCodeOf(candidate.key) == language) {
-              before = candidate.value;
-              break;
-            }
-          }
-        }
-        if (before == null) {
-          if (entry.value.hasResolvedVoice) {
-            changedLocales.add(entry.key);
-          }
-          continue;
-        }
-        if (before.fingerprint != entry.value.fingerprint) {
-          changedLocales.add(entry.key);
-        }
-      }
+      final changedLocales = VoiceCatalog.changedSystemDefaultLocales(
+        before: beforeLocales,
+        after: afterLocales,
+      );
 
       if (newIds.isNotEmpty) {
         _newlyInstalledIds = {..._newlyInstalledIds, ...newIds};
@@ -265,33 +250,35 @@ class _VoiceSpeechSettingsScreenState
         await _persistSystemEvents(byLanguage.values.toList());
 
         final preferred = ref.read(preferredVoiceProvider);
-        final preferredLanguage = preferred.language ??
-            (preferred.locale == null
-                ? null
-                : VoiceCatalog.languageCodeOf(preferred.locale!));
-        final matchedChange = changedLocales.firstWhere(
-          (locale) =>
-              preferredLanguage != null &&
-              VoiceCatalog.languageCodeOf(locale) == preferredLanguage,
-          orElse: () => changedLocales.first,
+        final language =
+            VoiceCatalog.preferredSystemDefaultLanguageToRetarget(
+          preferredId: preferred.id,
+          preferredLanguage: preferred.language ??
+              (preferred.locale == null
+                  ? null
+                  : VoiceCatalog.languageCodeOf(preferred.locale!)),
+          changedLocales: changedLocales,
         );
-        final language = VoiceCatalog.languageCodeOf(matchedChange);
-        final locale = VoiceCatalog.normalizeLocaleTag(matchedChange);
-        if (preferred.id == null ||
-            preferred.id!.startsWith('system-default|') ||
-            preferredLanguage == language) {
+        if (language != null) {
+          final matchedLocale = changedLocales.firstWhere(
+            (locale) => VoiceCatalog.languageCodeOf(locale) == language,
+          );
           await ref.read(preferredVoiceProvider.notifier).setVoice(
                 id: 'system-default|$language',
-                locale: locale,
+                locale: VoiceCatalog.normalizeLocaleTag(matchedLocale),
                 language: language,
               );
         }
         if (!mounted) return;
         setState(() {});
+        final snackLanguage = language ??
+            VoiceCatalog.languageCodeOf(changedLocales.first);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              l10n.voicesSystemUpdated(LocaleDisplayNames.friendly(language)),
+              l10n.voicesSystemUpdated(
+                LocaleDisplayNames.friendly(snackLanguage),
+              ),
             ),
           ),
         );
@@ -371,7 +358,9 @@ class _VoiceSpeechSettingsScreenState
         if (voice.id == preferredId) return voice;
       }
       if (preferredId.startsWith('system-default|')) {
-        final language = preferredId.split('|').last;
+        final language = VoiceCatalog.languageCodeOf(
+          preferredId.substring('system-default|'.length),
+        );
         for (final voice in voices) {
           if (voice.isSystemDefault &&
               VoiceCatalog.languageCodeOf(voice.locale) == language) {

@@ -69,7 +69,9 @@ class _VoiceBrowserState extends ConsumerState<VoiceBrowser> {
 
   @override
   void deactivate() {
-    ref.read(ttsServiceProvider).stop();
+    if (!ref.read(alarmEngineProvider).isRunning) {
+      ref.read(ttsServiceProvider).stop();
+    }
     super.deactivate();
   }
 
@@ -524,7 +526,9 @@ class _SelectedVoiceCardState extends ConsumerState<SelectedVoiceCard> {
 
   @override
   void deactivate() {
-    ref.read(ttsServiceProvider).stop();
+    if (!ref.read(alarmEngineProvider).isRunning) {
+      ref.read(ttsServiceProvider).stop();
+    }
     super.deactivate();
   }
 

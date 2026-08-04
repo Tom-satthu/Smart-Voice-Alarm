@@ -13,6 +13,7 @@ class NativeAlarmScheduler {
 
   void Function(String alarmId)? onAlarmTriggered;
   VoidCallback? onNativeAlarmStopped;
+  void Function(String alarmId)? onRequestDismissChallenge;
   bool _handlerAttached = false;
 
   /// Disabled under widget tests and non-Android hosts.
@@ -36,6 +37,11 @@ class NativeAlarmScheduler {
           final id = call.arguments?.toString();
           if (id != null && id.isNotEmpty) {
             onAlarmTriggered?.call(id);
+          }
+        case 'onRequestDismissChallenge':
+          final id = call.arguments?.toString();
+          if (id != null && id.isNotEmpty) {
+            onRequestDismissChallenge?.call(id);
           }
         case 'onNativeAlarmStopped':
           onNativeAlarmStopped?.call();
@@ -131,6 +137,18 @@ class NativeAlarmScheduler {
           .timeout(const Duration(milliseconds: 800));
     } catch (_) {
       return null;
+    }
+  }
+
+  Future<bool> consumeLaunchDismissChallenge() async {
+    if (!isSupported) return false;
+    try {
+      final value = await _channel
+          .invokeMethod<bool>('consumeLaunchDismissChallenge')
+          .timeout(const Duration(milliseconds: 800));
+      return value ?? false;
+    } catch (_) {
+      return false;
     }
   }
 

@@ -33,8 +33,10 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
 
   @override
   void deactivate() {
-    ref.read(audioPlayerServiceProvider).stop();
-    ref.read(ttsServiceProvider).stop();
+    if (!ref.read(alarmEngineProvider).isRunning) {
+      ref.read(audioPlayerServiceProvider).stop();
+      ref.read(ttsServiceProvider).stop();
+    }
     super.deactivate();
   }
 

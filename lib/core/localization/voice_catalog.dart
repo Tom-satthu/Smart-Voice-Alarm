@@ -253,6 +253,52 @@ abstract final class VoiceCatalog {
         .toSet();
   }
 
+  /// Exact-locale fingerprint diffs only. Sibling locales and newly probed
+  /// locales (no prior fingerprint) are not treated as configuration changes.
+  static List<String> changedSystemDefaultLocales({
+    required Map<String, ResolvedSystemVoiceState> before,
+    required Map<String, ResolvedSystemVoiceState> after,
+  }) {
+    final changed = <String>[];
+    for (final entry in after.entries) {
+      final previous = before[entry.key];
+      if (previous == null) continue;
+      if (previous.fingerprint != entry.value.fingerprint) {
+        changed.add(entry.key);
+      }
+    }
+    return changed;
+  }
+
+  /// Legacy `system-default|en-US` → `system-default|en`.
+  static String? normalizeSystemDefaultVoiceId(String? id) {
+    if (id == null || !id.startsWith('system-default|')) return id;
+    final suffix = id.substring('system-default|'.length);
+    final language = languageCodeOf(suffix);
+    if (language.isEmpty) return id;
+    return 'system-default|$language';
+  }
+
+  /// Retarget preferred only when it is already system-default for a language
+  /// that actually changed. Never overwrite a concrete voice selection.
+  static String? preferredSystemDefaultLanguageToRetarget({
+    required String? preferredId,
+    required String? preferredLanguage,
+    required Iterable<String> changedLocales,
+  }) {
+    if (changedLocales.isEmpty) return null;
+    final id = preferredId;
+    if (id == null || !id.startsWith('system-default|')) return null;
+    final language = normalizeLanguageCode(
+      preferredLanguage ?? languageCodeOf(id.substring('system-default|'.length)),
+    );
+    if (language.isEmpty) return null;
+    final matched = changedLocales.any(
+      (locale) => languageCodeOf(locale) == language,
+    );
+    return matched ? language : null;
+  }
+
   /// Stable friendly labels per locale: Voice 01, Voice 02, …
   /// Sorted by technical voice [TtsVoiceUiModel.id], never using the number as id.
   static Map<String, String> friendlyLabels(

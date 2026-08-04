@@ -35,12 +35,10 @@ class AlarmReceiver : BroadcastReceiver() {
                     putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId)
                 }
                 putExtra("from_native_alarm", true)
-                putExtra("request_dismiss_challenge", true)
+                putExtra(MainActivity.EXTRA_REQUEST_DISMISS_CHALLENGE, true)
             }
             app.startActivity(activity)
-            if (!alarmId.isNullOrBlank()) {
-                MainActivity.notifyAlarmTriggered(alarmId)
-            }
+            // Flutter is notified via MainActivity.onNewIntent / cold-start consume.
             return
         }
 
