@@ -282,7 +282,7 @@
   "alarmDismissAnswerHint": "Ihre Antwort",
   "voicesRefreshed": "Aktualisiert: {count} Stimmen gefunden",
   "voicesSelectedSaved": "Stimme gespeichert: {name}",
-  "voicesDownloadThenSelect": "Sprachpaket installieren, zuruckkehren, Stimmen aktualisieren, Sprache offnen und Auswahlen tippen.",
+  "voicesDownloadThenSelect": "Öffnen Sie die Sprachverwaltung des Geräts. Kehren Sie danach hierher zurück.",
   "voicesRefreshHint": "Stimmen aktualisieren laedt System-TTS-Stimmen nach der Installation neu.",
   "ringtonePreview": "Vorschau",
   "ringtonePreviewHint": "Abspielen tippen zum Anhoren, dann Namen tippen zum Auswahlen.",
@@ -296,6 +296,38 @@
   "@voicesSelectedSaved": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "Öffnen Sie die Sprachverwaltung des Geräts. Kehren Sie danach hierher zurück.",
+  "voicesCurrentVoice": "Aktuelle Stimme",
+  "voicesNewlyInstalled": "Neu installierte Stimmen",
+  "voicesOnDevice": "Stimmen auf diesem Gerät",
+  "voicesRescan": "Stimmen erneut scannen",
+  "voicesRescanResult": "{count} nutzbare Stimmen gefunden",
+  "voicesNewFound": "{count} neue Stimmen gefunden.",
+  "voicesNoNewFound": "Keine neuen Stimmen erkannt.",
+  "voicesNewBadge": "Neu",
+  "voiceFriendlyName": "Stimme {number}",
+  "voicesOpenManagerFailed": "Sprachverwaltung konnte nicht geöffnet werden. Öffnen Sie die System-TTS-Einstellungen.",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
         "type": "String"
       }
     }

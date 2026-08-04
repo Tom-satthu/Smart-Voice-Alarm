@@ -764,7 +764,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get voicesDownloadThenSelect => '음성 팩을 설치한 뒤 돌아와 새로고침하고 언어에서 선택하세요.';
+  String get voicesDownloadThenSelect => '기기 음성 관리를 엽니다. 다운로드 후 여기로 돌아오세요.';
 
   @override
   String get voicesRefreshHint => '음성 새로고침은 팩 설치 후 시스템 TTS 음성을 다시 불러옵니다.';
@@ -774,4 +774,43 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get ringtonePreviewHint => '재생으로 들어보고 이름을 눌러 선택하세요.';
+
+  @override
+  String get voicesCurrentVoice => '사용 중인 음성';
+
+  @override
+  String get voicesNewlyInstalled => '새로 설치된 음성';
+
+  @override
+  String get voicesOnDevice => '이 기기의 음성';
+
+  @override
+  String get voicesDownloadHint => '기기 음성 관리를 엽니다. 다운로드 후 여기로 돌아오세요.';
+
+  @override
+  String get voicesRescan => '음성 다시 검색';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '사용 가능한 음성 $count개 발견';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '새 음성 $count개를 찾았습니다.';
+  }
+
+  @override
+  String get voicesNoNewFound => '새 음성이 감지되지 않았습니다.';
+
+  @override
+  String get voicesNewBadge => '신규';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return '음성 $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed => '음성 관리를 열 수 없습니다. 시스템 TTS 설정을 여세요.';
 }

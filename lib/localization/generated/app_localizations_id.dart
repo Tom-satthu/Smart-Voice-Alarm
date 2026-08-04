@@ -776,7 +776,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get voicesDownloadThenSelect =>
-      'Pasang paket suara, kembali, segarkan suara, lalu pilih di bahasa.';
+      'Buka pengelola suara perangkat. Setelah unduh selesai, kembali ke sini.';
 
   @override
   String get voicesRefreshHint =>
@@ -788,4 +788,45 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get ringtonePreviewHint =>
       'Ketuk putar untuk mendengar, lalu ketuk nama untuk memilih.';
+
+  @override
+  String get voicesCurrentVoice => 'Suara yang digunakan';
+
+  @override
+  String get voicesNewlyInstalled => 'Suara baru dipasang';
+
+  @override
+  String get voicesOnDevice => 'Suara di perangkat ini';
+
+  @override
+  String get voicesDownloadHint =>
+      'Buka pengelola suara perangkat. Setelah unduh selesai, kembali ke sini.';
+
+  @override
+  String get voicesRescan => 'Pindai ulang suara';
+
+  @override
+  String voicesRescanResult(int count) {
+    return 'Ditemukan $count suara yang dapat digunakan';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return 'Ditemukan $count suara baru.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'Tidak ada suara baru terdeteksi.';
+
+  @override
+  String get voicesNewBadge => 'Baru';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Suara $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'Tidak dapat membuka pengelola suara. Buka pengaturan TTS sistem.';
 }

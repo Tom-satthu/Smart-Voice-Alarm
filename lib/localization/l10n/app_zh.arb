@@ -282,7 +282,7 @@
   "alarmDismissAnswerHint": "你的答案",
   "voicesRefreshed": "已刷新：找到 {count} 个语音",
   "voicesSelectedSaved": "已保存语音：{name}",
-  "voicesDownloadThenSelect": "安装语音包后返回，点刷新语音，再打开语言并选择。",
+  "voicesDownloadThenSelect": "打开设备语音管理。下载完成后请返回此处。",
   "voicesRefreshHint": "刷新语音会在安装新语音包后重新加载系统 TTS 语音。",
   "ringtonePreview": "试听",
   "ringtonePreviewHint": "点播放试听，再点名称选择。",
@@ -296,6 +296,38 @@
   "@voicesSelectedSaved": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "打开设备语音管理。下载完成后请返回此处。",
+  "voicesCurrentVoice": "当前语音",
+  "voicesNewlyInstalled": "新安装的语音",
+  "voicesOnDevice": "此设备上的语音",
+  "voicesRescan": "重新扫描语音",
+  "voicesRescanResult": "找到 {count} 个可用语音",
+  "voicesNewFound": "找到 {count} 个新语音。",
+  "voicesNoNewFound": "未检测到新语音。",
+  "voicesNewBadge": "新",
+  "voiceFriendlyName": "语音 {number}",
+  "voicesOpenManagerFailed": "无法打开语音管理。请打开系统文字转语音设置。",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
         "type": "String"
       }
     }

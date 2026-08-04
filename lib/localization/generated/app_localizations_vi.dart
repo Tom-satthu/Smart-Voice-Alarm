@@ -777,7 +777,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get voicesDownloadThenSelect =>
-      'Cài gói giọng, quay lại, bấm Làm mới giọng nói, rồi mở ngôn ngữ và bấm Chọn.';
+      'Mở phần quản lý giọng nói của thiết bị. Sau khi tải xong, quay lại đây.';
 
   @override
   String get voicesRefreshHint =>
@@ -789,4 +789,45 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get ringtonePreviewHint =>
       'Bấm phát để nghe thử, rồi chạm tên để chọn.';
+
+  @override
+  String get voicesCurrentVoice => 'Giọng đang dùng';
+
+  @override
+  String get voicesNewlyInstalled => 'Giọng nói mới cài đặt';
+
+  @override
+  String get voicesOnDevice => 'Các giọng trên thiết bị';
+
+  @override
+  String get voicesDownloadHint =>
+      'Mở phần quản lý giọng nói của thiết bị. Sau khi tải xong, quay lại đây.';
+
+  @override
+  String get voicesRescan => 'Quét lại giọng nói';
+
+  @override
+  String voicesRescanResult(int count) {
+    return 'Tìm thấy $count giọng dùng được';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return 'Đã tìm thấy $count giọng nói mới.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'Không phát hiện giọng nói mới.';
+
+  @override
+  String get voicesNewBadge => 'Mới';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Giọng nói $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'Không mở được quản lý giọng nói. Hãy mở cài đặt Text-to-speech hệ thống để cài giọng.';
 }

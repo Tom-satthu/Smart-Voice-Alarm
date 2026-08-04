@@ -762,7 +762,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get voicesDownloadThenSelect => '音声パックをインストールし、戻って更新し、言語から選択してください。';
+  String get voicesDownloadThenSelect => '端末の音声管理を開きます。ダウンロード後、ここに戻ってください。';
 
   @override
   String get voicesRefreshHint => '音声を更新すると、インストール後のシステムTTS音声を再読み込みします。';
@@ -772,4 +772,43 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get ringtonePreviewHint => '再生で試聴し、名前をタップして選択します。';
+
+  @override
+  String get voicesCurrentVoice => '使用中の音声';
+
+  @override
+  String get voicesNewlyInstalled => '新しくインストールした音声';
+
+  @override
+  String get voicesOnDevice => 'この端末の音声';
+
+  @override
+  String get voicesDownloadHint => '端末の音声管理を開きます。ダウンロード後、ここに戻ってください。';
+
+  @override
+  String get voicesRescan => '音声を再スキャン';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '利用可能な音声が $count 件見つかりました';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '新しい音声が $count 件見つかりました。';
+  }
+
+  @override
+  String get voicesNoNewFound => '新しい音声は検出されませんでした。';
+
+  @override
+  String get voicesNewBadge => '新規';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return '音声 $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed => '音声管理を開けませんでした。システムの読み上げ設定を開いてください。';
 }

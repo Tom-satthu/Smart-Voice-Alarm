@@ -785,7 +785,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get voicesDownloadThenSelect =>
-      'Sprachpaket installieren, zuruckkehren, Stimmen aktualisieren, Sprache offnen und Auswahlen tippen.';
+      'Öffnen Sie die Sprachverwaltung des Geräts. Kehren Sie danach hierher zurück.';
 
   @override
   String get voicesRefreshHint =>
@@ -797,4 +797,45 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get ringtonePreviewHint =>
       'Abspielen tippen zum Anhoren, dann Namen tippen zum Auswahlen.';
+
+  @override
+  String get voicesCurrentVoice => 'Aktuelle Stimme';
+
+  @override
+  String get voicesNewlyInstalled => 'Neu installierte Stimmen';
+
+  @override
+  String get voicesOnDevice => 'Stimmen auf diesem Gerät';
+
+  @override
+  String get voicesDownloadHint =>
+      'Öffnen Sie die Sprachverwaltung des Geräts. Kehren Sie danach hierher zurück.';
+
+  @override
+  String get voicesRescan => 'Stimmen erneut scannen';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '$count nutzbare Stimmen gefunden';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '$count neue Stimmen gefunden.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'Keine neuen Stimmen erkannt.';
+
+  @override
+  String get voicesNewBadge => 'Neu';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Stimme $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'Sprachverwaltung konnte nicht geöffnet werden. Öffnen Sie die System-TTS-Einstellungen.';
 }

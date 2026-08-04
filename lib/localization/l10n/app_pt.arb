@@ -282,7 +282,7 @@
   "alarmDismissAnswerHint": "A sua resposta",
   "voicesRefreshed": "Atualizado: {count} vozes encontradas",
   "voicesSelectedSaved": "Voz guardada: {name}",
-  "voicesDownloadThenSelect": "Instale um pacote, volte, atualize as vozes e selecione no idioma.",
+  "voicesDownloadThenSelect": "Abra o gestor de vozes do dispositivo. Depois de transferir, volte aqui.",
   "voicesRefreshHint": "Atualizar vozes recarrega as vozes TTS do sistema apos instalar.",
   "ringtonePreview": "Pre-visualizar",
   "ringtonePreviewHint": "Toque em reproduzir para ouvir e no nome para selecionar.",
@@ -296,6 +296,38 @@
   "@voicesSelectedSaved": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "Abra o gestor de vozes do dispositivo. Depois de transferir, volte aqui.",
+  "voicesCurrentVoice": "Voz atual",
+  "voicesNewlyInstalled": "Vozes recém-instaladas",
+  "voicesOnDevice": "Vozes neste dispositivo",
+  "voicesRescan": "Verificar vozes novamente",
+  "voicesRescanResult": "Encontradas {count} vozes utilizáveis",
+  "voicesNewFound": "Encontradas {count} vozes novas.",
+  "voicesNoNewFound": "Nenhuma voz nova detetada.",
+  "voicesNewBadge": "Nova",
+  "voiceFriendlyName": "Voz {number}",
+  "voicesOpenManagerFailed": "Não foi possível abrir o gestor de vozes. Abra as definições de TTS do sistema.",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
         "type": "String"
       }
     }

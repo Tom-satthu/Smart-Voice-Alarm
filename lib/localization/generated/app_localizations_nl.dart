@@ -780,7 +780,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get voicesDownloadThenSelect =>
-      'Installeer een stempakket, keer terug, vernieuw stemmen en selecteer in de taal.';
+      'Open het stembeheer van het apparaat. Kom daarna hier terug.';
 
   @override
   String get voicesRefreshHint =>
@@ -792,4 +792,45 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get ringtonePreviewHint =>
       'Tik op afspelen om te beluisteren, tik op de naam om te kiezen.';
+
+  @override
+  String get voicesCurrentVoice => 'Huidige stem';
+
+  @override
+  String get voicesNewlyInstalled => 'Nieuw geïnstalleerde stemmen';
+
+  @override
+  String get voicesOnDevice => 'Stemmen op dit apparaat';
+
+  @override
+  String get voicesDownloadHint =>
+      'Open het stembeheer van het apparaat. Kom daarna hier terug.';
+
+  @override
+  String get voicesRescan => 'Stemmen opnieuw scannen';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '$count bruikbare stemmen gevonden';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '$count nieuwe stemmen gevonden.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'Geen nieuwe stemmen gevonden.';
+
+  @override
+  String get voicesNewBadge => 'Nieuw';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Stem $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'Kon stembeheer niet openen. Open de systeem-TTS-instellingen.';
 }

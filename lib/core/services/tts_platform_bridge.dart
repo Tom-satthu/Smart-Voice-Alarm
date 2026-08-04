@@ -14,14 +14,22 @@ class TtsPlatformBridge {
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
 
+  /// Android: INSTALL_TTS_DATA, then System TTS Settings.
+  /// iOS: public app-settings link.
   Future<bool> openDownloadMoreVoices() async {
     if (kIsWeb) return false;
     try {
       if (defaultTargetPlatform == TargetPlatform.android) {
-        return await _channel.invokeMethod<bool>('openInstallTtsData') ?? false;
+        try {
+          final opened =
+              await _channel.invokeMethod<bool>('openInstallTtsData') ?? false;
+          if (opened) return true;
+        } catch (error) {
+          debugPrint('openInstallTtsData failed: $error');
+        }
+        return openSystemTtsSettings();
       }
       if (defaultTargetPlatform == TargetPlatform.iOS) {
-        // Public Settings deep link only (no private schemes).
         final uri = Uri.parse('app-settings:');
         if (await canLaunchUrl(uri)) {
           return launchUrl(uri);

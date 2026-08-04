@@ -36,6 +36,47 @@ abstract final class VoiceCatalog {
     return parts.first.toLowerCase();
   }
 
+  /// Stable friendly labels per locale: Voice 01, Voice 02, …
+  /// Sorted by technical voice [TtsVoiceUiModel.id], never using the number as id.
+  static Map<String, String> friendlyLabels(
+    List<TtsVoiceUiModel> voices, {
+    required String Function(String paddedNumber) labelFor,
+  }) {
+    final byLocale = <String, List<TtsVoiceUiModel>>{};
+    for (final voice in voices) {
+      final key = voice.locale.replaceAll('_', '-').toLowerCase();
+      byLocale.putIfAbsent(key, () => []).add(voice);
+    }
+    final labels = <String, String>{};
+    for (final entry in byLocale.entries) {
+      final sorted = List<TtsVoiceUiModel>.from(entry.value)
+        ..sort((a, b) => a.id.compareTo(b.id));
+      for (var i = 0; i < sorted.length; i++) {
+        final padded = (i + 1).toString().padLeft(2, '0');
+        labels[sorted[i].id] = labelFor(padded);
+      }
+    }
+    return labels;
+  }
+
+  static String previewSampleForLocale(String locale) {
+    return switch (languageCodeOf(locale)) {
+      'vi' => 'Xin chào. Đây là bản nghe thử giọng nói.',
+      'en' => 'Hello. This is a short voice preview.',
+      'es' => 'Hola. Esta es una vista previa breve de esta voz.',
+      'pt' => 'Olá. Esta é uma pré-visualização curta desta voz.',
+      'fr' => 'Bonjour. Ceci est un court aperçu de cette voix.',
+      'de' => 'Hallo. Dies ist eine kurze Stimmvorschau.',
+      'it' => 'Ciao. Questa è una breve anteprima di questa voce.',
+      'nl' => 'Hallo. Dit is een korte stemvoorbeeld.',
+      'id' => 'Halo. Ini adalah pratinjau singkat suara ini.',
+      'ja' => 'こんにちは。これは音声の短いプレビューです。',
+      'ko' => '안녕하세요. 이 음성의 짧은 미리듣기입니다.',
+      'zh' => '你好。这是此语音的简短预览。',
+      _ => 'Hello. This is a short voice preview.',
+    };
+  }
+
   static List<VoiceLanguageGroup> group(
     List<TtsVoiceUiModel> voices, {
     String? preferredLanguage,
@@ -68,7 +109,7 @@ abstract final class VoiceCatalog {
     for (final entry in byLanguage.entries) {
       final locales = entry.value.entries.map((localeEntry) {
         final list = List<TtsVoiceUiModel>.from(localeEntry.value)
-          ..sort((a, b) => a.name.compareTo(b.name));
+          ..sort((a, b) => a.id.compareTo(b.id));
         return VoiceLocaleGroup(
           localeTag: localeEntry.key,
           localeLabel: LocaleDisplayNames.friendly(localeEntry.key),

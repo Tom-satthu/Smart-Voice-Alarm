@@ -282,7 +282,7 @@
   "alarmDismissAnswerHint": "答え",
   "voicesRefreshed": "更新しました: {count} 件の音声",
   "voicesSelectedSaved": "保存した音声: {name}",
-  "voicesDownloadThenSelect": "音声パックをインストールし、戻って更新し、言語から選択してください。",
+  "voicesDownloadThenSelect": "端末の音声管理を開きます。ダウンロード後、ここに戻ってください。",
   "voicesRefreshHint": "音声を更新すると、インストール後のシステムTTS音声を再読み込みします。",
   "ringtonePreview": "プレビュー",
   "ringtonePreviewHint": "再生で試聴し、名前をタップして選択します。",
@@ -296,6 +296,38 @@
   "@voicesSelectedSaved": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "端末の音声管理を開きます。ダウンロード後、ここに戻ってください。",
+  "voicesCurrentVoice": "使用中の音声",
+  "voicesNewlyInstalled": "新しくインストールした音声",
+  "voicesOnDevice": "この端末の音声",
+  "voicesRescan": "音声を再スキャン",
+  "voicesRescanResult": "利用可能な音声が {count} 件見つかりました",
+  "voicesNewFound": "新しい音声が {count} 件見つかりました。",
+  "voicesNoNewFound": "新しい音声は検出されませんでした。",
+  "voicesNewBadge": "新規",
+  "voiceFriendlyName": "音声 {number}",
+  "voicesOpenManagerFailed": "音声管理を開けませんでした。システムの読み上げ設定を開いてください。",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
         "type": "String"
       }
     }

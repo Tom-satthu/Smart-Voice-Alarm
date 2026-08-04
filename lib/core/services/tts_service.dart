@@ -30,6 +30,12 @@ class TtsService {
     return loadVoices();
   }
 
+  /// Re-query voices without recreating the engine.
+  Future<List<TtsVoiceUiModel>> refreshVoices() async {
+    await init();
+    return loadVoices();
+  }
+
   /// Returns only voices that can be selected for preview / alarms.
   Future<List<TtsVoiceUiModel>> loadUsableVoices() async {
     final all = await loadVoices();

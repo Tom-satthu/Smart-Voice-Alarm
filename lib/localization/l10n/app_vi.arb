@@ -282,7 +282,7 @@
   "alarmDismissAnswerHint": "Câu trả lời",
   "voicesRefreshed": "Đã làm mới: tìm thấy {count} giọng",
   "voicesSelectedSaved": "Đã lưu giọng: {name}",
-  "voicesDownloadThenSelect": "Cài gói giọng, quay lại, bấm Làm mới giọng nói, rồi mở ngôn ngữ và bấm Chọn.",
+  "voicesDownloadThenSelect": "Mở phần quản lý giọng nói của thiết bị. Sau khi tải xong, quay lại đây.",
   "voicesRefreshHint": "Làm mới giọng nói tải lại danh sách TTS hệ thống sau khi cài gói mới.",
   "ringtonePreview": "Nghe thử",
   "ringtonePreviewHint": "Bấm phát để nghe thử, rồi chạm tên để chọn.",
@@ -296,6 +296,38 @@
   "@voicesSelectedSaved": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "Mở phần quản lý giọng nói của thiết bị. Sau khi tải xong, quay lại đây.",
+  "voicesCurrentVoice": "Giọng đang dùng",
+  "voicesNewlyInstalled": "Giọng nói mới cài đặt",
+  "voicesOnDevice": "Các giọng trên thiết bị",
+  "voicesRescan": "Quét lại giọng nói",
+  "voicesRescanResult": "Tìm thấy {count} giọng dùng được",
+  "voicesNewFound": "Đã tìm thấy {count} giọng nói mới.",
+  "voicesNoNewFound": "Không phát hiện giọng nói mới.",
+  "voicesNewBadge": "Mới",
+  "voiceFriendlyName": "Giọng nói {number}",
+  "voicesOpenManagerFailed": "Không mở được quản lý giọng nói. Hãy mở cài đặt Text-to-speech hệ thống để cài giọng.",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
         "type": "String"
       }
     }

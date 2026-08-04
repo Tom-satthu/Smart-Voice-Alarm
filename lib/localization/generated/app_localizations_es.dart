@@ -781,7 +781,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get voicesDownloadThenSelect =>
-      'Instala un paquete de voz, vuelve, toca Actualizar voces y selecciona en el idioma.';
+      'Abre el administrador de voces del dispositivo. Tras descargar, vuelve aquí.';
 
   @override
   String get voicesRefreshHint =>
@@ -793,4 +793,45 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get ringtonePreviewHint =>
       'Toca reproducir para escuchar y el nombre para elegir.';
+
+  @override
+  String get voicesCurrentVoice => 'Voz actual';
+
+  @override
+  String get voicesNewlyInstalled => 'Voces recién instaladas';
+
+  @override
+  String get voicesOnDevice => 'Voces en este dispositivo';
+
+  @override
+  String get voicesDownloadHint =>
+      'Abre el administrador de voces del dispositivo. Tras descargar, vuelve aquí.';
+
+  @override
+  String get voicesRescan => 'Volver a escanear';
+
+  @override
+  String voicesRescanResult(int count) {
+    return 'Se encontraron $count voces utilizables';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return 'Se encontraron $count voces nuevas.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'No se detectaron voces nuevas.';
+
+  @override
+  String get voicesNewBadge => 'Nueva';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Voz $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'No se pudo abrir el administrador de voces. Abre los ajustes de texto a voz del sistema.';
 }

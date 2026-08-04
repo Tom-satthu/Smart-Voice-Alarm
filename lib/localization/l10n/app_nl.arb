@@ -282,7 +282,7 @@
   "alarmDismissAnswerHint": "Jouw antwoord",
   "voicesRefreshed": "Vernieuwd: {count} stemmen gevonden",
   "voicesSelectedSaved": "Stem opgeslagen: {name}",
-  "voicesDownloadThenSelect": "Installeer een stempakket, keer terug, vernieuw stemmen en selecteer in de taal.",
+  "voicesDownloadThenSelect": "Open het stembeheer van het apparaat. Kom daarna hier terug.",
   "voicesRefreshHint": "Stemmen vernieuwen herlaadt systeems TTS-stemmen na installatie.",
   "ringtonePreview": "Voorbeeld",
   "ringtonePreviewHint": "Tik op afspelen om te beluisteren, tik op de naam om te kiezen.",
@@ -296,6 +296,38 @@
   "@voicesSelectedSaved": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "Open het stembeheer van het apparaat. Kom daarna hier terug.",
+  "voicesCurrentVoice": "Huidige stem",
+  "voicesNewlyInstalled": "Nieuw geïnstalleerde stemmen",
+  "voicesOnDevice": "Stemmen op dit apparaat",
+  "voicesRescan": "Stemmen opnieuw scannen",
+  "voicesRescanResult": "{count} bruikbare stemmen gevonden",
+  "voicesNewFound": "{count} nieuwe stemmen gevonden.",
+  "voicesNoNewFound": "Geen nieuwe stemmen gevonden.",
+  "voicesNewBadge": "Nieuw",
+  "voiceFriendlyName": "Stem {number}",
+  "voicesOpenManagerFailed": "Kon stembeheer niet openen. Open de systeem-TTS-instellingen.",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
         "type": "String"
       }
     }

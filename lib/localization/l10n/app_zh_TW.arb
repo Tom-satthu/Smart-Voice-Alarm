@@ -282,7 +282,7 @@
   "alarmDismissAnswerHint": "你的答案",
   "voicesRefreshed": "已重新整理：找到 {count} 個語音",
   "voicesSelectedSaved": "已儲存語音：{name}",
-  "voicesDownloadThenSelect": "安裝語音套件後返回，點重新整理語音，再開啟語言並選擇。",
+  "voicesDownloadThenSelect": "開啟裝置語音管理。下載完成後請返回此處。",
   "voicesRefreshHint": "重新整理語音會在安裝新套件後重新載入系統 TTS 語音。",
   "ringtonePreview": "預覽",
   "ringtonePreviewHint": "點播放試聽，再點名稱選擇。",
@@ -296,6 +296,38 @@
   "@voicesSelectedSaved": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "開啟裝置語音管理。下載完成後請返回此處。",
+  "voicesCurrentVoice": "目前語音",
+  "voicesNewlyInstalled": "新安裝的語音",
+  "voicesOnDevice": "此裝置上的語音",
+  "voicesRescan": "重新掃描語音",
+  "voicesRescanResult": "找到 {count} 個可用語音",
+  "voicesNewFound": "找到 {count} 個新語音。",
+  "voicesNoNewFound": "未偵測到新語音。",
+  "voicesNewBadge": "新",
+  "voiceFriendlyName": "語音 {number}",
+  "voicesOpenManagerFailed": "無法開啟語音管理。請開啟系統文字轉語音設定。",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
         "type": "String"
       }
     }

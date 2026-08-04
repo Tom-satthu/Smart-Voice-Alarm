@@ -780,11 +780,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voicesDownloadThenSelect =>
-      'Install a voice pack, return here, tap Refresh Voices, then open a language and tap Select.';
+      'Open your device voice manager. After downloading, return here.';
 
   @override
   String get voicesRefreshHint =>
-      'Refresh Voices reloads system TTS voices after you install new packs.';
+      'Rescan Voices reloads system TTS voices after you install new packs.';
 
   @override
   String get ringtonePreview => 'Preview';
@@ -792,4 +792,45 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ringtonePreviewHint =>
       'Tap play to preview, then tap a name to select it.';
+
+  @override
+  String get voicesCurrentVoice => 'Current voice';
+
+  @override
+  String get voicesNewlyInstalled => 'Newly installed voices';
+
+  @override
+  String get voicesOnDevice => 'Voices on this device';
+
+  @override
+  String get voicesDownloadHint =>
+      'Open your device voice manager. After downloading, return here.';
+
+  @override
+  String get voicesRescan => 'Rescan voices';
+
+  @override
+  String voicesRescanResult(int count) {
+    return 'Found $count usable voices';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return 'Found $count new voices.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'No new voices detected.';
+
+  @override
+  String get voicesNewBadge => 'New';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Voice $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'Could not open the device voice manager. Open system Text-to-speech settings and install voices there.';
 }

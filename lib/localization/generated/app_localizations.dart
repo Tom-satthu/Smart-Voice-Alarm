@@ -1520,13 +1520,13 @@ abstract class AppLocalizations {
   /// No description provided for @voicesDownloadThenSelect.
   ///
   /// In en, this message translates to:
-  /// **'Install a voice pack, return here, tap Refresh Voices, then open a language and tap Select.'**
+  /// **'Open your device voice manager. After downloading, return here.'**
   String get voicesDownloadThenSelect;
 
   /// No description provided for @voicesRefreshHint.
   ///
   /// In en, this message translates to:
-  /// **'Refresh Voices reloads system TTS voices after you install new packs.'**
+  /// **'Rescan Voices reloads system TTS voices after you install new packs.'**
   String get voicesRefreshHint;
 
   /// No description provided for @ringtonePreview.
@@ -1540,6 +1540,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap play to preview, then tap a name to select it.'**
   String get ringtonePreviewHint;
+
+  /// No description provided for @voicesCurrentVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Current voice'**
+  String get voicesCurrentVoice;
+
+  /// No description provided for @voicesNewlyInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Newly installed voices'**
+  String get voicesNewlyInstalled;
+
+  /// No description provided for @voicesOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voices on this device'**
+  String get voicesOnDevice;
+
+  /// No description provided for @voicesDownloadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open your device voice manager. After downloading, return here.'**
+  String get voicesDownloadHint;
+
+  /// No description provided for @voicesRescan.
+  ///
+  /// In en, this message translates to:
+  /// **'Rescan voices'**
+  String get voicesRescan;
+
+  /// No description provided for @voicesRescanResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} usable voices'**
+  String voicesRescanResult(int count);
+
+  /// No description provided for @voicesNewFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} new voices.'**
+  String voicesNewFound(int count);
+
+  /// No description provided for @voicesNoNewFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No new voices detected.'**
+  String get voicesNoNewFound;
+
+  /// No description provided for @voicesNewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get voicesNewBadge;
+
+  /// No description provided for @voiceFriendlyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice {number}'**
+  String voiceFriendlyName(String number);
+
+  /// No description provided for @voicesOpenManagerFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the device voice manager. Open system Text-to-speech settings and install voices there.'**
+  String get voicesOpenManagerFailed;
 }
 
 class _AppLocalizationsDelegate

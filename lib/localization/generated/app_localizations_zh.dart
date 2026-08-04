@@ -761,7 +761,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get voicesDownloadThenSelect => '安装语音包后返回，点刷新语音，再打开语言并选择。';
+  String get voicesDownloadThenSelect => '打开设备语音管理。下载完成后请返回此处。';
 
   @override
   String get voicesRefreshHint => '刷新语音会在安装新语音包后重新加载系统 TTS 语音。';
@@ -771,6 +771,45 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ringtonePreviewHint => '点播放试听，再点名称选择。';
+
+  @override
+  String get voicesCurrentVoice => '当前语音';
+
+  @override
+  String get voicesNewlyInstalled => '新安装的语音';
+
+  @override
+  String get voicesOnDevice => '此设备上的语音';
+
+  @override
+  String get voicesDownloadHint => '打开设备语音管理。下载完成后请返回此处。';
+
+  @override
+  String get voicesRescan => '重新扫描语音';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '找到 $count 个可用语音';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '找到 $count 个新语音。';
+  }
+
+  @override
+  String get voicesNoNewFound => '未检测到新语音。';
+
+  @override
+  String get voicesNewBadge => '新';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return '语音 $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed => '无法打开语音管理。请打开系统文字转语音设置。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1530,7 +1569,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get voicesDownloadThenSelect => '安裝語音套件後返回，點重新整理語音，再開啟語言並選擇。';
+  String get voicesDownloadThenSelect => '開啟裝置語音管理。下載完成後請返回此處。';
 
   @override
   String get voicesRefreshHint => '重新整理語音會在安裝新套件後重新載入系統 TTS 語音。';
@@ -1540,4 +1579,43 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get ringtonePreviewHint => '點播放試聽，再點名稱選擇。';
+
+  @override
+  String get voicesCurrentVoice => '目前語音';
+
+  @override
+  String get voicesNewlyInstalled => '新安裝的語音';
+
+  @override
+  String get voicesOnDevice => '此裝置上的語音';
+
+  @override
+  String get voicesDownloadHint => '開啟裝置語音管理。下載完成後請返回此處。';
+
+  @override
+  String get voicesRescan => '重新掃描語音';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '找到 $count 個可用語音';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '找到 $count 個新語音。';
+  }
+
+  @override
+  String get voicesNoNewFound => '未偵測到新語音。';
+
+  @override
+  String get voicesNewBadge => '新';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return '語音 $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed => '無法開啟語音管理。請開啟系統文字轉語音設定。';
 }

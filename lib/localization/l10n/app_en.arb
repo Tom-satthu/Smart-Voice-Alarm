@@ -296,8 +296,40 @@
       }
     }
   },
-  "voicesDownloadThenSelect": "Install a voice pack, return here, tap Refresh Voices, then open a language and tap Select.",
-  "voicesRefreshHint": "Refresh Voices reloads system TTS voices after you install new packs.",
+  "voicesDownloadThenSelect": "Open your device voice manager. After downloading, return here.",
+  "voicesRefreshHint": "Rescan Voices reloads system TTS voices after you install new packs.",
   "ringtonePreview": "Preview",
-  "ringtonePreviewHint": "Tap play to preview, then tap a name to select it."
+  "ringtonePreviewHint": "Tap play to preview, then tap a name to select it.",
+  "voicesCurrentVoice": "Current voice",
+  "voicesNewlyInstalled": "Newly installed voices",
+  "voicesOnDevice": "Voices on this device",
+  "voicesDownloadHint": "Open your device voice manager. After downloading, return here.",
+  "voicesRescan": "Rescan voices",
+  "voicesRescanResult": "Found {count} usable voices",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voicesNewFound": "Found {count} new voices.",
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voicesNoNewFound": "No new voices detected.",
+  "voicesNewBadge": "New",
+  "voiceFriendlyName": "Voice {number}",
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesOpenManagerFailed": "Could not open the device voice manager. Open system Text-to-speech settings and install voices there."
 }

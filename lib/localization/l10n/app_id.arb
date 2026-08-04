@@ -282,7 +282,7 @@
   "alarmDismissAnswerHint": "Jawaban Anda",
   "voicesRefreshed": "Diperbarui: {count} suara ditemukan",
   "voicesSelectedSaved": "Suara disimpan: {name}",
-  "voicesDownloadThenSelect": "Pasang paket suara, kembali, segarkan suara, lalu pilih di bahasa.",
+  "voicesDownloadThenSelect": "Buka pengelola suara perangkat. Setelah unduh selesai, kembali ke sini.",
   "voicesRefreshHint": "Segarkan suara memuat ulang suara TTS sistem setelah memasang paket.",
   "ringtonePreview": "Pratinjau",
   "ringtonePreviewHint": "Ketuk putar untuk mendengar, lalu ketuk nama untuk memilih.",
@@ -296,6 +296,38 @@
   "@voicesSelectedSaved": {
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "Buka pengelola suara perangkat. Setelah unduh selesai, kembali ke sini.",
+  "voicesCurrentVoice": "Suara yang digunakan",
+  "voicesNewlyInstalled": "Suara baru dipasang",
+  "voicesOnDevice": "Suara di perangkat ini",
+  "voicesRescan": "Pindai ulang suara",
+  "voicesRescanResult": "Ditemukan {count} suara yang dapat digunakan",
+  "voicesNewFound": "Ditemukan {count} suara baru.",
+  "voicesNoNewFound": "Tidak ada suara baru terdeteksi.",
+  "voicesNewBadge": "Baru",
+  "voiceFriendlyName": "Suara {number}",
+  "voicesOpenManagerFailed": "Tidak dapat membuka pengelola suara. Buka pengaturan TTS sistem.",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
         "type": "String"
       }
     }
