@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -38,6 +37,7 @@ class _VoiceSpeechSettingsScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _newlyInstalledIds = ref.read(settingsRepositoryProvider).loadNewVoiceIds();
   }
 
   @override
@@ -79,7 +79,11 @@ class _VoiceSpeechSettingsScreenState
     final l10n = AppLocalizations.of(context);
     setState(() => _busy = true);
     try {
+      final before =
+          ref.read(ttsVoicesProvider).asData?.value ??
+          const <TtsVoiceUiModel>[];
       final voices = await _scanVoices();
+      await _rememberNewVoices(before: before, after: voices);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.voicesRescanResult(voices.length))),
@@ -87,6 +91,22 @@ class _VoiceSpeechSettingsScreenState
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _rememberNewVoices({
+    required Iterable<TtsVoiceUiModel> before,
+    required Iterable<TtsVoiceUiModel> after,
+  }) async {
+    final discovered = VoiceCatalog.newlyInstalledIds(
+      before: before,
+      after: after,
+    );
+    if (discovered.isEmpty) return;
+    _newlyInstalledIds = {..._newlyInstalledIds, ...discovered};
+    await ref
+        .read(settingsRepositoryProvider)
+        .saveNewVoiceIds(_newlyInstalledIds);
+    if (mounted) setState(() {});
   }
 
   Future<void> _afterDownloadReturn() async {
@@ -98,8 +118,13 @@ class _VoiceSpeechSettingsScreenState
       final engine = await ref.read(ttsServiceProvider).loadEngineVoice();
       if (!mounted) return;
 
-      final afterIds = voices.map((v) => v.id).toSet();
-      final discovered = afterIds.difference(_snapshotBeforeDownload);
+      final snapshot = voices
+          .where((voice) => _snapshotBeforeDownload.contains(voice.id))
+          .toList();
+      final discovered = VoiceCatalog.newlyInstalledIds(
+        before: snapshot,
+        after: voices,
+      );
       final engineChanged =
           engine != null &&
           ((_snapshotEngineVoiceId != null &&
@@ -108,7 +133,14 @@ class _VoiceSpeechSettingsScreenState
                   VoiceCatalog.normalizeLocaleTag(engine.locale) !=
                       VoiceCatalog.normalizeLocaleTag(_snapshotEngineLocale!)));
 
-      setState(() => _newlyInstalledIds = discovered);
+      if (discovered.isNotEmpty) {
+        _newlyInstalledIds = {..._newlyInstalledIds, ...discovered};
+        await ref
+            .read(settingsRepositoryProvider)
+            .saveNewVoiceIds(_newlyInstalledIds);
+        if (!mounted) return;
+        setState(() {});
+      }
 
       if (discovered.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -126,7 +158,9 @@ class _VoiceSpeechSettingsScreenState
         await ref
             .read(preferredVoiceProvider.notifier)
             .setVoice(
-              id: matched?.id ?? 'system-default|$locale',
+              id:
+                  matched?.id ??
+                  'system-default|${VoiceCatalog.languageCodeOf(locale)}',
               locale: locale,
               language: language,
             );
@@ -148,7 +182,7 @@ class _VoiceSpeechSettingsScreenState
       await ref
           .read(preferredVoiceProvider.notifier)
           .setVoice(
-            id: 'system-default|$locale',
+            id: 'system-default|${VoiceCatalog.languageCodeOf(locale)}',
             locale: locale,
             language: VoiceCatalog.languageCodeOf(locale),
           );
@@ -195,11 +229,13 @@ class _VoiceSpeechSettingsScreenState
       SnackBar(
         content: Text(
           l10n.voicesSelectedSaved(
-            VoiceCatalog.friendlyLabels(
-                  ref.read(ttsVoicesProvider).asData?.value ?? [voice],
-                  labelFor: l10n.voiceFriendlyName,
-                )[voice.id] ??
-                l10n.voiceFriendlyName('01'),
+            voice.isSystemDefault
+                ? l10n.voiceSystemDefault
+                : VoiceCatalog.friendlyLabels(
+                        ref.read(ttsVoicesProvider).asData?.value ?? [voice],
+                        labelFor: l10n.voiceFriendlyName,
+                      )[voice.id] ??
+                      l10n.voiceFriendlyName('01'),
           ),
         ),
       ),
@@ -209,49 +245,6 @@ class _VoiceSpeechSettingsScreenState
   Future<void> _downloadMore() async {
     final l10n = AppLocalizations.of(context);
     final bridge = ref.read(ttsPlatformBridgeProvider);
-
-    if (kIsWeb) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.voicesWebUnavailable)));
-      return;
-    }
-
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final proceed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(l10n.voicesIosGuideTitle),
-          content: Text(l10n.voicesIosGuideBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l10n.commonCancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l10n.commonOpen),
-            ),
-          ],
-        ),
-      );
-      if (proceed != true || !mounted) return;
-      final current =
-          ref.read(ttsVoicesProvider).asData?.value ??
-          const <TtsVoiceUiModel>[];
-      await _captureDownloadSnapshot(current.where((v) => v.isUsable).toList());
-      _awaitingDownloadReturn = true;
-      final opened = await bridge.openDownloadMoreVoices();
-      if (!opened) {
-        _awaitingDownloadReturn = false;
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.voicesOpenManagerFailed)));
-        }
-      }
-      return;
-    }
 
     final current =
         ref.read(ttsVoicesProvider).asData?.value ?? const <TtsVoiceUiModel>[];
@@ -305,244 +298,133 @@ class _VoiceSpeechSettingsScreenState
     final voicesAsync = ref.watch(ttsVoicesProvider);
     final preferred = ref.watch(preferredVoiceProvider);
     final canManage = ref
-        .watch(ttsPlatformBridgeProvider)
-        .canManageSystemVoicePacks;
+        .watch(ttsServiceProvider)
+        .capabilities
+        .supportsVoiceManagement;
 
-    return AppScaffold(
-      showBack: true,
-      title: l10n.voicesTitle,
-      body: ResponsiveCenter(
-        child: ListView(
-          padding: const EdgeInsets.only(
-            top: AppConstants.spaceMd,
-            bottom: AppConstants.space2xl,
-          ),
-          children: [
-            voicesAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (_, __) => Text(l10n.voicesEmpty),
-              data: (voices) {
-                final usable = voices.where((v) => v.isUsable).toList();
-                final labels = VoiceCatalog.friendlyLabels(
-                  usable,
-                  labelFor: l10n.voiceFriendlyName,
-                );
-                final selected = _resolveSelected(
-                  usable,
-                  preferred.id,
-                  preferred.locale,
-                );
-                final newVoices =
-                    usable
-                        .where((v) => _newlyInstalledIds.contains(v.id))
-                        .toList()
-                      ..sort((a, b) => a.id.compareTo(b.id));
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SectionHeader(title: l10n.voicesCurrentVoice),
-                    if (selected == null)
-                      Text(
-                        l10n.voicesEmpty,
-                        style: context.textTheme.bodyMedium?.copyWith(
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                      )
-                    else
-                      SelectedVoiceCard(
-                        voice: selected,
-                        friendlyName: selected.isSystemDefault
-                            ? l10n.voiceSystemDefault
-                            : labels[selected.id] ??
-                                  l10n.voiceFriendlyName('01'),
-                      ),
-                    if (newVoices.isNotEmpty) ...[
-                      const SizedBox(height: AppConstants.spaceXl),
-                      SectionHeader(title: l10n.voicesNewlyInstalled),
-                      for (final voice in newVoices)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: AppConstants.spaceSm,
-                          ),
-                          child: _NewVoiceTile(
-                            voice: voice,
-                            name:
-                                labels[voice.id] ??
-                                l10n.voiceFriendlyName('01'),
-                            selected: preferred.id == voice.id,
-                            onSelect: () => _saveVoice(voice),
-                          ),
-                        ),
-                    ],
-                    const SizedBox(height: AppConstants.spaceXl),
-                    _DownloadVoicesCard(
-                      busy: _busy,
-                      enabled: canManage && !kIsWeb,
-                      label: l10n.voicesDownloadMore,
-                      subtitle: l10n.voicesDownloadHint,
-                      onTap: _downloadMore,
-                    ),
-                    if (kIsWeb) ...[
-                      const SizedBox(height: AppConstants.spaceMd),
-                      Text(
-                        l10n.voicesWebUnavailable,
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: AppConstants.spaceXl),
-                    SectionHeader(
-                      title: l10n.voicesOnDevice,
-                      trailing: TextButton(
-                        onPressed: _busy ? null : _rescan,
-                        child: Text(l10n.voicesRescan),
-                      ),
-                    ),
-                    if (usable.isEmpty)
-                      EmptyStateView(
-                        icon: Icons.record_voice_over_outlined,
-                        title: l10n.voicesEmpty,
-                        subtitle: l10n.voicesOfflineHint,
-                        actionLabel: l10n.voicesEmptyCta,
-                        onAction: canManage ? _downloadMore : null,
-                      )
-                    else
-                      VoiceBrowser(
-                        voices: usable,
-                        selectedVoiceId: preferred.id ?? selected?.id,
-                        showAvailability: true,
-                        friendlyLabels: labels,
-                        newlyInstalledIds: _newlyInstalledIds,
-                        initiallyExpandedLanguage:
-                            preferred.language ??
-                            (selected == null
-                                ? null
-                                : VoiceCatalog.languageCodeOf(selected.locale)),
-                        onSelected: _saveVoice,
-                      ),
-                  ],
-                );
-              },
-            ),
+    return DefaultTabController(
+      length: 2,
+      child: AppScaffold(
+        showBack: true,
+        title: l10n.voicesTitle,
+        bottom: TabBar(
+          tabs: [
+            Tab(text: l10n.voicesOnDevice),
+            Tab(text: l10n.voicesNewlyInstalled),
           ],
         ),
-      ),
-    );
-  }
-}
+        body: ResponsiveCenter(
+          child: voicesAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => Center(child: Text(l10n.voicesEmpty)),
+            data: (voices) {
+              final usable = voices.where((voice) => voice.isUsable).toList();
+              final labels = VoiceCatalog.friendlyLabels(
+                usable,
+                labelFor: l10n.voiceFriendlyName,
+              );
+              final selected = _resolveSelected(
+                usable,
+                preferred.id,
+                preferred.locale,
+              );
+              final newVoices = usable
+                  .where(
+                    (voice) =>
+                        !voice.isSystemDefault &&
+                        _newlyInstalledIds.contains(voice.id),
+                  )
+                  .toList();
+              final padding = const EdgeInsets.fromLTRB(
+                AppConstants.spaceMd,
+                AppConstants.spaceMd,
+                AppConstants.spaceMd,
+                AppConstants.space2xl,
+              );
+              final expandedLanguage =
+                  preferred.language ??
+                  (selected == null
+                      ? null
+                      : VoiceCatalog.languageCodeOf(selected.locale));
 
-class _NewVoiceTile extends ConsumerStatefulWidget {
-  const _NewVoiceTile({
-    required this.voice,
-    required this.name,
-    required this.selected,
-    required this.onSelect,
-  });
-
-  final TtsVoiceUiModel voice;
-  final String name;
-  final bool selected;
-  final VoidCallback onSelect;
-
-  @override
-  ConsumerState<_NewVoiceTile> createState() => _NewVoiceTileState();
-}
-
-class _NewVoiceTileState extends ConsumerState<_NewVoiceTile> {
-  bool _playing = false;
-
-  @override
-  void deactivate() {
-    ref.read(ttsServiceProvider).stop();
-    super.deactivate();
-  }
-
-  Future<void> _preview() async {
-    if (_playing) {
-      await ref.read(ttsServiceProvider).stop();
-      if (mounted) setState(() => _playing = false);
-      return;
-    }
-    setState(() => _playing = true);
-    try {
-      await ref
-          .read(ttsServiceProvider)
-          .preview(
-            text: VoiceCatalog.previewSampleForLocale(widget.voice.locale),
-            voiceId: widget.voice.id,
-            locale: widget.voice.locale,
-          );
-    } finally {
-      if (mounted) setState(() => _playing = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return SurfacePanel(
-      emphasized: widget.selected,
-      onTap: widget.onSelect,
-      padding: const EdgeInsets.fromLTRB(16, 12, 4, 12),
-      child: Row(
-        children: [
-          Icon(
-            widget.selected
-                ? Icons.radio_button_checked_rounded
-                : Icons.radio_button_off_rounded,
-            color: widget.selected
-                ? context.colors.primary
-                : context.colors.onSurfaceVariant,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        widget.name,
-                        style: context.textTheme.titleSmall,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.colors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        l10n.voicesNewBadge,
-                        style: context.textTheme.labelSmall?.copyWith(
-                          color: context.colors.primary,
-                          fontWeight: FontWeight.w700,
+              return TabBarView(
+                children: [
+                  ListView(
+                    padding: padding,
+                    children: [
+                      SectionHeader(title: l10n.voicesCurrentVoice),
+                      if (selected != null)
+                        SelectedVoiceCard(
+                          voice: selected,
+                          friendlyName: selected.isSystemDefault
+                              ? l10n.voiceSystemDefault
+                              : labels[selected.id] ??
+                                    l10n.voiceFriendlyName('01'),
+                        ),
+                      if (canManage) ...[
+                        const SizedBox(height: AppConstants.spaceMd),
+                        _DownloadVoicesCard(
+                          busy: _busy,
+                          enabled: true,
+                          label: l10n.voicesDownloadMore,
+                          subtitle: l10n.voicesDownloadHint,
+                          onTap: _downloadMore,
+                        ),
+                      ],
+                      const SizedBox(height: AppConstants.spaceLg),
+                      SectionHeader(
+                        title: l10n.voicesOnDevice,
+                        trailing: TextButton(
+                          onPressed: _busy ? null : _rescan,
+                          child: Text(l10n.voicesRescan),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                      if (usable.isEmpty)
+                        EmptyStateView(
+                          icon: Icons.record_voice_over_outlined,
+                          title: l10n.voicesEmpty,
+                          subtitle: l10n.voicesOfflineHint,
+                          actionLabel: canManage ? l10n.voicesEmptyCta : null,
+                          onAction: canManage ? _downloadMore : null,
+                        )
+                      else
+                        VoiceBrowser(
+                          voices: usable,
+                          selectedVoiceId: preferred.id ?? selected?.id,
+                          showAvailability: true,
+                          friendlyLabels: labels,
+                          newlyInstalledIds: _newlyInstalledIds,
+                          initiallyExpandedLanguage: expandedLanguage,
+                          onSelected: _saveVoice,
+                        ),
+                    ],
+                  ),
+                  ListView(
+                    padding: padding,
+                    children: [
+                      if (newVoices.isEmpty)
+                        EmptyStateView(
+                          icon: Icons.new_releases_outlined,
+                          title: l10n.voicesNewlyInstalled,
+                          subtitle: l10n.voicesNoChange,
+                        )
+                      else
+                        VoiceBrowser(
+                          voices: newVoices,
+                          selectedVoiceId: preferred.id,
+                          showAvailability: true,
+                          friendlyLabels: labels,
+                          newlyInstalledIds: _newlyInstalledIds,
+                          initiallyExpandedLanguage: expandedLanguage,
+                          onSelected: _saveVoice,
+                        ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
-          IconButton(
-            tooltip: _playing ? l10n.alarmStop : l10n.ttsPreview,
-            onPressed: _preview,
-            icon: Icon(
-              _playing ? Icons.stop_rounded : Icons.play_arrow_rounded,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

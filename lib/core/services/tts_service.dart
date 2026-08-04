@@ -2,18 +2,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../localization/locale_codes.dart';
+import '../localization/voice_catalog.dart';
 import '../../shared/models/ui_models.dart';
 import 'tts_platform_bridge.dart';
+import 'tts_voice_source.dart';
 
 class TtsService {
-  TtsService({TtsPlatformBridge? bridge})
+  TtsService({TtsPlatformBridge? bridge, VoiceSource? source})
     : _tts = FlutterTts(),
-      _bridge = bridge ?? TtsPlatformBridge();
+      _source = source ?? createVoiceSource(bridge ?? TtsPlatformBridge());
 
   FlutterTts _tts;
-  final TtsPlatformBridge _bridge;
+  final VoiceSource _source;
   bool _ready = false;
-  final Map<String, TtsEngineVoiceInfo?> _probeCache = {};
+  List<TtsVoiceUiModel>? _voiceCache;
+
+  VoiceCapabilities get capabilities => _source.capabilities;
 
   Future<void> init() async {
     if (_ready) return;
@@ -32,7 +36,7 @@ class TtsService {
       await _tts.stop();
     } catch (_) {}
     _ready = false;
-    _probeCache.clear();
+    _voiceCache = null;
     _tts = FlutterTts();
     return loadVoices();
   }
@@ -40,6 +44,7 @@ class TtsService {
   /// Re-query voices without recreating the engine.
   Future<List<TtsVoiceUiModel>> refreshVoices() async {
     await init();
+    _voiceCache = null;
     return loadVoices();
   }
 
@@ -52,40 +57,35 @@ class TtsService {
   }
 
   Future<List<TtsVoiceUiModel>> loadVoices() async {
+    final cached = _voiceCache;
+    if (cached != null) return cached;
     await init();
     try {
-      final platform = await _bridge.getPlatformVoices();
-      final raw = platform ?? await _tts.getVoices;
-      if (raw is! List || raw.isEmpty) {
-        return _fallbackVoices;
+      final raw = await _source.loadVoices(_tts);
+      if (raw.isEmpty) {
+        return _voiceCache = _fallbackVoices;
       }
       final voices = <TtsVoiceUiModel>[];
       for (final item in raw) {
-        if (item is! Map) continue;
         final map = Map<String, dynamic>.from(item);
         final name = (map['name'] ?? map['voiceURI'] ?? 'Voice').toString();
         final platformLocale = (map['locale'] ?? 'en-US').toString();
         final locale = LocaleCodes.normalizeLocaleTag(platformLocale);
         final identifier = (map['identifier'] ?? map['voiceURI'] ?? name)
             .toString();
+        final engine = map['engine']?.toString();
         final quality = _parseQuality(map);
         final availability = _parseAvailability(map);
         final usable = availability != TtsVoiceAvailability.notInstalled;
-        final key = '$identifier|$platformLocale';
-        if (platform != null && map['selectable'] != true) continue;
-        if (platform != null) {
-          final resolvedName = (map['resolvedName'] ?? name).toString();
-          final resolvedLocale = (map['resolvedLocale'] ?? platformLocale)
-              .toString();
-          _probeCache['$name|$platformLocale'] = TtsEngineVoiceInfo(
-            name: resolvedName,
-            locale: resolvedLocale,
-            identifier: resolvedName,
-          );
-        }
+        final stablePlatformId = [
+          if (engine != null && engine.isNotEmpty) engine,
+          identifier,
+          platformLocale,
+        ].join('|');
+        if (!_source.validateSelectableVoice(map)) continue;
         voices.add(
           TtsVoiceUiModel(
-            id: key,
+            id: stablePlatformId,
             name: _displayName(name),
             locale: locale,
             isPremium: quality == TtsVoiceQuality.premium,
@@ -95,37 +95,27 @@ class TtsService {
             platformName: name,
             platformLocale: platformLocale,
             platformIdentifier: identifier,
+            platformEngine: engine,
+            platformQuality: map['quality'],
+            resolvedIdentifier: map['resolvedName']?.toString(),
+            resolvedLocale: map['resolvedLocale']?.toString(),
           ),
         );
       }
-      final deduped = <String, TtsVoiceUiModel>{};
-      for (final voice in voices) {
-        final resolved =
-            _probeCache['${voice.platformName}|${voice.platformLocale}'];
-        final key = resolved?.id ?? voice.id;
-        final existing = deduped[key];
-        if (existing == null ||
-            (existing.availability == TtsVoiceAvailability.networkRequired &&
-                voice.availability == TtsVoiceAvailability.installedOffline)) {
-          deduped[key] = voice;
-        }
-      }
+      final deduped = VoiceCatalog.deduplicate(voices);
       voices
         ..clear()
-        ..addAll(deduped.values);
-      final locales = voices.map((voice) => voice.locale).toSet();
-      for (final locale in locales) {
-        voices.add(systemDefaultVoice(locale));
-      }
-      if (voices.isEmpty) return _fallbackVoices;
+        ..addAll(deduped);
+      voices.addAll(VoiceCatalog.systemDefaultsForLanguages(voices));
+      if (voices.isEmpty) return _voiceCache = _fallbackVoices;
       voices.sort((a, b) {
         final byLocale = a.locale.compareTo(b.locale);
         if (byLocale != 0) return byLocale;
         return a.name.compareTo(b.name);
       });
-      return voices;
+      return _voiceCache = List.unmodifiable(voices);
     } catch (_) {
-      return _fallbackVoices;
+      return _voiceCache = _fallbackVoices;
     }
   }
 
@@ -134,18 +124,8 @@ class TtsService {
   /// Prefers Android [TextToSpeech.getVoice] via the platform bridge.
   /// Falls back to flutter_tts [FlutterTts.getDefaultVoice] when needed.
   Future<TtsEngineVoiceInfo?> loadEngineVoice() async {
-    final fromBridge = await _bridge.getEngineVoiceState();
-    final bridged = fromBridge?.effective;
-    if (bridged != null) return bridged;
-
     await init();
-    try {
-      final raw = await _tts.getDefaultVoice;
-      if (raw is Map && raw.isNotEmpty) {
-        return TtsEngineVoiceInfo.fromMap(Map<dynamic, dynamic>.from(raw));
-      }
-    } catch (_) {}
-    return null;
+    return _source.resolveSystemDefault(_tts);
   }
 
   /// Picks the exact saved voice. Missing voices become system-managed defaults;
@@ -166,8 +146,9 @@ class TtsService {
 
   static TtsVoiceUiModel systemDefaultVoice(String locale) {
     final normalized = LocaleCodes.normalizeLocaleTag(locale);
+    final language = LocaleCodes.languageCodeOf(normalized);
     return TtsVoiceUiModel(
-      id: 'system-default|$normalized',
+      id: 'system-default|$language',
       name: 'System Default',
       locale: normalized,
       platformName: '',
@@ -191,7 +172,7 @@ class TtsService {
     await _tts.stop();
     if (resolved.isSystemDefault) {
       // A previous setVoice remains sticky on the same FlutterTts instance.
-      // A fresh engine lets Android/Samsung apply its settings-managed default.
+      // A fresh engine lets the platform apply its settings-managed default.
       _ready = false;
       _tts = FlutterTts();
       await init();
@@ -282,7 +263,7 @@ class TtsService {
 
   static const _fallbackVoices = [
     TtsVoiceUiModel(
-      id: 'system-default|en-US',
+      id: 'system-default|en',
       name: 'System Default',
       locale: 'en-US',
       availability: TtsVoiceAvailability.installedOffline,

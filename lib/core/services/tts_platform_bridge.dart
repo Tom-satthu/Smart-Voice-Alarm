@@ -9,12 +9,14 @@ class TtsEngineVoiceInfo {
     required this.locale,
     this.networkRequired = false,
     this.identifier,
+    this.engine,
   });
 
   final String name;
   final String locale;
   final bool networkRequired;
   final String? identifier;
+  final String? engine;
 
   String get id {
     final key = identifier?.trim();
@@ -35,6 +37,7 @@ class TtsEngineVoiceInfo {
       locale: locale,
       networkRequired: network == true || network?.toString() == '1',
       identifier: identifier,
+      engine: map['engine']?.toString(),
     );
   }
 }
@@ -55,9 +58,7 @@ class TtsPlatformBridge {
   static const _channel = MethodChannel('com.smartvoicealarm.app/tts');
 
   bool get canManageSystemVoicePacks =>
-      !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   /// Android: INSTALL_TTS_DATA, then System TTS Settings.
   /// iOS: public app-settings link.
@@ -73,12 +74,6 @@ class TtsPlatformBridge {
           debugPrint('openInstallTtsData failed: $error');
         }
         return openSystemTtsSettings();
-      }
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
-        final uri = Uri.parse('app-settings:');
-        if (await canLaunchUrl(uri)) {
-          return launchUrl(uri);
-        }
       }
     } catch (error) {
       debugPrint('openDownloadMoreVoices failed: $error');

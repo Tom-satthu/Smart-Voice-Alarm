@@ -60,16 +60,19 @@ class LocalDatabase {
 class AlarmRepository {
   List<AlarmUiModel> loadAll() {
     final box = LocalDatabase.alarmsBox;
-    final items = box.values
-        .map((raw) => AlarmUiModel.fromJson(
-              jsonDecode(raw) as Map<String, dynamic>,
-            ))
-        .toList()
-      ..sort((a, b) {
-        final am = a.time.hour * 60 + a.time.minute;
-        final bm = b.time.hour * 60 + b.time.minute;
-        return am.compareTo(bm);
-      });
+    final items =
+        box.values
+            .map(
+              (raw) => AlarmUiModel.fromJson(
+                jsonDecode(raw) as Map<String, dynamic>,
+              ),
+            )
+            .toList()
+          ..sort((a, b) {
+            final am = a.time.hour * 60 + a.time.minute;
+            final bm = b.time.hour * 60 + b.time.minute;
+            return am.compareTo(bm);
+          });
     return items;
   }
 
@@ -116,8 +119,10 @@ class VoiceSequenceRepository {
   }
 
   Future<void> upsert(VoiceSequenceUiModel sequence) async {
-    await LocalDatabase.sequencesBox
-        .put(sequence.id, jsonEncode(sequence.toJson()));
+    await LocalDatabase.sequencesBox.put(
+      sequence.id,
+      jsonEncode(sequence.toJson()),
+    );
   }
 
   Future<void> delete(String id) async {
@@ -135,6 +140,7 @@ class SettingsRepository {
   static const _preferredVoiceIdKey = 'preferredVoiceId';
   static const _preferredVoiceLocaleKey = 'preferredVoiceLocale';
   static const _preferredVoiceLanguageKey = 'preferredVoiceLanguage';
+  static const _newVoiceIdsKey = 'newVoiceIds';
   static const _premiumUnlockedKey = 'premiumLifetimeUnlocked';
 
   ThemeMode loadThemeMode() {
@@ -167,8 +173,7 @@ class SettingsRepository {
     return Locale(code);
   }
 
-  bool get hasSavedLocale =>
-      LocalDatabase.settingsBox.get(_localeKey) != null;
+  bool get hasSavedLocale => LocalDatabase.settingsBox.get(_localeKey) != null;
 
   Future<void> saveLocale(Locale locale) async {
     final value = locale.countryCode == null || locale.countryCode!.isEmpty
@@ -241,6 +246,16 @@ class SettingsRepository {
         languageCode,
       );
     }
+  }
+
+  Set<String> loadNewVoiceIds() {
+    final raw = LocalDatabase.settingsBox.get(_newVoiceIdsKey);
+    if (raw is! List) return {};
+    return raw.whereType<String>().toSet();
+  }
+
+  Future<void> saveNewVoiceIds(Set<String> voiceIds) async {
+    await LocalDatabase.settingsBox.put(_newVoiceIdsKey, voiceIds.toList());
   }
 
   bool loadPremiumUnlocked() =>

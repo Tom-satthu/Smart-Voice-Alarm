@@ -40,19 +40,84 @@ abstract final class VoiceCatalog {
   static String languageCodeOf(String locale) =>
       LocaleCodes.languageCodeOf(locale);
 
+  /// Removes duplicate platform records and aliases that resolve to one voice.
+  /// Offline metadata wins when an engine exposes both network and local rows.
+  static List<TtsVoiceUiModel> deduplicate(List<TtsVoiceUiModel> voices) {
+    final unique = <String, TtsVoiceUiModel>{};
+    for (final voice in voices) {
+      if (voice.isSystemDefault) continue;
+      final resolvedName = voice.resolvedIdentifier?.trim();
+      final resolvedLocale = normalizeLocaleTag(
+        voice.resolvedLocale ?? voice.platformLocale,
+      );
+      final key = [
+        voice.platformEngine ?? '',
+        resolvedName == null || resolvedName.isEmpty
+            ? voice.platformIdentifier ?? voice.platformName
+            : resolvedName,
+        resolvedLocale,
+      ].join('|').toLowerCase();
+      final existing = unique[key];
+      if (existing == null ||
+          (existing.availability == TtsVoiceAvailability.networkRequired &&
+              voice.availability == TtsVoiceAvailability.installedOffline)) {
+        unique[key] = voice;
+      }
+    }
+    return unique.values.toList();
+  }
+
+  /// Exactly one device-managed default per language, not per region.
+  static List<TtsVoiceUiModel> systemDefaultsForLanguages(
+    List<TtsVoiceUiModel> voices,
+  ) {
+    final localeByLanguage = <String, String>{};
+    for (final voice in voices) {
+      if (voice.isSystemDefault) continue;
+      final language = languageCodeOf(voice.locale);
+      localeByLanguage.putIfAbsent(language, () => voice.platformLocale);
+    }
+    return [
+      for (final entry in localeByLanguage.entries)
+        TtsVoiceUiModel(
+          id: 'system-default|${entry.key}',
+          name: 'System Default',
+          locale: normalizeLocaleTag(entry.value),
+          platformName: '',
+          platformLocale: entry.value,
+          isSystemDefault: true,
+        ),
+    ];
+  }
+
+  static Set<String> newlyInstalledIds({
+    required Iterable<TtsVoiceUiModel> before,
+    required Iterable<TtsVoiceUiModel> after,
+  }) {
+    final oldIds = before
+        .where((voice) => !voice.isSystemDefault && voice.isUsable)
+        .map((voice) => voice.id)
+        .toSet();
+    return after
+        .where((voice) => !voice.isSystemDefault && voice.isUsable)
+        .map((voice) => voice.id)
+        .where((id) => !oldIds.contains(id))
+        .toSet();
+  }
+
   /// Stable friendly labels per locale: Voice 01, Voice 02, …
   /// Sorted by technical voice [TtsVoiceUiModel.id], never using the number as id.
   static Map<String, String> friendlyLabels(
     List<TtsVoiceUiModel> voices, {
     required String Function(String paddedNumber) labelFor,
   }) {
-    final byLocale = <String, List<TtsVoiceUiModel>>{};
+    final byLanguage = <String, List<TtsVoiceUiModel>>{};
     for (final voice in voices) {
-      final key = normalizeLocaleTag(voice.locale).toLowerCase();
-      byLocale.putIfAbsent(key, () => []).add(voice);
+      final key = languageCodeOf(voice.locale);
+      byLanguage.putIfAbsent(key, () => []).add(voice);
     }
     final labels = <String, String>{};
-    for (final entry in byLocale.entries) {
+    for (final entry in byLanguage.entries) {
       final sorted = List<TtsVoiceUiModel>.from(entry.value)
         ..sort((a, b) => a.id.compareTo(b.id));
       var voiceNumber = 0;

@@ -166,6 +166,7 @@ class MainActivity : FlutterActivity() {
                                 current.locale.toLanguageTag().equals(requested.locale.toLanguageTag(), ignoreCase = true)
                             voiceToMap(requested)?.plus(
                                 mapOf(
+                                    "engine" to tts.defaultEngine,
                                     "selectable" to selectable,
                                     "resolvedName" to current?.name,
                                     "resolvedLocale" to current?.locale?.toLanguageTag(),
@@ -235,8 +236,9 @@ class MainActivity : FlutterActivity() {
                 }
                 try {
                     val payload = hashMapOf<String, Any?>(
-                        "current" to voiceToMap(tts.voice),
-                        "default" to voiceToMap(tts.defaultVoice),
+                        "current" to voiceToMap(tts.voice)?.plus(mapOf("engine" to tts.defaultEngine)),
+                        "default" to voiceToMap(tts.defaultVoice)?.plus(mapOf("engine" to tts.defaultEngine)),
+                        "engine" to tts.defaultEngine,
                         "voices" to (tts.voices?.map { voiceToMap(it) } ?: emptyList<Map<String, Any?>>()),
                     )
                     reply(payload)

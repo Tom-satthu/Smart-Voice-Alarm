@@ -136,6 +136,7 @@ class MemorySettingsRepository extends SettingsRepository {
   String? _preferredVoiceId;
   String? _preferredVoiceLocale;
   String? _preferredVoiceLanguage;
+  Set<String> _newVoiceIds = {};
   bool _premiumUnlocked = false;
 
   @override
@@ -144,6 +145,14 @@ class MemorySettingsRepository extends SettingsRepository {
   @override
   Future<void> savePreferredVoiceLanguage(String? languageCode) async {
     _preferredVoiceLanguage = languageCode;
+  }
+
+  @override
+  Set<String> loadNewVoiceIds() => Set<String>.from(_newVoiceIds);
+
+  @override
+  Future<void> saveNewVoiceIds(Set<String> voiceIds) async {
+    _newVoiceIds = Set<String>.from(voiceIds);
   }
 
   @override

@@ -89,11 +89,12 @@ class _VoiceBrowserState extends ConsumerState<VoiceBrowser> {
   String? _availabilityLabel(AppLocalizations l10n, TtsVoiceUiModel voice) {
     if (voice.isSystemDefault) return l10n.voiceSystemDefaultHint;
     if (!widget.showAvailability) return null;
-    return switch (voice.availability) {
+    final availability = switch (voice.availability) {
       TtsVoiceAvailability.installedOffline => l10n.voiceAvailabilityOffline,
       TtsVoiceAvailability.networkRequired => l10n.voiceAvailabilityNetwork,
       TtsVoiceAvailability.notInstalled => l10n.voiceAvailabilityMissing,
     };
+    return '${voice.locale} · $availability';
   }
 
   Future<void> _stopPreview() async {
@@ -245,69 +246,64 @@ class _LanguageSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppConstants.spaceMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SurfacePanel(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Material(
+          color: context.colors.surfaceContainerLow,
+          child: InkWell(
             onTap: onToggle,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 56),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
                         group.languageLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: context.textTheme.titleSmall,
                       ),
-                      Text(voiceCountLabel, style: context.textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-                Icon(
-                  expanded
-                      ? Icons.expand_less_rounded
-                      : Icons.expand_more_rounded,
-                  color: context.colors.onSurfaceVariant,
-                ),
-              ],
-            ),
-          ),
-          if (expanded) ...[
-            const SizedBox(height: AppConstants.spaceSm),
-            for (final locale in group.locales) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                child: Text(
-                  locale.localeLabel,
-                  style: context.textTheme.labelLarge?.copyWith(
-                    color: context.colors.primary,
-                  ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      voiceCountLabel,
+                      style: context.textTheme.labelSmall?.copyWith(
+                        color: context.colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      expanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      size: 20,
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                  ],
                 ),
               ),
-              for (final voice in locale.voices)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppConstants.spaceSm),
-                  child: _VoiceRow(
-                    voice: voice,
-                    selected: selectedVoiceId == voice.id,
-                    isNew: newlyInstalledIds.contains(voice.id),
-                    name: voiceName(voice),
-                    availability: availabilityLabel(voice),
-                    previewVoiceId: previewVoiceId,
-                    previewPhase: previewPhase,
-                    newBadge: newBadge,
-                    onSelect: () => onSelect(voice),
-                    onPreview: () => onPreview(voice),
-                  ),
-                ),
-            ],
-          ],
-        ],
-      ),
+            ),
+          ),
+        ),
+        if (expanded)
+          for (final voice in group.locales.expand((locale) => locale.voices))
+            _VoiceRow(
+              voice: voice,
+              selected: selectedVoiceId == voice.id,
+              isNew: newlyInstalledIds.contains(voice.id),
+              name: voiceName(voice),
+              availability: availabilityLabel(voice),
+              previewVoiceId: previewVoiceId,
+              previewPhase: previewPhase,
+              newBadge: newBadge,
+              onSelect: () => onSelect(voice),
+              onPreview: () => onPreview(voice),
+            ),
+        const Divider(height: 1),
+      ],
     );
   }
 }
@@ -345,28 +341,36 @@ class _VoiceRow extends StatelessWidget {
     final loading =
         previewVoiceId == voice.id && previewPhase == _PreviewPhase.loading;
 
-    return SurfacePanel(
-      emphasized: selected,
-      padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
-      child: Row(
-        children: [
-          Expanded(
-            child: InkWell(
-              onTap: voice.isUsable ? onSelect : null,
-              borderRadius: BorderRadius.circular(12),
+    final newLabel = isNew ? ', $newBadge' : '';
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '$name$newLabel',
+      child: Material(
+        color: selected
+            ? context.colors.primary.withValues(alpha: 0.08)
+            : Colors.transparent,
+        child: InkWell(
+          onTap: voice.isUsable ? onSelect : null,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 52),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12),
               child: Row(
                 children: [
                   Icon(
                     selected
                         ? Icons.radio_button_checked_rounded
                         : Icons.radio_button_off_rounded,
+                    size: 20,
                     color: selected
                         ? context.colors.primary
                         : context.colors.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -374,7 +378,11 @@ class _VoiceRow extends StatelessWidget {
                             Flexible(
                               child: Text(
                                 name,
-                                style: context.textTheme.titleSmall,
+                                style: context.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: selected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -383,8 +391,8 @@ class _VoiceRow extends StatelessWidget {
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
+                                  horizontal: 6,
+                                  vertical: 1,
                                 ),
                                 decoration: BoxDecoration(
                                   color: context.colors.primary.withValues(
@@ -407,7 +415,9 @@ class _VoiceRow extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             availability!,
-                            style: context.textTheme.bodySmall?.copyWith(
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.textTheme.labelSmall?.copyWith(
                               color: context.colors.onSurfaceVariant,
                             ),
                           ),
@@ -415,22 +425,31 @@ class _VoiceRow extends StatelessWidget {
                       ],
                     ),
                   ),
+                  IconButton(
+                    tooltip: playing ? l10n.alarmStop : l10n.ttsPreview,
+                    onPressed: voice.isUsable ? onPreview : null,
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                    iconSize: 20,
+                    icon: loading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            playing
+                                ? Icons.stop_rounded
+                                : Icons.play_arrow_rounded,
+                          ),
+                  ),
                 ],
               ),
             ),
           ),
-          IconButton(
-            tooltip: playing ? l10n.alarmStop : l10n.ttsPreview,
-            onPressed: voice.isUsable ? onPreview : null,
-            icon: loading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Icon(playing ? Icons.stop_rounded : Icons.play_arrow_rounded),
-          ),
-        ],
+        ),
       ),
     );
   }
