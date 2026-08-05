@@ -21,16 +21,25 @@ PreparedAlarmClip preparedClip({
   String label = '',
 }) => PreparedAlarmClip(fileName: fileName, duration: duration, label: label);
 
+class IosPlanValidationException implements Exception {
+  IosPlanValidationException(this.code, this.message);
+  final String code;
+  final String message;
+  @override
+  String toString() => 'IosPlanValidationException($code): $message';
+}
+
 /// Pure planner for iOS fan-out segments.
 ///
-/// nextStart = currentStart + actualDuration + gap (default 5s)
-/// Defaults: up to 5 voice segments + up to 2 ringtone segments.
+/// Voice sequence is repeated [AlarmUiModel.repeatCount] times.
+/// Ringtone (mixed) starts after the last voice of the last repeat + gap.
 class IosAlarmSegmentPlanner {
   IosAlarmSegmentPlanner({
     this.maxVoiceSegments = 5,
     this.maxRingtoneSegments = 2,
     this.gap = const Duration(seconds: 5),
     this.maxVoiceDuration = const Duration(seconds: 20),
+    this.maxNotifications = 64,
     Uuid? uuid,
   }) : _uuid = uuid ?? const Uuid();
 
@@ -38,6 +47,7 @@ class IosAlarmSegmentPlanner {
   final int maxRingtoneSegments;
   final Duration gap;
   final Duration maxVoiceDuration;
+  final int maxNotifications;
   final Uuid _uuid;
 
   static String occurrenceIdFor(AlarmUiModel alarm, DateTime occurrence) {
@@ -55,10 +65,30 @@ class IosAlarmSegmentPlanner {
     required int segmentIndex,
     required String revision,
   }) {
-    // Keep names short — long Library/Sounds filenames can fail to load.
     final seed = '$parentId|$occurrenceId|$segmentIndex';
     final hash = seed.hashCode.toUnsigned(32).toRadixString(16);
     return 'sva_${hash}_$revision.caf';
+  }
+
+  int estimateNotificationCount({
+    required AlarmUiModel alarm,
+    required int voiceClipCount,
+    required int ringtoneClipCount,
+  }) {
+    final voices = alarm.type == AlarmType.ringtone
+        ? 0
+        : voiceClipCount.clamp(0, maxVoiceSegments);
+    final repeats = alarm.repeatCount.clamp(1, 20);
+    final tones = alarm.type == AlarmType.voice
+        ? 0
+        : ringtoneClipCount.clamp(0, maxRingtoneSegments);
+    if (alarm.type == AlarmType.ringtone) {
+      return tones.clamp(1, maxRingtoneSegments);
+    }
+    if (alarm.type == AlarmType.voice) {
+      return voices * repeats;
+    }
+    return voices * repeats + tones;
   }
 
   /// Builds timed segments from already-rendered sound durations.
@@ -81,44 +111,75 @@ class IosAlarmSegmentPlanner {
         ? ringtoneClips.take(maxRingtoneSegments).toList()
         : const <PreparedAlarmClip>[];
 
+    if (alarm.type == AlarmType.mixed && voices.isNotEmpty && tones.isEmpty) {
+      throw IosPlanValidationException(
+        'mixed_missing_ringtone',
+        'Mixed alarm requires a ringtone clip',
+      );
+    }
+
+    final repeats = alarm.type == AlarmType.ringtone
+        ? 1
+        : alarm.repeatCount.clamp(1, 20);
+
+    final estimated = estimateNotificationCount(
+      alarm: alarm,
+      voiceClipCount: voices.length,
+      ringtoneClipCount: tones.length,
+    );
+    if (estimated > maxNotifications) {
+      throw IosPlanValidationException(
+        'notification_limit',
+        'Plan would schedule $estimated notifications (max $maxNotifications)',
+      );
+    }
+
     final out = <IosAlarmSegment>[];
     var cursor = occurrenceStart;
     var index = 0;
 
-    for (final clip in voices) {
-      final duration = _clampVoice(clip.duration);
-      out.add(
-        IosAlarmSegment(
-          parentAlarmId: alarm.id,
-          occurrenceId: occurrenceId,
-          segmentIndex: index,
-          childId: _uuid.v4(),
-          startAt: cursor,
-          soundFileName: clip.fileName,
-          duration: duration,
-          label: clip.label,
-        ),
-      );
-      cursor = cursor.add(duration).add(gap);
-      index += 1;
+    if (alarm.type != AlarmType.ringtone) {
+      for (var repeatIndex = 0; repeatIndex < repeats; repeatIndex++) {
+        for (final clip in voices) {
+          final duration = _clampVoice(clip.duration);
+          out.add(
+            IosAlarmSegment(
+              parentAlarmId: alarm.id,
+              occurrenceId: occurrenceId,
+              segmentIndex: index,
+              childId: _uuid.v4(),
+              startAt: cursor,
+              soundFileName: clip.fileName,
+              duration: duration,
+              label: clip.label,
+            ),
+          );
+          cursor = cursor.add(duration).add(gap);
+          index += 1;
+        }
+      }
     }
 
-    for (final clip in tones) {
-      final duration = clip.duration;
-      out.add(
-        IosAlarmSegment(
-          parentAlarmId: alarm.id,
-          occurrenceId: occurrenceId,
-          segmentIndex: index,
-          childId: _uuid.v4(),
-          startAt: cursor,
-          soundFileName: clip.fileName,
-          duration: duration,
-          label: clip.label,
-        ),
-      );
-      cursor = cursor.add(duration).add(gap);
-      index += 1;
+    if (includeRingtone) {
+      for (final clip in tones) {
+        final duration = clip.duration <= Duration.zero
+            ? const Duration(seconds: 8)
+            : clip.duration;
+        out.add(
+          IosAlarmSegment(
+            parentAlarmId: alarm.id,
+            occurrenceId: occurrenceId,
+            segmentIndex: index,
+            childId: _uuid.v4(),
+            startAt: cursor,
+            soundFileName: clip.fileName,
+            duration: duration,
+            label: clip.label,
+          ),
+        );
+        cursor = cursor.add(duration).add(gap);
+        index += 1;
+      }
     }
 
     return out;

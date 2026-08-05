@@ -7,6 +7,7 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../shared/models/ui_models.dart';
+import 'alarm_schedule_result.dart';
 import 'ios_alarm_fanout_service.dart';
 import 'ios_alarm_scheduler.dart';
 import 'native_alarm_scheduler.dart';
@@ -198,28 +199,30 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleAlarm(AlarmUiModel alarm) async {
-    if (kIsWeb) return;
+  Future<AlarmScheduleResult> scheduleAlarm(
+    AlarmUiModel alarm, {
+    VoiceSequenceUiModel? sequenceOverride,
+  }) async {
+    if (kIsWeb) return AlarmScheduleResult.success;
     try {
       if (!alarm.isEnabled) {
         await cancelAlarm(alarm.id);
-        return;
+        return AlarmScheduleResult.ok(stage: 'notification_schedule');
       }
 
       final next = _nextOccurrence(alarm);
       if (next == null) {
         await cancelAlarm(alarm.id);
-        return;
+        return AlarmScheduleResult.ok(stage: 'notification_schedule');
       }
 
       // Android: AlarmManager + FGS so audio starts without a notification tap.
       if (_native.isSupported) {
         await _native.scheduleAlarm(alarm, next);
-        // Still cancel any stale FLN alarm ids.
         if (_initialized) {
           await _plugin.cancel(alarm.id.hashCode);
         }
-        return;
+        return AlarmScheduleResult.ok(stage: 'notification_schedule');
       }
 
       // iOS: notification fan-out with pre-rendered Library/Sounds clips.
@@ -227,25 +230,32 @@ class NotificationService {
         if (_initialized) {
           await _plugin.cancel(alarm.id.hashCode);
         }
-        // Ensure notification permission before scheduling silent-drops.
         try {
           await _iosFanout.scheduler.requestAuthorization();
         } catch (e) {
-          debugPrint('iOS auth before schedule: $e');
+          debugPrint('[SVA-Schedule] iOS auth before schedule: $e');
         }
-        await _iosFanout.scheduleAlarm(alarm, next);
-        // Optionally materialize the following occurrence for repeats.
-        final following = _iosFanout.nextAfter(alarm, next);
-        if (following != null &&
-            following.difference(DateTime.now()) < const Duration(hours: 36)) {
-          // scheduleAlarm cancels parent first — schedule only nearest.
-          // Next occurrence is rescheduled when this occurrence is dismissed
-          // or when alarms are resynced on launch.
+        final result = await _iosFanout.scheduleAlarm(
+          alarm,
+          next,
+          sequenceOverride: sequenceOverride,
+        );
+        if (!result.ok) {
+          debugPrint(
+            '[SVA-Save] result code=${result.errorCode} '
+            'stage=${result.stage} msg=${result.errorMessage}',
+          );
         }
-        return;
+        return result;
       }
 
-      if (!_initialized) return;
+      if (!_initialized) {
+        return AlarmScheduleResult.fail(
+          errorCode: 'notifications_uninitialized',
+          errorMessage: 'Notification plugin not initialized',
+          stage: 'notification_schedule',
+        );
+      }
       await _plugin.cancel(alarm.id.hashCode);
 
       final details = NotificationDetails(
@@ -278,8 +288,14 @@ class NotificationService {
             ? null
             : DateTimeComponents.dayOfWeekAndTime,
       );
+      return AlarmScheduleResult.ok(stage: 'notification_schedule');
     } catch (error) {
       debugPrint('scheduleAlarm failed: $error');
+      return AlarmScheduleResult.fail(
+        errorCode: 'schedule_exception',
+        errorMessage: '$error',
+        stage: 'notification_schedule',
+      );
     }
   }
 
@@ -287,6 +303,19 @@ class NotificationService {
     if (kIsWeb) return;
     for (final alarm in alarms) {
       await scheduleAlarm(alarm);
+    }
+  }
+
+  /// iOS launch-safe reconcile: no native audio render, no orphan wipe.
+  Future<void> reconcileIosAlarmsWithoutRender(
+    List<AlarmUiModel> alarms,
+  ) async {
+    if (kIsWeb || !_iosFanout.isSupported) return;
+    debugPrint('[SVA-Startup] reconcileIosAlarmsWithoutRender');
+    try {
+      await _iosFanout.reconcileWithoutRender(alarms);
+    } catch (error, stack) {
+      debugPrint('[SVA-Startup] light reconcile error: $error\n$stack');
     }
   }
 
@@ -369,6 +398,10 @@ class NotificationService {
 
   Future<IosPendingChallenge?> consumeIosPendingChallenge() {
     return _iosFanout.scheduler.consumePendingChallenge();
+  }
+
+  Future<IosPendingChallenge?> peekIosPendingChallenge() {
+    return _iosFanout.scheduler.peekPendingChallenge();
   }
 
   tz.TZDateTime? nextOccurrence(AlarmUiModel alarm) => _nextOccurrence(alarm);

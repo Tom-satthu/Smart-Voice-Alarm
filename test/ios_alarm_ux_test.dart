@@ -17,6 +17,7 @@ void main() {
         isEnabled: true,
         type: AlarmType.mixed,
         label: 'Test',
+        repeatCount: 1,
       );
       final start = DateTime(2026, 8, 5, 7, 0);
       final segments = planner.plan(
@@ -59,6 +60,7 @@ void main() {
         isEnabled: true,
         type: AlarmType.voice,
         label: 'Test',
+        repeatCount: 1,
       );
       final segments = planner.plan(
         alarm: alarm,

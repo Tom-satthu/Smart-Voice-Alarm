@@ -12,8 +12,11 @@ abstract final class AppRoutes {
   static const String voiceSpeech = '/settings/voices';
   static const String about = '/settings/about';
   static const String premium = '/premium';
+  static const String savedVoiceUsage = '/saved-voices/:id/usage';
 
   static String editAlarmPath(String id) => '/alarm/edit/$id';
+  static String savedVoiceUsagePath(String savedVoiceId) =>
+      '/saved-voices/$savedVoiceId/usage';
   static String ringingPath(
     String id, {
     bool challenge = false,

@@ -11,12 +11,14 @@ import 'core/navigation/challenge_session.dart';
 import 'core/navigation/root_navigator.dart';
 import 'core/services/ios_alarm_scheduler.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/saved_voice_usage_service.dart';
 import 'router/routes.dart';
 import 'shared/data/local_store.dart';
 import 'shared/providers/prototype_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('[SVA-Startup] begin');
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -28,23 +30,17 @@ Future<void> main() async {
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
 
+  // Light startup only: local store + notification handlers + pending route.
   await LocalDatabase.initFlutter();
   await seedPrototypeDataIfNeeded();
 
   final notifications = NotificationService();
   await notifications.init();
+  debugPrint('[SVA-Startup] store+notifications ready');
 
   final container = ProviderContainer(
     overrides: [notificationServiceProvider.overrideWithValue(notifications)],
   );
-
-  // Sync native / local schedules with persisted alarms.
-  try {
-    await notifications.rescheduleAll(container.read(alarmListProvider));
-    await container.read(reminderSettingsProvider.notifier).ensureScheduled();
-  } catch (error, stack) {
-    debugPrint('Initial reschedule failed: $error\n$stack');
-  }
 
   notifications.onAlarmTriggered = (alarmId) {
     unawaited(_openRinging(container, alarmId));
@@ -54,8 +50,6 @@ Future<void> main() async {
     unawaited(_openIosChallenge(container, challenge, consumePending: false));
   };
 
-  // Native → Flutter: notification tap / full-screen while app is warm, and
-  // notification Stop action.
   final native = notifications.native;
   native.onAlarmTriggered = (alarmId) {
     notifications.onAlarmTriggered?.call(alarmId);
@@ -68,30 +62,39 @@ Future<void> main() async {
   };
   native.attachPlatformHandlers();
 
-  // Prefer pending iOS challenge payload before choosing the first route.
   String? initialLocation;
   try {
     final iosPending = await notifications.consumeIosPendingChallenge();
+    debugPrint(
+      '[SVA-Challenge] pendingConsumed=${iosPending != null} '
+      'parentAlarmId=${iosPending?.parentAlarmId ?? ''} '
+      'occurrenceId=${iosPending?.occurrenceId ?? ''}',
+    );
     if (iosPending != null && iosPending.parentAlarmId.isNotEmpty) {
       initialLocation = AppRoutes.ringingPath(
         iosPending.parentAlarmId,
-        challenge: iosPending.openChallenge,
+        challenge: true,
         occurrenceId: iosPending.occurrenceId,
       );
       markChallengeOpen(iosPending.parentAlarmId, iosPending.occurrenceId);
+      debugPrint('[SVA-Challenge] initialRoute=$initialLocation');
     } else {
       final launchAlarmId = await notifications.consumeLaunchAlarmId();
-      final launchChallenge =
-          await notifications.consumeLaunchDismissChallenge();
+      final launchChallenge = await notifications
+          .consumeLaunchDismissChallenge();
       if (launchAlarmId != null) {
         initialLocation = AppRoutes.ringingPath(
           launchAlarmId,
           challenge: launchChallenge,
         );
+        debugPrint(
+          '[SVA-Challenge] initialRoute=$initialLocation '
+          '(launchAlarm challenge=$launchChallenge)',
+        );
       }
     }
   } catch (error, stack) {
-    debugPrint('Launch challenge routing failed: $error\n$stack');
+    debugPrint('[SVA-Startup] launch routing failed: $error\n$stack');
   }
 
   FlutterError.onError = (details) {
@@ -101,12 +104,60 @@ Future<void> main() async {
     }
   };
 
+  // CRITICAL: never await iOS audio render / fan-out rebuild before first frame.
+  // Android may still sync schedules after UI is up via the same post-frame path.
+  debugPrint('[SVA-Startup] runApp');
   runApp(
     UncontrolledProviderScope(
       container: container,
       child: SmartVoiceAlarmApp(initialLocation: initialLocation),
     ),
   );
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(_postUiStartup(container, notifications));
+  });
+}
+
+/// Runs after the first Flutter frame. Must not block UI or abort the process.
+Future<void> _postUiStartup(
+  ProviderContainer container,
+  NotificationService notifications,
+) async {
+  debugPrint('[SVA-Startup] post-frame reconcile begin');
+  try {
+    // Reminder is FLN-only and does not touch native audio renderers.
+    await container.read(reminderSettingsProvider.notifier).ensureScheduled();
+  } catch (error, stack) {
+    debugPrint('[SVA-Startup] reminder schedule failed: $error\n$stack');
+  }
+
+  final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+  if (isIos) {
+    try {
+      await notifications.reconcileIosAlarmsWithoutRender(
+        container.read(alarmListProvider),
+      );
+    } catch (error, stack) {
+      debugPrint('[SVA-Startup] iOS light reconcile failed: $error\n$stack');
+    }
+    try {
+      final linked = await SavedVoiceUsageService().migrateSourceLinks();
+      debugPrint('[SVA-Startup] saved-voice links migrated=$linked');
+      final orphans = await SavedVoiceUsageService().migrateOrphanSequences();
+      debugPrint('[SVA-Startup] orphan sequences noted=$orphans');
+    } catch (error, stack) {
+      debugPrint('[SVA-Startup] saved-voice migration failed: $error\n$stack');
+    }
+  } else {
+    // Non-iOS: full reschedule is safe (Android native AlarmManager path).
+    try {
+      await notifications.rescheduleAll(container.read(alarmListProvider));
+    } catch (error, stack) {
+      debugPrint('[SVA-Startup] non-iOS reschedule failed: $error\n$stack');
+    }
+  }
+  debugPrint('[SVA-Startup] post-frame reconcile done');
 }
 
 Future<void> _openIosChallenge(
@@ -114,18 +165,27 @@ Future<void> _openIosChallenge(
   IosPendingChallenge challenge, {
   required bool consumePending,
 }) async {
-  if (!markChallengeOpen(challenge.parentAlarmId, challenge.occurrenceId)) {
-    return;
-  }
+  // Do not use markChallengeOpen as a gate for the first navigation.
+  markChallengeOpen(challenge.parentAlarmId, challenge.occurrenceId);
   if (consumePending) {
     await container
         .read(notificationServiceProvider)
         .consumeIosPendingChallenge();
+    debugPrint('[SVA-Challenge] pendingConsumed=true');
   }
+  final path = AppRoutes.ringingPath(
+    challenge.parentAlarmId,
+    challenge: true,
+    occurrenceId: challenge.occurrenceId,
+  );
+  debugPrint(
+    '[SVA-Challenge] parentAlarmId=${challenge.parentAlarmId} '
+    'occurrenceId=${challenge.occurrenceId} initialRoute=$path',
+  );
   await _openRinging(
     container,
     challenge.parentAlarmId,
-    challenge: challenge.openChallenge,
+    challenge: true,
     occurrenceId: challenge.occurrenceId,
     skipEngineEnqueue: true,
   );
@@ -139,7 +199,6 @@ Future<void> _openRinging(
   bool skipEngineEnqueue = false,
 }) async {
   final engine = container.read(alarmEngineProvider);
-  // On iOS fan-out, the system already plays segment audio — do not dual-play.
   final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
   if (!skipEngineEnqueue && !isIos) {
     unawaited(engine.enqueue(alarmId));
@@ -150,21 +209,22 @@ Future<void> _openRinging(
     challenge: challenge,
     occurrenceId: occurrenceId,
   );
+  debugPrint(
+    '[SVA-Challenge] routerLocation target=$path challenge=$challenge',
+  );
   if (ctx != null && ctx.mounted) {
-    final current = GoRouter.of(ctx).state.uri.toString();
-    if (current.contains('/ringing/') &&
-        current.contains(alarmId) &&
-        challenge) {
-      // Already on this ringing route — force challenge query.
-      GoRouter.of(ctx).go(path);
-      return;
-    }
     GoRouter.of(ctx).go(path);
+    debugPrint(
+      '[SVA-Challenge] routerLocation now=${GoRouter.of(ctx).state.uri}',
+    );
   } else {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final later = rootNavigatorKey.currentContext;
       if (later != null && later.mounted) {
         GoRouter.of(later).go(path);
+        debugPrint(
+          '[SVA-Challenge] routerLocation deferred=${GoRouter.of(later).state.uri}',
+        );
       }
     });
   }

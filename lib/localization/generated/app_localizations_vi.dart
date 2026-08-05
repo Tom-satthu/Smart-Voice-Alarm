@@ -1093,7 +1093,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get iosLimitedSupportBody =>
-      'Trên iOS 13–25, báo thức giọng nói vẫn phát qua âm thanh thông báo. Không có AlarmKit toàn màn hình. Chế độ Im lặng hoặc Focus có thể làm tắt/trễ âm thanh, và vuốt bỏ thông báo mà không giải toán sẽ không dừng các đoạn sau.';
+      'Báo thức giọng nói dùng thông báo cục bộ (AlarmKit chưa hoạt động). Mở thông báo hoặc chọn Giải để dừng để vào bài toán. Vuốt bỏ thông báo mà không mở sẽ không dừng các đoạn sau. Chế độ Im lặng hoặc Focus có thể tắt/trễ âm thanh.';
 
   @override
   String get iosSilentModeWarning =>
@@ -1150,6 +1150,23 @@ class AppLocalizationsVi extends AppLocalizations {
       'Đang dùng âm thanh dự phòng của hệ thống vì không chuẩn bị được âm thanh đã chọn.';
 
   @override
+  String get ringtoneFallbackSystemWarning =>
+      'Custom ringtone could not be prepared. The system alarm sound will be used.';
+
+  @override
+  String get iosAlarmDiagnosticsTitle => 'Run iOS alarm diagnostics';
+
+  @override
+  String get iosAlarmDiagnosticsRunning => 'Running diagnostics…';
+
+  @override
+  String get iosAlarmDiagnosticsDone =>
+      'Diagnostics finished. Report copied when available.';
+
+  @override
+  String get iosAlarmDiagnosticsCopy => 'Copy report';
+
+  @override
   String get savedVoicesTitle => 'Giọng nói đã lưu';
 
   @override
@@ -1162,4 +1179,99 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get iosCapabilityLearnMore =>
       'Cách báo thức hoạt động trên iPhone này';
+
+  @override
+  String get alarmAudioNeedsRegeneration =>
+      'Âm thanh báo thức giọng nói cần được tạo lại.';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      'Độ lớn báo thức cũng phụ thuộc vào Cài đặt → Âm thanh & Cảm ứng → Nhạc chuông và Cảnh báo.';
+
+  @override
+  String get addSavedVoiceToSequence => 'Thêm vào chuỗi';
+
+  @override
+  String get savedVoiceInUseTitle => 'Giọng nói đang được dùng';
+
+  @override
+  String savedVoiceInUseBody(int count) {
+    return 'Giọng nói này đang được dùng bởi $count báo thức và không thể xóa.';
+  }
+
+  @override
+  String get savedVoiceInUseBodyOne =>
+      'This voice is used by 1 alarm and cannot be deleted.';
+
+  @override
+  String savedVoiceInUseBodyMany(int count) {
+    return 'This voice is used by $count alarms and cannot be deleted.';
+  }
+
+  @override
+  String get savedVoiceInOpenDraftBody =>
+      'This voice is in the current unsaved alarm.';
+
+  @override
+  String get savedVoiceUsageTitle => 'Alarms using this voice';
+
+  @override
+  String get savedVoiceUsageEmpty => 'No alarms currently use this voice.';
+
+  @override
+  String get mixedAlarmNeedsVoiceAndRingtone =>
+      'Mixed alarms need at least one voice and a ringtone.';
+
+  @override
+  String get alarmNotificationLimitExceeded =>
+      'Too many notification segments. Lower repeat count or remove some voices.';
+
+  @override
+  String get savedVoiceViewAlarms => 'Xem báo thức';
+
+  @override
+  String get savedVoiceDeleteTitle => 'Xóa giọng đã lưu?';
+
+  @override
+  String get savedVoiceDeleteBody =>
+      'Thao tác này xóa giọng khỏi thư viện. Các báo thức không bị đổi.';
+
+  @override
+  String get savedVoiceDeleted => 'Đã xóa giọng đã lưu';
+
+  @override
+  String get savedVoiceCleanupTitle => 'Dọn giọng không dùng';
+
+  @override
+  String get savedVoiceCleanupSubtitle =>
+      'Xóa các giọng trong thư viện không được báo thức hoặc chuỗi nào dùng.';
+
+  @override
+  String get savedVoiceCleanupEmpty => 'Không có giọng không dùng để dọn.';
+
+  @override
+  String savedVoiceCleanupConfirm(int count) {
+    return 'Xóa $count giọng không dùng?';
+  }
+
+  @override
+  String savedVoiceCleanupBytes(String size) {
+    return 'Có thể giải phóng khoảng $size bản ghi.';
+  }
+
+  @override
+  String get savedVoiceSelectAll => 'Chọn tất cả';
+
+  @override
+  String get savedVoiceDeleteAction => 'Xóa';
+
+  @override
+  String get savedVoicePreviewAction => 'Nghe thử';
+
+  @override
+  String get iosNotificationPathHint =>
+      'Âm lượng thông báo theo Nhạc chuông và Cảnh báo, có thể nhỏ hơn bản nghe thử trong app dù cùng một file.';
+
+  @override
+  String get debugPlayRenderedCaf => 'Phát CAF đã render (debug)';
 }

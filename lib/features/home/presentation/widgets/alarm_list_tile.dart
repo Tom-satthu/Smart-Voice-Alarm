@@ -78,6 +78,16 @@ class AlarmListTile extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (alarm.audioNeedsRegeneration) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    l10n.alarmAudioNeedsRegeneration,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: context.colors.error,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

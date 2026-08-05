@@ -1064,7 +1064,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get iosLimitedSupportBody =>
-      'On iOS 13–25, voice alarms still play through notification sounds. There is no AlarmKit full-screen experience. Silent Mode or Focus may mute or delay sound, and dismissing a notification without solving the challenge will not stop later segments.';
+      '音声アラームはローカル通知を使います（AlarmKit は未稼働）。通知を開くか「Solve to stop」を選ぶと計算チャレンジが始まります。開かずにスワイプしても後続セグメントは止まりません。';
 
   @override
   String get iosSilentModeWarning =>
@@ -1121,6 +1121,23 @@ class AppLocalizationsJa extends AppLocalizations {
       'Using a system fallback sound because the selected audio could not be prepared.';
 
   @override
+  String get ringtoneFallbackSystemWarning =>
+      'Custom ringtone could not be prepared. The system alarm sound will be used.';
+
+  @override
+  String get iosAlarmDiagnosticsTitle => 'Run iOS alarm diagnostics';
+
+  @override
+  String get iosAlarmDiagnosticsRunning => 'Running diagnostics…';
+
+  @override
+  String get iosAlarmDiagnosticsDone =>
+      'Diagnostics finished. Report copied when available.';
+
+  @override
+  String get iosAlarmDiagnosticsCopy => 'Copy report';
+
+  @override
   String get savedVoicesTitle => '保存した音声';
 
   @override
@@ -1132,4 +1149,104 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get iosCapabilityLearnMore => 'How alarms work on this iPhone';
+
+  @override
+  String get alarmAudioNeedsRegeneration => '音声アラームのオーディオを再生成する必要があります。';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      'アラームの音量は、「設定 → サウンドと触覚 → 着信音とアラート」にも依存します。';
+
+  @override
+  String get addSavedVoiceToSequence => 'シーケンスに追加';
+
+  @override
+  String get savedVoiceInUseTitle => 'Voice in use';
+
+  @override
+  String savedVoiceInUseBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'This voice is used by $count alarms and cannot be deleted.',
+      one: 'This voice is used by 1 alarm and cannot be deleted.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get savedVoiceInUseBodyOne =>
+      'This voice is used by 1 alarm and cannot be deleted.';
+
+  @override
+  String savedVoiceInUseBodyMany(int count) {
+    return 'This voice is used by $count alarms and cannot be deleted.';
+  }
+
+  @override
+  String get savedVoiceInOpenDraftBody =>
+      'This voice is in the current unsaved alarm.';
+
+  @override
+  String get savedVoiceUsageTitle => 'Alarms using this voice';
+
+  @override
+  String get savedVoiceUsageEmpty => 'No alarms currently use this voice.';
+
+  @override
+  String get mixedAlarmNeedsVoiceAndRingtone =>
+      'Mixed alarms need at least one voice and a ringtone.';
+
+  @override
+  String get alarmNotificationLimitExceeded =>
+      'Too many notification segments. Lower repeat count or remove some voices.';
+
+  @override
+  String get savedVoiceViewAlarms => 'View alarms';
+
+  @override
+  String get savedVoiceDeleteTitle => 'Delete saved voice?';
+
+  @override
+  String get savedVoiceDeleteBody =>
+      'This removes the voice from your library. Alarms are not changed.';
+
+  @override
+  String get savedVoiceDeleted => 'Saved voice deleted';
+
+  @override
+  String get savedVoiceCleanupTitle => 'Clean up unused voices';
+
+  @override
+  String get savedVoiceCleanupSubtitle =>
+      'Remove library voices that are not used by any alarm.';
+
+  @override
+  String get savedVoiceCleanupEmpty => 'No unused voices to clean up.';
+
+  @override
+  String savedVoiceCleanupConfirm(int count) {
+    return 'Delete $count unused voices?';
+  }
+
+  @override
+  String savedVoiceCleanupBytes(String size) {
+    return 'About $size of recordings can be freed.';
+  }
+
+  @override
+  String get savedVoiceSelectAll => 'Select all';
+
+  @override
+  String get savedVoiceDeleteAction => 'Delete';
+
+  @override
+  String get savedVoicePreviewAction => 'Preview';
+
+  @override
+  String get iosNotificationPathHint =>
+      'Notification sound volume follows Ringtone and Alerts, which can be quieter than in-app preview even for the same file.';
+
+  @override
+  String get debugPlayRenderedCaf => 'Play rendered CAF (debug)';
 }

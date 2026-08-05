@@ -176,7 +176,9 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
             body: AlarmMathChallenge(
               onCancel: () {
                 // Leaving challenge without solving: remaining iOS children keep
-                // their schedule. Do not cancel them.
+                // their schedule. Clear the session key so a later notification
+                // tap can reopen Math Challenge.
+                clearChallengeKey(widget.alarmId, widget.occurrenceId ?? '');
                 setState(() => _showChallenge = false);
               },
               onSolved: _onSolved,

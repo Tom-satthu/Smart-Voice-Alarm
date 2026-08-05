@@ -25,7 +25,10 @@ void main() {
       VoiceSequenceUiModel(id: 'b', name: 'B', segments: [recording]),
     ];
 
-    expect(RecordingFileStore.isReferenced(sharedPath, sequences), isTrue);
+    expect(
+      RecordingFileStore.isReferenced(sharedPath, sequences: sequences),
+      isTrue,
+    );
   });
 
   test('TTS segments never count as recording file references', () {
@@ -33,6 +36,23 @@ void main() {
       VoiceSequenceUiModel(id: 'a', name: 'A', segments: [tts]),
     ];
 
-    expect(RecordingFileStore.isReferenced(sharedPath, sequences), isFalse);
+    expect(
+      RecordingFileStore.isReferenced(sharedPath, sequences: sequences),
+      isFalse,
+    );
   });
+
+  test(
+    'saved voice library keeps recording referenced after sequence removal',
+    () {
+      expect(
+        RecordingFileStore.isReferenced(
+          sharedPath,
+          sequences: const [],
+          savedVoices: const [recording],
+        ),
+        isTrue,
+      );
+    },
+  );
 }

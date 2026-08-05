@@ -448,7 +448,7 @@
   "iosFullVoiceAlarmSupport": "Hỗ trợ báo thức giọng nói đầy đủ",
   "iosFullVoiceAlarmSupportBody": "Trên iOS 26 trở lên, Smart Voice Alarm dùng AlarmKit để các đoạn giọng nói và nhạc chuông reo theo hành vi báo thức hệ thống.",
   "iosLimitedSupportTitle": "Hỗ trợ hạn chế trên iOS cũ hơn",
-  "iosLimitedSupportBody": "Trên iOS 13–25, báo thức giọng nói vẫn phát qua âm thanh thông báo. Không có AlarmKit toàn màn hình. Chế độ Im lặng hoặc Focus có thể làm tắt/trễ âm thanh, và vuốt bỏ thông báo mà không giải toán sẽ không dừng các đoạn sau.",
+  "iosLimitedSupportBody": "Báo thức giọng nói dùng thông báo cục bộ (AlarmKit chưa hoạt động). Mở thông báo hoặc chọn Giải để dừng để vào bài toán. Vuốt bỏ thông báo mà không mở sẽ không dừng các đoạn sau. Chế độ Im lặng hoặc Focus có thể tắt/trễ âm thanh.",
   "iosSilentModeWarning": "Chế độ Im lặng có thể khiến âm thanh thông báo báo thức không phát trên iOS cũ.",
   "iosFocusWarning": "Chế độ Focus có thể ảnh hưởng việc nhận thông báo trên iOS cũ.",
   "ios26Recommendation": "Để báo thức giọng nói đáng tin nhất, hãy dùng iOS 26 trở lên.",
@@ -464,8 +464,67 @@
   "trimOrRecreateVoice": "Cắt hoặc tạo lại giọng nói",
   "audioRenderingError": "Không chuẩn bị được âm thanh báo thức. Báo thức chưa được lên lịch.",
   "fallbackSoundWarning": "Đang dùng âm thanh dự phòng của hệ thống vì không chuẩn bị được âm thanh đã chọn.",
+  "ringtoneFallbackSystemWarning": "Custom ringtone could not be prepared. The system alarm sound will be used.",
+  "iosAlarmDiagnosticsTitle": "Run iOS alarm diagnostics",
+  "iosAlarmDiagnosticsRunning": "Running diagnostics…",
+  "iosAlarmDiagnosticsDone": "Diagnostics finished. Report copied when available.",
+  "iosAlarmDiagnosticsCopy": "Copy report",
   "savedVoicesTitle": "Giọng nói đã lưu",
   "savedVoicesEmpty": "Bản ghi và TTS đã lưu sẽ hiện ở đây sau khi bạn thêm.",
   "savedVoiceAdded": "Đã thêm giọng nói vào chuỗi",
-  "iosCapabilityLearnMore": "Cách báo thức hoạt động trên iPhone này"
+  "iosCapabilityLearnMore": "Cách báo thức hoạt động trên iPhone này",
+  "alarmAudioNeedsRegeneration": "Âm thanh báo thức giọng nói cần được tạo lại.",
+  "iosAlarmLoudnessHint": "Độ lớn báo thức cũng phụ thuộc vào Cài đặt → Âm thanh & Cảm ứng → Nhạc chuông và Cảnh báo.",
+  "addSavedVoiceToSequence": "Thêm vào chuỗi",
+  "savedVoiceInUseTitle": "Giọng nói đang được dùng",
+  "savedVoiceInUseBody": "Giọng nói này đang được dùng bởi {count} báo thức và không thể xóa.",
+  "@savedVoiceInUseBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savedVoiceInUseBodyOne": "This voice is used by 1 alarm and cannot be deleted.",
+  "savedVoiceInUseBodyMany": "This voice is used by {count} alarms and cannot be deleted.",
+  "@savedVoiceInUseBodyMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savedVoiceInOpenDraftBody": "This voice is in the current unsaved alarm.",
+  "savedVoiceUsageTitle": "Alarms using this voice",
+  "savedVoiceUsageEmpty": "No alarms currently use this voice.",
+  "mixedAlarmNeedsVoiceAndRingtone": "Mixed alarms need at least one voice and a ringtone.",
+  "alarmNotificationLimitExceeded": "Too many notification segments. Lower repeat count or remove some voices.",
+  "savedVoiceViewAlarms": "Xem báo thức",
+  "savedVoiceDeleteTitle": "Xóa giọng đã lưu?",
+  "savedVoiceDeleteBody": "Thao tác này xóa giọng khỏi thư viện. Các báo thức không bị đổi.",
+  "savedVoiceDeleted": "Đã xóa giọng đã lưu",
+  "savedVoiceCleanupTitle": "Dọn giọng không dùng",
+  "savedVoiceCleanupSubtitle": "Xóa các giọng trong thư viện không được báo thức hoặc chuỗi nào dùng.",
+  "savedVoiceCleanupEmpty": "Không có giọng không dùng để dọn.",
+  "savedVoiceCleanupConfirm": "Xóa {count} giọng không dùng?",
+  "@savedVoiceCleanupConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savedVoiceCleanupBytes": "Có thể giải phóng khoảng {size} bản ghi.",
+  "@savedVoiceCleanupBytes": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "savedVoiceSelectAll": "Chọn tất cả",
+  "savedVoiceDeleteAction": "Xóa",
+  "savedVoicePreviewAction": "Nghe thử",
+  "iosNotificationPathHint": "Âm lượng thông báo theo Nhạc chuông và Cảnh báo, có thể nhỏ hơn bản nghe thử trong app dù cùng một file.",
+  "debugPlayRenderedCaf": "Phát CAF đã render (debug)"
 }

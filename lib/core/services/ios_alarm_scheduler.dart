@@ -79,11 +79,15 @@ class IosRenderedSound {
     required this.fileName,
     required this.path,
     required this.durationMs,
+    this.byteSize = 0,
+    this.debugHash = '',
   });
 
   final String fileName;
   final String path;
   final int durationMs;
+  final int byteSize;
+  final String debugHash;
 }
 
 class IosAlarmSegment {
@@ -194,6 +198,8 @@ class IosAlarmScheduler {
       fileName: raw['fileName']?.toString() ?? fileName,
       path: raw['path']?.toString() ?? '',
       durationMs: (raw['durationMs'] as num?)?.toInt() ?? 0,
+      byteSize: (raw['byteSize'] as num?)?.toInt() ?? 0,
+      debugHash: raw['debugHash']?.toString() ?? '',
     );
   }
 
@@ -214,6 +220,25 @@ class IosAlarmScheduler {
     if (!isSupported) return;
     await _channel.invokeMethod<void>('cancelParent', {
       'parentAlarmId': parentAlarmId,
+    });
+  }
+
+  /// Cancels pending children for [parentAlarmId] except [keepChildIds].
+  Future<void> cancelParentExcept({
+    required String parentAlarmId,
+    required Set<String> keepChildIds,
+  }) async {
+    if (!isSupported) return;
+    await _channel.invokeMethod<void>('cancelParentExcept', {
+      'parentAlarmId': parentAlarmId,
+      'keepChildIds': keepChildIds.toList(),
+    });
+  }
+
+  Future<void> deleteSoundFile(String fileName) async {
+    if (!isSupported || fileName.isEmpty) return;
+    await _channel.invokeMethod<void>('deleteSoundFile', {
+      'fileName': fileName,
     });
   }
 
@@ -252,8 +277,38 @@ class IosAlarmScheduler {
 
   Future<void> cleanupOrphanSounds(Set<String> activeFileNames) async {
     if (!isSupported) return;
+    // Never run with an empty active set — that would delete every sva_* file.
+    if (activeFileNames.isEmpty) {
+      debugPrint('[SVA-Audio] cleanupOrphanSounds skipped (empty active set)');
+      return;
+    }
     await _channel.invokeMethod<void>('cleanupOrphanSounds', {
       'activeFileNames': activeFileNames.toList(),
     });
+  }
+
+  Future<int> pendingRequestCount() async {
+    if (!isSupported) return 0;
+    try {
+      final raw = await _channel.invokeMethod<int>('pendingRequestCount');
+      return raw ?? 0;
+    } catch (e) {
+      debugPrint('[SVA-Schedule] pendingRequestCount failed: $e');
+      return 0;
+    }
+  }
+
+  Future<List<String>> pendingRequestIdentifiers() async {
+    if (!isSupported) return const [];
+    try {
+      final raw = await _channel.invokeMethod<List>(
+        'pendingRequestIdentifiers',
+      );
+      if (raw == null) return const [];
+      return raw.map((e) => e.toString()).toList();
+    } catch (e) {
+      debugPrint('[SVA-Schedule] pendingRequestIdentifiers failed: $e');
+      return const [];
+    }
   }
 }

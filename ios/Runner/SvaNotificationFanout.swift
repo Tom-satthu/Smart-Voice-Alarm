@@ -131,6 +131,32 @@ enum SvaNotificationFanout {
     SvaPendingStore.saveChildMap(map)
   }
 
+  /// Cancels children for a parent except those listed in [keepChildIds].
+  static func cancelParentExcept(parentAlarmId: String, keepChildIds: Set<String>) {
+    var map = SvaPendingStore.loadChildMap()
+    let prefix = "\(parentAlarmId)|"
+    var ids: [String] = []
+    var removed: [String] = []
+    for (key, childId) in map where key.hasPrefix(prefix) {
+      if keepChildIds.contains(childId) { continue }
+      ids.append(childId)
+      removed.append(key)
+    }
+    cancel(childIds: ids)
+    for key in removed { map.removeValue(forKey: key) }
+    SvaPendingStore.saveChildMap(map)
+
+    // Remove stale fallback requests whose ids start with sva_fallback_<parent>_
+    center.getPendingNotificationRequests { requests in
+      let stale = requests
+        .map(\.identifier)
+        .filter { $0.hasPrefix("sva_fallback_\(parentAlarmId)_") && !keepChildIds.contains($0) }
+      if !stale.isEmpty {
+        center.removePendingNotificationRequests(withIdentifiers: stale)
+      }
+    }
+  }
+
   private static func sound(named fileName: String) -> UNNotificationSound {
     let trimmed = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
     if trimmed.isEmpty { return .default }

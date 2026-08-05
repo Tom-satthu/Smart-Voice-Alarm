@@ -8,6 +8,7 @@ import '../../core/localization/app_locale_support.dart';
 import '../../core/localization/voice_catalog.dart';
 import '../../core/services/alarm_engine.dart';
 import '../../core/services/audio_player_service.dart';
+import '../../core/services/alarm_schedule_result.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/premium_purchase_service.dart';
 import '../../core/services/recording_file_store.dart';
@@ -204,9 +205,11 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
     AlarmRepository? repo,
     NotificationService? notifications,
     VoiceSequenceRepository? sequences,
+    SavedVoiceRepository? savedVoices,
   ]) : _repo = repo ?? AlarmRepository(),
        _notifications = notifications ?? NotificationService(),
        _sequences = sequences ?? VoiceSequenceRepository(),
+       _savedVoices = savedVoices ?? SavedVoiceRepository(),
        super(const []) {
     state = _repo.loadAll();
   }
@@ -214,6 +217,7 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
   final AlarmRepository _repo;
   final NotificationService _notifications;
   final VoiceSequenceRepository _sequences;
+  final SavedVoiceRepository _savedVoices;
 
   Future<void> reload() async {
     state = _repo.loadAll();
@@ -244,11 +248,14 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
       if (orphan != null) {
         await _sequences.delete(sequenceId);
         final remaining = _sequences.loadAll();
+        // Saved voices are a reusable library — never auto-delete them here.
+        final saved = _savedVoices.loadAll();
         for (final segment in orphan.segments) {
           if (segment.type == VoiceSegmentType.recording) {
             await RecordingFileStore.deleteIfUnreferenced(
               segment.filePath,
-              remaining,
+              sequences: remaining,
+              savedVoices: saved,
             );
           }
         }
@@ -256,19 +263,51 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
     }
   }
 
-  Future<void> add(AlarmUiModel alarm) async {
-    state = [...state, alarm]..sort(_byTime);
-    await _repo.upsert(alarm);
-    await _notifications.scheduleAlarm(alarm);
+  /// Schedules then persists. On failure neither alarm nor [sequenceOverride]
+  /// are written. [audioNeedsRegeneration] is never set for a failed new save.
+  Future<AlarmScheduleResult> add(
+    AlarmUiModel alarm, {
+    VoiceSequenceUiModel? sequenceOverride,
+  }) async {
+    final result = await _notifications.scheduleAlarm(
+      alarm,
+      sequenceOverride: sequenceOverride,
+    );
+    if (!result.ok) {
+      return result;
+    }
+    if (sequenceOverride != null) {
+      await _sequences.upsert(sequenceOverride);
+    }
+    final saved = alarm.copyWith(audioNeedsRegeneration: false);
+    state = [...state, saved]..sort(_byTime);
+    await _repo.upsert(saved);
+    return result.copyWith(stage: 'repository_commit');
   }
 
-  Future<void> update(AlarmUiModel alarm) async {
+  /// Schedules the new revision first. On failure the existing alarm,
+  /// sequence, and pending notifications remain unchanged.
+  Future<AlarmScheduleResult> update(
+    AlarmUiModel alarm, {
+    VoiceSequenceUiModel? sequenceOverride,
+  }) async {
+    final result = await _notifications.scheduleAlarm(
+      alarm,
+      sequenceOverride: sequenceOverride,
+    );
+    if (!result.ok) {
+      return result;
+    }
+    if (sequenceOverride != null) {
+      await _sequences.upsert(sequenceOverride);
+    }
+    final saved = alarm.copyWith(audioNeedsRegeneration: false);
     state = [
       for (final item in state)
-        if (item.id == alarm.id) alarm else item,
+        if (item.id == saved.id) saved else item,
     ]..sort(_byTime);
-    await _repo.upsert(alarm);
-    await _notifications.scheduleAlarm(alarm);
+    await _repo.upsert(saved);
+    return result.copyWith(stage: 'repository_commit');
   }
 
   /// Returns the duplicated alarm id for navigation into edit.
@@ -325,6 +364,7 @@ final alarmListProvider =
         ref.watch(alarmRepositoryProvider),
         ref.watch(notificationServiceProvider),
         ref.watch(sequenceRepositoryProvider),
+        ref.watch(savedVoiceRepositoryProvider),
       );
     });
 
@@ -333,8 +373,10 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
     VoiceSequenceRepository? repo,
     VoiceSequenceUiModel? initial,
     SavedVoiceRepository? savedVoices,
+    bool persistMutations = false,
   ]) : _repo = repo ?? VoiceSequenceRepository(),
        _savedVoices = savedVoices ?? SavedVoiceRepository(),
+       _persistMutations = persistMutations,
        super(
          initial ??
              const VoiceSequenceUiModel(
@@ -346,8 +388,42 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
 
   final VoiceSequenceRepository _repo;
   final SavedVoiceRepository _savedVoices;
+  bool _persistMutations;
+
+  /// When false, mutations stay in memory until [commit].
+  bool get isDraftMode => !_persistMutations;
 
   Future<void> persist() => _repo.upsert(state);
+
+  /// Writes the current in-memory sequence to the repository.
+  Future<void> commit() async {
+    await persist();
+    _persistMutations = true;
+  }
+
+  /// Reloads from disk (edit cancel) or clears to empty shell (new draft).
+  Future<void> discard({required bool hadPersistedOriginal}) async {
+    if (hadPersistedOriginal) {
+      final existing = _repo.findById(state.id);
+      if (existing != null) {
+        state = existing;
+        _persistMutations = true;
+        return;
+      }
+    }
+    state = VoiceSequenceUiModel(
+      id: state.id,
+      name: state.name,
+      segments: const [],
+    );
+    _persistMutations = false;
+  }
+
+  Future<void> _afterMutate() async {
+    if (_persistMutations) {
+      await persist();
+    }
+  }
 
   Future<void> reorder(int oldIndex, int newIndex) async {
     final segments = List<VoiceSegmentUiModel>.from(state.segments);
@@ -355,38 +431,84 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
     final item = segments.removeAt(oldIndex);
     segments.insert(newIndex, item);
     state = state.copyWith(segments: segments);
-    await persist();
+    await _afterMutate();
   }
 
   Future<void> removeAt(int index) async {
     final segments = List<VoiceSegmentUiModel>.from(state.segments);
     final removed = segments.removeAt(index);
     state = state.copyWith(segments: segments);
-    await persist();
-    if (removed.type == VoiceSegmentType.recording) {
+    await _afterMutate();
+    if (_persistMutations && removed.type == VoiceSegmentType.recording) {
       await RecordingFileStore.deleteIfUnreferenced(
         removed.filePath,
-        _repo.loadAll(),
+        sequences: _repo.loadAll(),
+        savedVoices: _savedVoices.loadAll(),
       );
     }
   }
 
   Future<void> add(VoiceSegmentUiModel segment) async {
-    state = state.copyWith(segments: [...state.segments, segment]);
-    await persist();
-    await _savedVoices.upsert(segment);
+    final libraryId = segment.sourceSavedVoiceId ?? segment.id;
+    final libraryVoice = VoiceSegmentUiModel(
+      id: libraryId,
+      name: segment.name,
+      type: segment.type,
+      duration: segment.duration,
+      text: segment.text,
+      filePath: segment.filePath,
+      voiceId: segment.voiceId,
+      localeId: segment.localeId,
+      createdAt: segment.createdAt ?? DateTime.now(),
+    );
+    await _savedVoices.upsert(libraryVoice);
+
+    final sequenceEntry = VoiceSegmentUiModel(
+      id: _uuid.v4(),
+      name: segment.name,
+      type: segment.type,
+      duration: segment.duration,
+      text: segment.text,
+      filePath: segment.filePath,
+      voiceId: segment.voiceId,
+      localeId: segment.localeId,
+      createdAt: segment.createdAt ?? libraryVoice.createdAt,
+      sourceSavedVoiceId: libraryId,
+    );
+    state = state.copyWith(segments: [...state.segments, sequenceEntry]);
+    await _afterMutate();
+  }
+
+  /// Adds a saved voice into the current sequence draft without creating a new
+  /// saved-voice persistence row or copying recording files.
+  Future<void> addExistingSavedVoice(VoiceSegmentUiModel saved) async {
+    final libraryId = saved.sourceSavedVoiceId ?? saved.id;
+    final entry = VoiceSegmentUiModel(
+      id: _uuid.v4(),
+      name: saved.name,
+      type: saved.type,
+      duration: saved.duration,
+      text: saved.text,
+      filePath: saved.filePath,
+      voiceId: saved.voiceId,
+      localeId: saved.localeId,
+      createdAt: saved.createdAt,
+      sourceSavedVoiceId: libraryId,
+    );
+    state = state.copyWith(segments: [...state.segments, entry]);
+    await _afterMutate();
   }
 
   Future<void> updateAt(int index, VoiceSegmentUiModel segment) async {
     final segments = List<VoiceSegmentUiModel>.from(state.segments);
     segments[index] = segment;
     state = state.copyWith(segments: segments);
-    await persist();
+    await _afterMutate();
   }
 
   Future<void> rename(String name) async {
     state = state.copyWith(name: name);
-    await persist();
+    await _afterMutate();
   }
 }
 
@@ -410,7 +532,15 @@ class SavedVoicesController extends StateNotifier<List<VoiceSegmentUiModel>> {
     await _repo.upsert(voice);
     state = _repo.loadAll();
   }
+
+  Future<void> delete(String id) async {
+    await _repo.delete(id);
+    state = _repo.loadAll();
+  }
 }
+
+/// Sequence ids currently open as unsaved create/edit drafts.
+final openDraftSequenceIdsProvider = StateProvider<Set<String>>((ref) => {});
 
 final voiceSequenceProvider =
     StateNotifierProvider.family<
@@ -428,12 +558,8 @@ final voiceSequenceProvider =
             name: 'Voice Sequence',
             segments: const [],
           );
-      final controller = VoiceSequenceController(repo, initial, saved);
-      if (existing == null) {
-        // Fire-and-forget create so nested screens can write segments.
-        controller.persist();
-      }
-      return controller;
+      // Always memory-first. Create/Edit Alarm calls commit() on Save.
+      return VoiceSequenceController(repo, initial, saved, false);
     });
 
 /// Fallback sequence id used when a route omits `?id=`.

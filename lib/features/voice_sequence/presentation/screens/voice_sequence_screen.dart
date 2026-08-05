@@ -9,6 +9,8 @@ import '../../../../core/responsive/responsive.dart';
 import '../../../../core/services/io_dir_stub.dart'
     if (dart.library.io) '../../../../core/services/io_dir_io.dart'
     as io_dir;
+import '../../../../core/services/ios_alarm_scheduler.dart';
+import '../../../../core/services/saved_voice_usage_service.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../core/services/trial_entitlement_service.dart';
 import '../../../../router/routes.dart';
@@ -73,7 +75,20 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
     });
 
     try {
-      if (segment.type == VoiceSegmentType.recording) {
+      final iosScheduler = ref
+          .read(notificationServiceProvider)
+          .iosFanout
+          .scheduler;
+      if (!kIsWeb && iosScheduler.isSupported) {
+        final path = await _renderNormalizedPreview(
+          iosScheduler,
+          segment,
+          l10n,
+        );
+        if (!mounted) return;
+        setState(() => _loadingPreview = false);
+        await ref.read(audioPlayerServiceProvider).playFile(path);
+      } else if (segment.type == VoiceSegmentType.recording) {
         final path = segment.filePath;
         if (kIsWeb || path == null || path.isEmpty) {
           throw StateError(l10n.recordingFileMissing);
@@ -114,6 +129,50 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
         });
       }
     }
+  }
+
+  Future<String> _renderNormalizedPreview(
+    IosAlarmScheduler scheduler,
+    VoiceSegmentUiModel segment,
+    AppLocalizations l10n,
+  ) async {
+    final fileName =
+        'sva_preview_${segment.id.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.caf';
+    if (segment.type == VoiceSegmentType.tts) {
+      final text = segment.text?.trim() ?? '';
+      if (text.isEmpty) throw StateError(l10n.voiceUnavailable);
+      final rendered = await scheduler.renderSound(
+        fileName: fileName,
+        ttsText: text,
+        ttsLocale: segment.localeId,
+        maxSeconds: 20,
+      );
+      if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+      debugPrint(
+        '[SVA-Audio] previewPath=${rendered.path} file=${rendered.fileName} '
+        'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+        'hash=${rendered.debugHash}',
+      );
+      return rendered.path;
+    }
+    final path = segment.filePath;
+    if (path == null || path.isEmpty) {
+      throw StateError(l10n.recordingFileMissing);
+    }
+    final exists = await io_dir.fileExists(path);
+    if (!exists) throw StateError(l10n.recordingFileMissing);
+    final rendered = await scheduler.renderSound(
+      fileName: fileName,
+      sourcePath: path,
+      maxSeconds: 20,
+    );
+    if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+    debugPrint(
+      '[SVA-Audio] previewPath=${rendered.path} file=${rendered.fileName} '
+      'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+      'hash=${rendered.debugHash} source=$path',
+    );
+    return rendered.path;
   }
 
   Future<void> _confirmDelete(int index) async {
@@ -307,6 +366,9 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
 
   String get _sequenceId => widget.sequenceId ?? defaultSequenceId;
 
+  bool get _hasSequenceContext =>
+      widget.sequenceId != null && widget.sequenceId!.trim().isNotEmpty;
+
   Future<void> _stopPreview() async {
     await ref.read(audioPlayerServiceProvider).stop();
     await ref.read(ttsServiceProvider).stop();
@@ -316,6 +378,73 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
         _previewLoading = false;
       });
     }
+  }
+
+  Future<void> _addSavedVoiceToSequence(VoiceSegmentUiModel voice) async {
+    if (!_hasSequenceContext) return;
+    final sequenceId = widget.sequenceId!;
+    final beforeCount = ref
+        .read(voiceSequenceProvider(sequenceId))
+        .segments
+        .length;
+    await ref
+        .read(voiceSequenceProvider(sequenceId).notifier)
+        .addExistingSavedVoice(voice);
+    final after = ref.read(voiceSequenceProvider(sequenceId));
+    if (!mounted) return;
+    if (after.segments.length != beforeCount + 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).audioRenderingError),
+        ),
+      );
+      return;
+    }
+    context.pop();
+  }
+
+  Future<String> _renderNormalizedPreview(
+    IosAlarmScheduler scheduler,
+    VoiceSegmentUiModel segment,
+    AppLocalizations l10n,
+  ) async {
+    final fileName =
+        'sva_preview_${segment.id.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.caf';
+    if (segment.type == VoiceSegmentType.tts) {
+      final text = segment.text?.trim() ?? '';
+      if (text.isEmpty) throw StateError(l10n.voiceUnavailable);
+      final rendered = await scheduler.renderSound(
+        fileName: fileName,
+        ttsText: text,
+        ttsLocale: segment.localeId,
+        maxSeconds: 20,
+      );
+      if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+      debugPrint(
+        '[SVA-Audio] previewPath=${rendered.path} file=${rendered.fileName} '
+        'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+        'hash=${rendered.debugHash}',
+      );
+      return rendered.path;
+    }
+    final path = segment.filePath;
+    if (path == null || path.isEmpty) {
+      throw StateError(l10n.recordingFileMissing);
+    }
+    final exists = await io_dir.fileExists(path);
+    if (!exists) throw StateError(l10n.recordingFileMissing);
+    final rendered = await scheduler.renderSound(
+      fileName: fileName,
+      sourcePath: path,
+      maxSeconds: 20,
+    );
+    if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+    debugPrint(
+      '[SVA-Audio] previewPath=${rendered.path} file=${rendered.fileName} '
+      'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+      'hash=${rendered.debugHash} source=$path',
+    );
+    return rendered.path;
   }
 
   Future<void> _togglePreview(VoiceSegmentUiModel voice) async {
@@ -331,7 +460,16 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
       _previewLoading = true;
     });
     try {
-      if (voice.type == VoiceSegmentType.recording) {
+      final iosScheduler = ref
+          .read(notificationServiceProvider)
+          .iosFanout
+          .scheduler;
+      if (!kIsWeb && iosScheduler.isSupported) {
+        final path = await _renderNormalizedPreview(iosScheduler, voice, l10n);
+        if (!mounted) return;
+        setState(() => _previewLoading = false);
+        await ref.read(audioPlayerServiceProvider).playFile(path);
+      } else if (voice.type == VoiceSegmentType.recording) {
         final path = voice.filePath;
         if (kIsWeb || path == null || path.isEmpty) {
           throw StateError(l10n.recordingFileMissing);
@@ -390,6 +528,198 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
     super.deactivate();
   }
 
+  Future<void> _deleteSavedVoice(VoiceSegmentUiModel voice) async {
+    final l10n = AppLocalizations.of(context);
+    final draftIds = ref.read(openDraftSequenceIdsProvider);
+    final sequence = ref.read(voiceSequenceProvider(_sequenceId));
+    final inOpenDraft = sequence.segments.any(
+      (s) => s.sourceSavedVoiceId == voice.id || s.id == voice.id,
+    );
+    final usage = SavedVoiceUsageService(draftSequenceIds: draftIds)
+        .usageForWithDraftPresence(
+          voice.id,
+          inOpenDraft: inOpenDraft && draftIds.contains(_sequenceId),
+          openDraftSequenceId: _sequenceId,
+        );
+
+    if (usage.activeAlarmIds.isNotEmpty) {
+      final body = usage.usageCount == 1
+          ? l10n.savedVoiceInUseBodyOne
+          : l10n.savedVoiceInUseBodyMany(usage.usageCount);
+      final view = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.savedVoiceInUseTitle),
+          content: Text(body),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.commonClose),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l10n.savedVoiceViewAlarms),
+            ),
+          ],
+        ),
+      );
+      if (view == true && mounted) {
+        // Push so Create Alarm / sequence draft stays on the stack.
+        await context.push(AppRoutes.savedVoiceUsagePath(voice.id));
+      }
+      return;
+    }
+
+    if (usage.isInOpenDraft) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.savedVoiceInUseTitle),
+          content: Text(l10n.savedVoiceInOpenDraftBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.commonClose),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.savedVoiceDeleteTitle),
+        content: Text(l10n.savedVoiceDeleteBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.savedVoiceDeleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final ok = await SavedVoiceUsageService(
+      draftSequenceIds: draftIds,
+    ).deleteUnused(voice);
+    await ref.read(savedVoicesProvider.notifier).refresh();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok ? l10n.savedVoiceDeleted : l10n.savedVoiceInUseTitle),
+      ),
+    );
+  }
+
+  Future<void> _openCleanupUnused() async {
+    final l10n = AppLocalizations.of(context);
+    final service = SavedVoiceUsageService();
+    final unused = service.unusedVoices();
+    if (unused.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.savedVoiceCleanupEmpty)));
+      return;
+    }
+    final selected = <String>{for (final v in unused) v.id};
+    final bytes = await service.estimateRecordingBytes(unused);
+    if (!mounted) return;
+    final sizeLabel = bytes >= 1024 * 1024
+        ? '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB'
+        : '${(bytes / 1024).ceil()} KB';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setLocal) {
+            return AlertDialog(
+              title: Text(l10n.savedVoiceCleanupTitle),
+              content: SizedBox(
+                width: 360,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.savedVoiceCleanupSubtitle),
+                    const SizedBox(height: 8),
+                    Text(l10n.savedVoiceCleanupBytes(sizeLabel)),
+                    TextButton(
+                      onPressed: () => setLocal(() {
+                        selected
+                          ..clear()
+                          ..addAll(unused.map((v) => v.id));
+                      }),
+                      child: Text(l10n.savedVoiceSelectAll),
+                    ),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 240),
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: [
+                          for (final voice in unused)
+                            CheckboxListTile(
+                              value: selected.contains(voice.id),
+                              onChanged: (on) => setLocal(() {
+                                if (on == true) {
+                                  selected.add(voice.id);
+                                } else {
+                                  selected.remove(voice.id);
+                                }
+                              }),
+                              title: Text(voice.name),
+                              dense: true,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(l10n.commonCancel),
+                ),
+                FilledButton(
+                  onPressed: selected.isEmpty
+                      ? null
+                      : () => Navigator.pop(context, true),
+                  child: Text(l10n.savedVoiceCleanupConfirm(selected.length)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (confirmed != true) return;
+    for (final voice in unused.where((v) => selected.contains(v.id))) {
+      await service.deleteUnused(voice);
+    }
+    await ref.read(savedVoicesProvider.notifier).refresh();
+  }
+
+  Future<void> _onSavedVoiceMenu(
+    VoiceSegmentUiModel voice,
+    String action,
+  ) async {
+    switch (action) {
+      case 'preview':
+        await _togglePreview(voice);
+      case 'add':
+        await _addSavedVoiceToSequence(voice);
+      case 'delete':
+        await _deleteSavedVoice(voice);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -425,7 +755,20 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
               },
             ),
             const SizedBox(height: AppConstants.spaceXl),
-            Text(l10n.savedVoicesTitle, style: context.textTheme.titleMedium),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.savedVoicesTitle,
+                    style: context.textTheme.titleMedium,
+                  ),
+                ),
+                TextButton(
+                  onPressed: _openCleanupUnused,
+                  child: Text(l10n.savedVoiceCleanupTitle),
+                ),
+              ],
+            ),
             const SizedBox(height: AppConstants.spaceSm),
             if (saved.isEmpty)
               Text(
@@ -436,10 +779,8 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
               )
             else
               ...saved.map((voice) {
-                final playing =
-                    _previewId == voice.id && !_previewLoading;
-                final loading =
-                    _previewId == voice.id && _previewLoading;
+                final playing = _previewId == voice.id && !_previewLoading;
+                final loading = _previewId == voice.id && _previewLoading;
                 final stamped = _formatCreatedAt(context, voice.createdAt);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppConstants.spaceSm),
@@ -475,7 +816,9 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
                           ),
                         ),
                         IconButton(
-                          tooltip: playing ? l10n.commonClose : l10n.ttsPreview,
+                          tooltip: playing
+                              ? l10n.commonClose
+                              : l10n.savedVoicePreviewAction,
                           onPressed: () => _togglePreview(voice),
                           icon: loading
                               ? const SizedBox(
@@ -491,6 +834,35 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
                                       : Icons.play_circle_outline_rounded,
                                   color: context.colors.primary,
                                 ),
+                        ),
+                        if (_hasSequenceContext)
+                          IconButton(
+                            tooltip: l10n.addSavedVoiceToSequence,
+                            onPressed: () => _addSavedVoiceToSequence(voice),
+                            icon: Icon(
+                              Icons.add_circle_outline_rounded,
+                              color: context.colors.primary,
+                            ),
+                          ),
+                        PopupMenuButton<String>(
+                          tooltip: l10n.homeMore,
+                          onSelected: (value) =>
+                              _onSavedVoiceMenu(voice, value),
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'preview',
+                              child: Text(l10n.savedVoicePreviewAction),
+                            ),
+                            if (_hasSequenceContext)
+                              PopupMenuItem(
+                                value: 'add',
+                                child: Text(l10n.addSavedVoiceToSequence),
+                              ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Text(l10n.savedVoiceDeleteAction),
+                            ),
+                          ],
                         ),
                       ],
                     ),

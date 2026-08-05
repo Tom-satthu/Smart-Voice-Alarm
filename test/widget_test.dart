@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_voice_alarm/app/app.dart';
+import 'package:smart_voice_alarm/core/services/alarm_schedule_result.dart';
 import 'package:smart_voice_alarm/core/services/notification_service.dart';
 import 'package:smart_voice_alarm/core/services/premium_purchase_service.dart';
 import 'package:smart_voice_alarm/core/services/trial_entitlement_service.dart';
@@ -18,6 +19,14 @@ class _GrantedNotificationService extends NotificationService {
 
   @override
   Future<bool> requestNotificationPermission() async => true;
+
+  @override
+  Future<AlarmScheduleResult> scheduleAlarm(
+    AlarmUiModel alarm, {
+    VoiceSequenceUiModel? sequenceOverride,
+  }) async {
+    return AlarmScheduleResult.ok(stage: 'notification_schedule');
+  }
 }
 
 class _ActiveTrialController extends TrialEntitlementController {
@@ -79,19 +88,6 @@ List<Override> _memoryOverrides({
     savedVoicesProvider.overrideWith(
       (ref) => SavedVoicesController(savedVoiceRepo),
     ),
-    voiceSequenceProvider.overrideWith((ref, id) {
-      final existing = sequenceRepo.findById(id);
-      return VoiceSequenceController(
-        sequenceRepo,
-        existing ??
-            VoiceSequenceUiModel(
-              id: id,
-              name: 'Voice Sequence',
-              segments: const [],
-            ),
-        savedVoiceRepo,
-      );
-    }),
   ];
 }
 
@@ -181,6 +177,12 @@ void main() {
     await _pumpApp(tester, emptyAlarms: true);
     expect(find.text('No alarms yet'), findsOneWidget);
     await _tapVisible(tester, find.text('Create Alarm').first);
+    expect(find.text('New Alarm'), findsOneWidget);
+    // Mixed requires a voice; use ringtone-only for the smoke save path.
+    final ringtoneChip = find.widgetWithText(FilterChip, 'Ringtone');
+    await tester.scrollUntilVisible(ringtoneChip, 300);
+    await tester.tap(ringtoneChip);
+    await _pumpFrames(tester);
     await _tapVisible(tester, find.text('Save Alarm'));
     expect(find.text('Alarms'), findsOneWidget);
     expect(find.text('Alarm'), findsWidgets);
@@ -230,6 +232,7 @@ void main() {
       isTrue,
     );
     await _tapVisible(tester, find.text('Save Alarm'));
+    await tester.pumpAndSettle();
     expect(find.text('Alarms'), findsOneWidget);
     expect(controller.state.length, 3);
   });

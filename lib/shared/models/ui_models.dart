@@ -17,6 +17,7 @@ class AlarmUiModel {
     this.voiceSequenceId,
     this.ringtoneName,
     this.repeatCount = 3,
+    this.audioNeedsRegeneration = false,
   });
 
   final String id;
@@ -29,6 +30,10 @@ class AlarmUiModel {
   final String? ringtoneName;
   final int repeatCount;
 
+  /// Set when iOS rendered notification audio is missing/corrupt; user must
+  /// re-save the alarm to regenerate. Never auto-render at launch.
+  final bool audioNeedsRegeneration;
+
   AlarmUiModel copyWith({
     String? id,
     TimeOfDay? time,
@@ -39,6 +44,7 @@ class AlarmUiModel {
     String? voiceSequenceId,
     String? ringtoneName,
     int? repeatCount,
+    bool? audioNeedsRegeneration,
   }) {
     return AlarmUiModel(
       id: id ?? this.id,
@@ -50,6 +56,8 @@ class AlarmUiModel {
       voiceSequenceId: voiceSequenceId ?? this.voiceSequenceId,
       ringtoneName: ringtoneName ?? this.ringtoneName,
       repeatCount: repeatCount ?? this.repeatCount,
+      audioNeedsRegeneration:
+          audioNeedsRegeneration ?? this.audioNeedsRegeneration,
     );
   }
 
@@ -64,6 +72,7 @@ class AlarmUiModel {
     'voiceSequenceId': voiceSequenceId,
     'ringtoneName': ringtoneName,
     'repeatCount': repeatCount,
+    'audioNeedsRegeneration': audioNeedsRegeneration,
   };
 
   factory AlarmUiModel.fromJson(Map<String, dynamic> json) {
@@ -81,6 +90,7 @@ class AlarmUiModel {
       voiceSequenceId: json['voiceSequenceId'] as String?,
       ringtoneName: json['ringtoneName'] as String?,
       repeatCount: json['repeatCount'] as int? ?? 3,
+      audioNeedsRegeneration: json['audioNeedsRegeneration'] as bool? ?? false,
     );
   }
 }
@@ -96,6 +106,7 @@ class VoiceSegmentUiModel {
     this.voiceId,
     this.localeId,
     this.createdAt,
+    this.sourceSavedVoiceId,
   });
 
   final String id;
@@ -108,6 +119,9 @@ class VoiceSegmentUiModel {
   final String? localeId;
   final DateTime? createdAt;
 
+  /// When set, this sequence segment references a library saved voice.
+  final String? sourceSavedVoiceId;
+
   VoiceSegmentUiModel copyWith({
     String? id,
     String? name,
@@ -118,6 +132,7 @@ class VoiceSegmentUiModel {
     String? voiceId,
     String? localeId,
     DateTime? createdAt,
+    String? sourceSavedVoiceId,
   }) {
     return VoiceSegmentUiModel(
       id: id ?? this.id,
@@ -129,6 +144,7 @@ class VoiceSegmentUiModel {
       voiceId: voiceId ?? this.voiceId,
       localeId: localeId ?? this.localeId,
       createdAt: createdAt ?? this.createdAt,
+      sourceSavedVoiceId: sourceSavedVoiceId ?? this.sourceSavedVoiceId,
     );
   }
 
@@ -142,6 +158,7 @@ class VoiceSegmentUiModel {
     'voiceId': voiceId,
     'localeId': localeId,
     if (createdAt != null) 'createdAtMs': createdAt!.millisecondsSinceEpoch,
+    if (sourceSavedVoiceId != null) 'sourceSavedVoiceId': sourceSavedVoiceId,
   };
 
   factory VoiceSegmentUiModel.fromJson(Map<String, dynamic> json) {
@@ -160,6 +177,7 @@ class VoiceSegmentUiModel {
       createdAt: createdRaw is int
           ? DateTime.fromMillisecondsSinceEpoch(createdRaw)
           : null,
+      sourceSavedVoiceId: json['sourceSavedVoiceId'] as String?,
     );
   }
 }
