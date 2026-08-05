@@ -106,9 +106,11 @@ GoRouter createAppRouter({String? initialLocation}) {
         builder: (context, state) {
           final alarmId = state.pathParameters['id'] ?? '';
           final challenge = state.uri.queryParameters['challenge'] == '1';
+          final occurrenceId = state.uri.queryParameters['occurrenceId'];
           return AlarmRingingScreen(
             alarmId: alarmId,
             openDismissChallenge: challenge,
+            occurrenceId: occurrenceId,
           );
         },
       ),

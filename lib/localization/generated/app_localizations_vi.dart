@@ -1080,4 +1080,86 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get premiumRestrictedAlarmsBody =>
       'Bạn có thể tắt hoặc xóa báo thức hiện có. Hãy đăng ký để tạo hoặc sửa báo thức.';
+
+  @override
+  String get iosFullVoiceAlarmSupport => 'Hỗ trợ báo thức giọng nói đầy đủ';
+
+  @override
+  String get iosFullVoiceAlarmSupportBody =>
+      'Trên iOS 26 trở lên, Smart Voice Alarm dùng AlarmKit để các đoạn giọng nói và nhạc chuông reo theo hành vi báo thức hệ thống.';
+
+  @override
+  String get iosLimitedSupportTitle => 'Hỗ trợ hạn chế trên iOS cũ hơn';
+
+  @override
+  String get iosLimitedSupportBody =>
+      'Trên iOS 13–25, báo thức giọng nói vẫn phát qua âm thanh thông báo. Không có AlarmKit toàn màn hình. Chế độ Im lặng hoặc Focus có thể làm tắt/trễ âm thanh, và vuốt bỏ thông báo mà không giải toán sẽ không dừng các đoạn sau.';
+
+  @override
+  String get iosSilentModeWarning =>
+      'Chế độ Im lặng có thể khiến âm thanh thông báo báo thức không phát trên iOS cũ.';
+
+  @override
+  String get iosFocusWarning =>
+      'Chế độ Focus có thể ảnh hưởng việc nhận thông báo trên iOS cũ.';
+
+  @override
+  String get ios26Recommendation =>
+      'Để báo thức giọng nói đáng tin nhất, hãy dùng iOS 26 trở lên.';
+
+  @override
+  String get alarmKitPermission => 'Quyền báo thức';
+
+  @override
+  String get alarmKitDenied =>
+      'Quyền AlarmKit bị từ chối. Bật báo thức cho Smart Voice Alarm trong Cài đặt.';
+
+  @override
+  String get alarmKitPermissionBody =>
+      'Cho phép AlarmKit để Smart Voice Alarm lên lịch báo thức giọng nói hệ thống.';
+
+  @override
+  String get solveNow => 'Giải ngay';
+
+  @override
+  String get alarmSolveToStop => 'Giải toán để dừng';
+
+  @override
+  String get alarmDismissedTitle => 'Đã tắt báo thức';
+
+  @override
+  String get alarmDismissedBody =>
+      'Tất cả các đoạn còn lại của báo thức này đã được hủy.';
+
+  @override
+  String get voiceDurationLimitTitle => 'Giới hạn độ dài giọng nói';
+
+  @override
+  String get voiceDurationLimitBody =>
+      'Trên iOS, mỗi đoạn giọng nói tối đa 20 giây. Hãy cắt ngắn hoặc ghi lại để tiếp tục.';
+
+  @override
+  String get trimOrRecreateVoice => 'Cắt hoặc tạo lại giọng nói';
+
+  @override
+  String get audioRenderingError =>
+      'Không chuẩn bị được âm thanh báo thức. Báo thức chưa được lên lịch.';
+
+  @override
+  String get fallbackSoundWarning =>
+      'Đang dùng âm thanh dự phòng của hệ thống vì không chuẩn bị được âm thanh đã chọn.';
+
+  @override
+  String get savedVoicesTitle => 'Giọng nói đã lưu';
+
+  @override
+  String get savedVoicesEmpty =>
+      'Bản ghi và TTS đã lưu sẽ hiện ở đây sau khi bạn thêm.';
+
+  @override
+  String get savedVoiceAdded => 'Đã thêm giọng nói vào chuỗi';
+
+  @override
+  String get iosCapabilityLearnMore =>
+      'Cách báo thức hoạt động trên iPhone này';
 }

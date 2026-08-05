@@ -10,6 +10,7 @@ abstract final class AppBoxes {
   static const alarms = 'alarms';
   static const sequences = 'sequences';
   static const settings = 'settings';
+  static const savedVoices = 'saved_voices';
 }
 
 class LocalDatabase {
@@ -25,6 +26,7 @@ class LocalDatabase {
     await Future.wait([
       _openStringBox(AppBoxes.alarms),
       _openStringBox(AppBoxes.sequences),
+      _openStringBox(AppBoxes.savedVoices),
       _openSettingsBox(),
     ]);
     _ready = true;
@@ -47,6 +49,8 @@ class LocalDatabase {
 
   static Box<String> get alarmsBox => Hive.box<String>(AppBoxes.alarms);
   static Box<String> get sequencesBox => Hive.box<String>(AppBoxes.sequences);
+  static Box<String> get savedVoicesBox =>
+      Hive.box<String>(AppBoxes.savedVoices);
   static Box get settingsBox => Hive.box(AppBoxes.settings);
 
   static Future<void> clearAllForTests() async {
@@ -54,6 +58,9 @@ class LocalDatabase {
     // Prefer deleteAll over clear() — clear() can hang in widget tests.
     await alarmsBox.deleteAll(alarmsBox.keys.toList());
     await sequencesBox.deleteAll(sequencesBox.keys.toList());
+    if (Hive.isBoxOpen(AppBoxes.savedVoices)) {
+      await savedVoicesBox.deleteAll(savedVoicesBox.keys.toList());
+    }
     await settingsBox.deleteAll(settingsBox.keys.toList());
   }
 }
@@ -128,6 +135,51 @@ class VoiceSequenceRepository {
 
   Future<void> delete(String id) async {
     await LocalDatabase.sequencesBox.delete(id);
+  }
+}
+
+class SavedVoiceRepository {
+  Future<void> upsert(VoiceSegmentUiModel voice) async {
+    if (!Hive.isBoxOpen(AppBoxes.savedVoices)) return;
+    await LocalDatabase.savedVoicesBox.put(
+      voice.id,
+      jsonEncode(voice.toJson()),
+    );
+  }
+
+  Future<void> delete(String id) async {
+    if (!Hive.isBoxOpen(AppBoxes.savedVoices)) return;
+    await LocalDatabase.savedVoicesBox.delete(id);
+  }
+
+  VoiceSegmentUiModel? findById(String id) {
+    if (!Hive.isBoxOpen(AppBoxes.savedVoices)) return null;
+    final raw = LocalDatabase.savedVoicesBox.get(id);
+    if (raw == null) return null;
+    return VoiceSegmentUiModel.fromJson(
+      jsonDecode(raw) as Map<String, dynamic>,
+    );
+  }
+
+  List<VoiceSegmentUiModel> loadAll() {
+    if (!Hive.isBoxOpen(AppBoxes.savedVoices)) return const [];
+    final items =
+        LocalDatabase.savedVoicesBox.values
+            .map(
+              (raw) => VoiceSegmentUiModel.fromJson(
+                jsonDecode(raw) as Map<String, dynamic>,
+              ),
+            )
+            .toList()
+          ..sort((a, b) {
+            final aAt = a.createdAt;
+            final bAt = b.createdAt;
+            if (aAt != null && bAt != null) return bAt.compareTo(aAt);
+            if (aAt != null) return -1;
+            if (bAt != null) return 1;
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          });
+    return items;
   }
 }
 

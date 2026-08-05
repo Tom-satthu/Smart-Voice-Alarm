@@ -21,16 +21,8 @@ void main() {
 
   test('shared recording is retained while any sequence references it', () {
     const sequences = [
-      VoiceSequenceUiModel(
-        id: 'a',
-        name: 'A',
-        segments: [recording],
-      ),
-      VoiceSequenceUiModel(
-        id: 'b',
-        name: 'B',
-        segments: [recording],
-      ),
+      VoiceSequenceUiModel(id: 'a', name: 'A', segments: [recording]),
+      VoiceSequenceUiModel(id: 'b', name: 'B', segments: [recording]),
     ];
 
     expect(RecordingFileStore.isReferenced(sharedPath, sequences), isTrue);

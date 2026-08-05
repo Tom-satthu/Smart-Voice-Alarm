@@ -71,6 +71,43 @@ class MemoryVoiceSequenceRepository extends VoiceSequenceRepository {
   }
 }
 
+class MemorySavedVoiceRepository extends SavedVoiceRepository {
+  MemorySavedVoiceRepository([List<VoiceSegmentUiModel> seed = const []]) {
+    for (final voice in seed) {
+      _items[voice.id] = voice;
+    }
+  }
+
+  final Map<String, VoiceSegmentUiModel> _items = {};
+
+  @override
+  List<VoiceSegmentUiModel> loadAll() {
+    final items = _items.values.toList()
+      ..sort((a, b) {
+        final aAt = a.createdAt;
+        final bAt = b.createdAt;
+        if (aAt != null && bAt != null) return bAt.compareTo(aAt);
+        if (aAt != null) return -1;
+        if (bAt != null) return 1;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+    return items;
+  }
+
+  @override
+  Future<void> upsert(VoiceSegmentUiModel voice) async {
+    _items[voice.id] = voice;
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    _items.remove(id);
+  }
+
+  @override
+  VoiceSegmentUiModel? findById(String id) => _items[id];
+}
+
 class MemorySettingsRepository extends SettingsRepository {
   ThemeMode _themeMode = ThemeMode.system;
   Locale _locale = const Locale('en');

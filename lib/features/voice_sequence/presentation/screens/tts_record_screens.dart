@@ -198,8 +198,10 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
             text: text,
             voiceId: resolved.id,
             localeId: resolved.locale,
+            createdAt: DateTime.now(),
           ),
         );
+    await ref.read(savedVoicesProvider.notifier).refresh();
 
     await ref
         .read(preferredVoiceProvider.notifier)
@@ -596,8 +598,10 @@ class _RecordScreenState extends ConsumerState<RecordScreen>
                 ? const Duration(seconds: 1)
                 : _elapsed,
             filePath: path,
+            createdAt: DateTime.now(),
           ),
         );
+    await ref.read(savedVoicesProvider.notifier).refresh();
     ref.read(recordingServiceProvider).retainCurrentFile();
     if (!mounted) return;
     ScaffoldMessenger.of(

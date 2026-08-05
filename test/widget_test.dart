@@ -55,12 +55,14 @@ List<Override> _memoryOverrides({
   final sequenceRepo = MemoryVoiceSequenceRepository([
     sequence ?? TestSeedData.sequence,
   ]);
+  final savedVoiceRepo = MemorySavedVoiceRepository();
   final settingsRepo = MemorySettingsRepository();
   final notifications = _GrantedNotificationService();
 
   return [
     alarmRepositoryProvider.overrideWithValue(alarmRepo),
     sequenceRepositoryProvider.overrideWithValue(sequenceRepo),
+    savedVoiceRepositoryProvider.overrideWithValue(savedVoiceRepo),
     settingsRepositoryProvider.overrideWithValue(settingsRepo),
     notificationServiceProvider.overrideWithValue(notifications),
     trialEntitlementProvider.overrideWith(
@@ -74,6 +76,9 @@ List<Override> _memoryOverrides({
     reminderSettingsProvider.overrideWith(
       (ref) => ReminderSettingsController(settingsRepo, notifications),
     ),
+    savedVoicesProvider.overrideWith(
+      (ref) => SavedVoicesController(savedVoiceRepo),
+    ),
     voiceSequenceProvider.overrideWith((ref, id) {
       final existing = sequenceRepo.findById(id);
       return VoiceSequenceController(
@@ -84,6 +89,7 @@ List<Override> _memoryOverrides({
               name: 'Voice Sequence',
               segments: const [],
             ),
+        savedVoiceRepo,
       );
     }),
   ];

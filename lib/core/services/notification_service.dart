@@ -7,23 +7,31 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../shared/models/ui_models.dart';
+import 'ios_alarm_fanout_service.dart';
+import 'ios_alarm_scheduler.dart';
 import 'native_alarm_scheduler.dart';
 
 typedef AlarmNotificationCallback = void Function(String alarmId);
+typedef IosChallengeCallback = void Function(IosPendingChallenge challenge);
 
 class NotificationService {
-  NotificationService({NativeAlarmScheduler? nativeScheduler})
-    : _native = nativeScheduler ?? NativeAlarmScheduler();
+  NotificationService({
+    NativeAlarmScheduler? nativeScheduler,
+    IosAlarmFanoutService? iosFanout,
+  }) : _native = nativeScheduler ?? NativeAlarmScheduler(),
+       _iosFanout = iosFanout ?? IosAlarmFanoutService();
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   final NativeAlarmScheduler _native;
+  final IosAlarmFanoutService _iosFanout;
 
   static const _alarmChannelId = 'smart_voice_alarm_alarms';
   static const _reminderChannelId = 'smart_voice_alarm_reminders';
   static const reminderNotificationId = 91001;
 
   AlarmNotificationCallback? onAlarmTriggered;
+  IosChallengeCallback? onIosChallenge;
   bool _initialized = false;
   String _appName = 'Smart Voice Alarm';
   String _alarmChannelName = 'Alarms';
@@ -32,6 +40,7 @@ class NotificationService {
   String _reminderChannelDesc = 'Daily reminder to set tomorrow’s alarm';
 
   NativeAlarmScheduler get native => _native;
+  IosAlarmFanoutService get iosFanout => _iosFanout;
 
   Future<void> applyLocalizedCopy({
     required String appName,
@@ -104,6 +113,13 @@ class NotificationService {
         },
       );
 
+      if (_iosFanout.isSupported) {
+        _iosFanout.scheduler.attachHandlers();
+        _iosFanout.scheduler.onOpenChallenge = (challenge) {
+          onIosChallenge?.call(challenge);
+        };
+      }
+
       if (defaultTargetPlatform == TargetPlatform.android) {
         final androidPlugin = _plugin
             .resolvePlatformSpecificImplementation<
@@ -171,6 +187,9 @@ class NotificationService {
       if (_native.isSupported) {
         await _native.cancelAlarm(alarmId);
       }
+      if (_iosFanout.isSupported) {
+        await _iosFanout.cancelAlarm(alarmId);
+      }
       if (_initialized) {
         await _plugin.cancel(alarmId.hashCode);
       }
@@ -203,11 +222,32 @@ class NotificationService {
         return;
       }
 
+      // iOS: notification fan-out with pre-rendered Library/Sounds clips.
+      if (_iosFanout.isSupported) {
+        if (_initialized) {
+          await _plugin.cancel(alarm.id.hashCode);
+        }
+        // Ensure notification permission before scheduling silent-drops.
+        try {
+          await _iosFanout.scheduler.requestAuthorization();
+        } catch (e) {
+          debugPrint('iOS auth before schedule: $e');
+        }
+        await _iosFanout.scheduleAlarm(alarm, next);
+        // Optionally materialize the following occurrence for repeats.
+        final following = _iosFanout.nextAfter(alarm, next);
+        if (following != null &&
+            following.difference(DateTime.now()) < const Duration(hours: 36)) {
+          // scheduleAlarm cancels parent first — schedule only nearest.
+          // Next occurrence is rescheduled when this occurrence is dismissed
+          // or when alarms are resynced on launch.
+        }
+        return;
+      }
+
       if (!_initialized) return;
       await _plugin.cancel(alarm.id.hashCode);
 
-      // iOS: local notification with system sound when the app may be killed.
-      // Voice sequences / TTS cannot run while the process is dead.
       final details = NotificationDetails(
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
@@ -303,6 +343,11 @@ class NotificationService {
     final nativeId = await _native.consumeLaunchAlarmId();
     if (nativeId != null && nativeId.isNotEmpty) return nativeId;
 
+    final iosPending = await _iosFanout.scheduler.peekPendingChallenge();
+    if (iosPending != null && iosPending.parentAlarmId.isNotEmpty) {
+      return iosPending.parentAlarmId;
+    }
+
     if (!_initialized) return null;
     try {
       final details = await _plugin.getNotificationAppLaunchDetails();
@@ -317,7 +362,13 @@ class NotificationService {
 
   Future<bool> consumeLaunchDismissChallenge() async {
     if (kIsWeb) return false;
-    return _native.consumeLaunchDismissChallenge();
+    if (await _native.consumeLaunchDismissChallenge()) return true;
+    final pending = await _iosFanout.scheduler.peekPendingChallenge();
+    return pending?.openChallenge == true;
+  }
+
+  Future<IosPendingChallenge?> consumeIosPendingChallenge() {
+    return _iosFanout.scheduler.consumePendingChallenge();
   }
 
   tz.TZDateTime? nextOccurrence(AlarmUiModel alarm) => _nextOccurrence(alarm);

@@ -2032,6 +2032,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can disable or delete existing alarms. Subscribe to create or edit alarms.'**
   String get premiumRestrictedAlarmsBody;
+
+  /// No description provided for @iosFullVoiceAlarmSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Full voice alarm support'**
+  String get iosFullVoiceAlarmSupport;
+
+  /// No description provided for @iosFullVoiceAlarmSupportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On iOS 26 and later, Smart Voice Alarm uses AlarmKit so voice segments and ringtones can ring with system alarm behavior.'**
+  String get iosFullVoiceAlarmSupportBody;
+
+  /// No description provided for @iosLimitedSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited support on older iOS'**
+  String get iosLimitedSupportTitle;
+
+  /// No description provided for @iosLimitedSupportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On iOS 13–25, voice alarms still play through notification sounds. There is no AlarmKit full-screen experience. Silent Mode or Focus may mute or delay sound, and dismissing a notification without solving the challenge will not stop later segments.'**
+  String get iosLimitedSupportBody;
+
+  /// No description provided for @iosSilentModeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Silent Mode may prevent notification alarm sounds from playing on older iOS versions.'**
+  String get iosSilentModeWarning;
+
+  /// No description provided for @iosFocusWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus modes can affect notification delivery on older iOS versions.'**
+  String get iosFocusWarning;
+
+  /// No description provided for @ios26Recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'For the most reliable voice alarms, use iOS 26 or later.'**
+  String get ios26Recommendation;
+
+  /// No description provided for @alarmKitPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm permission'**
+  String get alarmKitPermission;
+
+  /// No description provided for @alarmKitDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'AlarmKit permission is denied. Enable alarms for Smart Voice Alarm in Settings.'**
+  String get alarmKitDenied;
+
+  /// No description provided for @alarmKitPermissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow AlarmKit so Smart Voice Alarm can schedule system voice alarms.'**
+  String get alarmKitPermissionBody;
+
+  /// No description provided for @solveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Solve now'**
+  String get solveNow;
+
+  /// No description provided for @alarmSolveToStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Solve to stop'**
+  String get alarmSolveToStop;
+
+  /// No description provided for @alarmDismissedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm dismissed'**
+  String get alarmDismissedTitle;
+
+  /// No description provided for @alarmDismissedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All remaining segments for this alarm were cancelled.'**
+  String get alarmDismissedBody;
+
+  /// No description provided for @voiceDurationLimitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice duration limit'**
+  String get voiceDurationLimitTitle;
+
+  /// No description provided for @voiceDurationLimitBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On iOS, each voice segment can be at most 20 seconds. Trim or recreate the voice to continue.'**
+  String get voiceDurationLimitBody;
+
+  /// No description provided for @trimOrRecreateVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim or recreate voice'**
+  String get trimOrRecreateVoice;
+
+  /// No description provided for @audioRenderingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not prepare alarm audio. The alarm was not scheduled.'**
+  String get audioRenderingError;
+
+  /// No description provided for @fallbackSoundWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Using a system fallback sound because the selected audio could not be prepared.'**
+  String get fallbackSoundWarning;
+
+  /// No description provided for @savedVoicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved voices'**
+  String get savedVoicesTitle;
+
+  /// No description provided for @savedVoicesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved recordings and TTS voices will appear here after you add them.'**
+  String get savedVoicesEmpty;
+
+  /// No description provided for @savedVoiceAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice added to sequence'**
+  String get savedVoiceAdded;
+
+  /// No description provided for @iosCapabilityLearnMore.
+  ///
+  /// In en, this message translates to:
+  /// **'How alarms work on this iPhone'**
+  String get iosCapabilityLearnMore;
 }
 
 class _AppLocalizationsDelegate

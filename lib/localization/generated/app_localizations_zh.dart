@@ -1044,6 +1044,87 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get premiumRestrictedAlarmsBody => '您可以停用或删除现有闹钟。订阅后可创建或编辑闹钟。';
+
+  @override
+  String get iosFullVoiceAlarmSupport => '完整语音闹钟支持';
+
+  @override
+  String get iosFullVoiceAlarmSupportBody =>
+      'On iOS 26 and later, Smart Voice Alarm uses AlarmKit so voice segments and ringtones can ring with system alarm behavior.';
+
+  @override
+  String get iosLimitedSupportTitle => '旧版 iOS 支持有限';
+
+  @override
+  String get iosLimitedSupportBody =>
+      'On iOS 13–25, voice alarms still play through notification sounds. There is no AlarmKit full-screen experience. Silent Mode or Focus may mute or delay sound, and dismissing a notification without solving the challenge will not stop later segments.';
+
+  @override
+  String get iosSilentModeWarning =>
+      'Silent Mode may prevent notification alarm sounds from playing on older iOS versions.';
+
+  @override
+  String get iosFocusWarning =>
+      'Focus modes can affect notification delivery on older iOS versions.';
+
+  @override
+  String get ios26Recommendation =>
+      'For the most reliable voice alarms, use iOS 26 or later.';
+
+  @override
+  String get alarmKitPermission => 'Alarm permission';
+
+  @override
+  String get alarmKitDenied =>
+      'AlarmKit permission is denied. Enable alarms for Smart Voice Alarm in Settings.';
+
+  @override
+  String get alarmKitPermissionBody =>
+      'Allow AlarmKit so Smart Voice Alarm can schedule system voice alarms.';
+
+  @override
+  String get solveNow => '立即答题';
+
+  @override
+  String get alarmSolveToStop => '答题以停止';
+
+  @override
+  String get alarmDismissedTitle => '闹钟已关闭';
+
+  @override
+  String get alarmDismissedBody =>
+      'All remaining segments for this alarm were cancelled.';
+
+  @override
+  String get voiceDurationLimitTitle => 'Voice duration limit';
+
+  @override
+  String get voiceDurationLimitBody =>
+      'On iOS, each voice segment can be at most 20 seconds. Trim or recreate the voice to continue.';
+
+  @override
+  String get trimOrRecreateVoice => 'Trim or recreate voice';
+
+  @override
+  String get audioRenderingError =>
+      'Could not prepare alarm audio. The alarm was not scheduled.';
+
+  @override
+  String get fallbackSoundWarning =>
+      'Using a system fallback sound because the selected audio could not be prepared.';
+
+  @override
+  String get savedVoicesTitle => '已保存的语音';
+
+  @override
+  String get savedVoicesEmpty =>
+      'Saved recordings and TTS voices will appear here after you add them.';
+
+  @override
+  String get savedVoiceAdded => '已添加到语音序列';
+
+  @override
+  String get iosCapabilityLearnMore => 'How alarms work on this iPhone';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2086,4 +2167,85 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get premiumRestrictedAlarmsBody => '您可以停用或刪除現有鬧鐘。訂閱後可建立或編輯鬧鐘。';
+
+  @override
+  String get iosFullVoiceAlarmSupport => '完整語音鬧鐘支援';
+
+  @override
+  String get iosFullVoiceAlarmSupportBody =>
+      'On iOS 26 and later, Smart Voice Alarm uses AlarmKit so voice segments and ringtones can ring with system alarm behavior.';
+
+  @override
+  String get iosLimitedSupportTitle => '舊版 iOS 支援有限';
+
+  @override
+  String get iosLimitedSupportBody =>
+      'On iOS 13–25, voice alarms still play through notification sounds. There is no AlarmKit full-screen experience. Silent Mode or Focus may mute or delay sound, and dismissing a notification without solving the challenge will not stop later segments.';
+
+  @override
+  String get iosSilentModeWarning =>
+      'Silent Mode may prevent notification alarm sounds from playing on older iOS versions.';
+
+  @override
+  String get iosFocusWarning =>
+      'Focus modes can affect notification delivery on older iOS versions.';
+
+  @override
+  String get ios26Recommendation =>
+      'For the most reliable voice alarms, use iOS 26 or later.';
+
+  @override
+  String get alarmKitPermission => 'Alarm permission';
+
+  @override
+  String get alarmKitDenied =>
+      'AlarmKit permission is denied. Enable alarms for Smart Voice Alarm in Settings.';
+
+  @override
+  String get alarmKitPermissionBody =>
+      'Allow AlarmKit so Smart Voice Alarm can schedule system voice alarms.';
+
+  @override
+  String get solveNow => '立即解題';
+
+  @override
+  String get alarmSolveToStop => '解題以停止';
+
+  @override
+  String get alarmDismissedTitle => '鬧鐘已關閉';
+
+  @override
+  String get alarmDismissedBody =>
+      'All remaining segments for this alarm were cancelled.';
+
+  @override
+  String get voiceDurationLimitTitle => 'Voice duration limit';
+
+  @override
+  String get voiceDurationLimitBody =>
+      'On iOS, each voice segment can be at most 20 seconds. Trim or recreate the voice to continue.';
+
+  @override
+  String get trimOrRecreateVoice => 'Trim or recreate voice';
+
+  @override
+  String get audioRenderingError =>
+      'Could not prepare alarm audio. The alarm was not scheduled.';
+
+  @override
+  String get fallbackSoundWarning =>
+      'Using a system fallback sound because the selected audio could not be prepared.';
+
+  @override
+  String get savedVoicesTitle => '已儲存的語音';
+
+  @override
+  String get savedVoicesEmpty =>
+      'Saved recordings and TTS voices will appear here after you add them.';
+
+  @override
+  String get savedVoiceAdded => '已加入語音序列';
+
+  @override
+  String get iosCapabilityLearnMore => 'How alarms work on this iPhone';
 }

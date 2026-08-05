@@ -444,5 +444,28 @@
         "type": "int"
       }
     }
-  }
+  },
+  "iosFullVoiceAlarmSupport": "音声アラームのフル対応",
+  "iosFullVoiceAlarmSupportBody": "On iOS 26 and later, Smart Voice Alarm uses AlarmKit so voice segments and ringtones can ring with system alarm behavior.",
+  "iosLimitedSupportTitle": "古いiOSでは制限あり",
+  "iosLimitedSupportBody": "On iOS 13–25, voice alarms still play through notification sounds. There is no AlarmKit full-screen experience. Silent Mode or Focus may mute or delay sound, and dismissing a notification without solving the challenge will not stop later segments.",
+  "iosSilentModeWarning": "Silent Mode may prevent notification alarm sounds from playing on older iOS versions.",
+  "iosFocusWarning": "Focus modes can affect notification delivery on older iOS versions.",
+  "ios26Recommendation": "For the most reliable voice alarms, use iOS 26 or later.",
+  "alarmKitPermission": "Alarm permission",
+  "alarmKitDenied": "AlarmKit permission is denied. Enable alarms for Smart Voice Alarm in Settings.",
+  "alarmKitPermissionBody": "Allow AlarmKit so Smart Voice Alarm can schedule system voice alarms.",
+  "solveNow": "今すぐ解く",
+  "alarmSolveToStop": "解いて停止",
+  "alarmDismissedTitle": "アラームを解除しました",
+  "alarmDismissedBody": "All remaining segments for this alarm were cancelled.",
+  "voiceDurationLimitTitle": "Voice duration limit",
+  "voiceDurationLimitBody": "On iOS, each voice segment can be at most 20 seconds. Trim or recreate the voice to continue.",
+  "trimOrRecreateVoice": "Trim or recreate voice",
+  "audioRenderingError": "Could not prepare alarm audio. The alarm was not scheduled.",
+  "fallbackSoundWarning": "Using a system fallback sound because the selected audio could not be prepared.",
+  "savedVoicesTitle": "保存した音声",
+  "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
+  "savedVoiceAdded": "シーケンスに追加しました",
+  "iosCapabilityLearnMore": "How alarms work on this iPhone"
 }

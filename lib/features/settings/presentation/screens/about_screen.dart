@@ -8,6 +8,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/services/app_version_info.dart';
+import '../../../../core/services/platform_attribution.dart';
 import '../../../../core/services/support_contact.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../shared/widgets/app_widgets.dart';
@@ -99,7 +100,7 @@ class AboutScreen extends ConsumerWidget {
             _InfoTile(label: l10n.aboutVersion, value: versionLabel),
             _InfoTile(
               label: l10n.aboutDeveloper,
-              value: AppConstants.developerName,
+              value: PlatformAttribution.developerName,
             ),
             _InfoTile(
               label: l10n.contactSupport,

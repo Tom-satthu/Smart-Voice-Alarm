@@ -14,8 +14,19 @@ abstract final class AppRoutes {
   static const String premium = '/premium';
 
   static String editAlarmPath(String id) => '/alarm/edit/$id';
-  static String ringingPath(String id, {bool challenge = false}) =>
-      challenge ? '/alarm/ringing/$id?challenge=1' : '/alarm/ringing/$id';
+  static String ringingPath(
+    String id, {
+    bool challenge = false,
+    String? occurrenceId,
+  }) {
+    final params = <String>[];
+    if (challenge) params.add('challenge=1');
+    if (occurrenceId != null && occurrenceId.isNotEmpty) {
+      params.add('occurrenceId=${Uri.encodeComponent(occurrenceId)}');
+    }
+    if (params.isEmpty) return '/alarm/ringing/$id';
+    return '/alarm/ringing/$id?${params.join('&')}';
+  }
 
   static String voiceSequencePath(String sequenceId) =>
       '/voice-sequence?id=$sequenceId';
