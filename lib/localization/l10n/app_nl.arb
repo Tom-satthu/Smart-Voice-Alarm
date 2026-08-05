@@ -102,6 +102,10 @@
   "recordReady": "Klaar om op te slaan",
   "recordSaved": "Opname opgeslagen",
   "recordDefaultName": "Spraakopname",
+  "recordPermissionTitle": "Microfoontoegang",
+  "recordPermissionRationale": "De app heeft microfoontoegang nodig om de audioclip op te nemen die je als alarm gebruikt.",
+  "recordPermissionDenied": "Microfoontoegang is niet verleend. Er is geen opname gestart. Je kunt het opnieuw proberen.",
+  "recordPermissionPermanentlyDenied": "Microfoontoegang is geblokkeerd. Open de systeeminstellingen en sta toegang toe voordat je opneemt.",
   "settingsTitle": "Instellingen",
   "settingsAppearance": "Weergave",
   "settingsTheme": "Thema",
@@ -221,15 +225,14 @@
   "aboutAppName": "Appnaam",
   "aboutVersion": "Versie",
   "aboutDeveloper": "Ontwikkelaar",
-  "aboutDeveloperValue": "Tom Satthu",
-  "aboutGithub": "GitHub-repository",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutEmail": "E-mailondersteuning",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "Website",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "Binnenkort",
   "voiceSystemDefault": "Systeemstandaard",
+  "voiceSystemDefaultHint": "Beheerd in de apparaatinstellingen",
   "notificationChannelAlarms": "Alarmen",
   "notificationChannelAlarmsDesc": "Spraakalarmmeldingen",
   "notificationChannelReminders": "Herinneringen",
@@ -260,6 +263,182 @@
     }
   },
   "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmSelectTime": "Tik om een tijd te kiezen",
+  "segmentPlay": "Afspelen",
+  "voicePlaying": "Bezig met afspelen",
+  "voiceSelect": "Selecteren",
+  "voiceUnavailable": "Stem niet beschikbaar",
+  "recordingFileMissing": "Opnamebestand ontbreekt. Verwijder dit segment of neem opnieuw op.",
+  "voiceDetails": "Stemdetails",
+  "ttsSelectedVoice": "Geselecteerde stem",
+  "voicePreviewSample": "Dit is een korte preview van deze stem.",
+  "alarmDismissTitle": "Los op om te stoppen",
+  "alarmDismissHint": "Beantwoord juist om de wekker uit te zetten.",
+  "alarmDismissWrong": "Onjuist. Nieuwe vraag.",
+  "alarmDismissCheck": "Controleren",
+  "alarmDismissAnswerHint": "Jouw antwoord",
+  "voicesRefreshed": "Vernieuwd: {count} stemmen gevonden",
+  "voicesSelectedSaved": "Stem opgeslagen: {name}",
+  "voicesDownloadThenSelect": "Open het stembeheer van het apparaat. Kom daarna hier terug.",
+  "voicesRefreshHint": "Stemmen vernieuwen herlaadt systeems TTS-stemmen na installatie.",
+  "ringtonePreview": "Voorbeeld",
+  "ringtonePreviewHint": "Tik op afspelen om te beluisteren, tik op de naam om te kiezen.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "Open het stembeheer van het apparaat. Kom daarna hier terug.",
+  "voicesCurrentVoice": "Huidige stem",
+  "voicesNewlyInstalled": "Nieuw geïnstalleerde stemmen",
+  "voicesOnDevice": "Stemmen op dit apparaat",
+  "voicesRescan": "Stemmen opnieuw scannen",
+  "voicesRescanResult": "{count} bruikbare stemmen gevonden",
+  "voicesNewFound": "{count} nieuwe stemmen gevonden.",
+  "voicesNoNewFound": "Geen nieuwe stemmen gevonden.",
+  "voicesSystemUpdated": "{language}-stem bijgewerkt vanuit apparaatinstellingen.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "Geen stemwijzigingen gevonden.",
+  "voicesSettingsRefreshed": "Apparaatsteminstellingen zijn vernieuwd.",
+  "voicesSystemChanges": "Apparaatstem-updates",
+  "voicesSystemChangeEvent": "Apparaatinstellingen voor {language}-stem zijn bijgewerkt.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Nieuwe stemmen en apparaatupdates verschijnen hier.",
+  "commonClear": "Wissen",
+  "voicesNewBadge": "Nieuw",
+  "voiceFriendlyName": "Stem {number}",
+  "voicesOpenManagerFailed": "Kon stembeheer niet openen. Open de systeem-TTS-instellingen.",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "currentVoice": "Huidige stem",
+  "scanDeviceVoices": "Stemmen op apparaat scannen",
+  "availableDeviceVoices": "Beschikbare stemmen op dit apparaat",
+  "scanVoicesHint": "Tik op Stemmen scannen om geïnstalleerde stemmen te tonen.",
+  "noDeviceVoicesFound": "Geen geschikte stemmen gevonden op dit apparaat.",
+  "scanVoicesFailed": "Stemmen scannen mislukt. Probeer opnieuw.",
+  "voiceSetupGuide": "Stemmen toevoegen",
+  "openVoiceSettings": "Steminstellingen openen",
+  "androidVoiceSetupSteps": "1. Open Instellingen op het apparaat.\n2. Zoek Tekst-naar-spraak of Text-to-speech.\n3. Open de TTS-engine die je gebruikt.\n4. Open talen of stemgegevens.\n5. Installeer een nieuwe stem.\n6. Kom terug en tik op Stemmen scannen.",
+  "iosVoiceSetupSteps": "1. Open Instellingen.\n2. Open Toegankelijkheid.\n3. Open Gesproken inhoud of Stemmen.\n4. Kies een taal en download een stem.\n5. Kom terug en scan opnieuw.\nMenunamen kunnen per iOS-versie verschillen.",
+  "webVoiceAvailabilityInfo": "Op het web komen beschikbare stemmen van browser en besturingssysteem.",
+  "lastScanned": "Laatst gescand: {time}",
+  "voiceInUse": "In gebruik",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "otherLanguages": "Andere talen",
+  "voicesInLanguage": "{count, plural, =0{Geen stemmen} =1{1 stem} other{{count} stemmen}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "Taalstemmen uitklappen",
+  "collapseLanguageVoices": "Taalstemmen inklappen",
+  "voicePreviewNamed": "{name} beluisteren",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSoundAndVoice": "Geluid en stem",
+  "settingsAlarmsSection": "Wekkers",
+  "supportAndFeedback": "Ondersteuning",
+  "contactSupport": "Contact en feedback",
+  "supportEmailSubject": "Smart Voice Alarm-ondersteuning",
+  "emailCopied": "Ondersteunings-e-mail gekopieerd",
+  "linkUnavailable": "Deze link is nog niet beschikbaar",
+  "openSourceLicenses": "Open-sourcelicenties",
+  "appInformation": "Over de app",
+  "appVersion": "App-versie",
+  "permissionsAndBackground": "Machtigingen en achtergrond",
+  "notificationPermission": "Meldingen",
+  "exactAlarmPermission": "Exacte wekkers",
+  "fullScreenAlarmPermission": "Wekkers op volledig scherm",
+  "openSystemSettings": "Systeeminstellingen openen",
+  "openSystemSettingsHint": "Meldingen en gerelateerde machtigingen beheren",
+  "permissionStatusGranted": "Toegestaan",
+  "permissionStatusDenied": "Niet toegestaan",
+  "permissionStatusUnknown": "Onbekend",
+  "trialDaysRemaining": "{count} proefdagen resterend",
+  "trialLessThanOneDay": "Minder dan 1 proefdag resterend",
+  "premiumUpgrade": "Upgraden naar Premium",
+  "premiumAnnualTitle": "Premium voor één jaar",
+  "premiumAnnualDescription": "Blijf na de proefperiode van 7 dagen alle functies van Smart Voice Alarm gebruiken.",
+  "premiumAnnualPlan": "Jaarlijks Premium-abonnement",
+  "premiumAnnualAutoRenew": "Wordt elk jaar automatisch verlengd totdat je opzegt.",
+  "premiumAnnualCancelInPlay": "Beheer of annuleer via Google Play.",
+  "premiumAnnualAccess": "Volledige toegang blijft zolang het abonnement actief is.",
+  "premiumSubscribeAnnual": "Premium voor één jaar nemen",
+  "premiumDefer": "Later",
+  "premiumRestoreTransactions": "Transacties herstellen",
+  "premiumManageSubscription": "Abonnement beheren",
+  "premiumProductUnavailable": "Het jaarabonnement is nog niet beschikbaar in Google Play.",
+  "premiumBillingUnavailable": "Google Play Billing is momenteel niet beschikbaar.",
+  "premiumPurchaseActive": "Premium is actief",
+  "premiumTrialExpiredTitle": "Je proefperiode is afgelopen",
+  "premiumTrialExpiredBody": "Neem een abonnement om de hoofdfuncties te blijven gebruiken. Bestaande alarmen kunnen blijven afgaan en kunnen worden uitgeschakeld of verwijderd.",
+  "premiumRetryVerification": "Opnieuw proberen",
+  "premiumViewExistingAlarms": "Bestaande alarmen bekijken",
+  "premiumClientVerificationNotice": "De abonnementsstatus wordt op dit apparaat via de appwinkel gecontroleerd.",
+  "premiumUnableToVerify": "Kan de abonnementsstatus niet controleren.",
+  "premiumRestrictedAlarmsTitle": "Beperkte alarmtoegang",
+  "premiumRestrictedAlarmsBody": "Je kunt bestaande alarmen uitschakelen of verwijderen. Neem een abonnement om alarmen te maken of bewerken.",
+  "@trialDaysRemaining": {
     "placeholders": {
       "count": {
         "type": "int"

@@ -102,6 +102,10 @@
   "recordReady": "Siap disimpan",
   "recordSaved": "Rekaman disimpan",
   "recordDefaultName": "Rekaman suara",
+  "recordPermissionTitle": "Akses mikrofon",
+  "recordPermissionRationale": "Aplikasi memerlukan akses mikrofon untuk merekam klip audio yang Anda gunakan sebagai alarm.",
+  "recordPermissionDenied": "Akses mikrofon tidak diberikan. Perekaman belum dimulai. Anda dapat mencoba lagi.",
+  "recordPermissionPermanentlyDenied": "Akses mikrofon diblokir. Buka pengaturan sistem dan izinkan sebelum merekam.",
   "settingsTitle": "Pengaturan",
   "settingsAppearance": "Tampilan",
   "settingsTheme": "Tema",
@@ -221,15 +225,14 @@
   "aboutAppName": "Nama Aplikasi",
   "aboutVersion": "Versi",
   "aboutDeveloper": "Pengembang",
-  "aboutDeveloperValue": "Tom Satthu",
-  "aboutGithub": "Repositori GitHub",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutEmail": "Dukungan Email",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "Situs Web",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "Segera hadir",
   "voiceSystemDefault": "Default sistem",
+  "voiceSystemDefaultHint": "Dikelola di pengaturan perangkat",
   "notificationChannelAlarms": "Alarm",
   "notificationChannelAlarmsDesc": "Peringatan alarm suara",
   "notificationChannelReminders": "Pengingat",
@@ -260,6 +263,182 @@
     }
   },
   "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmSelectTime": "Ketuk untuk memilih waktu",
+  "segmentPlay": "Putar",
+  "voicePlaying": "Memutar",
+  "voiceSelect": "Pilih",
+  "voiceUnavailable": "Suara tidak tersedia",
+  "recordingFileMissing": "File rekaman hilang. Hapus segmen ini atau rekam ulang.",
+  "voiceDetails": "Detail suara",
+  "ttsSelectedVoice": "Suara terpilih",
+  "voicePreviewSample": "Ini adalah pratinjau singkat suara ini.",
+  "alarmDismissTitle": "Selesaikan untuk berhenti",
+  "alarmDismissHint": "Jawab dengan benar untuk mematikan alarm.",
+  "alarmDismissWrong": "Salah. Soal baru.",
+  "alarmDismissCheck": "Periksa",
+  "alarmDismissAnswerHint": "Jawaban Anda",
+  "voicesRefreshed": "Diperbarui: {count} suara ditemukan",
+  "voicesSelectedSaved": "Suara disimpan: {name}",
+  "voicesDownloadThenSelect": "Buka pengelola suara perangkat. Setelah unduh selesai, kembali ke sini.",
+  "voicesRefreshHint": "Segarkan suara memuat ulang suara TTS sistem setelah memasang paket.",
+  "ringtonePreview": "Pratinjau",
+  "ringtonePreviewHint": "Ketuk putar untuk mendengar, lalu ketuk nama untuk memilih.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "Buka pengelola suara perangkat. Setelah unduh selesai, kembali ke sini.",
+  "voicesCurrentVoice": "Suara yang digunakan",
+  "voicesNewlyInstalled": "Suara baru dipasang",
+  "voicesOnDevice": "Suara di perangkat ini",
+  "voicesRescan": "Pindai ulang suara",
+  "voicesRescanResult": "Ditemukan {count} suara yang dapat digunakan",
+  "voicesNewFound": "Ditemukan {count} suara baru.",
+  "voicesNoNewFound": "Tidak ada suara baru terdeteksi.",
+  "voicesSystemUpdated": "Suara {language} diperbarui dari pengaturan perangkat.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "Tidak ada perubahan suara terdeteksi.",
+  "voicesSettingsRefreshed": "Pengaturan suara perangkat telah diperbarui.",
+  "voicesSystemChanges": "Pembaruan suara perangkat",
+  "voicesSystemChangeEvent": "Pengaturan suara {language} di perangkat baru saja diperbarui.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Suara baru dan pembaruan perangkat akan muncul di sini.",
+  "commonClear": "Hapus",
+  "voicesNewBadge": "Baru",
+  "voiceFriendlyName": "Suara {number}",
+  "voicesOpenManagerFailed": "Tidak dapat membuka pengelola suara. Buka pengaturan TTS sistem.",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "currentVoice": "Suara yang digunakan",
+  "scanDeviceVoices": "Pindai suara di perangkat",
+  "availableDeviceVoices": "Suara tersedia di perangkat",
+  "scanVoicesHint": "Ketuk Pindai suara di perangkat untuk melihat suara yang terpasang.",
+  "noDeviceVoicesFound": "Tidak ditemukan suara yang cocok di perangkat.",
+  "scanVoicesFailed": "Gagal memindai suara. Coba lagi.",
+  "voiceSetupGuide": "Cara menambah suara",
+  "openVoiceSettings": "Buka pengaturan suara",
+  "androidVoiceSetupSteps": "1. Buka Pengaturan perangkat.\n2. Cari Text-to-speech.\n3. Buka mesin TTS yang digunakan.\n4. Buka bahasa atau data suara.\n5. Pasang suara baru.\n6. Kembali ke sini dan ketuk Pindai suara.",
+  "iosVoiceSetupSteps": "1. Buka Pengaturan.\n2. Buka Aksesibilitas.\n3. Buka Konten ucapan atau Suara.\n4. Pilih bahasa dan unduh suara.\n5. Kembali ke sini dan pindai lagi.\nNama menu dapat berbeda antar versi iOS.",
+  "webVoiceAvailabilityInfo": "Di Web, daftar suara disediakan oleh browser dan sistem operasi.",
+  "lastScanned": "Terakhir dipindai: {time}",
+  "voiceInUse": "Sedang digunakan",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "otherLanguages": "Bahasa lain",
+  "voicesInLanguage": "{count, plural, =0{Tidak ada suara} =1{1 suara} other{{count} suara}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "Perluas suara bahasa",
+  "collapseLanguageVoices": "Ciutkan suara bahasa",
+  "voicePreviewNamed": "Pratinjau {name}",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSoundAndVoice": "Suara dan suara bicara",
+  "settingsAlarmsSection": "Alarm",
+  "supportAndFeedback": "Dukungan",
+  "contactSupport": "Kontak dan masukan",
+  "supportEmailSubject": "Dukungan Smart Voice Alarm",
+  "emailCopied": "Email dukungan disalin",
+  "linkUnavailable": "Tautan ini belum tersedia",
+  "openSourceLicenses": "Lisensi sumber terbuka",
+  "appInformation": "Tentang aplikasi",
+  "appVersion": "Versi aplikasi",
+  "permissionsAndBackground": "Izin dan latar belakang",
+  "notificationPermission": "Notifikasi",
+  "exactAlarmPermission": "Alarm tepat waktu",
+  "fullScreenAlarmPermission": "Alarm layar penuh",
+  "openSystemSettings": "Buka pengaturan sistem",
+  "openSystemSettingsHint": "Kelola notifikasi dan izin terkait",
+  "permissionStatusGranted": "Diberikan",
+  "permissionStatusDenied": "Tidak diberikan",
+  "permissionStatusUnknown": "Tidak diketahui",
+  "trialDaysRemaining": "{count} hari masa uji coba tersisa",
+  "trialLessThanOneDay": "Masa uji coba tersisa kurang dari 1 hari",
+  "premiumUpgrade": "Tingkatkan ke Premium",
+  "premiumAnnualTitle": "Premium selama satu tahun",
+  "premiumAnnualDescription": "Terus gunakan semua fitur Smart Voice Alarm setelah uji coba 7 hari.",
+  "premiumAnnualPlan": "Paket Premium tahunan",
+  "premiumAnnualAutoRenew": "Diperpanjang otomatis setiap tahun hingga dibatalkan.",
+  "premiumAnnualCancelInPlay": "Kelola atau batalkan melalui Google Play.",
+  "premiumAnnualAccess": "Akses penuh berlanjut selama langganan aktif.",
+  "premiumSubscribeAnnual": "Berlangganan Premium satu tahun",
+  "premiumDefer": "Nanti saja",
+  "premiumRestoreTransactions": "Pulihkan transaksi",
+  "premiumManageSubscription": "Kelola langganan",
+  "premiumProductUnavailable": "Langganan tahunan belum tersedia di Google Play.",
+  "premiumBillingUnavailable": "Google Play Billing sedang tidak tersedia.",
+  "premiumPurchaseActive": "Premium aktif",
+  "premiumTrialExpiredTitle": "Masa uji coba telah berakhir",
+  "premiumTrialExpiredBody": "Berlangganan untuk terus memakai fitur utama. Alarm yang ada tetap dapat berbunyi dan dapat dinonaktifkan atau dihapus.",
+  "premiumRetryVerification": "Coba lagi",
+  "premiumViewExistingAlarms": "Lihat alarm yang ada",
+  "premiumClientVerificationNotice": "Status langganan diverifikasi di perangkat ini melalui toko aplikasi.",
+  "premiumUnableToVerify": "Tidak dapat memverifikasi status langganan.",
+  "premiumRestrictedAlarmsTitle": "Akses alarm terbatas",
+  "premiumRestrictedAlarmsBody": "Anda dapat menonaktifkan atau menghapus alarm yang ada. Berlangganan untuk membuat atau mengedit alarm.",
+  "@trialDaysRemaining": {
     "placeholders": {
       "count": {
         "type": "int"

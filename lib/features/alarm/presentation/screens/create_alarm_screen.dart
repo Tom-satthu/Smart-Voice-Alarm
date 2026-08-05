@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
@@ -87,30 +87,50 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     );
   }
 
+  Future<bool> _ensureNotificationAccess() async {
+    if (kIsWeb) return true;
+    final notifications = ref.read(notificationServiceProvider);
+    if (await notifications.notificationPermissionGranted) return true;
+    if (!mounted) return false;
+    final l10n = AppLocalizations.of(context);
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.notificationPermission),
+        content: Text(l10n.openSystemSettingsHint),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.notificationPermission),
+          ),
+        ],
+      ),
+    );
+    if (proceed != true) return false;
+    return notifications.requestNotificationPermission();
+  }
+
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
     final sequenceId = _ensureSequenceId();
     // Ensure sequence document exists before linking.
     ref.read(voiceSequenceProvider(sequenceId));
 
-    if (!_isEdit) {
-      final entitlement = ref.read(premiumEntitlementProvider);
-      final isPremium = ref.read(isPremiumProvider);
-      final count = ref.read(alarmListProvider).length;
-      if (!isPremium && !entitlement.canCreateAlarm(count)) {
-        final unlocked = await context.push<bool>(
-          '${AppRoutes.premium}?resumeCreate=1',
-        );
-        if (unlocked != true) return;
-        if (!ref.read(isPremiumProvider)) return;
-      }
-    }
+    final wantsEnabled = _isEdit ? _enabled : true;
+    final notificationAllowed =
+        !wantsEnabled || await _ensureNotificationAccess();
+    if (!mounted) return;
 
     final model = AlarmUiModel(
       id: widget.alarmId ?? const Uuid().v4(),
       time: _time,
       repeatDays: Set<Weekday>.from(_repeatDays),
-      isEnabled: _enabled,
+      // New alarms are always enabled so users do not forget to turn them on.
+      isEnabled: wantsEnabled && notificationAllowed,
       type: _type,
       label: _label.trim().isEmpty ? l10n.alarmDefaultLabel : _label.trim(),
       voiceSequenceId: sequenceId,
@@ -126,49 +146,142 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     }
 
     if (!mounted) return;
+    if (!notificationAllowed) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.permissionStatusDenied)));
+    }
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.alarmSaved)));
     context.pop();
   }
 
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(context: context, initialTime: _time);
+    if (picked != null) {
+      setState(() => _time = picked);
+    }
+  }
+
   Future<void> _pickRingtone() async {
     final l10n = AppLocalizations.of(context);
     final ringtones = ref.read(ringtonesProvider);
+    final audio = ref.read(audioPlayerServiceProvider);
+    String? previewing;
+
     final selected = await showModalBottomSheet<String>(
       context: context,
+      isScrollControlled: true,
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                  child: Text(
-                    l10n.alarmRingtone,
-                    style: context.textTheme.titleLarge,
-                  ),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> togglePreview(String name, String path) async {
+              if (previewing == name) {
+                await audio.stop();
+                setModalState(() => previewing = null);
+                return;
+              }
+              await audio.stop();
+              setModalState(() => previewing = name);
+              try {
+                await audio.playAsset(path);
+              } finally {
+                if (context.mounted) {
+                  setModalState(() {
+                    if (previewing == name) previewing = null;
+                  });
+                }
+              }
+            }
+
+            return SafeArea(
+              child: SizedBox(
+                height: MediaQuery.sizeOf(context).height * 0.7,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.alarmRingtone,
+                              style: context.textTheme.titleLarge,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: l10n.commonClose,
+                            onPressed: () async {
+                              await audio.stop();
+                              if (context.mounted) Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                      child: Text(
+                        l10n.ringtonePreviewHint,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: ringtones.length,
+                        itemBuilder: (context, index) {
+                          final ringtone = ringtones[index];
+                          final selected = _ringtoneName == ringtone.name;
+                          final playing = previewing == ringtone.name;
+                          return ListTile(
+                            title: Text(localizedRingtone(l10n, ringtone.name)),
+                            selected: selected,
+                            leading: Icon(
+                              selected
+                                  ? Icons.radio_button_checked_rounded
+                                  : Icons.radio_button_off_rounded,
+                              color: selected
+                                  ? context.colors.primary
+                                  : context.colors.onSurfaceVariant,
+                            ),
+                            trailing: IconButton(
+                              tooltip: playing
+                                  ? l10n.alarmStop
+                                  : l10n.ringtonePreview,
+                              onPressed: () => togglePreview(
+                                ringtone.name,
+                                ringtone.assetPath,
+                              ),
+                              icon: Icon(
+                                playing
+                                    ? Icons.stop_rounded
+                                    : Icons.play_arrow_rounded,
+                              ),
+                            ),
+                            onTap: () async {
+                              await audio.stop();
+                              if (context.mounted) {
+                                Navigator.pop(context, ringtone.name);
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                for (final ringtone in ringtones)
-                  ListTile(
-                    title: Text(localizedRingtone(l10n, ringtone.name)),
-                    trailing: _ringtoneName == ringtone.name
-                        ? Icon(
-                            Icons.check_circle_rounded,
-                            color: context.colors.primary,
-                          )
-                        : null,
-                    onTap: () => Navigator.pop(context, ringtone.name),
-                  ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
+    await audio.stop();
     if (selected != null) setState(() => _ringtoneName = selected);
   }
 
@@ -196,46 +309,34 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 children: [
                   SectionHeader(title: l10n.alarmTime),
                   SurfacePanel(
+                    onTap: _pickTime,
                     emphasized: true,
-                    child: Column(
+                    child: Row(
                       children: [
-                        Text(
-                          TimeFormatters.formatTime(_time),
-                          style: context.textTheme.displayMedium?.copyWith(
-                            letterSpacing: -1.4,
+                        Icon(
+                          Icons.schedule_rounded,
+                          color: context.colors.primary,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                TimeFormatters.formatTime(_time),
+                                style: context.textTheme.headlineMedium
+                                    ?.copyWith(letterSpacing: -1.0),
+                              ),
+                              Text(
+                                l10n.alarmSelectTime,
+                                style: context.textTheme.bodySmall,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: AppConstants.spaceSm),
-                        SizedBox(
-                          height: 148,
-                          child: CupertinoTheme(
-                            data: CupertinoThemeData(
-                              brightness: context.theme.brightness,
-                              textTheme: CupertinoTextThemeData(
-                                dateTimePickerTextStyle:
-                                    context.textTheme.titleLarge!,
-                              ),
-                            ),
-                            child: CupertinoDatePicker(
-                              mode: CupertinoDatePickerMode.time,
-                              use24hFormat: true,
-                              initialDateTime: DateTime(
-                                2026,
-                                1,
-                                1,
-                                _time.hour,
-                                _time.minute,
-                              ),
-                              onDateTimeChanged: (value) {
-                                setState(() {
-                                  _time = TimeOfDay(
-                                    hour: value.hour,
-                                    minute: value.minute,
-                                  );
-                                });
-                              },
-                            ),
-                          ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: context.colors.onSurfaceVariant,
                         ),
                       ],
                     ),
@@ -243,34 +344,42 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                   const SizedBox(height: AppConstants.spaceXl),
                   SectionHeader(title: l10n.alarmRepeat),
                   SurfacePanel(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: Weekday.values.map((day) {
-                        final selected = _repeatDays.contains(day);
-                        final label = switch (day) {
-                          Weekday.monday => l10n.dayMon,
-                          Weekday.tuesday => l10n.dayTue,
-                          Weekday.wednesday => l10n.dayWed,
-                          Weekday.thursday => l10n.dayThu,
-                          Weekday.friday => l10n.dayFri,
-                          Weekday.saturday => l10n.daySat,
-                          Weekday.sunday => l10n.daySun,
-                        };
-                        return AppChip(
-                          label: label,
-                          selected: selected,
-                          onTap: () {
-                            setState(() {
-                              if (selected) {
-                                _repeatDays.remove(day);
-                              } else {
-                                _repeatDays.add(day);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        for (final day in Weekday.values)
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
+                              child: _DayToggle(
+                                label: switch (day) {
+                                  Weekday.monday => l10n.dayMon,
+                                  Weekday.tuesday => l10n.dayTue,
+                                  Weekday.wednesday => l10n.dayWed,
+                                  Weekday.thursday => l10n.dayThu,
+                                  Weekday.friday => l10n.dayFri,
+                                  Weekday.saturday => l10n.daySat,
+                                  Weekday.sunday => l10n.daySun,
+                                },
+                                selected: _repeatDays.contains(day),
+                                onTap: () {
+                                  setState(() {
+                                    if (_repeatDays.contains(day)) {
+                                      _repeatDays.remove(day);
+                                    } else {
+                                      _repeatDays.add(day);
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: AppConstants.spaceXl),
@@ -420,6 +529,50 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DayToggle extends StatelessWidget {
+  const _DayToggle({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Material(
+      color: selected ? colors.primary : colors.surface,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: SizedBox(
+          height: 40,
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: context.textTheme.labelSmall?.copyWith(
+                    color: selected ? colors.onPrimary : colors.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

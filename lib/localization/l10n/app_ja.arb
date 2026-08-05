@@ -102,6 +102,10 @@
   "recordReady": "保存の準備完了",
   "recordSaved": "録音を保存しました",
   "recordDefaultName": "音声録音",
+  "recordPermissionTitle": "マイクへのアクセス",
+  "recordPermissionRationale": "アラームに使用する音声を録音するため、マイクへのアクセスが必要です。",
+  "recordPermissionDenied": "マイクへのアクセスが許可されていません。録音は開始されませんでした。もう一度お試しいただけます。",
+  "recordPermissionPermanentlyDenied": "マイクへのアクセスがブロックされています。録音前にシステム設定で許可してください。",
   "settingsTitle": "設定",
   "settingsAppearance": "外観",
   "settingsTheme": "テーマ",
@@ -221,15 +225,14 @@
   "aboutAppName": "アプリ名",
   "aboutVersion": "バージョン",
   "aboutDeveloper": "開発者",
-  "aboutDeveloperValue": "Tom Satthu",
-  "aboutGithub": "GitHubリポジトリ",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutEmail": "メールサポート",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "ウェブサイト",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "近日公開",
   "voiceSystemDefault": "システムデフォルト",
+  "voiceSystemDefaultHint": "デバイスの設定で管理されます",
   "notificationChannelAlarms": "アラーム",
   "notificationChannelAlarmsDesc": "音声アラームの通知",
   "notificationChannelReminders": "リマインダー",
@@ -260,6 +263,182 @@
     }
   },
   "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmSelectTime": "タップして時刻を選択",
+  "segmentPlay": "再生",
+  "voicePlaying": "再生中",
+  "voiceSelect": "選択",
+  "voiceUnavailable": "音声を利用できません",
+  "recordingFileMissing": "録音ファイルがありません。このセグメントを削除するか、再録音してください。",
+  "voiceDetails": "音声の詳細",
+  "ttsSelectedVoice": "選択中の音声",
+  "voicePreviewSample": "これはこの音声の短いプレビューです。",
+  "alarmDismissTitle": "解いて停止",
+  "alarmDismissHint": "正しく答えるとアラームが止まります。",
+  "alarmDismissWrong": "不正解です。別の問題です。",
+  "alarmDismissCheck": "確認",
+  "alarmDismissAnswerHint": "答え",
+  "voicesRefreshed": "更新しました: {count} 件の音声",
+  "voicesSelectedSaved": "保存した音声: {name}",
+  "voicesDownloadThenSelect": "端末の音声管理を開きます。ダウンロード後、ここに戻ってください。",
+  "voicesRefreshHint": "音声を更新すると、インストール後のシステムTTS音声を再読み込みします。",
+  "ringtonePreview": "プレビュー",
+  "ringtonePreviewHint": "再生で試聴し、名前をタップして選択します。",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "端末の音声管理を開きます。ダウンロード後、ここに戻ってください。",
+  "voicesCurrentVoice": "使用中の音声",
+  "voicesNewlyInstalled": "新しくインストールした音声",
+  "voicesOnDevice": "この端末の音声",
+  "voicesRescan": "音声を再スキャン",
+  "voicesRescanResult": "利用可能な音声が {count} 件見つかりました",
+  "voicesNewFound": "新しい音声が {count} 件見つかりました。",
+  "voicesNoNewFound": "新しい音声は検出されませんでした。",
+  "voicesSystemUpdated": "端末設定から{language}の音声を更新しました。",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "音声の変更は検出されませんでした。",
+  "voicesSettingsRefreshed": "端末の音声設定を更新しました。",
+  "voicesSystemChanges": "端末の音声更新",
+  "voicesSystemChangeEvent": "端末の{language}音声設定が更新されました。",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "新しい音声や端末の更新はここに表示されます。",
+  "commonClear": "クリア",
+  "voicesNewBadge": "新規",
+  "voiceFriendlyName": "音声 {number}",
+  "voicesOpenManagerFailed": "音声管理を開けませんでした。システムの読み上げ設定を開いてください。",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "currentVoice": "現在の音声",
+  "scanDeviceVoices": "端末の音声をスキャン",
+  "availableDeviceVoices": "端末で利用できる音声",
+  "scanVoicesHint": "「端末の音声をスキャン」をタップして、インストール済みの音声を表示します。",
+  "noDeviceVoicesFound": "端末に適した音声が見つかりませんでした。",
+  "scanVoicesFailed": "音声をスキャンできませんでした。もう一度お試しください。",
+  "voiceSetupGuide": "音声の追加方法",
+  "openVoiceSettings": "音声設定を開く",
+  "androidVoiceSetupSteps": "1. 端末の設定を開きます。\n2. テキスト読み上げ / Text-to-speech を探します。\n3. 使用中の TTS エンジンを開きます。\n4. 言語または音声データの画面を開きます。\n5. 新しい音声をインストールします。\n6. アプリに戻り、端末の音声をスキャンします。",
+  "iosVoiceSetupSteps": "1. 設定を開きます。\n2. アクセシビリティを開きます。\n3. 読み上げコンテンツまたは声を開きます。\n4. 言語を選び、利用可能な音声をダウンロードします。\n5. アプリに戻り、再度スキャンします。\niOS のバージョンによってメニュー名は異なる場合があります。",
+  "webVoiceAvailabilityInfo": "Web では、利用可能な音声はブラウザと OS が提供します。",
+  "lastScanned": "最終スキャン: {time}",
+  "voiceInUse": "使用中",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "otherLanguages": "その他の言語",
+  "voicesInLanguage": "{count, plural, =0{音声なし} =1{音声 1} other{音声 {count}}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "言語の音声を展開",
+  "collapseLanguageVoices": "言語の音声を折りたたむ",
+  "voicePreviewNamed": "{name} をプレビュー",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSoundAndVoice": "音と音声",
+  "settingsAlarmsSection": "アラーム",
+  "supportAndFeedback": "サポート",
+  "contactSupport": "お問い合わせとフィードバック",
+  "supportEmailSubject": "Smart Voice Alarm サポート",
+  "emailCopied": "サポートメールをコピーしました",
+  "linkUnavailable": "このリンクはまだ利用できません",
+  "openSourceLicenses": "オープンソースライセンス",
+  "appInformation": "アプリ情報",
+  "appVersion": "アプリのバージョン",
+  "permissionsAndBackground": "権限とバックグラウンド",
+  "notificationPermission": "通知",
+  "exactAlarmPermission": "正確なアラーム",
+  "fullScreenAlarmPermission": "全画面アラーム",
+  "openSystemSettings": "システム設定を開く",
+  "openSystemSettingsHint": "通知と関連権限を管理",
+  "permissionStatusGranted": "許可済み",
+  "permissionStatusDenied": "未許可",
+  "permissionStatusUnknown": "不明",
+  "trialDaysRemaining": "{count} 日間の試用期間が残っています",
+  "trialLessThanOneDay": "試用期間は残り1日未満です",
+  "premiumUpgrade": "Premiumにアップグレード",
+  "premiumAnnualTitle": "1年間のPremium",
+  "premiumAnnualDescription": "7日間の試用後もSmart Voice Alarmの全機能を利用できます。",
+  "premiumAnnualPlan": "Premium年間プラン",
+  "premiumAnnualAutoRenew": "キャンセルするまで毎年自動更新されます。",
+  "premiumAnnualCancelInPlay": "Google Playで管理またはキャンセルできます。",
+  "premiumAnnualAccess": "サブスクリプションが有効な間は全機能を利用できます。",
+  "premiumSubscribeAnnual": "Premiumを1年間購読",
+  "premiumDefer": "後で",
+  "premiumRestoreTransactions": "購入を復元",
+  "premiumManageSubscription": "サブスクリプションを管理",
+  "premiumProductUnavailable": "年間サブスクリプションはまだGoogle Playで利用できません。",
+  "premiumBillingUnavailable": "Google Play Billingを現在利用できません。",
+  "premiumPurchaseActive": "Premiumは有効です",
+  "premiumTrialExpiredTitle": "試用期間が終了しました",
+  "premiumTrialExpiredBody": "主な機能を引き続き利用するには購読してください。既存のアラームは鳴動し、無効化または削除できます。",
+  "premiumRetryVerification": "再試行",
+  "premiumViewExistingAlarms": "既存のアラームを表示",
+  "premiumClientVerificationNotice": "サブスクリプション状態はこの端末でストアを通じて確認されます。",
+  "premiumUnableToVerify": "サブスクリプション状態を確認できません。",
+  "premiumRestrictedAlarmsTitle": "アラームへの制限付きアクセス",
+  "premiumRestrictedAlarmsBody": "既存のアラームを無効化または削除できます。作成や編集には購読が必要です。",
+  "@trialDaysRemaining": {
     "placeholders": {
       "count": {
         "type": "int"

@@ -4,11 +4,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/localization/locale_display_names.dart';
+import '../../../../core/localization/voice_catalog.dart';
 import '../../../../core/responsive/responsive.dart';
+import '../../../../core/services/recording_service.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/models/ui_models.dart';
@@ -31,6 +35,8 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
   final _controller = TextEditingController();
   String? _selectedVoiceId;
   String? _selectedLocale;
+  String? _selectedVoiceName;
+  TtsVoiceQuality? _selectedQuality;
   bool _previewing = false;
   bool _hydratedVoice = false;
 
@@ -40,6 +46,14 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void deactivate() {
+    if (!ref.read(alarmEngineProvider).isRunning) {
+      ref.read(ttsServiceProvider).stop();
+    }
+    super.deactivate();
   }
 
   @override
@@ -67,15 +81,16 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
       preferredLocale: _selectedLocale ?? preferred.locale,
     );
     if (!mounted) return;
+    final fellBack = preferred.id != null && preferred.id != resolved.id;
     setState(() {
       _selectedVoiceId = resolved.id;
       _selectedLocale = resolved.locale;
+      _selectedVoiceName = resolved.name;
+      _selectedQuality = resolved.quality;
     });
-    if (preferred.id != null && preferred.id != resolved.id) {
+    if (fellBack) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).ttsVoiceFallback),
-        ),
+        SnackBar(content: Text(AppLocalizations.of(context).ttsVoiceFallback)),
       );
     }
   }
@@ -101,12 +116,45 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
     return voices.first;
   }
 
+  String? _qualityLabel(AppLocalizations l10n, TtsVoiceQuality? quality) {
+    if (quality == null) return null;
+    return switch (quality) {
+      TtsVoiceQuality.defaultQuality => l10n.voiceQualityDefault,
+      TtsVoiceQuality.enhanced => l10n.voiceQualityEnhanced,
+      TtsVoiceQuality.premium => l10n.voiceQualityPremium,
+    };
+  }
+
+  Future<void> _openVoicePicker(List<TtsVoiceUiModel> voices) async {
+    await ref.read(ttsServiceProvider).stop();
+    if (!mounted) return;
+    final picked = await showVoicePicker(
+      context: context,
+      voices: voices,
+      selectedVoiceId: _selectedVoiceId,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _selectedVoiceId = picked.id;
+      _selectedLocale = picked.locale;
+      _selectedVoiceName = picked.name;
+      _selectedQuality = picked.quality;
+    });
+  }
+
   Future<void> _preview() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+    if (_previewing) {
+      await ref.read(ttsServiceProvider).stop();
+      if (mounted) setState(() => _previewing = false);
+      return;
+    }
     setState(() => _previewing = true);
     try {
-      await ref.read(ttsServiceProvider).preview(
+      await ref
+          .read(ttsServiceProvider)
+          .preview(
             text: text,
             voiceId: _selectedVoiceId,
             locale: _selectedLocale,
@@ -134,16 +182,18 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
             preferredLocale: _selectedLocale,
           );
 
-    await ref.read(voiceSequenceProvider(_sequenceId).notifier).add(
+    await ref
+        .read(voiceSequenceProvider(_sequenceId).notifier)
+        .add(
           VoiceSegmentUiModel(
             id: const Uuid().v4(),
             name: text.length > 28 ? '${text.substring(0, 28)}…' : text,
             type: VoiceSegmentType.tts,
             duration: Duration(
               seconds: (text.split(RegExp(r'\s+')).length * 0.4).ceil().clamp(
-                    3,
-                    60,
-                  ),
+                3,
+                60,
+              ),
             ),
             text: text,
             voiceId: resolved.id,
@@ -151,9 +201,12 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
           ),
         );
 
-    await ref.read(preferredVoiceProvider.notifier).setVoice(
+    await ref
+        .read(preferredVoiceProvider.notifier)
+        .setVoice(
           id: resolved.id,
           locale: resolved.locale,
+          language: VoiceCatalog.languageCodeOf(resolved.locale),
         );
 
     if (!mounted) return;
@@ -197,6 +250,12 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _ensureVoiceSelection(voices);
             });
+            final voiceLabel = _selectedVoiceName == null
+                ? l10n.voiceSelect
+                : (_selectedVoiceName == 'System Default'
+                      ? l10n.voiceSystemDefault
+                      : _selectedVoiceName!);
+            final quality = _qualityLabel(l10n, _selectedQuality);
             return Column(
               children: [
                 Expanded(
@@ -212,21 +271,38 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                         maxLines: 5,
                         minLines: 4,
                         textInputAction: TextInputAction.newline,
-                        decoration:
-                            InputDecoration(hintText: l10n.ttsInputHint),
+                        decoration: InputDecoration(
+                          hintText: l10n.ttsInputHint,
+                        ),
                         onChanged: (_) => setState(() {}),
                       ),
                       const SizedBox(height: AppConstants.spaceXl),
-                      SectionHeader(title: l10n.ttsVoices),
-                      VoiceBrowser(
-                        voices: voices,
-                        selectedVoiceId: _selectedVoiceId,
-                        onSelected: (voice) {
-                          setState(() {
-                            _selectedVoiceId = voice.id;
-                            _selectedLocale = voice.locale;
-                          });
-                        },
+                      SectionHeader(title: l10n.ttsSelectedVoice),
+                      SurfacePanel(
+                        onTap: () => _openVoicePicker(voices),
+                        emphasized: true,
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.record_voice_over_rounded,
+                              color: context.colors.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: VoiceIdentityBlock(
+                                languageLabel: LocaleDisplayNames.friendly(
+                                  _selectedLocale ?? 'en-US',
+                                ),
+                                voiceName: voiceLabel,
+                                qualityLabel: quality,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: context.colors.onSurfaceVariant,
+                            ),
+                          ],
+                        ),
                       ),
                       TextButton(
                         onPressed: () => context.push(AppRoutes.voiceSpeech),
@@ -240,10 +316,9 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed:
-                              _previewing || _controller.text.trim().isEmpty
-                                  ? null
-                                  : _preview,
+                          onPressed: _controller.text.trim().isEmpty
+                              ? null
+                              : _preview,
                           icon: _previewing
                               ? const SizedBox(
                                   width: 16,
@@ -252,17 +327,22 @@ class _TtsScreenState extends ConsumerState<TtsScreen>
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Icon(Icons.play_arrow_rounded),
+                              : Icon(
+                                  _previewing
+                                      ? Icons.stop_rounded
+                                      : Icons.play_arrow_rounded,
+                                ),
                           label: Text(
-                            _previewing ? l10n.ttsPreviewing : l10n.ttsPreview,
+                            _previewing ? l10n.voicePlaying : l10n.ttsPreview,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed:
-                              _controller.text.trim().isEmpty ? null : _save,
+                          onPressed: _controller.text.trim().isEmpty
+                              ? null
+                              : _save,
                           icon: const Icon(Icons.check_rounded),
                           label: Text(l10n.ttsSave),
                         ),
@@ -290,7 +370,8 @@ class RecordScreen extends ConsumerStatefulWidget {
 
 enum _RecordPhase { idle, recording, ready, playing }
 
-class _RecordScreenState extends ConsumerState<RecordScreen> {
+class _RecordScreenState extends ConsumerState<RecordScreen>
+    with WidgetsBindingObserver {
   _RecordPhase _phase = _RecordPhase.idle;
   Duration _elapsed = Duration.zero;
   String? _filePath;
@@ -299,22 +380,137 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   String get _sequenceId => widget.sequenceId ?? defaultSequenceId;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void deactivate() {
+    if (!ref.read(alarmEngineProvider).isRunning) {
+      ref.read(audioPlayerServiceProvider).stop();
+    }
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _ticker?.cancel();
+    unawaited(_abandonUnsavedRecording());
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      unawaited(_cancelForBackground());
+    }
+  }
+
+  Future<void> _abandonUnsavedRecording() async {
+    await ref.read(audioPlayerServiceProvider).stop();
+    await ref.read(recordingServiceProvider).cancel();
+  }
+
+  Future<void> _cancelForBackground() async {
+    if (_phase != _RecordPhase.recording) return;
+    _ticker?.cancel();
+    await _abandonUnsavedRecording();
+    if (!mounted) return;
+    setState(() {
+      _phase = _RecordPhase.idle;
+      _elapsed = Duration.zero;
+      _filePath = null;
+    });
+  }
+
+  Future<bool> _requestMicrophoneAccess() async {
+    final recorder = ref.read(recordingServiceProvider);
+    final current = await recorder.microphoneAccess();
+    if (current == MicrophoneAccess.granted) return true;
+    if (!mounted) return false;
+
+    if (current == MicrophoneAccess.permanentlyDenied ||
+        current == MicrophoneAccess.restricted) {
+      return _showMicrophoneBlocked(permanent: true);
+    }
+
+    final l10n = AppLocalizations.of(context);
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.recordPermissionTitle),
+        content: Text(l10n.recordPermissionRationale),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.recordStart),
+          ),
+        ],
+      ),
+    );
+    if (proceed != true) return false;
+
+    final requested = await recorder.microphoneAccess(request: true);
+    if (requested == MicrophoneAccess.granted) return true;
+    if (!mounted) return false;
+    return _showMicrophoneBlocked(
+      permanent:
+          requested == MicrophoneAccess.permanentlyDenied ||
+          requested == MicrophoneAccess.restricted,
+    );
+  }
+
+  Future<bool> _showMicrophoneBlocked({required bool permanent}) async {
+    final l10n = AppLocalizations.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.recordPermissionTitle),
+        content: Text(
+          permanent
+              ? l10n.recordPermissionPermanentlyDenied
+              : l10n.recordPermissionDenied,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.commonCancel),
+          ),
+          if (permanent)
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await openAppSettings();
+              },
+              child: Text(l10n.openSystemSettings),
+            ),
+        ],
+      ),
+    );
+    return false;
   }
 
   Future<void> _start() async {
     final l10n = AppLocalizations.of(context);
     if (kIsWeb) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.recordHint)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.recordHint)));
       return;
     }
 
     try {
       final recorder = ref.read(recordingServiceProvider);
+      await ref.read(audioPlayerServiceProvider).stop();
+      if (!await _requestMicrophoneAccess()) return;
       await recorder.start();
       _filePath = recorder.currentPath;
       setState(() {
@@ -328,28 +524,44 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
       });
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('$error')));
     }
   }
 
   Future<void> _stop() async {
     if (_phase != _RecordPhase.recording) return;
     _ticker?.cancel();
-    final path = await ref.read(recordingServiceProvider).stop();
-    setState(() {
-      _filePath = path ?? _filePath;
-      _phase = _RecordPhase.ready;
-    });
+    try {
+      final path = await ref.read(recordingServiceProvider).stop();
+      if (!mounted) return;
+      setState(() {
+        _filePath = path ?? _filePath;
+        _phase = _RecordPhase.ready;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _filePath = null;
+        _phase = _RecordPhase.idle;
+        _elapsed = Duration.zero;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).recordReady)),
+      );
+    }
   }
 
   Future<void> _play() async {
     final path = _filePath;
     if (path == null) return;
-    if (_phase != _RecordPhase.ready && _phase != _RecordPhase.playing) {
+    if (_phase == _RecordPhase.playing) {
+      await ref.read(audioPlayerServiceProvider).stop();
+      if (mounted) setState(() => _phase = _RecordPhase.ready);
       return;
     }
+    if (_phase != _RecordPhase.ready) return;
     setState(() => _phase = _RecordPhase.playing);
     try {
       await ref.read(audioPlayerServiceProvider).playFile(path);
@@ -373,7 +585,9 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     final path = _filePath;
     if (path == null) return;
 
-    await ref.read(voiceSequenceProvider(_sequenceId).notifier).add(
+    await ref
+        .read(voiceSequenceProvider(_sequenceId).notifier)
+        .add(
           VoiceSegmentUiModel(
             id: const Uuid().v4(),
             name: l10n.recordDefaultName,
@@ -384,6 +598,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
             filePath: path,
           ),
         );
+    ref.read(recordingServiceProvider).retainCurrentFile();
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
@@ -444,8 +659,16 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: canSave ? _play : null,
-                      icon: const Icon(Icons.play_arrow_rounded),
-                      label: Text(l10n.recordPlay),
+                      icon: Icon(
+                        _phase == _RecordPhase.playing
+                            ? Icons.stop_rounded
+                            : Icons.play_arrow_rounded,
+                      ),
+                      label: Text(
+                        _phase == _RecordPhase.playing
+                            ? l10n.alarmStop
+                            : l10n.recordPlay,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),

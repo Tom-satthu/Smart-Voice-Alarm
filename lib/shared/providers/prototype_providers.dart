@@ -5,15 +5,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/localization/app_locale_support.dart';
+import '../../core/localization/voice_catalog.dart';
 import '../../core/services/alarm_engine.dart';
 import '../../core/services/audio_player_service.dart';
 import '../../core/services/notification_service.dart';
-import '../../core/services/premium_entitlement_service.dart';
 import '../../core/services/premium_purchase_service.dart';
+import '../../core/services/recording_file_store.dart';
 import '../../core/services/recording_service.dart';
 import '../../core/services/storage_paths.dart';
 import '../../core/services/tts_platform_bridge.dart';
 import '../../core/services/tts_service.dart';
+import '../../core/services/trial_entitlement_service.dart';
 import '../data/local_store.dart';
 import '../models/ui_models.dart';
 
@@ -35,28 +37,23 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
 });
 
-final premiumEntitlementProvider = Provider<PremiumEntitlementService>((ref) {
-  return PremiumEntitlementService(ref.watch(settingsRepositoryProvider));
-});
-
 final premiumPurchaseServiceProvider = Provider<PremiumPurchaseService>((ref) {
-  final service = PremiumPurchaseService(
-    entitlement: ref.watch(premiumEntitlementProvider),
-  );
+  final service = PremiumPurchaseService();
   ref.onDispose(service.dispose);
   return service;
 });
 
 final premiumPurchaseProvider =
     StateNotifierProvider<PremiumPurchaseController, PremiumPurchaseState>((
-  ref,
-) {
-  return PremiumPurchaseController(ref.watch(premiumPurchaseServiceProvider));
-});
+      ref,
+    ) {
+      return PremiumPurchaseController(
+        ref.watch(premiumPurchaseServiceProvider),
+      );
+    });
 
 class PremiumPurchaseController extends StateNotifier<PremiumPurchaseState> {
-  PremiumPurchaseController(this._service)
-      : super(_service.state) {
+  PremiumPurchaseController(this._service) : super(_service.state) {
     _sub = _service.stream.listen((next) {
       if (mounted) state = next;
     });
@@ -70,6 +67,8 @@ class PremiumPurchaseController extends StateNotifier<PremiumPurchaseState> {
   Future<void> buy() => _service.buy();
   Future<void> restore() => _service.restore();
   Future<void> refreshProducts() => _service.refreshProducts();
+  Future<void> syncEntitlementsFromStore() =>
+      _service.syncEntitlementsFromStore();
 
   @override
   void dispose() {
@@ -78,10 +77,76 @@ class PremiumPurchaseController extends StateNotifier<PremiumPurchaseState> {
   }
 }
 
-final isPremiumProvider = Provider<bool>((ref) {
-  final purchase = ref.watch(premiumPurchaseProvider);
-  final local = ref.watch(premiumEntitlementProvider).isPremium;
-  return purchase.isPremium || local;
+final trialEntitlementServiceProvider = Provider<TrialEntitlementService>((
+  ref,
+) {
+  return TrialEntitlementService(
+    store: SettingsTrialEntitlementStore(ref.watch(settingsRepositoryProvider)),
+  );
+});
+
+final trialEntitlementProvider =
+    StateNotifierProvider<TrialEntitlementController, TrialEntitlementState>((
+      ref,
+    ) {
+      final controller = TrialEntitlementController(
+        trial: ref.watch(trialEntitlementServiceProvider),
+        initializeBilling: () async {
+          await ref.read(premiumPurchaseProvider.notifier).init();
+          return ref.read(premiumPurchaseProvider);
+        },
+        refreshBilling: () async {
+          await ref
+              .read(premiumPurchaseProvider.notifier)
+              .syncEntitlementsFromStore();
+          return ref.read(premiumPurchaseProvider);
+        },
+      );
+      ref.listen<PremiumPurchaseState>(premiumPurchaseProvider, (_, next) {
+        controller.applyPurchaseState(next);
+      });
+      return controller;
+    });
+
+class TrialEntitlementController extends StateNotifier<TrialEntitlementState> {
+  TrialEntitlementController({
+    required TrialEntitlementService trial,
+    required Future<PremiumPurchaseState> Function() initializeBilling,
+    required Future<PremiumPurchaseState> Function() refreshBilling,
+  }) : _trial = trial,
+       _initializeBilling = initializeBilling,
+       _refreshBilling = refreshBilling,
+       super(const TrialEntitlementState.initializing());
+
+  final TrialEntitlementService _trial;
+  final Future<PremiumPurchaseState> Function() _initializeBilling;
+  final Future<PremiumPurchaseState> Function() _refreshBilling;
+  bool _initialized = false;
+
+  Future<void> initializeSuccessfulLaunch() async {
+    if (_initialized) return;
+    _initialized = true;
+    state = const TrialEntitlementState.initializing();
+    await _trial.initializeSuccessfulLaunch();
+    final purchase = await _initializeBilling();
+    state = await _trial.applySubscriptionVerification(purchase.verification);
+  }
+
+  Future<void> refreshOnResume() async {
+    if (!_initialized) return;
+    state = await _trial.refreshLocalTime();
+    final purchase = await _refreshBilling();
+    state = await _trial.applySubscriptionVerification(purchase.verification);
+  }
+
+  Future<void> applyPurchaseState(PremiumPurchaseState purchase) async {
+    if (!_initialized || !mounted) return;
+    state = await _trial.applySubscriptionVerification(purchase.verification);
+  }
+}
+
+final canUseMainFeaturesProvider = Provider<bool>((ref) {
+  return ref.watch(trialEntitlementProvider).hasFullAccess;
 });
 
 final audioPlayerServiceProvider = Provider<AudioPlayerService>((ref) {
@@ -97,7 +162,7 @@ final recordingServiceProvider = Provider<RecordingService>((ref) {
 });
 
 final ttsServiceProvider = Provider<TtsService>((ref) {
-  return TtsService();
+  return TtsService(bridge: ref.watch(ttsPlatformBridgeProvider));
 });
 
 final ttsPlatformBridgeProvider = Provider<TtsPlatformBridge>((ref) {
@@ -112,8 +177,9 @@ final alarmEngineProvider = Provider<AlarmEngine>((ref) {
     tts: ref.watch(ttsServiceProvider),
     alarmRepository: alarmRepo,
     sequenceRepository: ref.watch(sequenceRepositoryProvider),
+    onStopNative: () => notifications.native.stopForegroundAlarm(),
     onAlarmStarted: (alarm) async {
-      await notifications.native.stopForegroundAlarm();
+      // Native audio already stopped in AlarmEngine._playAlarm before this.
       if (alarm.repeatDays.isEmpty) {
         final disabled = alarm.copyWith(isEnabled: false);
         await alarmRepo.upsert(disabled);
@@ -134,10 +200,10 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
     AlarmRepository? repo,
     NotificationService? notifications,
     VoiceSequenceRepository? sequences,
-  ])  : _repo = repo ?? AlarmRepository(),
-        _notifications = notifications ?? NotificationService(),
-        _sequences = sequences ?? VoiceSequenceRepository(),
-        super(const []) {
+  ]) : _repo = repo ?? AlarmRepository(),
+       _notifications = notifications ?? NotificationService(),
+       _sequences = sequences ?? VoiceSequenceRepository(),
+       super(const []) {
     state = _repo.loadAll();
   }
 
@@ -163,9 +229,27 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
   }
 
   Future<void> remove(String id) async {
+    final removed = state.where((alarm) => alarm.id == id).firstOrNull;
     state = state.where((alarm) => alarm.id != id).toList();
     await _repo.delete(id);
     await _notifications.cancelAlarm(id);
+    final sequenceId = removed?.voiceSequenceId;
+    if (sequenceId != null &&
+        !state.any((alarm) => alarm.voiceSequenceId == sequenceId)) {
+      final orphan = _sequences.findById(sequenceId);
+      if (orphan != null) {
+        await _sequences.delete(sequenceId);
+        final remaining = _sequences.loadAll();
+        for (final segment in orphan.segments) {
+          if (segment.type == VoiceSegmentType.recording) {
+            await RecordingFileStore.deleteIfUnreferenced(
+              segment.filePath,
+              remaining,
+            );
+          }
+        }
+      }
+    }
   }
 
   Future<void> add(AlarmUiModel alarm) async {
@@ -205,8 +289,7 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
       id: _uuid.v4(),
       name: '${source.name} copy',
       segments: [
-        for (final segment in source.segments)
-          segment.copyWith(id: _uuid.v4()),
+        for (final segment in source.segments) segment.copyWith(id: _uuid.v4()),
       ],
     );
     await _sequences.upsert(copy);
@@ -226,33 +309,34 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
   }
 
   static int _byTime(AlarmUiModel a, AlarmUiModel b) {
-    return (a.time.hour * 60 + a.time.minute)
-        .compareTo(b.time.hour * 60 + b.time.minute);
+    return (a.time.hour * 60 + a.time.minute).compareTo(
+      b.time.hour * 60 + b.time.minute,
+    );
   }
 }
 
 final alarmListProvider =
     StateNotifierProvider<AlarmListController, List<AlarmUiModel>>((ref) {
-  return AlarmListController(
-    ref.watch(alarmRepositoryProvider),
-    ref.watch(notificationServiceProvider),
-    ref.watch(sequenceRepositoryProvider),
-  );
-});
+      return AlarmListController(
+        ref.watch(alarmRepositoryProvider),
+        ref.watch(notificationServiceProvider),
+        ref.watch(sequenceRepositoryProvider),
+      );
+    });
 
 class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
   VoiceSequenceController([
     VoiceSequenceRepository? repo,
     VoiceSequenceUiModel? initial,
-  ])  : _repo = repo ?? VoiceSequenceRepository(),
-        super(
-          initial ??
-              const VoiceSequenceUiModel(
-                id: 'seq-1',
-                name: 'Morning motivation',
-                segments: [],
-              ),
-        );
+  ]) : _repo = repo ?? VoiceSequenceRepository(),
+       super(
+         initial ??
+             const VoiceSequenceUiModel(
+               id: 'seq-1',
+               name: 'Morning motivation',
+               segments: [],
+             ),
+       );
 
   final VoiceSequenceRepository _repo;
 
@@ -268,10 +352,16 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
   }
 
   Future<void> removeAt(int index) async {
-    final segments = List<VoiceSegmentUiModel>.from(state.segments)
-      ..removeAt(index);
+    final segments = List<VoiceSegmentUiModel>.from(state.segments);
+    final removed = segments.removeAt(index);
     state = state.copyWith(segments: segments);
     await persist();
+    if (removed.type == VoiceSegmentType.recording) {
+      await RecordingFileStore.deleteIfUnreferenced(
+        removed.filePath,
+        _repo.loadAll(),
+      );
+    }
   }
 
   Future<void> add(VoiceSegmentUiModel segment) async {
@@ -292,63 +382,112 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
   }
 }
 
-final voiceSequenceProvider = StateNotifierProvider.family<
-    VoiceSequenceController, VoiceSequenceUiModel, String>((ref, sequenceId) {
-  final repo = ref.watch(sequenceRepositoryProvider);
-  final existing = repo.findById(sequenceId);
-  final initial = existing ??
-      VoiceSequenceUiModel(
-        id: sequenceId,
-        name: 'Voice Sequence',
-        segments: const [],
-      );
-  final controller = VoiceSequenceController(repo, initial);
-  if (existing == null) {
-    // Fire-and-forget create so nested screens can write segments.
-    controller.persist();
-  }
-  return controller;
-});
+final voiceSequenceProvider =
+    StateNotifierProvider.family<
+      VoiceSequenceController,
+      VoiceSequenceUiModel,
+      String
+    >((ref, sequenceId) {
+      final repo = ref.watch(sequenceRepositoryProvider);
+      final existing = repo.findById(sequenceId);
+      final initial =
+          existing ??
+          VoiceSequenceUiModel(
+            id: sequenceId,
+            name: 'Voice Sequence',
+            segments: const [],
+          );
+      final controller = VoiceSequenceController(repo, initial);
+      if (existing == null) {
+        // Fire-and-forget create so nested screens can write segments.
+        controller.persist();
+      }
+      return controller;
+    });
 
 /// Fallback sequence id used when a route omits `?id=`.
 const defaultSequenceId = 'seq-1';
 
-final ttsVoicesProvider =
-    FutureProvider.autoDispose<List<TtsVoiceUiModel>>((ref) async {
-  return ref.watch(ttsServiceProvider).loadVoices();
+final ttsVoicesProvider = FutureProvider.autoDispose<List<TtsVoiceUiModel>>((
+  ref,
+) async {
+  final preferred = ref.watch(preferredVoiceProvider);
+  final app = ref.watch(localeProvider);
+  final system = WidgetsBinding.instance.platformDispatcher.locale;
+  return ref
+      .watch(ttsServiceProvider)
+      .loadVoices(
+        preferredLocale: preferred.locale,
+        appLocale: app.toLanguageTag(),
+        systemLocale: system.toLanguageTag(),
+      );
 });
 
 final usableTtsVoicesProvider =
     FutureProvider.autoDispose<List<TtsVoiceUiModel>>((ref) async {
-  return ref.watch(ttsServiceProvider).loadUsableVoices();
-});
+      final preferred = ref.watch(preferredVoiceProvider);
+      final app = ref.watch(localeProvider);
+      final system = WidgetsBinding.instance.platformDispatcher.locale;
+      return ref
+          .watch(ttsServiceProvider)
+          .loadUsableVoices(
+            preferredLocale: preferred.locale,
+            appLocale: app.toLanguageTag(),
+            systemLocale: system.toLanguageTag(),
+          );
+    });
 
-class PreferredVoiceController extends StateNotifier<
-    ({String? id, String? locale, String? language})> {
+class PreferredVoiceController
+    extends StateNotifier<({String? id, String? locale, String? language})> {
   PreferredVoiceController([SettingsRepository? repo])
-      : _repo = repo ?? SettingsRepository(),
-        super((
-          id: (repo ?? SettingsRepository()).loadPreferredVoiceId(),
-          locale: (repo ?? SettingsRepository()).loadPreferredVoiceLocale(),
-          language: (repo ?? SettingsRepository()).loadPreferredVoiceLanguage(),
-        )) {
-    state = (
-      id: _repo.loadPreferredVoiceId(),
-      locale: _repo.loadPreferredVoiceLocale(),
-      language: _repo.loadPreferredVoiceLanguage(),
-    );
-  }
+    : _repo = repo ?? SettingsRepository(),
+      super(_loadAndMigrate(repo ?? SettingsRepository()));
 
   final SettingsRepository _repo;
+
+  static ({String? id, String? locale, String? language}) _loadAndMigrate(
+    SettingsRepository repo,
+  ) {
+    final rawId = repo.loadPreferredVoiceId();
+    final normalizedId = VoiceCatalog.normalizeSystemDefaultVoiceId(rawId);
+    final locale = repo.loadPreferredVoiceLocale();
+    var language = repo.loadPreferredVoiceLanguage();
+    if (normalizedId != null &&
+        normalizedId.startsWith('system-default|') &&
+        (language == null || language.isEmpty)) {
+      language = VoiceCatalog.languageCodeOf(
+        normalizedId.substring('system-default|'.length),
+      );
+    }
+    if (normalizedId != null &&
+        normalizedId != rawId &&
+        normalizedId.startsWith('system-default|')) {
+      // Persist legacy → language-scoped system-default id (idempotent).
+      unawaited(
+        repo.savePreferredVoice(voiceId: normalizedId, localeId: locale),
+      );
+      if (language != null) {
+        unawaited(repo.savePreferredVoiceLanguage(language));
+      }
+    }
+    return (id: normalizedId, locale: locale, language: language);
+  }
 
   Future<void> setVoice({
     required String id,
     required String locale,
     String? language,
   }) async {
-    final lang = language ?? locale.split(RegExp('[-_]')).first.toLowerCase();
-    state = (id: id, locale: locale, language: lang);
-    await _repo.savePreferredVoice(voiceId: id, localeId: locale);
+    final normalizedId = VoiceCatalog.normalizeSystemDefaultVoiceId(id) ?? id;
+    final normalizedLocale = VoiceCatalog.normalizeLocaleTag(locale);
+    final lang = VoiceCatalog.normalizeLanguageCode(
+      language ?? VoiceCatalog.languageCodeOf(normalizedLocale),
+    );
+    state = (id: normalizedId, locale: normalizedLocale, language: lang);
+    await _repo.savePreferredVoice(
+      voiceId: normalizedId,
+      localeId: normalizedLocale,
+    );
     await _repo.savePreferredVoiceLanguage(lang);
   }
 
@@ -358,47 +497,29 @@ class PreferredVoiceController extends StateNotifier<
   }
 }
 
-final preferredVoiceProvider = StateNotifierProvider<
-    PreferredVoiceController, ({String? id, String? locale, String? language})>((
-  ref,
-) {
-  return PreferredVoiceController(ref.watch(settingsRepositoryProvider));
-});
+final preferredVoiceProvider =
+    StateNotifierProvider<
+      PreferredVoiceController,
+      ({String? id, String? locale, String? language})
+    >((ref) {
+      return PreferredVoiceController(ref.watch(settingsRepositoryProvider));
+    });
 
 final ringtonesProvider = Provider<List<RingtoneUiModel>>((ref) {
-  return const [
-    RingtoneUiModel(
-      id: 'ring-1',
-      name: 'Soft Chime',
-      assetPath: RingtoneAssets.softChime,
-    ),
-    RingtoneUiModel(
-      id: 'ring-2',
-      name: 'Ocean Breeze',
-      assetPath: RingtoneAssets.oceanBreeze,
-    ),
-    RingtoneUiModel(
-      id: 'ring-3',
-      name: 'Night Pulse',
-      assetPath: RingtoneAssets.nightPulse,
-    ),
-    RingtoneUiModel(
-      id: 'ring-4',
-      name: 'Forest Dawn',
-      assetPath: RingtoneAssets.forestDawn,
-    ),
-    RingtoneUiModel(
-      id: 'ring-5',
-      name: 'Crystal Bell',
-      assetPath: RingtoneAssets.crystalBell,
-    ),
+  return [
+    for (final tone in RingtoneAssets.all)
+      RingtoneUiModel(
+        id: tone.name,
+        name: tone.name,
+        assetPath: tone.assetPath,
+      ),
   ];
 });
 
 class LocaleController extends StateNotifier<Locale> {
   LocaleController([SettingsRepository? repo])
-      : _repo = repo ?? SettingsRepository(),
-        super(const Locale('en')) {
+    : _repo = repo ?? SettingsRepository(),
+      super(const Locale('en')) {
     state = _resolveInitial(_repo);
   }
 
@@ -419,24 +540,17 @@ class LocaleController extends StateNotifier<Locale> {
   }
 }
 
-final localeProvider =
-    StateNotifierProvider<LocaleController, Locale>((ref) {
+final localeProvider = StateNotifierProvider<LocaleController, Locale>((ref) {
   return LocaleController(ref.watch(settingsRepositoryProvider));
 });
 
 class ReminderSettings {
-  const ReminderSettings({
-    required this.enabled,
-    required this.time,
-  });
+  const ReminderSettings({required this.enabled, required this.time});
 
   final bool enabled;
   final TimeOfDay time;
 
-  ReminderSettings copyWith({
-    bool? enabled,
-    TimeOfDay? time,
-  }) {
+  ReminderSettings copyWith({bool? enabled, TimeOfDay? time}) {
     return ReminderSettings(
       enabled: enabled ?? this.enabled,
       time: time ?? this.time,
@@ -448,14 +562,14 @@ class ReminderSettingsController extends StateNotifier<ReminderSettings> {
   ReminderSettingsController([
     SettingsRepository? repo,
     NotificationService? notifications,
-  ])  : _repo = repo ?? SettingsRepository(),
-        _notifications = notifications ?? NotificationService(),
-        super(
-          const ReminderSettings(
-            enabled: true,
-            time: TimeOfDay(hour: 23, minute: 0),
-          ),
-        ) {
+  ]) : _repo = repo ?? SettingsRepository(),
+       _notifications = notifications ?? NotificationService(),
+       super(
+         const ReminderSettings(
+           enabled: true,
+           time: TimeOfDay(hour: 23, minute: 0),
+         ),
+       ) {
     state = ReminderSettings(
       enabled: _repo.loadReminderEnabled(),
       time: _repo.loadReminderTime(),
@@ -484,7 +598,8 @@ class ReminderSettingsController extends StateNotifier<ReminderSettings> {
       enabled: state.enabled,
       time: state.time,
       title: _reminderTitle ?? 'Set tomorrow’s alarm',
-      body: _reminderBody ??
+      body:
+          _reminderBody ??
           'Take a moment to schedule your Smart Voice Alarm for tomorrow.',
     );
   }
@@ -504,11 +619,11 @@ class ReminderSettingsController extends StateNotifier<ReminderSettings> {
 
 final reminderSettingsProvider =
     StateNotifierProvider<ReminderSettingsController, ReminderSettings>((ref) {
-  return ReminderSettingsController(
-    ref.watch(settingsRepositoryProvider),
-    ref.watch(notificationServiceProvider),
-  );
-});
+      return ReminderSettingsController(
+        ref.watch(settingsRepositoryProvider),
+        ref.watch(notificationServiceProvider),
+      );
+    });
 
 /// Seeds sample data once for first launch so the UI is not empty.
 Future<void> seedPrototypeDataIfNeeded({bool force = false}) async {

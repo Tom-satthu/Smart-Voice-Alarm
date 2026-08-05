@@ -97,8 +97,7 @@ GoRouter createAppRouter({String? initialLocation}) {
         path: AppRoutes.premium,
         name: 'premium',
         builder: (context, state) {
-          final resume = state.uri.queryParameters['resumeCreate'] == '1';
-          return PremiumScreen(resumeCreateAfterPurchase: resume);
+          return const PremiumScreen();
         },
       ),
       GoRoute(
@@ -106,7 +105,11 @@ GoRouter createAppRouter({String? initialLocation}) {
         name: 'ringing',
         builder: (context, state) {
           final alarmId = state.pathParameters['id'] ?? '';
-          return AlarmRingingScreen(alarmId: alarmId);
+          final challenge = state.uri.queryParameters['challenge'] == '1';
+          return AlarmRingingScreen(
+            alarmId: alarmId,
+            openDismissChallenge: challenge,
+          );
         },
       ),
     ],

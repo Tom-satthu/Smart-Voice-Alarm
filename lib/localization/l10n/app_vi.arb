@@ -102,6 +102,10 @@
   "recordReady": "Sẵn sàng lưu",
   "recordSaved": "Đã lưu bản ghi",
   "recordDefaultName": "Bản ghi giọng nói",
+  "recordPermissionTitle": "Quyền microphone",
+  "recordPermissionRationale": "Ứng dụng cần quyền microphone để ghi đoạn âm thanh bạn dùng làm báo thức.",
+  "recordPermissionDenied": "Quyền microphone chưa được cấp. Ứng dụng chưa bắt đầu ghi. Bạn có thể thử lại khi sẵn sàng.",
+  "recordPermissionPermanentlyDenied": "Quyền microphone đang bị chặn. Hãy mở cài đặt hệ thống và cấp quyền trước khi ghi.",
   "settingsTitle": "Cài đặt",
   "settingsAppearance": "Giao diện",
   "settingsTheme": "Chủ đề",
@@ -221,15 +225,14 @@
   "aboutAppName": "Tên ứng dụng",
   "aboutVersion": "Phiên bản",
   "aboutDeveloper": "Nhà phát triển",
-  "aboutDeveloperValue": "Tom Satthu",
-  "aboutGithub": "Kho GitHub",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutEmail": "Hỗ trợ qua email",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "Trang web",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "Sắp ra mắt",
   "voiceSystemDefault": "Mặc định hệ thống",
+  "voiceSystemDefaultHint": "Được quản lý trong cài đặt điện thoại",
   "notificationChannelAlarms": "Báo thức",
   "notificationChannelAlarmsDesc": "Thông báo báo thức giọng nói",
   "notificationChannelReminders": "Nhắc nhở",
@@ -260,6 +263,182 @@
     }
   },
   "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmSelectTime": "Chạm để chọn giờ",
+  "segmentPlay": "Phát",
+  "voicePlaying": "Đang phát",
+  "voiceSelect": "Chọn",
+  "voiceUnavailable": "Giọng không khả dụng",
+  "recordingFileMissing": "Thiếu tệp ghi âm. Xóa đoạn này hoặc ghi lại.",
+  "voiceDetails": "Chi tiết giọng",
+  "ttsSelectedVoice": "Giọng đã chọn",
+  "voicePreviewSample": "Đây là bản xem trước ngắn của giọng này.",
+  "alarmDismissTitle": "Giải toán để tắt",
+  "alarmDismissHint": "Trả lời đúng để tắt báo thức.",
+  "alarmDismissWrong": "Sai rồi. Thử câu mới.",
+  "alarmDismissCheck": "Kiểm tra",
+  "alarmDismissAnswerHint": "Câu trả lời",
+  "voicesRefreshed": "Đã làm mới: tìm thấy {count} giọng",
+  "voicesSelectedSaved": "Đã lưu giọng: {name}",
+  "voicesDownloadThenSelect": "Mở phần quản lý giọng nói của thiết bị. Sau khi tải xong, quay lại đây.",
+  "voicesRefreshHint": "Làm mới giọng nói tải lại danh sách TTS hệ thống sau khi cài gói mới.",
+  "ringtonePreview": "Nghe thử",
+  "ringtonePreviewHint": "Bấm phát để nghe thử, rồi chạm tên để chọn.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "Mở phần quản lý giọng nói của thiết bị. Sau khi tải xong, quay lại đây.",
+  "voicesCurrentVoice": "Giọng đang dùng",
+  "voicesNewlyInstalled": "Giọng nói mới cài đặt",
+  "voicesOnDevice": "Các giọng trên thiết bị",
+  "voicesRescan": "Quét lại giọng nói",
+  "voicesRescanResult": "Tìm thấy {count} giọng dùng được",
+  "voicesNewFound": "Đã tìm thấy {count} giọng nói mới.",
+  "voicesNoNewFound": "Không phát hiện giọng nói mới.",
+  "voicesSystemUpdated": "Đã cập nhật giọng {language} từ cài đặt thiết bị.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "Đã làm mới cài đặt giọng nói của thiết bị.",
+  "voicesSettingsRefreshed": "Đã làm mới cài đặt giọng nói của thiết bị.",
+  "voicesSystemChanges": "Cập nhật giọng thiết bị",
+  "voicesSystemChangeEvent": "Cài đặt giọng {language} trên thiết bị vừa được cập nhật.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "Giọng mới và cập nhật giọng thiết bị sẽ hiện ở đây sau khi bạn cài hoặc thay đổi.",
+  "commonClear": "Xóa",
+  "voicesNewBadge": "Mới",
+  "voiceFriendlyName": "Giọng nói {number}",
+  "voicesOpenManagerFailed": "Không mở được quản lý giọng nói. Hãy mở cài đặt Text-to-speech hệ thống để cài giọng.",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "currentVoice": "Giọng nói đang dùng",
+  "scanDeviceVoices": "Quét giọng nói trên thiết bị",
+  "availableDeviceVoices": "Giọng nói có sẵn trên thiết bị",
+  "scanVoicesHint": "Nhấn Quét giọng nói trên thiết bị để xem các giọng hiện có.",
+  "noDeviceVoicesFound": "Không tìm thấy giọng nói phù hợp trên thiết bị.",
+  "scanVoicesFailed": "Không quét được giọng nói. Thử lại.",
+  "voiceSetupGuide": "Hướng dẫn thêm giọng nói",
+  "openVoiceSettings": "Mở cài đặt giọng nói",
+  "androidVoiceSetupSteps": "1. Mở Cài đặt của thiết bị.\n2. Tìm Chuyển văn bản thành giọng nói hoặc Text-to-speech.\n3. Chọn công cụ TTS đang dùng.\n4. Mở phần ngôn ngữ hoặc cài dữ liệu giọng nói.\n5. Cài giọng mới.\n6. Quay lại ứng dụng và nhấn Quét giọng nói trên thiết bị.",
+  "iosVoiceSetupSteps": "1. Mở Cài đặt.\n2. Mở Trợ năng.\n3. Mở Nội dung được đọc hoặc Giọng nói.\n4. Chọn ngôn ngữ và tải giọng có sẵn.\n5. Quay lại ứng dụng và quét lại.\nTên menu có thể khác nhau tùy phiên bản iOS.",
+  "webVoiceAvailabilityInfo": "Danh sách giọng nói trên Web do trình duyệt và hệ điều hành cung cấp.",
+  "lastScanned": "Đã quét: {time}",
+  "voiceInUse": "Đang dùng",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "otherLanguages": "Ngôn ngữ khác",
+  "voicesInLanguage": "{count, plural, =0{Không có giọng} =1{1 giọng} other{{count} giọng}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "Mở danh sách giọng của ngôn ngữ",
+  "collapseLanguageVoices": "Thu gọn danh sách giọng của ngôn ngữ",
+  "voicePreviewNamed": "Nghe thử {name}",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSoundAndVoice": "Âm thanh và giọng nói",
+  "settingsAlarmsSection": "Báo thức",
+  "supportAndFeedback": "Hỗ trợ",
+  "contactSupport": "Liên hệ và phản hồi",
+  "supportEmailSubject": "Hỗ trợ Smart Voice Alarm",
+  "emailCopied": "Đã sao chép email hỗ trợ",
+  "linkUnavailable": "Liên kết chưa khả dụng",
+  "openSourceLicenses": "Giấy phép mã nguồn mở",
+  "appInformation": "Giới thiệu ứng dụng",
+  "appVersion": "Phiên bản ứng dụng",
+  "permissionsAndBackground": "Quyền và hoạt động nền",
+  "notificationPermission": "Thông báo",
+  "exactAlarmPermission": "Báo thức chính xác",
+  "fullScreenAlarmPermission": "Báo thức toàn màn hình",
+  "openSystemSettings": "Mở cài đặt hệ thống",
+  "openSystemSettingsHint": "Quản lý thông báo và quyền liên quan",
+  "permissionStatusGranted": "Đã cấp",
+  "permissionStatusDenied": "Chưa cấp",
+  "permissionStatusUnknown": "Chưa xác định",
+  "trialDaysRemaining": "{count} ngày dùng thử còn lại",
+  "trialLessThanOneDay": "Còn dưới 1 ngày dùng thử",
+  "premiumUpgrade": "Nâng cấp Premium",
+  "premiumAnnualTitle": "Premium trong một năm",
+  "premiumAnnualDescription": "Tiếp tục sử dụng đầy đủ Smart Voice Alarm sau 7 ngày dùng thử.",
+  "premiumAnnualPlan": "Gói Premium 1 năm",
+  "premiumAnnualAutoRenew": "Tự động gia hạn hằng năm cho đến khi hủy.",
+  "premiumAnnualCancelInPlay": "Quản lý hoặc hủy qua Google Play.",
+  "premiumAnnualAccess": "Duy trì toàn bộ quyền truy cập khi gói đăng ký còn hiệu lực.",
+  "premiumSubscribeAnnual": "Đăng ký Premium 1 năm",
+  "premiumDefer": "Để sau",
+  "premiumRestoreTransactions": "Khôi phục giao dịch",
+  "premiumManageSubscription": "Quản lý gói đăng ký",
+  "premiumProductUnavailable": "Gói đăng ký năm chưa khả dụng trên Google Play.",
+  "premiumBillingUnavailable": "Google Play Billing hiện không khả dụng.",
+  "premiumPurchaseActive": "Premium đang hoạt động",
+  "premiumTrialExpiredTitle": "Thời gian dùng thử đã kết thúc",
+  "premiumTrialExpiredBody": "Đăng ký để tiếp tục dùng các tính năng chính. Báo thức hiện có vẫn có thể reo và có thể được tắt hoặc xóa.",
+  "premiumRetryVerification": "Thử lại",
+  "premiumViewExistingAlarms": "Xem báo thức hiện có",
+  "premiumClientVerificationNotice": "Trạng thái đăng ký được xác minh trên thiết bị này qua cửa hàng ứng dụng.",
+  "premiumUnableToVerify": "Không thể xác minh trạng thái đăng ký.",
+  "premiumRestrictedAlarmsTitle": "Quyền truy cập báo thức giới hạn",
+  "premiumRestrictedAlarmsBody": "Bạn có thể tắt hoặc xóa báo thức hiện có. Hãy đăng ký để tạo hoặc sửa báo thức.",
+  "@trialDaysRemaining": {
     "placeholders": {
       "count": {
         "type": "int"

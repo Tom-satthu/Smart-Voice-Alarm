@@ -287,6 +287,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String get recordDefaultName => 'Bản ghi giọng nói';
 
   @override
+  String get recordPermissionTitle => 'Quyền microphone';
+
+  @override
+  String get recordPermissionRationale =>
+      'Ứng dụng cần quyền microphone để ghi đoạn âm thanh bạn dùng làm báo thức.';
+
+  @override
+  String get recordPermissionDenied =>
+      'Quyền microphone chưa được cấp. Ứng dụng chưa bắt đầu ghi. Bạn có thể thử lại khi sẵn sàng.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'Quyền microphone đang bị chặn. Hãy mở cài đặt hệ thống và cấp quyền trước khi ghi.';
+
+  @override
   String get settingsTitle => 'Cài đặt';
 
   @override
@@ -616,31 +631,28 @@ class AppLocalizationsVi extends AppLocalizations {
   String get aboutDeveloper => 'Nhà phát triển';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
-
-  @override
-  String get aboutGithub => 'Kho GitHub';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutEmail => 'Hỗ trợ qua email';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'Trang web';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => 'Sắp ra mắt';
 
   @override
   String get voiceSystemDefault => 'Mặc định hệ thống';
+
+  @override
+  String get voiceSystemDefaultHint => 'Được quản lý trong cài đặt điện thoại';
 
   @override
   String get notificationChannelAlarms => 'Báo thức';
@@ -721,4 +733,351 @@ class AppLocalizationsVi extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'Chạm để chọn giờ';
+
+  @override
+  String get segmentPlay => 'Phát';
+
+  @override
+  String get voicePlaying => 'Đang phát';
+
+  @override
+  String get voiceSelect => 'Chọn';
+
+  @override
+  String get voiceUnavailable => 'Giọng không khả dụng';
+
+  @override
+  String get recordingFileMissing =>
+      'Thiếu tệp ghi âm. Xóa đoạn này hoặc ghi lại.';
+
+  @override
+  String get voiceDetails => 'Chi tiết giọng';
+
+  @override
+  String get ttsSelectedVoice => 'Giọng đã chọn';
+
+  @override
+  String get voicePreviewSample => 'Đây là bản xem trước ngắn của giọng này.';
+
+  @override
+  String get alarmDismissTitle => 'Giải toán để tắt';
+
+  @override
+  String get alarmDismissHint => 'Trả lời đúng để tắt báo thức.';
+
+  @override
+  String get alarmDismissWrong => 'Sai rồi. Thử câu mới.';
+
+  @override
+  String get alarmDismissCheck => 'Kiểm tra';
+
+  @override
+  String get alarmDismissAnswerHint => 'Câu trả lời';
+
+  @override
+  String voicesRefreshed(int count) {
+    return 'Đã làm mới: tìm thấy $count giọng';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return 'Đã lưu giọng: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect =>
+      'Mở phần quản lý giọng nói của thiết bị. Sau khi tải xong, quay lại đây.';
+
+  @override
+  String get voicesRefreshHint =>
+      'Làm mới giọng nói tải lại danh sách TTS hệ thống sau khi cài gói mới.';
+
+  @override
+  String get ringtonePreview => 'Nghe thử';
+
+  @override
+  String get ringtonePreviewHint =>
+      'Bấm phát để nghe thử, rồi chạm tên để chọn.';
+
+  @override
+  String get voicesCurrentVoice => 'Giọng đang dùng';
+
+  @override
+  String get voicesNewlyInstalled => 'Giọng nói mới cài đặt';
+
+  @override
+  String get voicesOnDevice => 'Các giọng trên thiết bị';
+
+  @override
+  String get voicesDownloadHint =>
+      'Mở phần quản lý giọng nói của thiết bị. Sau khi tải xong, quay lại đây.';
+
+  @override
+  String get voicesRescan => 'Quét lại giọng nói';
+
+  @override
+  String voicesRescanResult(int count) {
+    return 'Tìm thấy $count giọng dùng được';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return 'Đã tìm thấy $count giọng nói mới.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'Không phát hiện giọng nói mới.';
+
+  @override
+  String voicesSystemUpdated(String language) {
+    return 'Đã cập nhật giọng $language từ cài đặt thiết bị.';
+  }
+
+  @override
+  String get voicesNoChange => 'Đã làm mới cài đặt giọng nói của thiết bị.';
+
+  @override
+  String get voicesSettingsRefreshed =>
+      'Đã làm mới cài đặt giọng nói của thiết bị.';
+
+  @override
+  String get voicesSystemChanges => 'Cập nhật giọng thiết bị';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return 'Cài đặt giọng $language trên thiết bị vừa được cập nhật.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty =>
+      'Giọng mới và cập nhật giọng thiết bị sẽ hiện ở đây sau khi bạn cài hoặc thay đổi.';
+
+  @override
+  String get voicesNewBadge => 'Mới';
+
+  @override
+  String get commonClear => 'Xóa';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Giọng nói $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'Không mở được quản lý giọng nói. Hãy mở cài đặt Text-to-speech hệ thống để cài giọng.';
+
+  @override
+  String get currentVoice => 'Giọng nói đang dùng';
+
+  @override
+  String get scanDeviceVoices => 'Quét giọng nói trên thiết bị';
+
+  @override
+  String get availableDeviceVoices => 'Giọng nói có sẵn trên thiết bị';
+
+  @override
+  String get scanVoicesHint =>
+      'Nhấn Quét giọng nói trên thiết bị để xem các giọng hiện có.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'Không tìm thấy giọng nói phù hợp trên thiết bị.';
+
+  @override
+  String get scanVoicesFailed => 'Không quét được giọng nói. Thử lại.';
+
+  @override
+  String get voiceSetupGuide => 'Hướng dẫn thêm giọng nói';
+
+  @override
+  String get openVoiceSettings => 'Mở cài đặt giọng nói';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Mở Cài đặt của thiết bị.\n2. Tìm Chuyển văn bản thành giọng nói hoặc Text-to-speech.\n3. Chọn công cụ TTS đang dùng.\n4. Mở phần ngôn ngữ hoặc cài dữ liệu giọng nói.\n5. Cài giọng mới.\n6. Quay lại ứng dụng và nhấn Quét giọng nói trên thiết bị.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Mở Cài đặt.\n2. Mở Trợ năng.\n3. Mở Nội dung được đọc hoặc Giọng nói.\n4. Chọn ngôn ngữ và tải giọng có sẵn.\n5. Quay lại ứng dụng và quét lại.\nTên menu có thể khác nhau tùy phiên bản iOS.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'Danh sách giọng nói trên Web do trình duyệt và hệ điều hành cung cấp.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Đã quét: $time';
+  }
+
+  @override
+  String get voiceInUse => 'Đang dùng';
+
+  @override
+  String get otherLanguages => 'Ngôn ngữ khác';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giọng',
+      one: '1 giọng',
+      zero: 'Không có giọng',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => 'Mở danh sách giọng của ngôn ngữ';
+
+  @override
+  String get collapseLanguageVoices => 'Thu gọn danh sách giọng của ngôn ngữ';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return 'Nghe thử $name';
+  }
+
+  @override
+  String get settingsSoundAndVoice => 'Âm thanh và giọng nói';
+
+  @override
+  String get settingsAlarmsSection => 'Báo thức';
+
+  @override
+  String get supportAndFeedback => 'Hỗ trợ';
+
+  @override
+  String get contactSupport => 'Liên hệ và phản hồi';
+
+  @override
+  String get supportEmailSubject => 'Hỗ trợ Smart Voice Alarm';
+
+  @override
+  String get emailCopied => 'Đã sao chép email hỗ trợ';
+
+  @override
+  String get linkUnavailable => 'Liên kết chưa khả dụng';
+
+  @override
+  String get openSourceLicenses => 'Giấy phép mã nguồn mở';
+
+  @override
+  String get appInformation => 'Giới thiệu ứng dụng';
+
+  @override
+  String get appVersion => 'Phiên bản ứng dụng';
+
+  @override
+  String get permissionsAndBackground => 'Quyền và hoạt động nền';
+
+  @override
+  String get notificationPermission => 'Thông báo';
+
+  @override
+  String get exactAlarmPermission => 'Báo thức chính xác';
+
+  @override
+  String get fullScreenAlarmPermission => 'Báo thức toàn màn hình';
+
+  @override
+  String get openSystemSettings => 'Mở cài đặt hệ thống';
+
+  @override
+  String get openSystemSettingsHint => 'Quản lý thông báo và quyền liên quan';
+
+  @override
+  String get permissionStatusGranted => 'Đã cấp';
+
+  @override
+  String get permissionStatusDenied => 'Chưa cấp';
+
+  @override
+  String get permissionStatusUnknown => 'Chưa xác định';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count ngày dùng thử còn lại';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Còn dưới 1 ngày dùng thử';
+
+  @override
+  String get premiumUpgrade => 'Nâng cấp Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium trong một năm';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Tiếp tục sử dụng đầy đủ Smart Voice Alarm sau 7 ngày dùng thử.';
+
+  @override
+  String get premiumAnnualPlan => 'Gói Premium 1 năm';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Tự động gia hạn hằng năm cho đến khi hủy.';
+
+  @override
+  String get premiumAnnualCancelInPlay => 'Quản lý hoặc hủy qua Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'Duy trì toàn bộ quyền truy cập khi gói đăng ký còn hiệu lực.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Đăng ký Premium 1 năm';
+
+  @override
+  String get premiumDefer => 'Để sau';
+
+  @override
+  String get premiumRestoreTransactions => 'Khôi phục giao dịch';
+
+  @override
+  String get premiumManageSubscription => 'Quản lý gói đăng ký';
+
+  @override
+  String get premiumProductUnavailable =>
+      'Gói đăng ký năm chưa khả dụng trên Google Play.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'Google Play Billing hiện không khả dụng.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium đang hoạt động';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Thời gian dùng thử đã kết thúc';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Đăng ký để tiếp tục dùng các tính năng chính. Báo thức hiện có vẫn có thể reo và có thể được tắt hoặc xóa.';
+
+  @override
+  String get premiumRetryVerification => 'Thử lại';
+
+  @override
+  String get premiumViewExistingAlarms => 'Xem báo thức hiện có';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'Trạng thái đăng ký được xác minh trên thiết bị này qua cửa hàng ứng dụng.';
+
+  @override
+  String get premiumUnableToVerify => 'Không thể xác minh trạng thái đăng ký.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Quyền truy cập báo thức giới hạn';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'Bạn có thể tắt hoặc xóa báo thức hiện có. Hãy đăng ký để tạo hoặc sửa báo thức.';
 }

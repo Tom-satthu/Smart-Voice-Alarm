@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_voice_alarm/core/services/resolved_system_voice.dart';
 import 'package:smart_voice_alarm/shared/data/local_store.dart';
 import 'package:smart_voice_alarm/shared/models/ui_models.dart';
 
@@ -136,7 +137,13 @@ class MemorySettingsRepository extends SettingsRepository {
   String? _preferredVoiceId;
   String? _preferredVoiceLocale;
   String? _preferredVoiceLanguage;
-  bool _premiumUnlocked = false;
+  Set<String> _newVoiceIds = {};
+  List<SystemVoiceChangeEvent> _systemVoiceChangeEvents = [];
+  DateTime? _trialStartedAtUtc;
+  DateTime? _latestTrustedLocalTimeUtc;
+  bool _trialExpiredPermanently = false;
+  bool _cachedSubscriptionActive = false;
+  DateTime? _lastSubscriptionVerifiedAtUtc;
 
   @override
   String? loadPreferredVoiceLanguage() => _preferredVoiceLanguage;
@@ -147,12 +154,59 @@ class MemorySettingsRepository extends SettingsRepository {
   }
 
   @override
-  bool loadPremiumUnlocked() => _premiumUnlocked;
+  Set<String> loadNewVoiceIds() => Set<String>.from(_newVoiceIds);
 
   @override
-  Future<void> savePremiumUnlocked(bool unlocked) async {
-    _premiumUnlocked = unlocked;
+  Future<void> saveNewVoiceIds(Set<String> voiceIds) async {
+    _newVoiceIds = Set<String>.from(voiceIds);
   }
+
+  @override
+  List<SystemVoiceChangeEvent> loadSystemVoiceChangeEvents() =>
+      List<SystemVoiceChangeEvent>.from(_systemVoiceChangeEvents);
+
+  @override
+  Future<void> saveSystemVoiceChangeEvents(
+    List<SystemVoiceChangeEvent> events,
+  ) async {
+    _systemVoiceChangeEvents = List<SystemVoiceChangeEvent>.from(events);
+  }
+
+  @override
+  DateTime? loadTrialStartedAtUtc() => _trialStartedAtUtc;
+
+  @override
+  Future<void> saveTrialStartedAtUtc(DateTime value) async =>
+      _trialStartedAtUtc = value;
+
+  @override
+  DateTime? loadLatestTrustedLocalTimeUtc() => _latestTrustedLocalTimeUtc;
+
+  @override
+  Future<void> saveLatestTrustedLocalTimeUtc(DateTime value) async =>
+      _latestTrustedLocalTimeUtc = value;
+
+  @override
+  bool loadTrialExpiredPermanently() => _trialExpiredPermanently;
+
+  @override
+  Future<void> saveTrialExpiredPermanently(bool value) async =>
+      _trialExpiredPermanently = value;
+
+  @override
+  bool loadCachedSubscriptionActive() => _cachedSubscriptionActive;
+
+  @override
+  Future<void> saveCachedSubscriptionActive(bool value) async =>
+      _cachedSubscriptionActive = value;
+
+  @override
+  DateTime? loadLastSubscriptionVerifiedAtUtc() =>
+      _lastSubscriptionVerifiedAtUtc;
+
+  @override
+  Future<void> saveLastSubscriptionVerifiedAtUtc(DateTime value) async =>
+      _lastSubscriptionVerifiedAtUtc = value;
 }
 
 /// Sample data matching the product seed, for tests.

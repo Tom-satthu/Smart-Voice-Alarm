@@ -102,6 +102,10 @@
   "recordReady": "可以儲存",
   "recordSaved": "錄音已儲存",
   "recordDefaultName": "語音錄音",
+  "recordPermissionTitle": "麥克風權限",
+  "recordPermissionRationale": "應用程式需要麥克風權限，才能錄製您用作鬧鐘的音訊片段。",
+  "recordPermissionDenied": "未授予麥克風權限，錄音尚未開始。您可以稍後再試。",
+  "recordPermissionPermanentlyDenied": "麥克風權限已被封鎖。請在錄音前開啟系統設定並授予權限。",
   "settingsTitle": "設定",
   "settingsAppearance": "外觀",
   "settingsTheme": "主題",
@@ -221,15 +225,14 @@
   "aboutAppName": "App 名稱",
   "aboutVersion": "版本",
   "aboutDeveloper": "開發者",
-  "aboutDeveloperValue": "Tom Satthu",
-  "aboutGithub": "GitHub 存放庫",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutEmail": "電子郵件支援",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "網站",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "即將推出",
   "voiceSystemDefault": "系統預設",
+  "voiceSystemDefaultHint": "由裝置設定管理",
   "notificationChannelAlarms": "鬧鐘",
   "notificationChannelAlarmsDesc": "語音鬧鐘提醒",
   "notificationChannelReminders": "提醒",
@@ -260,6 +263,182 @@
     }
   },
   "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmSelectTime": "點一下以選擇時間",
+  "segmentPlay": "播放",
+  "voicePlaying": "播放中",
+  "voiceSelect": "選擇",
+  "voiceUnavailable": "語音無法使用",
+  "recordingFileMissing": "缺少錄音檔。請刪除此區段或重新錄音。",
+  "voiceDetails": "語音詳細資料",
+  "ttsSelectedVoice": "已選語音",
+  "voicePreviewSample": "這是此語音的簡短預覽。",
+  "alarmDismissTitle": "解題以停止",
+  "alarmDismissHint": "答對後才能關閉鬧鐘。",
+  "alarmDismissWrong": "不正確。請試新題。",
+  "alarmDismissCheck": "檢查",
+  "alarmDismissAnswerHint": "你的答案",
+  "voicesRefreshed": "已重新整理：找到 {count} 個語音",
+  "voicesSelectedSaved": "已儲存語音：{name}",
+  "voicesDownloadThenSelect": "開啟裝置語音管理。下載完成後請返回此處。",
+  "voicesRefreshHint": "重新整理語音會在安裝新套件後重新載入系統 TTS 語音。",
+  "ringtonePreview": "預覽",
+  "ringtonePreviewHint": "點播放試聽，再點名稱選擇。",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "開啟裝置語音管理。下載完成後請返回此處。",
+  "voicesCurrentVoice": "目前語音",
+  "voicesNewlyInstalled": "新安裝的語音",
+  "voicesOnDevice": "此裝置上的語音",
+  "voicesRescan": "重新掃描語音",
+  "voicesRescanResult": "找到 {count} 個可用語音",
+  "voicesNewFound": "找到 {count} 個新語音。",
+  "voicesNoNewFound": "未偵測到新語音。",
+  "voicesSystemUpdated": "已從裝置設定更新{language}語音。",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "未偵測到語音變更。",
+  "voicesSettingsRefreshed": "已重新整理裝置語音設定。",
+  "voicesSystemChanges": "裝置語音更新",
+  "voicesSystemChangeEvent": "裝置上的{language}語音設定已更新。",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "新語音與裝置更新會顯示在這裡。",
+  "commonClear": "清除",
+  "voicesNewBadge": "新",
+  "voiceFriendlyName": "語音 {number}",
+  "voicesOpenManagerFailed": "無法開啟語音管理。請開啟系統文字轉語音設定。",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "currentVoice": "目前語音",
+  "scanDeviceVoices": "掃描裝置上的語音",
+  "availableDeviceVoices": "裝置上可用的語音",
+  "scanVoicesHint": "點一下「掃描裝置上的語音」以查看已安裝的語音。",
+  "noDeviceVoicesFound": "在裝置上找不到合適的語音。",
+  "scanVoicesFailed": "無法掃描語音，請再試一次。",
+  "voiceSetupGuide": "如何新增語音",
+  "openVoiceSettings": "開啟語音設定",
+  "androidVoiceSetupSteps": "1. 開啟裝置設定。\n2. 搜尋「文字轉語音」或 Text-to-speech。\n3. 開啟目前使用的 TTS 引擎。\n4. 開啟語言或語音資料。\n5. 安裝新語音。\n6. 返回應用程式並點「掃描裝置上的語音」。",
+  "iosVoiceSetupSteps": "1. 開啟設定。\n2. 開啟輔助使用。\n3. 開啟朗讀內容或聲音。\n4. 選擇語言並下載可用語音。\n5. 返回應用程式並再次掃描。\n不同 iOS 版本的選單名稱可能不同。",
+  "webVoiceAvailabilityInfo": "在網頁上，可用語音由瀏覽器和作業系統提供。",
+  "lastScanned": "上次掃描：{time}",
+  "voiceInUse": "使用中",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "otherLanguages": "其他語言",
+  "voicesInLanguage": "{count, plural, =0{沒有語音} =1{1 個語音} other{{count} 個語音}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "展開語言語音",
+  "collapseLanguageVoices": "收合語言語音",
+  "voicePreviewNamed": "預聽 {name}",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSoundAndVoice": "聲音與語音",
+  "settingsAlarmsSection": "鬧鐘",
+  "supportAndFeedback": "支援",
+  "contactSupport": "聯絡與意見回饋",
+  "supportEmailSubject": "Smart Voice Alarm 支援",
+  "emailCopied": "已複製支援電子郵件",
+  "linkUnavailable": "此連結尚不可用",
+  "openSourceLicenses": "開放原始碼授權",
+  "appInformation": "關於應用程式",
+  "appVersion": "應用程式版本",
+  "permissionsAndBackground": "權限與背景",
+  "notificationPermission": "通知",
+  "exactAlarmPermission": "精確鬧鐘",
+  "fullScreenAlarmPermission": "全螢幕鬧鐘",
+  "openSystemSettings": "開啟系統設定",
+  "openSystemSettingsHint": "管理通知與相關權限",
+  "permissionStatusGranted": "已授予",
+  "permissionStatusDenied": "未授予",
+  "permissionStatusUnknown": "未知",
+  "trialDaysRemaining": "{count} 天試用期剩餘",
+  "trialLessThanOneDay": "試用期剩餘不到1天",
+  "premiumUpgrade": "升級至 Premium",
+  "premiumAnnualTitle": "Premium 一年",
+  "premiumAnnualDescription": "7天試用結束後繼續使用 Smart Voice Alarm 的所有功能。",
+  "premiumAnnualPlan": "Premium 年度方案",
+  "premiumAnnualAutoRenew": "每年自動續訂，直到取消。",
+  "premiumAnnualCancelInPlay": "透過 Google Play 管理或取消。",
+  "premiumAnnualAccess": "訂閱有效期間可繼續完整使用。",
+  "premiumSubscribeAnnual": "訂閱一年 Premium",
+  "premiumDefer": "稍後再說",
+  "premiumRestoreTransactions": "恢復交易",
+  "premiumManageSubscription": "管理訂閱",
+  "premiumProductUnavailable": "年度訂閱尚未在 Google Play 提供。",
+  "premiumBillingUnavailable": "Google Play Billing 目前無法使用。",
+  "premiumPurchaseActive": "Premium 已啟用",
+  "premiumTrialExpiredTitle": "試用期已結束",
+  "premiumTrialExpiredBody": "訂閱後可繼續使用主要功能。現有鬧鐘仍會響起，並可停用或刪除。",
+  "premiumRetryVerification": "重試",
+  "premiumViewExistingAlarms": "查看現有鬧鐘",
+  "premiumClientVerificationNotice": "訂閱狀態透過應用程式商店在此裝置上驗證。",
+  "premiumUnableToVerify": "無法驗證訂閱狀態。",
+  "premiumRestrictedAlarmsTitle": "受限的鬧鐘存取",
+  "premiumRestrictedAlarmsBody": "您可以停用或刪除現有鬧鐘。訂閱後可建立或編輯鬧鐘。",
+  "@trialDaysRemaining": {
     "placeholders": {
       "count": {
         "type": "int"

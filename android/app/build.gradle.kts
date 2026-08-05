@@ -8,6 +8,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.smartvoicealarm.app"
     compileSdk = flutter.compileSdkVersion
@@ -31,12 +37,6 @@ android {
         versionName = flutter.versionName
     }
 
-    val keystorePropertiesFile = rootProject.file("keystore.properties")
-    val keystoreProperties = Properties()
-    if (keystorePropertiesFile.exists()) {
-        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-    }
-
     signingConfigs {
         if (keystorePropertiesFile.exists()) {
             create("release") {
@@ -50,13 +50,24 @@ android {
 
     buildTypes {
         release {
-            // Prefer real upload keystore when present; otherwise debug for local smoke builds.
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
+            // Never ship an artifact signed with the debug certificate.
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
             }
+            isDebuggable = false
         }
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val requestsRelease = allTasks.any {
+        it.name.contains("release", ignoreCase = true)
+    }
+    if (requestsRelease && !keystorePropertiesFile.exists()) {
+        throw GradleException(
+            "Release signing is not configured. Add ignored android/keystore.properties " +
+                "for the existing upload key; debug-key fallback is forbidden."
+        )
     }
 }
 

@@ -284,6 +284,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get recordDefaultName => '음성 녹음';
 
   @override
+  String get recordPermissionTitle => '마이크 접근';
+
+  @override
+  String get recordPermissionRationale =>
+      '알람에 사용할 오디오를 녹음하려면 마이크 접근 권한이 필요합니다.';
+
+  @override
+  String get recordPermissionDenied =>
+      '마이크 접근이 허용되지 않아 녹음이 시작되지 않았습니다. 준비되면 다시 시도할 수 있습니다.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      '마이크 접근이 차단되었습니다. 녹음하기 전에 시스템 설정에서 허용하세요.';
+
+  @override
   String get settingsTitle => '설정';
 
   @override
@@ -609,31 +624,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aboutDeveloper => '개발자';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
-
-  @override
-  String get aboutGithub => 'GitHub 저장소';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutEmail => '이메일 지원';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => '웹사이트';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => '곧 제공';
 
   @override
   String get voiceSystemDefault => '시스템 기본';
+
+  @override
+  String get voiceSystemDefaultHint => '기기 설정에서 관리됩니다';
 
   @override
   String get notificationChannelAlarms => '알람';
@@ -710,4 +722,336 @@ class AppLocalizationsKo extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => '탭하여 시간 선택';
+
+  @override
+  String get segmentPlay => '재생';
+
+  @override
+  String get voicePlaying => '재생 중';
+
+  @override
+  String get voiceSelect => '선택';
+
+  @override
+  String get voiceUnavailable => '음성을 사용할 수 없음';
+
+  @override
+  String get recordingFileMissing => '녹음 파일이 없습니다. 이 세그먼트를 삭제하거나 다시 녹음하세요.';
+
+  @override
+  String get voiceDetails => '음성 세부정보';
+
+  @override
+  String get ttsSelectedVoice => '선택한 음성';
+
+  @override
+  String get voicePreviewSample => '이 음성의 짧은 미리듣기입니다.';
+
+  @override
+  String get alarmDismissTitle => '풀어서 중지';
+
+  @override
+  String get alarmDismissHint => '정답을 맞혀야 알람이 꺼집니다.';
+
+  @override
+  String get alarmDismissWrong => '틀렸습니다. 새 문제입니다.';
+
+  @override
+  String get alarmDismissCheck => '확인';
+
+  @override
+  String get alarmDismissAnswerHint => '답';
+
+  @override
+  String voicesRefreshed(int count) {
+    return '새로고침됨: 음성 $count개 발견';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return '저장된 음성: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect => '기기 음성 관리를 엽니다. 다운로드 후 여기로 돌아오세요.';
+
+  @override
+  String get voicesRefreshHint => '음성 새로고침은 팩 설치 후 시스템 TTS 음성을 다시 불러옵니다.';
+
+  @override
+  String get ringtonePreview => '미리듣기';
+
+  @override
+  String get ringtonePreviewHint => '재생으로 들어보고 이름을 눌러 선택하세요.';
+
+  @override
+  String get voicesCurrentVoice => '사용 중인 음성';
+
+  @override
+  String get voicesNewlyInstalled => '새로 설치된 음성';
+
+  @override
+  String get voicesOnDevice => '이 기기의 음성';
+
+  @override
+  String get voicesDownloadHint => '기기 음성 관리를 엽니다. 다운로드 후 여기로 돌아오세요.';
+
+  @override
+  String get voicesRescan => '음성 다시 검색';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '사용 가능한 음성 $count개 발견';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '새 음성 $count개를 찾았습니다.';
+  }
+
+  @override
+  String get voicesNoNewFound => '새 음성이 감지되지 않았습니다.';
+
+  @override
+  String voicesSystemUpdated(String language) {
+    return '기기 설정에서 $language 음성을 업데이트했습니다.';
+  }
+
+  @override
+  String get voicesNoChange => '음성 변경이 감지되지 않았습니다.';
+
+  @override
+  String get voicesSettingsRefreshed => '기기 음성 설정을 새로고침했습니다.';
+
+  @override
+  String get voicesSystemChanges => '기기 음성 업데이트';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return '기기의 $language 음성 설정이 업데이트되었습니다.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty => '새 음성과 기기 업데이트는 여기에 표시됩니다.';
+
+  @override
+  String get voicesNewBadge => '신규';
+
+  @override
+  String get commonClear => '지우기';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return '음성 $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed => '음성 관리를 열 수 없습니다. 시스템 TTS 설정을 여세요.';
+
+  @override
+  String get currentVoice => '현재 음성';
+
+  @override
+  String get scanDeviceVoices => '기기 음성 스캔';
+
+  @override
+  String get availableDeviceVoices => '기기에 있는 음성';
+
+  @override
+  String get scanVoicesHint => '기기 음성 스캔을 눌러 설치된 음성을 확인하세요.';
+
+  @override
+  String get noDeviceVoicesFound => '기기에서 적합한 음성을 찾지 못했습니다.';
+
+  @override
+  String get scanVoicesFailed => '음성을 스캔할 수 없습니다. 다시 시도하세요.';
+
+  @override
+  String get voiceSetupGuide => '음성 추가 방법';
+
+  @override
+  String get openVoiceSettings => '음성 설정 열기';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. 기기 설정을 엽니다.\n2. 텍스트 음성 변환 또는 Text-to-speech를 검색합니다.\n3. 사용 중인 TTS 엔진을 엽니다.\n4. 언어 또는 음성 데이터 화면을 엽니다.\n5. 새 음성을 설치합니다.\n6. 앱으로 돌아와 기기 음성 스캔을 누릅니다.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. 설정을 엽니다.\n2. 손쉬운 사용을 엽니다.\n3. 읽어주기 또는 음성을 엽니다.\n4. 언어를 선택하고 음성을 다운로드합니다.\n5. 앱으로 돌아와 다시 스캔합니다.\niOS 버전에 따라 메뉴 이름이 다를 수 있습니다.';
+
+  @override
+  String get webVoiceAvailabilityInfo => '웹에서는 브라우저와 운영체제가 제공하는 음성을 사용합니다.';
+
+  @override
+  String lastScanned(String time) {
+    return '마지막 스캔: $time';
+  }
+
+  @override
+  String get voiceInUse => '사용 중';
+
+  @override
+  String get otherLanguages => '기타 언어';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '음성 $count개',
+      one: '음성 1개',
+      zero: '음성 없음',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => '언어 음성 펼치기';
+
+  @override
+  String get collapseLanguageVoices => '언어 음성 접기';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return '$name 미리듣기';
+  }
+
+  @override
+  String get settingsSoundAndVoice => '소리 및 음성';
+
+  @override
+  String get settingsAlarmsSection => '알람';
+
+  @override
+  String get supportAndFeedback => '지원';
+
+  @override
+  String get contactSupport => '문의 및 피드백';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm 지원';
+
+  @override
+  String get emailCopied => '지원 이메일이 복사됨';
+
+  @override
+  String get linkUnavailable => '이 링크는 아직 사용할 수 없습니다';
+
+  @override
+  String get openSourceLicenses => '오픈소스 라이선스';
+
+  @override
+  String get appInformation => '앱 정보';
+
+  @override
+  String get appVersion => '앱 버전';
+
+  @override
+  String get permissionsAndBackground => '권한 및 백그라운드';
+
+  @override
+  String get notificationPermission => '알림';
+
+  @override
+  String get exactAlarmPermission => '정확한 알람';
+
+  @override
+  String get fullScreenAlarmPermission => '전체 화면 알람';
+
+  @override
+  String get openSystemSettings => '시스템 설정 열기';
+
+  @override
+  String get openSystemSettingsHint => '알림 및 관련 권한 관리';
+
+  @override
+  String get permissionStatusGranted => '허용됨';
+
+  @override
+  String get permissionStatusDenied => '허용되지 않음';
+
+  @override
+  String get permissionStatusUnknown => '알 수 없음';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count 일의 체험 기간이 남았습니다';
+  }
+
+  @override
+  String get trialLessThanOneDay => '체험 기간이 1일 미만 남았습니다';
+
+  @override
+  String get premiumUpgrade => 'Premium으로 업그레이드';
+
+  @override
+  String get premiumAnnualTitle => '1년 Premium';
+
+  @override
+  String get premiumAnnualDescription =>
+      '7일 체험 후에도 Smart Voice Alarm의 모든 기능을 계속 사용하세요.';
+
+  @override
+  String get premiumAnnualPlan => 'Premium 연간 요금제';
+
+  @override
+  String get premiumAnnualAutoRenew => '취소할 때까지 매년 자동 갱신됩니다.';
+
+  @override
+  String get premiumAnnualCancelInPlay => 'Google Play에서 관리하거나 취소할 수 있습니다.';
+
+  @override
+  String get premiumAnnualAccess => '구독이 활성 상태인 동안 전체 기능을 사용할 수 있습니다.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Premium 1년 구독';
+
+  @override
+  String get premiumDefer => '나중에';
+
+  @override
+  String get premiumRestoreTransactions => '거래 복원';
+
+  @override
+  String get premiumManageSubscription => '구독 관리';
+
+  @override
+  String get premiumProductUnavailable => '연간 구독을 아직 Google Play에서 사용할 수 없습니다.';
+
+  @override
+  String get premiumBillingUnavailable => '현재 Google Play Billing을 사용할 수 없습니다.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium 활성화됨';
+
+  @override
+  String get premiumTrialExpiredTitle => '체험 기간이 종료되었습니다';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      '주요 기능을 계속 사용하려면 구독하세요. 기존 알람은 계속 울리며 비활성화하거나 삭제할 수 있습니다.';
+
+  @override
+  String get premiumRetryVerification => '다시 시도';
+
+  @override
+  String get premiumViewExistingAlarms => '기존 알람 보기';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      '구독 상태는 이 기기에서 앱 스토어를 통해 확인됩니다.';
+
+  @override
+  String get premiumUnableToVerify => '구독 상태를 확인할 수 없습니다.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => '제한된 알람 접근';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      '기존 알람을 비활성화하거나 삭제할 수 있습니다. 알람 생성 또는 편집에는 구독이 필요합니다.';
 }

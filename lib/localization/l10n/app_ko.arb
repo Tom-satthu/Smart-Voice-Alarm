@@ -102,6 +102,10 @@
   "recordReady": "저장할 준비 완료",
   "recordSaved": "녹음을 저장했습니다",
   "recordDefaultName": "음성 녹음",
+  "recordPermissionTitle": "마이크 접근",
+  "recordPermissionRationale": "알람에 사용할 오디오를 녹음하려면 마이크 접근 권한이 필요합니다.",
+  "recordPermissionDenied": "마이크 접근이 허용되지 않아 녹음이 시작되지 않았습니다. 준비되면 다시 시도할 수 있습니다.",
+  "recordPermissionPermanentlyDenied": "마이크 접근이 차단되었습니다. 녹음하기 전에 시스템 설정에서 허용하세요.",
   "settingsTitle": "설정",
   "settingsAppearance": "모양",
   "settingsTheme": "테마",
@@ -221,15 +225,14 @@
   "aboutAppName": "앱 이름",
   "aboutVersion": "버전",
   "aboutDeveloper": "개발자",
-  "aboutDeveloperValue": "Tom Satthu",
-  "aboutGithub": "GitHub 저장소",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutEmail": "이메일 지원",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "웹사이트",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "곧 제공",
   "voiceSystemDefault": "시스템 기본",
+  "voiceSystemDefaultHint": "기기 설정에서 관리됩니다",
   "notificationChannelAlarms": "알람",
   "notificationChannelAlarmsDesc": "음성 알람 알림",
   "notificationChannelReminders": "알림",
@@ -260,6 +263,182 @@
     }
   },
   "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmSelectTime": "탭하여 시간 선택",
+  "segmentPlay": "재생",
+  "voicePlaying": "재생 중",
+  "voiceSelect": "선택",
+  "voiceUnavailable": "음성을 사용할 수 없음",
+  "recordingFileMissing": "녹음 파일이 없습니다. 이 세그먼트를 삭제하거나 다시 녹음하세요.",
+  "voiceDetails": "음성 세부정보",
+  "ttsSelectedVoice": "선택한 음성",
+  "voicePreviewSample": "이 음성의 짧은 미리듣기입니다.",
+  "alarmDismissTitle": "풀어서 중지",
+  "alarmDismissHint": "정답을 맞혀야 알람이 꺼집니다.",
+  "alarmDismissWrong": "틀렸습니다. 새 문제입니다.",
+  "alarmDismissCheck": "확인",
+  "alarmDismissAnswerHint": "답",
+  "voicesRefreshed": "새로고침됨: 음성 {count}개 발견",
+  "voicesSelectedSaved": "저장된 음성: {name}",
+  "voicesDownloadThenSelect": "기기 음성 관리를 엽니다. 다운로드 후 여기로 돌아오세요.",
+  "voicesRefreshHint": "음성 새로고침은 팩 설치 후 시스템 TTS 음성을 다시 불러옵니다.",
+  "ringtonePreview": "미리듣기",
+  "ringtonePreviewHint": "재생으로 들어보고 이름을 눌러 선택하세요.",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "기기 음성 관리를 엽니다. 다운로드 후 여기로 돌아오세요.",
+  "voicesCurrentVoice": "사용 중인 음성",
+  "voicesNewlyInstalled": "새로 설치된 음성",
+  "voicesOnDevice": "이 기기의 음성",
+  "voicesRescan": "음성 다시 검색",
+  "voicesRescanResult": "사용 가능한 음성 {count}개 발견",
+  "voicesNewFound": "새 음성 {count}개를 찾았습니다.",
+  "voicesNoNewFound": "새 음성이 감지되지 않았습니다.",
+  "voicesSystemUpdated": "기기 설정에서 {language} 음성을 업데이트했습니다.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "음성 변경이 감지되지 않았습니다.",
+  "voicesSettingsRefreshed": "기기 음성 설정을 새로고침했습니다.",
+  "voicesSystemChanges": "기기 음성 업데이트",
+  "voicesSystemChangeEvent": "기기의 {language} 음성 설정이 업데이트되었습니다.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "새 음성과 기기 업데이트는 여기에 표시됩니다.",
+  "commonClear": "지우기",
+  "voicesNewBadge": "신규",
+  "voiceFriendlyName": "음성 {number}",
+  "voicesOpenManagerFailed": "음성 관리를 열 수 없습니다. 시스템 TTS 설정을 여세요.",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "currentVoice": "현재 음성",
+  "scanDeviceVoices": "기기 음성 스캔",
+  "availableDeviceVoices": "기기에 있는 음성",
+  "scanVoicesHint": "기기 음성 스캔을 눌러 설치된 음성을 확인하세요.",
+  "noDeviceVoicesFound": "기기에서 적합한 음성을 찾지 못했습니다.",
+  "scanVoicesFailed": "음성을 스캔할 수 없습니다. 다시 시도하세요.",
+  "voiceSetupGuide": "음성 추가 방법",
+  "openVoiceSettings": "음성 설정 열기",
+  "androidVoiceSetupSteps": "1. 기기 설정을 엽니다.\n2. 텍스트 음성 변환 또는 Text-to-speech를 검색합니다.\n3. 사용 중인 TTS 엔진을 엽니다.\n4. 언어 또는 음성 데이터 화면을 엽니다.\n5. 새 음성을 설치합니다.\n6. 앱으로 돌아와 기기 음성 스캔을 누릅니다.",
+  "iosVoiceSetupSteps": "1. 설정을 엽니다.\n2. 손쉬운 사용을 엽니다.\n3. 읽어주기 또는 음성을 엽니다.\n4. 언어를 선택하고 음성을 다운로드합니다.\n5. 앱으로 돌아와 다시 스캔합니다.\niOS 버전에 따라 메뉴 이름이 다를 수 있습니다.",
+  "webVoiceAvailabilityInfo": "웹에서는 브라우저와 운영체제가 제공하는 음성을 사용합니다.",
+  "lastScanned": "마지막 스캔: {time}",
+  "voiceInUse": "사용 중",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "otherLanguages": "기타 언어",
+  "voicesInLanguage": "{count, plural, =0{음성 없음} =1{음성 1개} other{음성 {count}개}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "언어 음성 펼치기",
+  "collapseLanguageVoices": "언어 음성 접기",
+  "voicePreviewNamed": "{name} 미리듣기",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSoundAndVoice": "소리 및 음성",
+  "settingsAlarmsSection": "알람",
+  "supportAndFeedback": "지원",
+  "contactSupport": "문의 및 피드백",
+  "supportEmailSubject": "Smart Voice Alarm 지원",
+  "emailCopied": "지원 이메일이 복사됨",
+  "linkUnavailable": "이 링크는 아직 사용할 수 없습니다",
+  "openSourceLicenses": "오픈소스 라이선스",
+  "appInformation": "앱 정보",
+  "appVersion": "앱 버전",
+  "permissionsAndBackground": "권한 및 백그라운드",
+  "notificationPermission": "알림",
+  "exactAlarmPermission": "정확한 알람",
+  "fullScreenAlarmPermission": "전체 화면 알람",
+  "openSystemSettings": "시스템 설정 열기",
+  "openSystemSettingsHint": "알림 및 관련 권한 관리",
+  "permissionStatusGranted": "허용됨",
+  "permissionStatusDenied": "허용되지 않음",
+  "permissionStatusUnknown": "알 수 없음",
+  "trialDaysRemaining": "{count} 일의 체험 기간이 남았습니다",
+  "trialLessThanOneDay": "체험 기간이 1일 미만 남았습니다",
+  "premiumUpgrade": "Premium으로 업그레이드",
+  "premiumAnnualTitle": "1년 Premium",
+  "premiumAnnualDescription": "7일 체험 후에도 Smart Voice Alarm의 모든 기능을 계속 사용하세요.",
+  "premiumAnnualPlan": "Premium 연간 요금제",
+  "premiumAnnualAutoRenew": "취소할 때까지 매년 자동 갱신됩니다.",
+  "premiumAnnualCancelInPlay": "Google Play에서 관리하거나 취소할 수 있습니다.",
+  "premiumAnnualAccess": "구독이 활성 상태인 동안 전체 기능을 사용할 수 있습니다.",
+  "premiumSubscribeAnnual": "Premium 1년 구독",
+  "premiumDefer": "나중에",
+  "premiumRestoreTransactions": "거래 복원",
+  "premiumManageSubscription": "구독 관리",
+  "premiumProductUnavailable": "연간 구독을 아직 Google Play에서 사용할 수 없습니다.",
+  "premiumBillingUnavailable": "현재 Google Play Billing을 사용할 수 없습니다.",
+  "premiumPurchaseActive": "Premium 활성화됨",
+  "premiumTrialExpiredTitle": "체험 기간이 종료되었습니다",
+  "premiumTrialExpiredBody": "주요 기능을 계속 사용하려면 구독하세요. 기존 알람은 계속 울리며 비활성화하거나 삭제할 수 있습니다.",
+  "premiumRetryVerification": "다시 시도",
+  "premiumViewExistingAlarms": "기존 알람 보기",
+  "premiumClientVerificationNotice": "구독 상태는 이 기기에서 앱 스토어를 통해 확인됩니다.",
+  "premiumUnableToVerify": "구독 상태를 확인할 수 없습니다.",
+  "premiumRestrictedAlarmsTitle": "제한된 알람 접근",
+  "premiumRestrictedAlarmsBody": "기존 알람을 비활성화하거나 삭제할 수 있습니다. 알람 생성 또는 편집에는 구독이 필요합니다.",
+  "@trialDaysRemaining": {
     "placeholders": {
       "count": {
         "type": "int"

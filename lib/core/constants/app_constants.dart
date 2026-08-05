@@ -1,27 +1,43 @@
 abstract final class AppConstants {
   static const String appName = 'Smart Voice Alarm';
+
+  /// Fallback only — prefer [PackageInfo] at runtime.
   static const String appVersion = '1.0.0';
   static const String appBuildNumber = '1';
-  static const String applicationId = 'com.smartvoicealarm.app';
-  static const String developerName = 'Tom Satthu';
-  static const String githubRepoUrl =
-      'https://github.com/Tom-satthu/Smart-Voice-Alarm';
-  /// Owner contact — replace with a dedicated support inbox when available.
-  static const String supportEmail = 'daonguyenduc209@gmail.com';
-  static const String websiteUrl =
-      'https://tom-satthu.github.io/Smart-Voice-Alarm/';
-  static const String privacyUrl =
-      'https://tom-satthu.github.io/Smart-Voice-Alarm/privacy/';
-  static const String termsUrl =
-      'https://tom-satthu.github.io/Smart-Voice-Alarm/terms/';
-  static const String supportUrl =
-      'https://tom-satthu.github.io/Smart-Voice-Alarm/support/';
 
-  /// Non-consumable product shared conceptually on App Store and Play.
-  static const String premiumProductId = 'smart_voice_alarm_unlimited';
-  static const int freeAlarmLimit = 3;
-  /// Display hint only when the store has not returned a localized price yet.
-  static const String premiumPriceHintUsd = '\$1.99';
+  static const String applicationId = 'com.smartvoicealarm.app';
+
+  /// Public Google Play developer display name (not legal account name).
+  static const String developerName = 'Nguyên Đức';
+
+  /// Public support inbox for users and store listings.
+  static const String supportEmail = 'timeforwork789@gmail.com';
+
+  /// Public legal site hosted separately from the application source.
+  static const String websiteUrl =
+      'https://tom-deptrai.github.io/smart-voice-alarm-legal/';
+  static const String privacyPolicyUrl =
+      'https://tom-deptrai.github.io/smart-voice-alarm-legal/privacy-policy/';
+  static const String supportUrl =
+      'https://tom-deptrai.github.io/smart-voice-alarm-legal/support/';
+  static const String termsOfUseUrl =
+      'https://tom-deptrai.github.io/smart-voice-alarm-legal/subscription-terms/';
+
+  /// Play / App Store public URLs — empty until published.
+  static const String playStoreUrl = '';
+  static const String appStoreUrl = '';
+  static const String appStoreId = '';
+
+  static bool get hasPrivacyPolicyUrl => privacyPolicyUrl.trim().isNotEmpty;
+  static bool get hasTermsOfUseUrl => termsOfUseUrl.trim().isNotEmpty;
+  static bool get hasWebsiteUrl => websiteUrl.trim().isNotEmpty;
+  static bool get hasSupportUrl => supportUrl.trim().isNotEmpty;
+  static bool get hasPlayStoreUrl => playStoreUrl.trim().isNotEmpty;
+  static bool get hasAppStoreUrl =>
+      appStoreUrl.trim().isNotEmpty || appStoreId.trim().isNotEmpty;
+
+  static const String premiumSubscriptionId = 'premium_annual';
+  static const String premiumAnnualBasePlanId = 'annual-auto';
 
   static const Duration splashDuration = Duration(milliseconds: 1600);
   static const Duration animationFast = Duration(milliseconds: 200);

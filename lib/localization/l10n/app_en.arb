@@ -102,6 +102,10 @@
   "recordReady": "Ready to save",
   "recordSaved": "Recording saved",
   "recordDefaultName": "Voice recording",
+  "recordPermissionTitle": "Microphone access",
+  "recordPermissionRationale": "The app needs microphone access to record the audio clip you use as an alarm.",
+  "recordPermissionDenied": "Microphone access was not granted. No recording was started. You can try again when you are ready.",
+  "recordPermissionPermanentlyDenied": "Microphone access is blocked. Open system settings to allow it before recording.",
   "settingsTitle": "Settings",
   "settingsAppearance": "Appearance",
   "settingsTheme": "Theme",
@@ -221,15 +225,14 @@
   "aboutAppName": "App Name",
   "aboutVersion": "Version",
   "aboutDeveloper": "Developer",
-  "aboutDeveloperValue": "Tom Satthu",
-  "aboutGithub": "GitHub Repository",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutEmail": "Email Support",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "Website",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "Coming soon",
   "voiceSystemDefault": "System Default",
+  "voiceSystemDefaultHint": "Managed in device settings",
   "notificationChannelAlarms": "Alarms",
   "notificationChannelAlarmsDesc": "Voice alarm alerts",
   "notificationChannelReminders": "Reminders",
@@ -260,6 +263,182 @@
   "voicesSelectVoiceHint": "Choose a voice for this language",
   "voicesLanguageCount": "{count, plural, =1{1 voice} other{{count} voices}}",
   "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmSelectTime": "Tap to choose time",
+  "segmentPlay": "Play",
+  "voicePlaying": "Playing",
+  "voiceSelect": "Select",
+  "voiceUnavailable": "Voice unavailable",
+  "recordingFileMissing": "Recording file missing. Delete this segment or record again.",
+  "voiceDetails": "Voice details",
+  "ttsSelectedVoice": "Selected voice",
+  "voicePreviewSample": "This is a short preview of this voice.",
+  "alarmDismissTitle": "Solve to stop",
+  "alarmDismissHint": "Answer correctly to turn off the alarm.",
+  "alarmDismissWrong": "Incorrect. Try a new question.",
+  "alarmDismissCheck": "Check answer",
+  "alarmDismissAnswerHint": "Your answer",
+  "voicesRefreshed": "Refreshed: {count} voices found",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voicesSelectedSaved": "Saved voice: {name}",
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadThenSelect": "Open your device voice manager. After downloading, return here.",
+  "voicesRefreshHint": "Rescan Voices reloads system TTS voices after you install new packs.",
+  "ringtonePreview": "Preview",
+  "ringtonePreviewHint": "Tap play to preview, then tap a name to select it.",
+  "voicesCurrentVoice": "Current voice",
+  "voicesNewlyInstalled": "Newly installed voices",
+  "voicesOnDevice": "Voices on this device",
+  "voicesDownloadHint": "Open your device voice manager. After downloading, return here.",
+  "voicesRescan": "Rescan voices",
+  "voicesRescanResult": "Found {count} usable voices",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voicesNewFound": "Found {count} new voices.",
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voicesNoNewFound": "No new voices detected.",
+  "voicesSystemUpdated": "Updated the {language} voice from device settings.",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "Device voice settings were refreshed.",
+  "voicesSettingsRefreshed": "Device voice settings were refreshed.",
+  "voicesSystemChanges": "Device voice updates",
+  "voicesSystemChangeEvent": "Device {language} voice settings were updated.",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "New voices and device voice updates will appear here after you install or change them.",
+  "voicesNewBadge": "New",
+  "commonClear": "Clear",
+  "voiceFriendlyName": "Voice {number}",
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesOpenManagerFailed": "Could not open the device voice manager. Open system Text-to-speech settings and install voices there.",
+  "currentVoice": "Current voice",
+  "scanDeviceVoices": "Scan voices on this device",
+  "availableDeviceVoices": "Voices available on this device",
+  "scanVoicesHint": "Tap Scan voices on this device to list the voices currently installed.",
+  "noDeviceVoicesFound": "No suitable voices were found on this device.",
+  "scanVoicesFailed": "Could not scan device voices. Try again.",
+  "voiceSetupGuide": "How to add voices",
+  "openVoiceSettings": "Open voice settings",
+  "androidVoiceSetupSteps": "1. Open your device Settings.\n2. Search for Text-to-speech or Text to speech output.\n3. Open the TTS engine you use.\n4. Open languages or install voice data.\n5. Install a new voice.\n6. Return here and tap Scan voices on this device.",
+  "iosVoiceSetupSteps": "1. Open Settings.\n2. Open Accessibility.\n3. Open Spoken Content or Voices.\n4. Choose a language and download an available voice.\n5. Return here and scan again.\nMenu names can vary by iOS version.",
+  "webVoiceAvailabilityInfo": "On the web, available voices come from your browser and operating system.",
+  "lastScanned": "Last scanned: {time}",
+  "voiceInUse": "In use",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "otherLanguages": "Other languages",
+  "voicesInLanguage": "{count, plural, =0{No voices} =1{1 voice} other{{count} voices}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "Expand language voices",
+  "collapseLanguageVoices": "Collapse language voices",
+  "voicePreviewNamed": "Preview {name}",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSoundAndVoice": "Sound and voice",
+  "settingsAlarmsSection": "Alarms",
+  "supportAndFeedback": "Support",
+  "contactSupport": "Contact and feedback",
+  "supportEmailSubject": "Smart Voice Alarm Support",
+  "emailCopied": "Support email copied",
+  "linkUnavailable": "This link is not available yet",
+  "openSourceLicenses": "Open-source licenses",
+  "appInformation": "About the app",
+  "appVersion": "App version",
+  "permissionsAndBackground": "Permissions and background",
+  "notificationPermission": "Notifications",
+  "exactAlarmPermission": "Exact alarms",
+  "fullScreenAlarmPermission": "Full-screen alarms",
+  "openSystemSettings": "Open system settings",
+  "openSystemSettingsHint": "Manage notifications and related permissions",
+  "permissionStatusGranted": "Granted",
+  "permissionStatusDenied": "Not granted",
+  "permissionStatusUnknown": "Unknown",
+  "trialDaysRemaining": "{count} days left in your trial",
+  "trialLessThanOneDay": "Less than 1 day left in your trial",
+  "premiumUpgrade": "Upgrade to Premium",
+  "premiumAnnualTitle": "Premium for one year",
+  "premiumAnnualDescription": "Continue using every Smart Voice Alarm feature after your 7-day trial.",
+  "premiumAnnualPlan": "Premium annual plan",
+  "premiumAnnualAutoRenew": "Automatically renews every year until cancelled.",
+  "premiumAnnualCancelInPlay": "Manage or cancel through Google Play.",
+  "premiumAnnualAccess": "Full access continues while the subscription is active.",
+  "premiumSubscribeAnnual": "Subscribe to Premium for one year",
+  "premiumDefer": "Maybe later",
+  "premiumRestoreTransactions": "Restore transactions",
+  "premiumManageSubscription": "Manage subscription",
+  "premiumProductUnavailable": "The annual subscription is not available from Google Play yet.",
+  "premiumBillingUnavailable": "Google Play Billing is currently unavailable.",
+  "premiumPurchaseActive": "Premium is active",
+  "premiumTrialExpiredTitle": "Your trial has ended",
+  "premiumTrialExpiredBody": "Subscribe to continue using the main features. Existing alarms can still ring and can be disabled or deleted.",
+  "premiumRetryVerification": "Try again",
+  "premiumViewExistingAlarms": "View existing alarms",
+  "premiumClientVerificationNotice": "Subscription status is verified on this device through the app store.",
+  "premiumUnableToVerify": "Unable to verify subscription status.",
+  "premiumRestrictedAlarmsTitle": "Limited alarm access",
+  "premiumRestrictedAlarmsBody": "You can disable or delete existing alarms. Subscribe to create or edit alarms.",
+  "@trialDaysRemaining": {
     "placeholders": {
       "count": {
         "type": "int"

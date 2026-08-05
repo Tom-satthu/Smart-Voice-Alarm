@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../core/services/resolved_system_voice.dart';
 import '../models/ui_models.dart';
 
 abstract final class AppBoxes {
@@ -60,16 +61,19 @@ class LocalDatabase {
 class AlarmRepository {
   List<AlarmUiModel> loadAll() {
     final box = LocalDatabase.alarmsBox;
-    final items = box.values
-        .map((raw) => AlarmUiModel.fromJson(
-              jsonDecode(raw) as Map<String, dynamic>,
-            ))
-        .toList()
-      ..sort((a, b) {
-        final am = a.time.hour * 60 + a.time.minute;
-        final bm = b.time.hour * 60 + b.time.minute;
-        return am.compareTo(bm);
-      });
+    final items =
+        box.values
+            .map(
+              (raw) => AlarmUiModel.fromJson(
+                jsonDecode(raw) as Map<String, dynamic>,
+              ),
+            )
+            .toList()
+          ..sort((a, b) {
+            final am = a.time.hour * 60 + a.time.minute;
+            final bm = b.time.hour * 60 + b.time.minute;
+            return am.compareTo(bm);
+          });
     return items;
   }
 
@@ -116,8 +120,10 @@ class VoiceSequenceRepository {
   }
 
   Future<void> upsert(VoiceSequenceUiModel sequence) async {
-    await LocalDatabase.sequencesBox
-        .put(sequence.id, jsonEncode(sequence.toJson()));
+    await LocalDatabase.sequencesBox.put(
+      sequence.id,
+      jsonEncode(sequence.toJson()),
+    );
   }
 
   Future<void> delete(String id) async {
@@ -135,7 +141,14 @@ class SettingsRepository {
   static const _preferredVoiceIdKey = 'preferredVoiceId';
   static const _preferredVoiceLocaleKey = 'preferredVoiceLocale';
   static const _preferredVoiceLanguageKey = 'preferredVoiceLanguage';
-  static const _premiumUnlockedKey = 'premiumLifetimeUnlocked';
+  static const _newVoiceIdsKey = 'newVoiceIds';
+  static const _systemVoiceChangeEventsKey = 'systemVoiceChangeEvents';
+  static const _trialStartedAtUtcKey = 'trialStartedAtUtc';
+  static const _latestTrustedLocalTimeUtcKey = 'latestTrustedLocalTimeUtc';
+  static const _trialExpiredPermanentlyKey = 'trialExpiredPermanently';
+  static const _cachedSubscriptionActiveKey = 'cachedSubscriptionActive';
+  static const _lastSubscriptionVerifiedAtUtcKey =
+      'lastSubscriptionVerifiedAtUtc';
 
   ThemeMode loadThemeMode() {
     final raw = LocalDatabase.settingsBox.get(_themeKey) as String?;
@@ -167,8 +180,7 @@ class SettingsRepository {
     return Locale(code);
   }
 
-  bool get hasSavedLocale =>
-      LocalDatabase.settingsBox.get(_localeKey) != null;
+  bool get hasSavedLocale => LocalDatabase.settingsBox.get(_localeKey) != null;
 
   Future<void> saveLocale(Locale locale) async {
     final value = locale.countryCode == null || locale.countryCode!.isEmpty
@@ -243,10 +255,90 @@ class SettingsRepository {
     }
   }
 
-  bool loadPremiumUnlocked() =>
-      LocalDatabase.settingsBox.get(_premiumUnlockedKey) as bool? ?? false;
+  Set<String> loadNewVoiceIds() {
+    final raw = LocalDatabase.settingsBox.get(_newVoiceIdsKey);
+    if (raw is! List) return {};
+    return raw.whereType<String>().toSet();
+  }
 
-  Future<void> savePremiumUnlocked(bool unlocked) async {
-    await LocalDatabase.settingsBox.put(_premiumUnlockedKey, unlocked);
+  Future<void> saveNewVoiceIds(Set<String> voiceIds) async {
+    await LocalDatabase.settingsBox.put(_newVoiceIdsKey, voiceIds.toList());
+  }
+
+  List<SystemVoiceChangeEvent> loadSystemVoiceChangeEvents() {
+    final raw = LocalDatabase.settingsBox.get(_systemVoiceChangeEventsKey);
+    if (raw is! List) return const [];
+    final events = <SystemVoiceChangeEvent>[];
+    for (final item in raw) {
+      if (item is Map) {
+        events.add(
+          SystemVoiceChangeEvent.fromJson(Map<String, dynamic>.from(item)),
+        );
+      } else if (item is String) {
+        try {
+          final decoded = jsonDecode(item);
+          if (decoded is Map) {
+            events.add(
+              SystemVoiceChangeEvent.fromJson(
+                Map<String, dynamic>.from(decoded),
+              ),
+            );
+          }
+        } catch (_) {}
+      }
+    }
+    return events;
+  }
+
+  Future<void> saveSystemVoiceChangeEvents(
+    List<SystemVoiceChangeEvent> events,
+  ) async {
+    final trimmed = events.length > 20 ? events.sublist(0, 20) : events;
+    await LocalDatabase.settingsBox.put(
+      _systemVoiceChangeEventsKey,
+      trimmed.map((event) => event.toJson()).toList(),
+    );
+  }
+
+  DateTime? loadTrialStartedAtUtc() => _loadUtcDateTime(_trialStartedAtUtcKey);
+
+  Future<void> saveTrialStartedAtUtc(DateTime value) => LocalDatabase
+      .settingsBox
+      .put(_trialStartedAtUtcKey, value.toUtc().toIso8601String());
+
+  DateTime? loadLatestTrustedLocalTimeUtc() =>
+      _loadUtcDateTime(_latestTrustedLocalTimeUtcKey);
+
+  Future<void> saveLatestTrustedLocalTimeUtc(DateTime value) => LocalDatabase
+      .settingsBox
+      .put(_latestTrustedLocalTimeUtcKey, value.toUtc().toIso8601String());
+
+  bool loadTrialExpiredPermanently() =>
+      LocalDatabase.settingsBox.get(_trialExpiredPermanentlyKey) as bool? ??
+      false;
+
+  Future<void> saveTrialExpiredPermanently(bool value) =>
+      LocalDatabase.settingsBox.put(_trialExpiredPermanentlyKey, value);
+
+  bool loadCachedSubscriptionActive() =>
+      LocalDatabase.settingsBox.get(_cachedSubscriptionActiveKey) as bool? ??
+      false;
+
+  Future<void> saveCachedSubscriptionActive(bool value) =>
+      LocalDatabase.settingsBox.put(_cachedSubscriptionActiveKey, value);
+
+  DateTime? loadLastSubscriptionVerifiedAtUtc() =>
+      _loadUtcDateTime(_lastSubscriptionVerifiedAtUtcKey);
+
+  Future<void> saveLastSubscriptionVerifiedAtUtc(DateTime value) =>
+      LocalDatabase.settingsBox.put(
+        _lastSubscriptionVerifiedAtUtcKey,
+        value.toUtc().toIso8601String(),
+      );
+
+  DateTime? _loadUtcDateTime(String key) {
+    final raw = LocalDatabase.settingsBox.get(key);
+    if (raw is! String) return null;
+    return DateTime.tryParse(raw)?.toUtc();
   }
 }

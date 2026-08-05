@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- User-created alarm audio remains on this device and is not cloud-backed up. -->
+    <exclude domain="file" path="app_flutter/recordings/" />
+</full-backup-content>

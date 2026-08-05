@@ -54,17 +54,17 @@ class AlarmUiModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'hour': time.hour,
-        'minute': time.minute,
-        'repeatDays': repeatDays.map((d) => d.name).toList(),
-        'isEnabled': isEnabled,
-        'type': type.name,
-        'label': label,
-        'voiceSequenceId': voiceSequenceId,
-        'ringtoneName': ringtoneName,
-        'repeatCount': repeatCount,
-      };
+    'id': id,
+    'hour': time.hour,
+    'minute': time.minute,
+    'repeatDays': repeatDays.map((d) => d.name).toList(),
+    'isEnabled': isEnabled,
+    'type': type.name,
+    'label': label,
+    'voiceSequenceId': voiceSequenceId,
+    'ringtoneName': ringtoneName,
+    'repeatCount': repeatCount,
+  };
 
   factory AlarmUiModel.fromJson(Map<String, dynamic> json) {
     final days = <Weekday>{};
@@ -73,10 +73,7 @@ class AlarmUiModel {
     }
     return AlarmUiModel(
       id: json['id'] as String,
-      time: TimeOfDay(
-        hour: json['hour'] as int,
-        minute: json['minute'] as int,
-      ),
+      time: TimeOfDay(hour: json['hour'] as int, minute: json['minute'] as int),
       repeatDays: days,
       isEnabled: json['isEnabled'] as bool? ?? true,
       type: AlarmType.values.byName(json['type'] as String? ?? 'voice'),
@@ -132,15 +129,15 @@ class VoiceSegmentUiModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'type': type.name,
-        'durationMs': duration.inMilliseconds,
-        'text': text,
-        'filePath': filePath,
-        'voiceId': voiceId,
-        'localeId': localeId,
-      };
+    'id': id,
+    'name': name,
+    'type': type.name,
+    'durationMs': duration.inMilliseconds,
+    'text': text,
+    'filePath': filePath,
+    'voiceId': voiceId,
+    'localeId': localeId,
+  };
 
   factory VoiceSegmentUiModel.fromJson(Map<String, dynamic> json) {
     return VoiceSegmentUiModel(
@@ -182,10 +179,10 @@ class VoiceSequenceUiModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'segments': segments.map((s) => s.toJson()).toList(),
-      };
+    'id': id,
+    'name': name,
+    'segments': segments.map((s) => s.toJson()).toList(),
+  };
 
   factory VoiceSequenceUiModel.fromJson(Map<String, dynamic> json) {
     final rawSegments = json['segments'] as List<dynamic>? ?? const [];
@@ -193,9 +190,11 @@ class VoiceSequenceUiModel {
       id: json['id'] as String,
       name: json['name'] as String? ?? 'Sequence',
       segments: rawSegments
-          .map((e) => VoiceSegmentUiModel.fromJson(
-                Map<String, dynamic>.from(e as Map),
-              ))
+          .map(
+            (e) => VoiceSegmentUiModel.fromJson(
+              Map<String, dynamic>.from(e as Map),
+            ),
+          )
           .toList(),
     );
   }
@@ -210,25 +209,42 @@ class TtsVoiceUiModel {
     this.quality,
     this.availability = TtsVoiceAvailability.installedOffline,
     this.isUsable = true,
-  });
+    String? platformName,
+    String? platformLocale,
+    this.platformIdentifier,
+    this.platformEngine,
+    this.platformQuality,
+    this.resolvedIdentifier,
+    this.resolvedLocale,
+    this.isSystemDefault = false,
+  }) : platformName = platformName ?? name,
+       platformLocale = platformLocale ?? locale;
 
   final String id;
   final String name;
   final String locale;
   final bool isPremium;
+
   /// Null when the platform does not expose a reliable quality signal.
   final TtsVoiceQuality? quality;
   final TtsVoiceAvailability availability;
   final bool isUsable;
+
+  /// Exact values returned by the engine. Never use the normalized UI locale
+  /// when selecting an Android voice.
+  final String platformName;
+  final String platformLocale;
+  final String? platformIdentifier;
+  final String? platformEngine;
+  final Object? platformQuality;
+  final String? resolvedIdentifier;
+  final String? resolvedLocale;
+  final bool isSystemDefault;
 }
 
 enum TtsVoiceQuality { defaultQuality, enhanced, premium }
 
-enum TtsVoiceAvailability {
-  installedOffline,
-  networkRequired,
-  notInstalled,
-}
+enum TtsVoiceAvailability { installedOffline, networkRequired, notInstalled }
 
 class RingtoneUiModel {
   const RingtoneUiModel({

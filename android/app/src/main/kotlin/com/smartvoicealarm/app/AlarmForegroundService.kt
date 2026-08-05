@@ -12,6 +12,12 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
+import android.os.Handler
+import android.os.Looper
+import android.os.PowerManager
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
 
 /**
@@ -20,6 +26,10 @@ import androidx.core.app.NotificationCompat
  */
 class AlarmForegroundService : Service() {
     private var player: MediaPlayer? = null
+    private var wakeLock: PowerManager.WakeLock? = null
+    private var vibrator: Vibrator? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val timeout = Runnable { stopSelfSafe() }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -29,10 +39,11 @@ class AlarmForegroundService : Service() {
                 stopSelfSafe()
                 return START_NOT_STICKY
             }
-            else -> {
-                val alarmId = intent?.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID) ?: "alarm"
-                val label = intent?.getStringExtra(AlarmScheduler.EXTRA_LABEL) ?: "Alarm"
+            ACTION_START -> {
+                val alarmId = intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID) ?: "alarm"
+                val label = intent.getStringExtra(AlarmScheduler.EXTRA_LABEL) ?: "Alarm"
                 ensureChannel()
+                acquireWakeLock()
                 val notification = buildNotification(alarmId, label)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     startForeground(
@@ -44,9 +55,17 @@ class AlarmForegroundService : Service() {
                     startForeground(NOTIFICATION_ID, notification)
                 }
                 startRingtone()
+                startVibration()
+                handler.removeCallbacks(timeout)
+                handler.postDelayed(timeout, MAX_RING_DURATION_MS)
+                return START_NOT_STICKY
+            }
+            else -> {
+                // Sticky restart / null intent — do not resume audio.
+                stopSelfSafe()
+                return START_NOT_STICKY
             }
         }
-        return START_STICKY
     }
 
     private fun startRingtone() {
@@ -67,8 +86,63 @@ class AlarmForegroundService : Service() {
         }
     }
 
+    private fun startVibration() {
+        try {
+            vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val manager = getSystemService(VibratorManager::class.java)
+                manager?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                getSystemService(VIBRATOR_SERVICE) as? Vibrator
+            }
+            val pattern = longArrayOf(0, 500, 500, 500)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator?.vibrate(
+                    VibrationEffect.createWaveform(pattern, 0),
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator?.vibrate(pattern, 0)
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun stopVibration() {
+        try {
+            vibrator?.cancel()
+        } catch (_: Exception) {
+        }
+        vibrator = null
+    }
+
+    private fun acquireWakeLock() {
+        if (wakeLock?.isHeld == true) return
+        try {
+            val pm = getSystemService(POWER_SERVICE) as PowerManager
+            wakeLock = pm.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "SmartVoiceAlarm::AlarmWakeLock",
+            ).also {
+                it.setReferenceCounted(false)
+                it.acquire(10 * 60 * 1000L)
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun releaseWakeLock() {
+        try {
+            if (wakeLock?.isHeld == true) {
+                wakeLock?.release()
+            }
+        } catch (_: Exception) {
+        }
+        wakeLock = null
+    }
+
     private fun buildNotification(alarmId: String, label: String): Notification {
-        val fullScreen = PendingIntent.getActivity(
+        val open = PendingIntent.getActivity(
             this,
             alarmId.hashCode(),
             Intent(this, MainActivity::class.java).apply {
@@ -80,16 +154,26 @@ class AlarmForegroundService : Service() {
             },
             pendingFlags(),
         )
+        val stop = PendingIntent.getBroadcast(
+            this,
+            alarmId.hashCode() + 17,
+            Intent(this, AlarmReceiver::class.java).apply {
+                action = AlarmReceiver.ACTION_STOP
+                putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId)
+            },
+            pendingFlags(),
+        )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(label)
             .setContentText("Smart Voice Alarm")
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setOngoing(true)
-            .setFullScreenIntent(fullScreen, true)
-            .setContentIntent(fullScreen)
+            .setFullScreenIntent(open, true)
+            .setContentIntent(open)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .addAction(0, "Stop", stop)
             .build()
     }
 
@@ -117,23 +201,32 @@ class AlarmForegroundService : Service() {
     }
 
     private fun stopSelfSafe() {
+        handler.removeCallbacks(timeout)
         try {
             player?.stop()
         } catch (_: Exception) {
         }
         player?.release()
         player = null
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopVibration()
+        releaseWakeLock()
+        try {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } catch (_: Exception) {
+        }
         stopSelf()
     }
 
     override fun onDestroy() {
+        handler.removeCallbacks(timeout)
         try {
             player?.stop()
         } catch (_: Exception) {
         }
         player?.release()
         player = null
+        stopVibration()
+        releaseWakeLock()
         super.onDestroy()
     }
 
@@ -142,12 +235,19 @@ class AlarmForegroundService : Service() {
         const val ACTION_STOP = "com.smartvoicealarm.app.ACTION_STOP_ALARM"
         const val CHANNEL_ID = "smart_voice_alarm_native"
         const val NOTIFICATION_ID = 42001
+        const val MAX_RING_DURATION_MS = 10 * 60 * 1000L
 
         fun stop(context: Context) {
             val intent = Intent(context, AlarmForegroundService::class.java).apply {
                 action = ACTION_STOP
             }
-            context.startService(intent)
+            try {
+                context.startService(intent)
+            } catch (_: Exception) {
+                // Service may already be gone; still clear notification.
+            }
+            val mgr = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            mgr.cancel(NOTIFICATION_ID)
         }
     }
 }

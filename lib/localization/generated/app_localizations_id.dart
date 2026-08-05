@@ -287,6 +287,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get recordDefaultName => 'Rekaman suara';
 
   @override
+  String get recordPermissionTitle => 'Akses mikrofon';
+
+  @override
+  String get recordPermissionRationale =>
+      'Aplikasi memerlukan akses mikrofon untuk merekam klip audio yang Anda gunakan sebagai alarm.';
+
+  @override
+  String get recordPermissionDenied =>
+      'Akses mikrofon tidak diberikan. Perekaman belum dimulai. Anda dapat mencoba lagi.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'Akses mikrofon diblokir. Buka pengaturan sistem dan izinkan sebelum merekam.';
+
+  @override
   String get settingsTitle => 'Pengaturan';
 
   @override
@@ -616,31 +631,28 @@ class AppLocalizationsId extends AppLocalizations {
   String get aboutDeveloper => 'Pengembang';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
-
-  @override
-  String get aboutGithub => 'Repositori GitHub';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutEmail => 'Dukungan Email';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'Situs Web';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => 'Segera hadir';
 
   @override
   String get voiceSystemDefault => 'Default sistem';
+
+  @override
+  String get voiceSystemDefaultHint => 'Dikelola di pengaturan perangkat';
 
   @override
   String get notificationChannelAlarms => 'Alarm';
@@ -720,4 +732,353 @@ class AppLocalizationsId extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'Ketuk untuk memilih waktu';
+
+  @override
+  String get segmentPlay => 'Putar';
+
+  @override
+  String get voicePlaying => 'Memutar';
+
+  @override
+  String get voiceSelect => 'Pilih';
+
+  @override
+  String get voiceUnavailable => 'Suara tidak tersedia';
+
+  @override
+  String get recordingFileMissing =>
+      'File rekaman hilang. Hapus segmen ini atau rekam ulang.';
+
+  @override
+  String get voiceDetails => 'Detail suara';
+
+  @override
+  String get ttsSelectedVoice => 'Suara terpilih';
+
+  @override
+  String get voicePreviewSample => 'Ini adalah pratinjau singkat suara ini.';
+
+  @override
+  String get alarmDismissTitle => 'Selesaikan untuk berhenti';
+
+  @override
+  String get alarmDismissHint => 'Jawab dengan benar untuk mematikan alarm.';
+
+  @override
+  String get alarmDismissWrong => 'Salah. Soal baru.';
+
+  @override
+  String get alarmDismissCheck => 'Periksa';
+
+  @override
+  String get alarmDismissAnswerHint => 'Jawaban Anda';
+
+  @override
+  String voicesRefreshed(int count) {
+    return 'Diperbarui: $count suara ditemukan';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return 'Suara disimpan: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect =>
+      'Buka pengelola suara perangkat. Setelah unduh selesai, kembali ke sini.';
+
+  @override
+  String get voicesRefreshHint =>
+      'Segarkan suara memuat ulang suara TTS sistem setelah memasang paket.';
+
+  @override
+  String get ringtonePreview => 'Pratinjau';
+
+  @override
+  String get ringtonePreviewHint =>
+      'Ketuk putar untuk mendengar, lalu ketuk nama untuk memilih.';
+
+  @override
+  String get voicesCurrentVoice => 'Suara yang digunakan';
+
+  @override
+  String get voicesNewlyInstalled => 'Suara baru dipasang';
+
+  @override
+  String get voicesOnDevice => 'Suara di perangkat ini';
+
+  @override
+  String get voicesDownloadHint =>
+      'Buka pengelola suara perangkat. Setelah unduh selesai, kembali ke sini.';
+
+  @override
+  String get voicesRescan => 'Pindai ulang suara';
+
+  @override
+  String voicesRescanResult(int count) {
+    return 'Ditemukan $count suara yang dapat digunakan';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return 'Ditemukan $count suara baru.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'Tidak ada suara baru terdeteksi.';
+
+  @override
+  String voicesSystemUpdated(String language) {
+    return 'Suara $language diperbarui dari pengaturan perangkat.';
+  }
+
+  @override
+  String get voicesNoChange => 'Tidak ada perubahan suara terdeteksi.';
+
+  @override
+  String get voicesSettingsRefreshed =>
+      'Pengaturan suara perangkat telah diperbarui.';
+
+  @override
+  String get voicesSystemChanges => 'Pembaruan suara perangkat';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return 'Pengaturan suara $language di perangkat baru saja diperbarui.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty =>
+      'Suara baru dan pembaruan perangkat akan muncul di sini.';
+
+  @override
+  String get voicesNewBadge => 'Baru';
+
+  @override
+  String get commonClear => 'Hapus';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Suara $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'Tidak dapat membuka pengelola suara. Buka pengaturan TTS sistem.';
+
+  @override
+  String get currentVoice => 'Suara yang digunakan';
+
+  @override
+  String get scanDeviceVoices => 'Pindai suara di perangkat';
+
+  @override
+  String get availableDeviceVoices => 'Suara tersedia di perangkat';
+
+  @override
+  String get scanVoicesHint =>
+      'Ketuk Pindai suara di perangkat untuk melihat suara yang terpasang.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'Tidak ditemukan suara yang cocok di perangkat.';
+
+  @override
+  String get scanVoicesFailed => 'Gagal memindai suara. Coba lagi.';
+
+  @override
+  String get voiceSetupGuide => 'Cara menambah suara';
+
+  @override
+  String get openVoiceSettings => 'Buka pengaturan suara';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Buka Pengaturan perangkat.\n2. Cari Text-to-speech.\n3. Buka mesin TTS yang digunakan.\n4. Buka bahasa atau data suara.\n5. Pasang suara baru.\n6. Kembali ke sini dan ketuk Pindai suara.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Buka Pengaturan.\n2. Buka Aksesibilitas.\n3. Buka Konten ucapan atau Suara.\n4. Pilih bahasa dan unduh suara.\n5. Kembali ke sini dan pindai lagi.\nNama menu dapat berbeda antar versi iOS.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'Di Web, daftar suara disediakan oleh browser dan sistem operasi.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Terakhir dipindai: $time';
+  }
+
+  @override
+  String get voiceInUse => 'Sedang digunakan';
+
+  @override
+  String get otherLanguages => 'Bahasa lain';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suara',
+      one: '1 suara',
+      zero: 'Tidak ada suara',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => 'Perluas suara bahasa';
+
+  @override
+  String get collapseLanguageVoices => 'Ciutkan suara bahasa';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return 'Pratinjau $name';
+  }
+
+  @override
+  String get settingsSoundAndVoice => 'Suara dan suara bicara';
+
+  @override
+  String get settingsAlarmsSection => 'Alarm';
+
+  @override
+  String get supportAndFeedback => 'Dukungan';
+
+  @override
+  String get contactSupport => 'Kontak dan masukan';
+
+  @override
+  String get supportEmailSubject => 'Dukungan Smart Voice Alarm';
+
+  @override
+  String get emailCopied => 'Email dukungan disalin';
+
+  @override
+  String get linkUnavailable => 'Tautan ini belum tersedia';
+
+  @override
+  String get openSourceLicenses => 'Lisensi sumber terbuka';
+
+  @override
+  String get appInformation => 'Tentang aplikasi';
+
+  @override
+  String get appVersion => 'Versi aplikasi';
+
+  @override
+  String get permissionsAndBackground => 'Izin dan latar belakang';
+
+  @override
+  String get notificationPermission => 'Notifikasi';
+
+  @override
+  String get exactAlarmPermission => 'Alarm tepat waktu';
+
+  @override
+  String get fullScreenAlarmPermission => 'Alarm layar penuh';
+
+  @override
+  String get openSystemSettings => 'Buka pengaturan sistem';
+
+  @override
+  String get openSystemSettingsHint => 'Kelola notifikasi dan izin terkait';
+
+  @override
+  String get permissionStatusGranted => 'Diberikan';
+
+  @override
+  String get permissionStatusDenied => 'Tidak diberikan';
+
+  @override
+  String get permissionStatusUnknown => 'Tidak diketahui';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count hari masa uji coba tersisa';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Masa uji coba tersisa kurang dari 1 hari';
+
+  @override
+  String get premiumUpgrade => 'Tingkatkan ke Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium selama satu tahun';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Terus gunakan semua fitur Smart Voice Alarm setelah uji coba 7 hari.';
+
+  @override
+  String get premiumAnnualPlan => 'Paket Premium tahunan';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Diperpanjang otomatis setiap tahun hingga dibatalkan.';
+
+  @override
+  String get premiumAnnualCancelInPlay =>
+      'Kelola atau batalkan melalui Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'Akses penuh berlanjut selama langganan aktif.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Berlangganan Premium satu tahun';
+
+  @override
+  String get premiumDefer => 'Nanti saja';
+
+  @override
+  String get premiumRestoreTransactions => 'Pulihkan transaksi';
+
+  @override
+  String get premiumManageSubscription => 'Kelola langganan';
+
+  @override
+  String get premiumProductUnavailable =>
+      'Langganan tahunan belum tersedia di Google Play.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'Google Play Billing sedang tidak tersedia.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium aktif';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Masa uji coba telah berakhir';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Berlangganan untuk terus memakai fitur utama. Alarm yang ada tetap dapat berbunyi dan dapat dinonaktifkan atau dihapus.';
+
+  @override
+  String get premiumRetryVerification => 'Coba lagi';
+
+  @override
+  String get premiumViewExistingAlarms => 'Lihat alarm yang ada';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'Status langganan diverifikasi di perangkat ini melalui toko aplikasi.';
+
+  @override
+  String get premiumUnableToVerify =>
+      'Tidak dapat memverifikasi status langganan.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Akses alarm terbatas';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'Anda dapat menonaktifkan atau menghapus alarm yang ada. Berlangganan untuk membuat atau mengedit alarm.';
 }

@@ -288,6 +288,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get recordDefaultName => 'Spraakopname';
 
   @override
+  String get recordPermissionTitle => 'Microfoontoegang';
+
+  @override
+  String get recordPermissionRationale =>
+      'De app heeft microfoontoegang nodig om de audioclip op te nemen die je als alarm gebruikt.';
+
+  @override
+  String get recordPermissionDenied =>
+      'Microfoontoegang is niet verleend. Er is geen opname gestart. Je kunt het opnieuw proberen.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'Microfoontoegang is geblokkeerd. Open de systeeminstellingen en sta toegang toe voordat je opneemt.';
+
+  @override
   String get settingsTitle => 'Instellingen';
 
   @override
@@ -619,31 +634,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get aboutDeveloper => 'Ontwikkelaar';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
-
-  @override
-  String get aboutGithub => 'GitHub-repository';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutEmail => 'E-mailondersteuning';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'Website';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => 'Binnenkort';
 
   @override
   String get voiceSystemDefault => 'Systeemstandaard';
+
+  @override
+  String get voiceSystemDefaultHint => 'Beheerd in de apparaatinstellingen';
 
   @override
   String get notificationChannelAlarms => 'Alarmen';
@@ -724,4 +736,353 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'Tik om een tijd te kiezen';
+
+  @override
+  String get segmentPlay => 'Afspelen';
+
+  @override
+  String get voicePlaying => 'Bezig met afspelen';
+
+  @override
+  String get voiceSelect => 'Selecteren';
+
+  @override
+  String get voiceUnavailable => 'Stem niet beschikbaar';
+
+  @override
+  String get recordingFileMissing =>
+      'Opnamebestand ontbreekt. Verwijder dit segment of neem opnieuw op.';
+
+  @override
+  String get voiceDetails => 'Stemdetails';
+
+  @override
+  String get ttsSelectedVoice => 'Geselecteerde stem';
+
+  @override
+  String get voicePreviewSample => 'Dit is een korte preview van deze stem.';
+
+  @override
+  String get alarmDismissTitle => 'Los op om te stoppen';
+
+  @override
+  String get alarmDismissHint => 'Beantwoord juist om de wekker uit te zetten.';
+
+  @override
+  String get alarmDismissWrong => 'Onjuist. Nieuwe vraag.';
+
+  @override
+  String get alarmDismissCheck => 'Controleren';
+
+  @override
+  String get alarmDismissAnswerHint => 'Jouw antwoord';
+
+  @override
+  String voicesRefreshed(int count) {
+    return 'Vernieuwd: $count stemmen gevonden';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return 'Stem opgeslagen: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect =>
+      'Open het stembeheer van het apparaat. Kom daarna hier terug.';
+
+  @override
+  String get voicesRefreshHint =>
+      'Stemmen vernieuwen herlaadt systeems TTS-stemmen na installatie.';
+
+  @override
+  String get ringtonePreview => 'Voorbeeld';
+
+  @override
+  String get ringtonePreviewHint =>
+      'Tik op afspelen om te beluisteren, tik op de naam om te kiezen.';
+
+  @override
+  String get voicesCurrentVoice => 'Huidige stem';
+
+  @override
+  String get voicesNewlyInstalled => 'Nieuw geïnstalleerde stemmen';
+
+  @override
+  String get voicesOnDevice => 'Stemmen op dit apparaat';
+
+  @override
+  String get voicesDownloadHint =>
+      'Open het stembeheer van het apparaat. Kom daarna hier terug.';
+
+  @override
+  String get voicesRescan => 'Stemmen opnieuw scannen';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '$count bruikbare stemmen gevonden';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '$count nieuwe stemmen gevonden.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'Geen nieuwe stemmen gevonden.';
+
+  @override
+  String voicesSystemUpdated(String language) {
+    return '$language-stem bijgewerkt vanuit apparaatinstellingen.';
+  }
+
+  @override
+  String get voicesNoChange => 'Geen stemwijzigingen gevonden.';
+
+  @override
+  String get voicesSettingsRefreshed =>
+      'Apparaatsteminstellingen zijn vernieuwd.';
+
+  @override
+  String get voicesSystemChanges => 'Apparaatstem-updates';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return 'Apparaatinstellingen voor $language-stem zijn bijgewerkt.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty =>
+      'Nieuwe stemmen en apparaatupdates verschijnen hier.';
+
+  @override
+  String get voicesNewBadge => 'Nieuw';
+
+  @override
+  String get commonClear => 'Wissen';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Stem $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'Kon stembeheer niet openen. Open de systeem-TTS-instellingen.';
+
+  @override
+  String get currentVoice => 'Huidige stem';
+
+  @override
+  String get scanDeviceVoices => 'Stemmen op apparaat scannen';
+
+  @override
+  String get availableDeviceVoices => 'Beschikbare stemmen op dit apparaat';
+
+  @override
+  String get scanVoicesHint =>
+      'Tik op Stemmen scannen om geïnstalleerde stemmen te tonen.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'Geen geschikte stemmen gevonden op dit apparaat.';
+
+  @override
+  String get scanVoicesFailed => 'Stemmen scannen mislukt. Probeer opnieuw.';
+
+  @override
+  String get voiceSetupGuide => 'Stemmen toevoegen';
+
+  @override
+  String get openVoiceSettings => 'Steminstellingen openen';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Open Instellingen op het apparaat.\n2. Zoek Tekst-naar-spraak of Text-to-speech.\n3. Open de TTS-engine die je gebruikt.\n4. Open talen of stemgegevens.\n5. Installeer een nieuwe stem.\n6. Kom terug en tik op Stemmen scannen.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Open Instellingen.\n2. Open Toegankelijkheid.\n3. Open Gesproken inhoud of Stemmen.\n4. Kies een taal en download een stem.\n5. Kom terug en scan opnieuw.\nMenunamen kunnen per iOS-versie verschillen.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'Op het web komen beschikbare stemmen van browser en besturingssysteem.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Laatst gescand: $time';
+  }
+
+  @override
+  String get voiceInUse => 'In gebruik';
+
+  @override
+  String get otherLanguages => 'Andere talen';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stemmen',
+      one: '1 stem',
+      zero: 'Geen stemmen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => 'Taalstemmen uitklappen';
+
+  @override
+  String get collapseLanguageVoices => 'Taalstemmen inklappen';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return '$name beluisteren';
+  }
+
+  @override
+  String get settingsSoundAndVoice => 'Geluid en stem';
+
+  @override
+  String get settingsAlarmsSection => 'Wekkers';
+
+  @override
+  String get supportAndFeedback => 'Ondersteuning';
+
+  @override
+  String get contactSupport => 'Contact en feedback';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm-ondersteuning';
+
+  @override
+  String get emailCopied => 'Ondersteunings-e-mail gekopieerd';
+
+  @override
+  String get linkUnavailable => 'Deze link is nog niet beschikbaar';
+
+  @override
+  String get openSourceLicenses => 'Open-sourcelicenties';
+
+  @override
+  String get appInformation => 'Over de app';
+
+  @override
+  String get appVersion => 'App-versie';
+
+  @override
+  String get permissionsAndBackground => 'Machtigingen en achtergrond';
+
+  @override
+  String get notificationPermission => 'Meldingen';
+
+  @override
+  String get exactAlarmPermission => 'Exacte wekkers';
+
+  @override
+  String get fullScreenAlarmPermission => 'Wekkers op volledig scherm';
+
+  @override
+  String get openSystemSettings => 'Systeeminstellingen openen';
+
+  @override
+  String get openSystemSettingsHint =>
+      'Meldingen en gerelateerde machtigingen beheren';
+
+  @override
+  String get permissionStatusGranted => 'Toegestaan';
+
+  @override
+  String get permissionStatusDenied => 'Niet toegestaan';
+
+  @override
+  String get permissionStatusUnknown => 'Onbekend';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count proefdagen resterend';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Minder dan 1 proefdag resterend';
+
+  @override
+  String get premiumUpgrade => 'Upgraden naar Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium voor één jaar';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Blijf na de proefperiode van 7 dagen alle functies van Smart Voice Alarm gebruiken.';
+
+  @override
+  String get premiumAnnualPlan => 'Jaarlijks Premium-abonnement';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Wordt elk jaar automatisch verlengd totdat je opzegt.';
+
+  @override
+  String get premiumAnnualCancelInPlay => 'Beheer of annuleer via Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'Volledige toegang blijft zolang het abonnement actief is.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Premium voor één jaar nemen';
+
+  @override
+  String get premiumDefer => 'Later';
+
+  @override
+  String get premiumRestoreTransactions => 'Transacties herstellen';
+
+  @override
+  String get premiumManageSubscription => 'Abonnement beheren';
+
+  @override
+  String get premiumProductUnavailable =>
+      'Het jaarabonnement is nog niet beschikbaar in Google Play.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'Google Play Billing is momenteel niet beschikbaar.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium is actief';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Je proefperiode is afgelopen';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Neem een abonnement om de hoofdfuncties te blijven gebruiken. Bestaande alarmen kunnen blijven afgaan en kunnen worden uitgeschakeld of verwijderd.';
+
+  @override
+  String get premiumRetryVerification => 'Opnieuw proberen';
+
+  @override
+  String get premiumViewExistingAlarms => 'Bestaande alarmen bekijken';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'De abonnementsstatus wordt op dit apparaat via de appwinkel gecontroleerd.';
+
+  @override
+  String get premiumUnableToVerify =>
+      'Kan de abonnementsstatus niet controleren.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Beperkte alarmtoegang';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'Je kunt bestaande alarmen uitschakelen of verwijderen. Neem een abonnement om alarmen te maken of bewerken.';
 }

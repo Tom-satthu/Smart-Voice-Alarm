@@ -1,15 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:smart_voice_alarm/app/app.dart';
 import 'package:smart_voice_alarm/core/services/notification_service.dart';
+import 'package:smart_voice_alarm/core/services/premium_purchase_service.dart';
+import 'package:smart_voice_alarm/core/services/trial_entitlement_service.dart';
 import 'package:smart_voice_alarm/router/routes.dart';
 import 'package:smart_voice_alarm/shared/models/ui_models.dart';
 import 'package:smart_voice_alarm/shared/providers/prototype_providers.dart';
 import 'package:smart_voice_alarm/theme/theme_provider.dart';
 
 import 'memory_store.dart';
+
+class _GrantedNotificationService extends NotificationService {
+  @override
+  Future<bool> get notificationPermissionGranted async => true;
+
+  @override
+  Future<bool> requestNotificationPermission() async => true;
+}
+
+class _ActiveTrialController extends TrialEntitlementController {
+  _ActiveTrialController(MemorySettingsRepository repository)
+    : super(
+        trial: TrialEntitlementService(
+          store: SettingsTrialEntitlementStore(repository),
+        ),
+        initializeBilling: () async => const PremiumPurchaseState.initial(),
+        refreshBilling: () async => const PremiumPurchaseState.initial(),
+      ) {
+    state = TrialEntitlementState(
+      status: EntitlementStatus.trialActive,
+      trialStartedAtUtc: DateTime.utc(2026, 8, 4),
+      latestTrustedLocalTimeUtc: DateTime.utc(2026, 8, 4),
+      remaining: const Duration(days: 7),
+    );
+  }
+
+  @override
+  Future<void> initializeSuccessfulLaunch() async {}
+
+  @override
+  Future<void> refreshOnResume() async {}
+}
 
 List<Override> _memoryOverrides({
   List<AlarmUiModel>? alarms,
@@ -23,22 +56,21 @@ List<Override> _memoryOverrides({
     sequence ?? TestSeedData.sequence,
   ]);
   final settingsRepo = MemorySettingsRepository();
-  final notifications = NotificationService();
+  final notifications = _GrantedNotificationService();
 
   return [
     alarmRepositoryProvider.overrideWithValue(alarmRepo),
     sequenceRepositoryProvider.overrideWithValue(sequenceRepo),
     settingsRepositoryProvider.overrideWithValue(settingsRepo),
     notificationServiceProvider.overrideWithValue(notifications),
+    trialEntitlementProvider.overrideWith(
+      (ref) => _ActiveTrialController(settingsRepo),
+    ),
     alarmListProvider.overrideWith(
       (ref) => AlarmListController(alarmRepo, notifications, sequenceRepo),
     ),
-    themeModeProvider.overrideWith(
-      (ref) => ThemeController(settingsRepo),
-    ),
-    localeProvider.overrideWith(
-      (ref) => LocaleController(settingsRepo),
-    ),
+    themeModeProvider.overrideWith((ref) => ThemeController(settingsRepo)),
+    localeProvider.overrideWith((ref) => LocaleController(settingsRepo)),
     reminderSettingsProvider.overrideWith(
       (ref) => ReminderSettingsController(settingsRepo, notifications),
     ),
@@ -114,7 +146,6 @@ Future<void> _tapVisible(WidgetTester tester, Finder finder) async {
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    GoogleFonts.config.allowRuntimeFetching = false;
   });
 
   testWidgets('1. App boots successfully to splash', (tester) async {
@@ -146,7 +177,7 @@ void main() {
     await _tapVisible(tester, find.text('Create Alarm').first);
     await _tapVisible(tester, find.text('Save Alarm'));
     expect(find.text('Alarms'), findsOneWidget);
-    expect(find.text('1 alarm ready'), findsOneWidget);
+    expect(find.text('Alarm'), findsWidgets);
   });
 
   testWidgets('4. Edit alarm updates Home', (tester) async {
@@ -163,7 +194,7 @@ void main() {
     final alarmRepo = MemoryAlarmRepository(TestSeedData.alarms);
     final sequenceRepo = MemoryVoiceSequenceRepository([TestSeedData.sequence]);
     final settingsRepo = MemorySettingsRepository();
-    final notifications = NotificationService();
+    final notifications = _GrantedNotificationService();
     controller = AlarmListController(alarmRepo, notifications, sequenceRepo);
 
     await _pumpApp(
@@ -193,7 +224,8 @@ void main() {
       isTrue,
     );
     await _tapVisible(tester, find.text('Save Alarm'));
-    expect(find.text('3 alarms ready'), findsOneWidget);
+    expect(find.text('Alarms'), findsOneWidget);
+    expect(controller.state.length, 3);
   });
 
   testWidgets('6. Delete alarm removes it from Home', (tester) async {
@@ -202,7 +234,8 @@ void main() {
     await _pumpFrames(tester);
     await tester.tap(find.text('Delete'));
     await _pumpFrames(tester);
-    expect(find.text('1 alarm ready'), findsOneWidget);
+    expect(find.text('06:30'), findsNothing);
+    expect(find.text('07:15'), findsOneWidget);
   });
 
   testWidgets('7. Toggle alarm switch works', (tester) async {
@@ -239,20 +272,12 @@ void main() {
         sequenceRepositoryProvider.overrideWithValue(sequenceRepo),
         ttsVoicesProvider.overrideWith(
           (ref) async => const [
-            TtsVoiceUiModel(
-              id: 'voice-1',
-              name: 'Ava',
-              locale: 'en-US',
-            ),
+            TtsVoiceUiModel(id: 'voice-1', name: 'Ava', locale: 'en-US'),
           ],
         ),
         usableTtsVoicesProvider.overrideWith(
           (ref) async => const [
-            TtsVoiceUiModel(
-              id: 'voice-1',
-              name: 'Ava',
-              locale: 'en-US',
-            ),
+            TtsVoiceUiModel(id: 'voice-1', name: 'Ava', locale: 'en-US'),
           ],
         ),
         voiceSequenceProvider.overrideWith((ref, id) {
@@ -264,7 +289,10 @@ void main() {
         }),
       ],
     );
-    await tester.enterText(find.byType(TextField).first, 'Rise and shine today');
+    await tester.enterText(
+      find.byType(TextField).first,
+      'Rise and shine today',
+    );
     await tester.pump();
     await _tapVisible(tester, find.text('Save'));
     expect(
@@ -328,14 +356,24 @@ void main() {
     expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Theme'), findsOneWidget);
     expect(find.text('Voices'), findsWidgets);
-    expect(find.text('Get a gentle nudge if no alarm is scheduled'), findsWidgets);
+    expect(find.text('Premium'), findsWidgets);
+    expect(find.textContaining('GitHub'), findsNothing);
+    expect(
+      find.text('Get a gentle nudge if no alarm is scheduled'),
+      findsWidgets,
+    );
   });
 
-  testWidgets('13. Open Premium', (tester) async {
-    await _pumpApp(tester, initialLocation: AppRoutes.premium);
-    expect(find.text('Unlock Unlimited Alarms'), findsWidgets);
-    expect(find.textContaining('Free includes up to 3 alarms'), findsWidgets);
-  });
+  testWidgets(
+    '13. Premium route shows annual subscription without fake price',
+    (tester) async {
+      await _pumpApp(tester, initialLocation: AppRoutes.premium);
+      expect(find.text('Premium for one year'), findsOneWidget);
+      expect(find.text('Subscribe to Premium for one year'), findsOneWidget);
+      expect(find.textContaining(r'$2.99'), findsNothing);
+      expect(find.textContaining('Free includes up to 3 alarms'), findsNothing);
+    },
+  );
 
   testWidgets('14. No overflow on common phone size', (tester) async {
     final overflows = <String>[];
@@ -355,6 +393,35 @@ void main() {
     await _pumpFrames(tester);
     await tester.tap(find.byTooltip('Settings'));
     await _pumpFrames(tester);
+    expect(overflows, isEmpty);
+  });
+
+  testWidgets('15. Premium stays compact on a small phone', (tester) async {
+    final overflows = <String>[];
+    final original = FlutterError.onError;
+    FlutterError.onError = (details) {
+      final message = details.exceptionAsString();
+      if (message.contains('A RenderFlex overflowed')) {
+        overflows.add(message);
+      }
+      original?.call(details);
+    };
+    addTearDown(() => FlutterError.onError = original);
+
+    await _pumpApp(
+      tester,
+      initialLocation: AppRoutes.premium,
+      size: const Size(320, 568),
+    );
+
+    expect(find.text('Subscribe to Premium for one year'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Open-source licenses'),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Restore transactions'), findsOneWidget);
+    expect(find.text('Manage subscription'), findsOneWidget);
     expect(overflows, isEmpty);
   });
 }

@@ -284,6 +284,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordDefaultName => '语音录音';
 
   @override
+  String get recordPermissionTitle => '麦克风权限';
+
+  @override
+  String get recordPermissionRationale => '应用需要麦克风权限来录制您用作闹钟的音频片段。';
+
+  @override
+  String get recordPermissionDenied => '未授予麦克风权限，录音尚未开始。您可以稍后重试。';
+
+  @override
+  String get recordPermissionPermanentlyDenied => '麦克风权限已被阻止。请在录音前打开系统设置并授予权限。';
+
+  @override
   String get settingsTitle => '设置';
 
   @override
@@ -606,31 +618,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aboutDeveloper => '开发者';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
-
-  @override
-  String get aboutGithub => 'GitHub 仓库';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutEmail => '电子邮件支持';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => '网站';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => '即将推出';
 
   @override
   String get voiceSystemDefault => '系统默认';
+
+  @override
+  String get voiceSystemDefaultHint => '由设备设置管理';
 
   @override
   String get notificationChannelAlarms => '闹钟';
@@ -707,6 +716,334 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => '点按选择时间';
+
+  @override
+  String get segmentPlay => '播放';
+
+  @override
+  String get voicePlaying => '正在播放';
+
+  @override
+  String get voiceSelect => '选择';
+
+  @override
+  String get voiceUnavailable => '语音不可用';
+
+  @override
+  String get recordingFileMissing => '录音文件缺失。请删除此片段或重新录制。';
+
+  @override
+  String get voiceDetails => '语音详情';
+
+  @override
+  String get ttsSelectedVoice => '已选语音';
+
+  @override
+  String get voicePreviewSample => '这是此语音的简短预览。';
+
+  @override
+  String get alarmDismissTitle => '答题以停止';
+
+  @override
+  String get alarmDismissHint => '答对后才能关闭闹钟。';
+
+  @override
+  String get alarmDismissWrong => '不正确。请试新题。';
+
+  @override
+  String get alarmDismissCheck => '检查';
+
+  @override
+  String get alarmDismissAnswerHint => '你的答案';
+
+  @override
+  String voicesRefreshed(int count) {
+    return '已刷新：找到 $count 个语音';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return '已保存语音：$name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect => '打开设备语音管理。下载完成后请返回此处。';
+
+  @override
+  String get voicesRefreshHint => '刷新语音会在安装新语音包后重新加载系统 TTS 语音。';
+
+  @override
+  String get ringtonePreview => '试听';
+
+  @override
+  String get ringtonePreviewHint => '点播放试听，再点名称选择。';
+
+  @override
+  String get voicesCurrentVoice => '当前语音';
+
+  @override
+  String get voicesNewlyInstalled => '新安装的语音';
+
+  @override
+  String get voicesOnDevice => '此设备上的语音';
+
+  @override
+  String get voicesDownloadHint => '打开设备语音管理。下载完成后请返回此处。';
+
+  @override
+  String get voicesRescan => '重新扫描语音';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '找到 $count 个可用语音';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '找到 $count 个新语音。';
+  }
+
+  @override
+  String get voicesNoNewFound => '未检测到新语音。';
+
+  @override
+  String voicesSystemUpdated(String language) {
+    return '已从设备设置更新$language语音。';
+  }
+
+  @override
+  String get voicesNoChange => '未检测到语音更改。';
+
+  @override
+  String get voicesSettingsRefreshed => '已刷新设备语音设置。';
+
+  @override
+  String get voicesSystemChanges => '设备语音更新';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return '设备上的$language语音设置已更新。';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty => '新语音和设备更新将显示在这里。';
+
+  @override
+  String get voicesNewBadge => '新';
+
+  @override
+  String get commonClear => '清除';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return '语音 $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed => '无法打开语音管理。请打开系统文字转语音设置。';
+
+  @override
+  String get currentVoice => '当前语音';
+
+  @override
+  String get scanDeviceVoices => '扫描设备上的语音';
+
+  @override
+  String get availableDeviceVoices => '设备上可用的语音';
+
+  @override
+  String get scanVoicesHint => '点按“扫描设备上的语音”以查看已安装的语音。';
+
+  @override
+  String get noDeviceVoicesFound => '未在设备上找到合适的语音。';
+
+  @override
+  String get scanVoicesFailed => '无法扫描语音，请重试。';
+
+  @override
+  String get voiceSetupGuide => '如何添加语音';
+
+  @override
+  String get openVoiceSettings => '打开语音设置';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. 打开设备设置。\n2. 搜索“文字转语音”或 Text-to-speech。\n3. 打开当前使用的 TTS 引擎。\n4. 打开语言或语音数据。\n5. 安装新语音。\n6. 返回应用并点按“扫描设备上的语音”。';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. 打开设置。\n2. 打开辅助功能。\n3. 打开朗读内容或声音。\n4. 选择语言并下载可用语音。\n5. 返回应用并再次扫描。\n不同 iOS 版本的菜单名称可能不同。';
+
+  @override
+  String get webVoiceAvailabilityInfo => '在网页上，可用语音由浏览器和操作系统提供。';
+
+  @override
+  String lastScanned(String time) {
+    return '上次扫描：$time';
+  }
+
+  @override
+  String get voiceInUse => '使用中';
+
+  @override
+  String get otherLanguages => '其他语言';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个语音',
+      one: '1 个语音',
+      zero: '没有语音',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => '展开语言语音';
+
+  @override
+  String get collapseLanguageVoices => '收起语言语音';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return '试听 $name';
+  }
+
+  @override
+  String get settingsSoundAndVoice => '声音与语音';
+
+  @override
+  String get settingsAlarmsSection => '闹钟';
+
+  @override
+  String get supportAndFeedback => '支持';
+
+  @override
+  String get contactSupport => '联系与反馈';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm 支持';
+
+  @override
+  String get emailCopied => '支持邮箱已复制';
+
+  @override
+  String get linkUnavailable => '此链接尚不可用';
+
+  @override
+  String get openSourceLicenses => '开源许可证';
+
+  @override
+  String get appInformation => '关于应用';
+
+  @override
+  String get appVersion => '应用版本';
+
+  @override
+  String get permissionsAndBackground => '权限与后台';
+
+  @override
+  String get notificationPermission => '通知';
+
+  @override
+  String get exactAlarmPermission => '精确闹钟';
+
+  @override
+  String get fullScreenAlarmPermission => '全屏闹钟';
+
+  @override
+  String get openSystemSettings => '打开系统设置';
+
+  @override
+  String get openSystemSettingsHint => '管理通知及相关权限';
+
+  @override
+  String get permissionStatusGranted => '已授予';
+
+  @override
+  String get permissionStatusDenied => '未授予';
+
+  @override
+  String get permissionStatusUnknown => '未知';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count 天试用期剩余';
+  }
+
+  @override
+  String get trialLessThanOneDay => '试用期剩余不到1天';
+
+  @override
+  String get premiumUpgrade => '升级到 Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium 一年';
+
+  @override
+  String get premiumAnnualDescription => '7天试用结束后继续使用 Smart Voice Alarm 的全部功能。';
+
+  @override
+  String get premiumAnnualPlan => 'Premium 年度方案';
+
+  @override
+  String get premiumAnnualAutoRenew => '每年自动续订，直至取消。';
+
+  @override
+  String get premiumAnnualCancelInPlay => '通过 Google Play 管理或取消。';
+
+  @override
+  String get premiumAnnualAccess => '订阅有效期间可继续完整使用。';
+
+  @override
+  String get premiumSubscribeAnnual => '订阅一年 Premium';
+
+  @override
+  String get premiumDefer => '以后再说';
+
+  @override
+  String get premiumRestoreTransactions => '恢复交易';
+
+  @override
+  String get premiumManageSubscription => '管理订阅';
+
+  @override
+  String get premiumProductUnavailable => '年度订阅尚未在 Google Play 上提供。';
+
+  @override
+  String get premiumBillingUnavailable => 'Google Play Billing 当前不可用。';
+
+  @override
+  String get premiumPurchaseActive => 'Premium 已启用';
+
+  @override
+  String get premiumTrialExpiredTitle => '试用期已结束';
+
+  @override
+  String get premiumTrialExpiredBody => '订阅后可继续使用主要功能。现有闹钟仍会响起，并可停用或删除。';
+
+  @override
+  String get premiumRetryVerification => '重试';
+
+  @override
+  String get premiumViewExistingAlarms => '查看现有闹钟';
+
+  @override
+  String get premiumClientVerificationNotice => '订阅状态通过应用商店在此设备上验证。';
+
+  @override
+  String get premiumUnableToVerify => '无法验证订阅状态。';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => '受限的闹钟访问';
+
+  @override
+  String get premiumRestrictedAlarmsBody => '您可以停用或删除现有闹钟。订阅后可创建或编辑闹钟。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -987,6 +1324,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get recordDefaultName => '語音錄音';
+
+  @override
+  String get recordPermissionTitle => '麥克風權限';
+
+  @override
+  String get recordPermissionRationale => '應用程式需要麥克風權限，才能錄製您用作鬧鐘的音訊片段。';
+
+  @override
+  String get recordPermissionDenied => '未授予麥克風權限，錄音尚未開始。您可以稍後再試。';
+
+  @override
+  String get recordPermissionPermanentlyDenied => '麥克風權限已被封鎖。請在錄音前開啟系統設定並授予權限。';
 
   @override
   String get settingsTitle => '設定';
@@ -1311,31 +1660,28 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get aboutDeveloper => '開發者';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
-
-  @override
-  String get aboutGithub => 'GitHub 存放庫';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutEmail => '電子郵件支援';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => '網站';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => '即將推出';
 
   @override
   String get voiceSystemDefault => '系統預設';
+
+  @override
+  String get voiceSystemDefaultHint => '由裝置設定管理';
 
   @override
   String get notificationChannelAlarms => '鬧鐘';
@@ -1412,4 +1758,332 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => '點一下以選擇時間';
+
+  @override
+  String get segmentPlay => '播放';
+
+  @override
+  String get voicePlaying => '播放中';
+
+  @override
+  String get voiceSelect => '選擇';
+
+  @override
+  String get voiceUnavailable => '語音無法使用';
+
+  @override
+  String get recordingFileMissing => '缺少錄音檔。請刪除此區段或重新錄音。';
+
+  @override
+  String get voiceDetails => '語音詳細資料';
+
+  @override
+  String get ttsSelectedVoice => '已選語音';
+
+  @override
+  String get voicePreviewSample => '這是此語音的簡短預覽。';
+
+  @override
+  String get alarmDismissTitle => '解題以停止';
+
+  @override
+  String get alarmDismissHint => '答對後才能關閉鬧鐘。';
+
+  @override
+  String get alarmDismissWrong => '不正確。請試新題。';
+
+  @override
+  String get alarmDismissCheck => '檢查';
+
+  @override
+  String get alarmDismissAnswerHint => '你的答案';
+
+  @override
+  String voicesRefreshed(int count) {
+    return '已重新整理：找到 $count 個語音';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return '已儲存語音：$name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect => '開啟裝置語音管理。下載完成後請返回此處。';
+
+  @override
+  String get voicesRefreshHint => '重新整理語音會在安裝新套件後重新載入系統 TTS 語音。';
+
+  @override
+  String get ringtonePreview => '預覽';
+
+  @override
+  String get ringtonePreviewHint => '點播放試聽，再點名稱選擇。';
+
+  @override
+  String get voicesCurrentVoice => '目前語音';
+
+  @override
+  String get voicesNewlyInstalled => '新安裝的語音';
+
+  @override
+  String get voicesOnDevice => '此裝置上的語音';
+
+  @override
+  String get voicesDownloadHint => '開啟裝置語音管理。下載完成後請返回此處。';
+
+  @override
+  String get voicesRescan => '重新掃描語音';
+
+  @override
+  String voicesRescanResult(int count) {
+    return '找到 $count 個可用語音';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return '找到 $count 個新語音。';
+  }
+
+  @override
+  String get voicesNoNewFound => '未偵測到新語音。';
+
+  @override
+  String voicesSystemUpdated(String language) {
+    return '已從裝置設定更新$language語音。';
+  }
+
+  @override
+  String get voicesNoChange => '未偵測到語音變更。';
+
+  @override
+  String get voicesSettingsRefreshed => '已重新整理裝置語音設定。';
+
+  @override
+  String get voicesSystemChanges => '裝置語音更新';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return '裝置上的$language語音設定已更新。';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty => '新語音與裝置更新會顯示在這裡。';
+
+  @override
+  String get voicesNewBadge => '新';
+
+  @override
+  String get commonClear => '清除';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return '語音 $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed => '無法開啟語音管理。請開啟系統文字轉語音設定。';
+
+  @override
+  String get currentVoice => '目前語音';
+
+  @override
+  String get scanDeviceVoices => '掃描裝置上的語音';
+
+  @override
+  String get availableDeviceVoices => '裝置上可用的語音';
+
+  @override
+  String get scanVoicesHint => '點一下「掃描裝置上的語音」以查看已安裝的語音。';
+
+  @override
+  String get noDeviceVoicesFound => '在裝置上找不到合適的語音。';
+
+  @override
+  String get scanVoicesFailed => '無法掃描語音，請再試一次。';
+
+  @override
+  String get voiceSetupGuide => '如何新增語音';
+
+  @override
+  String get openVoiceSettings => '開啟語音設定';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. 開啟裝置設定。\n2. 搜尋「文字轉語音」或 Text-to-speech。\n3. 開啟目前使用的 TTS 引擎。\n4. 開啟語言或語音資料。\n5. 安裝新語音。\n6. 返回應用程式並點「掃描裝置上的語音」。';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. 開啟設定。\n2. 開啟輔助使用。\n3. 開啟朗讀內容或聲音。\n4. 選擇語言並下載可用語音。\n5. 返回應用程式並再次掃描。\n不同 iOS 版本的選單名稱可能不同。';
+
+  @override
+  String get webVoiceAvailabilityInfo => '在網頁上，可用語音由瀏覽器和作業系統提供。';
+
+  @override
+  String lastScanned(String time) {
+    return '上次掃描：$time';
+  }
+
+  @override
+  String get voiceInUse => '使用中';
+
+  @override
+  String get otherLanguages => '其他語言';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 個語音',
+      one: '1 個語音',
+      zero: '沒有語音',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => '展開語言語音';
+
+  @override
+  String get collapseLanguageVoices => '收合語言語音';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return '預聽 $name';
+  }
+
+  @override
+  String get settingsSoundAndVoice => '聲音與語音';
+
+  @override
+  String get settingsAlarmsSection => '鬧鐘';
+
+  @override
+  String get supportAndFeedback => '支援';
+
+  @override
+  String get contactSupport => '聯絡與意見回饋';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm 支援';
+
+  @override
+  String get emailCopied => '已複製支援電子郵件';
+
+  @override
+  String get linkUnavailable => '此連結尚不可用';
+
+  @override
+  String get openSourceLicenses => '開放原始碼授權';
+
+  @override
+  String get appInformation => '關於應用程式';
+
+  @override
+  String get appVersion => '應用程式版本';
+
+  @override
+  String get permissionsAndBackground => '權限與背景';
+
+  @override
+  String get notificationPermission => '通知';
+
+  @override
+  String get exactAlarmPermission => '精確鬧鐘';
+
+  @override
+  String get fullScreenAlarmPermission => '全螢幕鬧鐘';
+
+  @override
+  String get openSystemSettings => '開啟系統設定';
+
+  @override
+  String get openSystemSettingsHint => '管理通知與相關權限';
+
+  @override
+  String get permissionStatusGranted => '已授予';
+
+  @override
+  String get permissionStatusDenied => '未授予';
+
+  @override
+  String get permissionStatusUnknown => '未知';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count 天試用期剩餘';
+  }
+
+  @override
+  String get trialLessThanOneDay => '試用期剩餘不到1天';
+
+  @override
+  String get premiumUpgrade => '升級至 Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium 一年';
+
+  @override
+  String get premiumAnnualDescription => '7天試用結束後繼續使用 Smart Voice Alarm 的所有功能。';
+
+  @override
+  String get premiumAnnualPlan => 'Premium 年度方案';
+
+  @override
+  String get premiumAnnualAutoRenew => '每年自動續訂，直到取消。';
+
+  @override
+  String get premiumAnnualCancelInPlay => '透過 Google Play 管理或取消。';
+
+  @override
+  String get premiumAnnualAccess => '訂閱有效期間可繼續完整使用。';
+
+  @override
+  String get premiumSubscribeAnnual => '訂閱一年 Premium';
+
+  @override
+  String get premiumDefer => '稍後再說';
+
+  @override
+  String get premiumRestoreTransactions => '恢復交易';
+
+  @override
+  String get premiumManageSubscription => '管理訂閱';
+
+  @override
+  String get premiumProductUnavailable => '年度訂閱尚未在 Google Play 提供。';
+
+  @override
+  String get premiumBillingUnavailable => 'Google Play Billing 目前無法使用。';
+
+  @override
+  String get premiumPurchaseActive => 'Premium 已啟用';
+
+  @override
+  String get premiumTrialExpiredTitle => '試用期已結束';
+
+  @override
+  String get premiumTrialExpiredBody => '訂閱後可繼續使用主要功能。現有鬧鐘仍會響起，並可停用或刪除。';
+
+  @override
+  String get premiumRetryVerification => '重試';
+
+  @override
+  String get premiumViewExistingAlarms => '查看現有鬧鐘';
+
+  @override
+  String get premiumClientVerificationNotice => '訂閱狀態透過應用程式商店在此裝置上驗證。';
+
+  @override
+  String get premiumUnableToVerify => '無法驗證訂閱狀態。';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => '受限的鬧鐘存取';
+
+  @override
+  String get premiumRestrictedAlarmsBody => '您可以停用或刪除現有鬧鐘。訂閱後可建立或編輯鬧鐘。';
 }

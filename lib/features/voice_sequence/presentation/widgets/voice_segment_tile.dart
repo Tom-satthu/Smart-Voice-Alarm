@@ -11,12 +11,18 @@ class VoiceSegmentTile extends StatelessWidget {
     required this.segment,
     required this.index,
     required this.orderNumber,
+    required this.isPlaying,
+    required this.isLoading,
+    required this.onPlayStop,
     required this.onDelete,
   });
 
   final VoiceSegmentUiModel segment;
   final int index;
   final int orderNumber;
+  final bool isPlaying;
+  final bool isLoading;
+  final VoidCallback onPlayStop;
   final VoidCallback onDelete;
 
   @override
@@ -25,12 +31,14 @@ class VoiceSegmentTile extends StatelessWidget {
     final typeLabel = segment.type == VoiceSegmentType.recording
         ? l10n.voiceTypeRecording
         : l10n.voiceTypeTts;
-    final typeIcon = segment.type == VoiceSegmentType.recording
-        ? Icons.mic_rounded
-        : Icons.record_voice_over_rounded;
+    final subtitle =
+        segment.type == VoiceSegmentType.tts &&
+            (segment.text?.trim().isNotEmpty ?? false)
+        ? segment.text!.trim()
+        : segment.name;
 
     return SurfacePanel(
-      padding: const EdgeInsets.fromLTRB(12, 14, 4, 14),
+      padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
       child: Row(
         children: [
           Container(
@@ -48,51 +56,65 @@ class VoiceSegmentTile extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           ReorderableDragStartListener(
             index: index,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 2),
               child: Icon(
                 Icons.drag_indicator_rounded,
                 color: context.colors.onSurfaceVariant,
               ),
             ),
           ),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: context.colors.primary.withValues(alpha: 0.10),
-            ),
-            child: Icon(typeIcon, color: context.colors.primary, size: 22),
-          ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 4),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  segment.name,
+                  subtitle,
                   style: context.textTheme.titleSmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '$typeLabel · ${segment.duration.compact}',
+                  '$typeLabel · ${segment.duration.compact}'
+                  '${isPlaying ? ' · ${l10n.voicePlaying}' : ''}',
                   style: context.textTheme.bodySmall,
                 ),
               ],
             ),
           ),
           IconButton(
-            tooltip: l10n.voiceSequenceDelete,
-            onPressed: onDelete,
+            tooltip: isPlaying ? l10n.alarmStop : l10n.segmentPlay,
+            onPressed: isLoading ? null : onPlayStop,
+            icon: isLoading
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                    color: context.colors.primary,
+                  ),
+          ),
+          PopupMenuButton<String>(
+            tooltip: l10n.homeMore,
+            onSelected: (value) {
+              if (value == 'delete') onDelete();
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'delete',
+                child: Text(l10n.voiceSequenceDelete),
+              ),
+            ],
             icon: Icon(
-              Icons.delete_outline_rounded,
-              color: context.colors.error,
+              Icons.more_vert_rounded,
+              color: context.colors.onSurfaceVariant,
             ),
           ),
         ],

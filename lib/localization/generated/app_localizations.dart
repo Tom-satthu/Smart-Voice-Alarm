@@ -647,6 +647,30 @@ abstract class AppLocalizations {
   /// **'Voice recording'**
   String get recordDefaultName;
 
+  /// No description provided for @recordPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access'**
+  String get recordPermissionTitle;
+
+  /// No description provided for @recordPermissionRationale.
+  ///
+  /// In en, this message translates to:
+  /// **'The app needs microphone access to record the audio clip you use as an alarm.'**
+  String get recordPermissionRationale;
+
+  /// No description provided for @recordPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access was not granted. No recording was started. You can try again when you are ready.'**
+  String get recordPermissionDenied;
+
+  /// No description provided for @recordPermissionPermanentlyDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access is blocked. Open system settings to allow it before recording.'**
+  String get recordPermissionPermanentlyDenied;
+
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
@@ -1238,20 +1262,8 @@ abstract class AppLocalizations {
   /// No description provided for @aboutDeveloperValue.
   ///
   /// In en, this message translates to:
-  /// **'Tom Satthu'**
+  /// **'Nguyên Đức'**
   String get aboutDeveloperValue;
-
-  /// No description provided for @aboutGithub.
-  ///
-  /// In en, this message translates to:
-  /// **'GitHub Repository'**
-  String get aboutGithub;
-
-  /// No description provided for @aboutGithubValue.
-  ///
-  /// In en, this message translates to:
-  /// **'github.com/Tom-satthu/Smart-Voice-Alarm'**
-  String get aboutGithubValue;
 
   /// No description provided for @aboutEmail.
   ///
@@ -1262,7 +1274,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutEmailValue.
   ///
   /// In en, this message translates to:
-  /// **'support@smartvoicealarm.app'**
+  /// **'timeforwork789@gmail.com'**
   String get aboutEmailValue;
 
   /// No description provided for @aboutWebsite.
@@ -1274,7 +1286,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutWebsiteValue.
   ///
   /// In en, this message translates to:
-  /// **'www.smartvoicealarm.app'**
+  /// **''**
   String get aboutWebsiteValue;
 
   /// No description provided for @aboutWebsitePlaceholder.
@@ -1288,6 +1300,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System Default'**
   String get voiceSystemDefault;
+
+  /// No description provided for @voiceSystemDefaultHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Managed in device settings'**
+  String get voiceSystemDefaultHint;
 
   /// No description provided for @notificationChannelAlarms.
   ///
@@ -1420,6 +1438,600 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 voice} other{{count} voices}}'**
   String voicesLanguageCount(int count);
+
+  /// No description provided for @alarmSelectTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to choose time'**
+  String get alarmSelectTime;
+
+  /// No description provided for @segmentPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get segmentPlay;
+
+  /// No description provided for @voicePlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing'**
+  String get voicePlaying;
+
+  /// No description provided for @voiceSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get voiceSelect;
+
+  /// No description provided for @voiceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice unavailable'**
+  String get voiceUnavailable;
+
+  /// No description provided for @recordingFileMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording file missing. Delete this segment or record again.'**
+  String get recordingFileMissing;
+
+  /// No description provided for @voiceDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice details'**
+  String get voiceDetails;
+
+  /// No description provided for @ttsSelectedVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected voice'**
+  String get ttsSelectedVoice;
+
+  /// No description provided for @voicePreviewSample.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a short preview of this voice.'**
+  String get voicePreviewSample;
+
+  /// No description provided for @alarmDismissTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Solve to stop'**
+  String get alarmDismissTitle;
+
+  /// No description provided for @alarmDismissHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer correctly to turn off the alarm.'**
+  String get alarmDismissHint;
+
+  /// No description provided for @alarmDismissWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect. Try a new question.'**
+  String get alarmDismissWrong;
+
+  /// No description provided for @alarmDismissCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check answer'**
+  String get alarmDismissCheck;
+
+  /// No description provided for @alarmDismissAnswerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your answer'**
+  String get alarmDismissAnswerHint;
+
+  /// No description provided for @voicesRefreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshed: {count} voices found'**
+  String voicesRefreshed(int count);
+
+  /// No description provided for @voicesSelectedSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved voice: {name}'**
+  String voicesSelectedSaved(String name);
+
+  /// No description provided for @voicesDownloadThenSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Open your device voice manager. After downloading, return here.'**
+  String get voicesDownloadThenSelect;
+
+  /// No description provided for @voicesRefreshHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Rescan Voices reloads system TTS voices after you install new packs.'**
+  String get voicesRefreshHint;
+
+  /// No description provided for @ringtonePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get ringtonePreview;
+
+  /// No description provided for @ringtonePreviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap play to preview, then tap a name to select it.'**
+  String get ringtonePreviewHint;
+
+  /// No description provided for @voicesCurrentVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Current voice'**
+  String get voicesCurrentVoice;
+
+  /// No description provided for @voicesNewlyInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Newly installed voices'**
+  String get voicesNewlyInstalled;
+
+  /// No description provided for @voicesOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voices on this device'**
+  String get voicesOnDevice;
+
+  /// No description provided for @voicesDownloadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open your device voice manager. After downloading, return here.'**
+  String get voicesDownloadHint;
+
+  /// No description provided for @voicesRescan.
+  ///
+  /// In en, this message translates to:
+  /// **'Rescan voices'**
+  String get voicesRescan;
+
+  /// No description provided for @voicesRescanResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} usable voices'**
+  String voicesRescanResult(int count);
+
+  /// No description provided for @voicesNewFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} new voices.'**
+  String voicesNewFound(int count);
+
+  /// No description provided for @voicesNoNewFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No new voices detected.'**
+  String get voicesNoNewFound;
+
+  /// No description provided for @voicesSystemUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated the {language} voice from device settings.'**
+  String voicesSystemUpdated(String language);
+
+  /// No description provided for @voicesNoChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Device voice settings were refreshed.'**
+  String get voicesNoChange;
+
+  /// No description provided for @voicesSettingsRefreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'Device voice settings were refreshed.'**
+  String get voicesSettingsRefreshed;
+
+  /// No description provided for @voicesSystemChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Device voice updates'**
+  String get voicesSystemChanges;
+
+  /// No description provided for @voicesSystemChangeEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Device {language} voice settings were updated.'**
+  String voicesSystemChangeEvent(String language);
+
+  /// No description provided for @voicesNewlyInstalledEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'New voices and device voice updates will appear here after you install or change them.'**
+  String get voicesNewlyInstalledEmpty;
+
+  /// No description provided for @voicesNewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get voicesNewBadge;
+
+  /// No description provided for @commonClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get commonClear;
+
+  /// No description provided for @voiceFriendlyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice {number}'**
+  String voiceFriendlyName(String number);
+
+  /// No description provided for @voicesOpenManagerFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the device voice manager. Open system Text-to-speech settings and install voices there.'**
+  String get voicesOpenManagerFailed;
+
+  /// No description provided for @currentVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Current voice'**
+  String get currentVoice;
+
+  /// No description provided for @scanDeviceVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan voices on this device'**
+  String get scanDeviceVoices;
+
+  /// No description provided for @availableDeviceVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Voices available on this device'**
+  String get availableDeviceVoices;
+
+  /// No description provided for @scanVoicesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Scan voices on this device to list the voices currently installed.'**
+  String get scanVoicesHint;
+
+  /// No description provided for @noDeviceVoicesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No suitable voices were found on this device.'**
+  String get noDeviceVoicesFound;
+
+  /// No description provided for @scanVoicesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not scan device voices. Try again.'**
+  String get scanVoicesFailed;
+
+  /// No description provided for @voiceSetupGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'How to add voices'**
+  String get voiceSetupGuide;
+
+  /// No description provided for @openVoiceSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open voice settings'**
+  String get openVoiceSettings;
+
+  /// No description provided for @androidVoiceSetupSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Open your device Settings.\n2. Search for Text-to-speech or Text to speech output.\n3. Open the TTS engine you use.\n4. Open languages or install voice data.\n5. Install a new voice.\n6. Return here and tap Scan voices on this device.'**
+  String get androidVoiceSetupSteps;
+
+  /// No description provided for @iosVoiceSetupSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Open Settings.\n2. Open Accessibility.\n3. Open Spoken Content or Voices.\n4. Choose a language and download an available voice.\n5. Return here and scan again.\nMenu names can vary by iOS version.'**
+  String get iosVoiceSetupSteps;
+
+  /// No description provided for @webVoiceAvailabilityInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'On the web, available voices come from your browser and operating system.'**
+  String get webVoiceAvailabilityInfo;
+
+  /// No description provided for @lastScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Last scanned: {time}'**
+  String lastScanned(String time);
+
+  /// No description provided for @voiceInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'In use'**
+  String get voiceInUse;
+
+  /// No description provided for @otherLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Other languages'**
+  String get otherLanguages;
+
+  /// No description provided for @voicesInLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No voices} =1{1 voice} other{{count} voices}}'**
+  String voicesInLanguage(int count);
+
+  /// No description provided for @expandLanguageVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand language voices'**
+  String get expandLanguageVoices;
+
+  /// No description provided for @collapseLanguageVoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse language voices'**
+  String get collapseLanguageVoices;
+
+  /// No description provided for @voicePreviewNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview {name}'**
+  String voicePreviewNamed(String name);
+
+  /// No description provided for @settingsSoundAndVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound and voice'**
+  String get settingsSoundAndVoice;
+
+  /// No description provided for @settingsAlarmsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarms'**
+  String get settingsAlarmsSection;
+
+  /// No description provided for @supportAndFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get supportAndFeedback;
+
+  /// No description provided for @contactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact and feedback'**
+  String get contactSupport;
+
+  /// No description provided for @supportEmailSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Voice Alarm Support'**
+  String get supportEmailSubject;
+
+  /// No description provided for @emailCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Support email copied'**
+  String get emailCopied;
+
+  /// No description provided for @linkUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This link is not available yet'**
+  String get linkUnavailable;
+
+  /// No description provided for @openSourceLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source licenses'**
+  String get openSourceLicenses;
+
+  /// No description provided for @appInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'About the app'**
+  String get appInformation;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'App version'**
+  String get appVersion;
+
+  /// No description provided for @permissionsAndBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions and background'**
+  String get permissionsAndBackground;
+
+  /// No description provided for @notificationPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationPermission;
+
+  /// No description provided for @exactAlarmPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact alarms'**
+  String get exactAlarmPermission;
+
+  /// No description provided for @fullScreenAlarmPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Full-screen alarms'**
+  String get fullScreenAlarmPermission;
+
+  /// No description provided for @openSystemSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open system settings'**
+  String get openSystemSettings;
+
+  /// No description provided for @openSystemSettingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage notifications and related permissions'**
+  String get openSystemSettingsHint;
+
+  /// No description provided for @permissionStatusGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Granted'**
+  String get permissionStatusGranted;
+
+  /// No description provided for @permissionStatusDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Not granted'**
+  String get permissionStatusDenied;
+
+  /// No description provided for @permissionStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get permissionStatusUnknown;
+
+  /// No description provided for @trialDaysRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days left in your trial'**
+  String trialDaysRemaining(int count);
+
+  /// No description provided for @trialLessThanOneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than 1 day left in your trial'**
+  String get trialLessThanOneDay;
+
+  /// No description provided for @premiumUpgrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium'**
+  String get premiumUpgrade;
+
+  /// No description provided for @premiumAnnualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium for one year'**
+  String get premiumAnnualTitle;
+
+  /// No description provided for @premiumAnnualDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue using every Smart Voice Alarm feature after your 7-day trial.'**
+  String get premiumAnnualDescription;
+
+  /// No description provided for @premiumAnnualPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium annual plan'**
+  String get premiumAnnualPlan;
+
+  /// No description provided for @premiumAnnualAutoRenew.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically renews every year until cancelled.'**
+  String get premiumAnnualAutoRenew;
+
+  /// No description provided for @premiumAnnualCancelInPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage or cancel through Google Play.'**
+  String get premiumAnnualCancelInPlay;
+
+  /// No description provided for @premiumAnnualAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Full access continues while the subscription is active.'**
+  String get premiumAnnualAccess;
+
+  /// No description provided for @premiumSubscribeAnnual.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to Premium for one year'**
+  String get premiumSubscribeAnnual;
+
+  /// No description provided for @premiumDefer.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get premiumDefer;
+
+  /// No description provided for @premiumRestoreTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore transactions'**
+  String get premiumRestoreTransactions;
+
+  /// No description provided for @premiumManageSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get premiumManageSubscription;
+
+  /// No description provided for @premiumProductUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The annual subscription is not available from Google Play yet.'**
+  String get premiumProductUnavailable;
+
+  /// No description provided for @premiumBillingUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play Billing is currently unavailable.'**
+  String get premiumBillingUnavailable;
+
+  /// No description provided for @premiumPurchaseActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium is active'**
+  String get premiumPurchaseActive;
+
+  /// No description provided for @premiumTrialExpiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your trial has ended'**
+  String get premiumTrialExpiredTitle;
+
+  /// No description provided for @premiumTrialExpiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to continue using the main features. Existing alarms can still ring and can be disabled or deleted.'**
+  String get premiumTrialExpiredBody;
+
+  /// No description provided for @premiumRetryVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get premiumRetryVerification;
+
+  /// No description provided for @premiumViewExistingAlarms.
+  ///
+  /// In en, this message translates to:
+  /// **'View existing alarms'**
+  String get premiumViewExistingAlarms;
+
+  /// No description provided for @premiumClientVerificationNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription status is verified on this device through the app store.'**
+  String get premiumClientVerificationNotice;
+
+  /// No description provided for @premiumUnableToVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to verify subscription status.'**
+  String get premiumUnableToVerify;
+
+  /// No description provided for @premiumRestrictedAlarmsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited alarm access'**
+  String get premiumRestrictedAlarmsTitle;
+
+  /// No description provided for @premiumRestrictedAlarmsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You can disable or delete existing alarms. Subscribe to create or edit alarms.'**
+  String get premiumRestrictedAlarmsBody;
 }
 
 class _AppLocalizationsDelegate

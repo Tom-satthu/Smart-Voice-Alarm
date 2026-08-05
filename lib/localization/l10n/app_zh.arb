@@ -102,6 +102,10 @@
   "recordReady": "可以保存",
   "recordSaved": "录音已保存",
   "recordDefaultName": "语音录音",
+  "recordPermissionTitle": "麦克风权限",
+  "recordPermissionRationale": "应用需要麦克风权限来录制您用作闹钟的音频片段。",
+  "recordPermissionDenied": "未授予麦克风权限，录音尚未开始。您可以稍后重试。",
+  "recordPermissionPermanentlyDenied": "麦克风权限已被阻止。请在录音前打开系统设置并授予权限。",
   "settingsTitle": "设置",
   "settingsAppearance": "外观",
   "settingsTheme": "主题",
@@ -221,15 +225,14 @@
   "aboutAppName": "应用名称",
   "aboutVersion": "版本",
   "aboutDeveloper": "开发者",
-  "aboutDeveloperValue": "Tom Satthu",
-  "aboutGithub": "GitHub 仓库",
-  "aboutGithubValue": "github.com/Tom-satthu/Smart-Voice-Alarm",
+  "aboutDeveloperValue": "Nguyên Đức",
   "aboutEmail": "电子邮件支持",
-  "aboutEmailValue": "support@smartvoicealarm.app",
+  "aboutEmailValue": "timeforwork789@gmail.com",
   "aboutWebsite": "网站",
-  "aboutWebsiteValue": "www.smartvoicealarm.app",
+  "aboutWebsiteValue": "",
   "aboutWebsitePlaceholder": "即将推出",
   "voiceSystemDefault": "系统默认",
+  "voiceSystemDefaultHint": "由设备设置管理",
   "notificationChannelAlarms": "闹钟",
   "notificationChannelAlarmsDesc": "语音闹钟提醒",
   "notificationChannelReminders": "提醒",
@@ -260,6 +263,182 @@
     }
   },
   "@voicesLanguageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmSelectTime": "点按选择时间",
+  "segmentPlay": "播放",
+  "voicePlaying": "正在播放",
+  "voiceSelect": "选择",
+  "voiceUnavailable": "语音不可用",
+  "recordingFileMissing": "录音文件缺失。请删除此片段或重新录制。",
+  "voiceDetails": "语音详情",
+  "ttsSelectedVoice": "已选语音",
+  "voicePreviewSample": "这是此语音的简短预览。",
+  "alarmDismissTitle": "答题以停止",
+  "alarmDismissHint": "答对后才能关闭闹钟。",
+  "alarmDismissWrong": "不正确。请试新题。",
+  "alarmDismissCheck": "检查",
+  "alarmDismissAnswerHint": "你的答案",
+  "voicesRefreshed": "已刷新：找到 {count} 个语音",
+  "voicesSelectedSaved": "已保存语音：{name}",
+  "voicesDownloadThenSelect": "打开设备语音管理。下载完成后请返回此处。",
+  "voicesRefreshHint": "刷新语音会在安装新语音包后重新加载系统 TTS 语音。",
+  "ringtonePreview": "试听",
+  "ringtonePreviewHint": "点播放试听，再点名称选择。",
+  "@voicesRefreshed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesSelectedSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesDownloadHint": "打开设备语音管理。下载完成后请返回此处。",
+  "voicesCurrentVoice": "当前语音",
+  "voicesNewlyInstalled": "新安装的语音",
+  "voicesOnDevice": "此设备上的语音",
+  "voicesRescan": "重新扫描语音",
+  "voicesRescanResult": "找到 {count} 个可用语音",
+  "voicesNewFound": "找到 {count} 个新语音。",
+  "voicesNoNewFound": "未检测到新语音。",
+  "voicesSystemUpdated": "已从设备设置更新{language}语音。",
+  "@voicesSystemUpdated": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNoChange": "未检测到语音更改。",
+  "voicesSettingsRefreshed": "已刷新设备语音设置。",
+  "voicesSystemChanges": "设备语音更新",
+  "voicesSystemChangeEvent": "设备上的{language}语音设置已更新。",
+  "@voicesSystemChangeEvent": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voicesNewlyInstalledEmpty": "新语音和设备更新将显示在这里。",
+  "commonClear": "清除",
+  "voicesNewBadge": "新",
+  "voiceFriendlyName": "语音 {number}",
+  "voicesOpenManagerFailed": "无法打开语音管理。请打开系统文字转语音设置。",
+  "@voicesRescanResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voicesNewFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@voiceFriendlyName": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "currentVoice": "当前语音",
+  "scanDeviceVoices": "扫描设备上的语音",
+  "availableDeviceVoices": "设备上可用的语音",
+  "scanVoicesHint": "点按“扫描设备上的语音”以查看已安装的语音。",
+  "noDeviceVoicesFound": "未在设备上找到合适的语音。",
+  "scanVoicesFailed": "无法扫描语音，请重试。",
+  "voiceSetupGuide": "如何添加语音",
+  "openVoiceSettings": "打开语音设置",
+  "androidVoiceSetupSteps": "1. 打开设备设置。\n2. 搜索“文字转语音”或 Text-to-speech。\n3. 打开当前使用的 TTS 引擎。\n4. 打开语言或语音数据。\n5. 安装新语音。\n6. 返回应用并点按“扫描设备上的语音”。",
+  "iosVoiceSetupSteps": "1. 打开设置。\n2. 打开辅助功能。\n3. 打开朗读内容或声音。\n4. 选择语言并下载可用语音。\n5. 返回应用并再次扫描。\n不同 iOS 版本的菜单名称可能不同。",
+  "webVoiceAvailabilityInfo": "在网页上，可用语音由浏览器和操作系统提供。",
+  "lastScanned": "上次扫描：{time}",
+  "voiceInUse": "使用中",
+  "@lastScanned": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "otherLanguages": "其他语言",
+  "voicesInLanguage": "{count, plural, =0{没有语音} =1{1 个语音} other{{count} 个语音}}",
+  "@voicesInLanguage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expandLanguageVoices": "展开语言语音",
+  "collapseLanguageVoices": "收起语言语音",
+  "voicePreviewNamed": "试听 {name}",
+  "@voicePreviewNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSoundAndVoice": "声音与语音",
+  "settingsAlarmsSection": "闹钟",
+  "supportAndFeedback": "支持",
+  "contactSupport": "联系与反馈",
+  "supportEmailSubject": "Smart Voice Alarm 支持",
+  "emailCopied": "支持邮箱已复制",
+  "linkUnavailable": "此链接尚不可用",
+  "openSourceLicenses": "开源许可证",
+  "appInformation": "关于应用",
+  "appVersion": "应用版本",
+  "permissionsAndBackground": "权限与后台",
+  "notificationPermission": "通知",
+  "exactAlarmPermission": "精确闹钟",
+  "fullScreenAlarmPermission": "全屏闹钟",
+  "openSystemSettings": "打开系统设置",
+  "openSystemSettingsHint": "管理通知及相关权限",
+  "permissionStatusGranted": "已授予",
+  "permissionStatusDenied": "未授予",
+  "permissionStatusUnknown": "未知",
+  "trialDaysRemaining": "{count} 天试用期剩余",
+  "trialLessThanOneDay": "试用期剩余不到1天",
+  "premiumUpgrade": "升级到 Premium",
+  "premiumAnnualTitle": "Premium 一年",
+  "premiumAnnualDescription": "7天试用结束后继续使用 Smart Voice Alarm 的全部功能。",
+  "premiumAnnualPlan": "Premium 年度方案",
+  "premiumAnnualAutoRenew": "每年自动续订，直至取消。",
+  "premiumAnnualCancelInPlay": "通过 Google Play 管理或取消。",
+  "premiumAnnualAccess": "订阅有效期间可继续完整使用。",
+  "premiumSubscribeAnnual": "订阅一年 Premium",
+  "premiumDefer": "以后再说",
+  "premiumRestoreTransactions": "恢复交易",
+  "premiumManageSubscription": "管理订阅",
+  "premiumProductUnavailable": "年度订阅尚未在 Google Play 上提供。",
+  "premiumBillingUnavailable": "Google Play Billing 当前不可用。",
+  "premiumPurchaseActive": "Premium 已启用",
+  "premiumTrialExpiredTitle": "试用期已结束",
+  "premiumTrialExpiredBody": "订阅后可继续使用主要功能。现有闹钟仍会响起，并可停用或删除。",
+  "premiumRetryVerification": "重试",
+  "premiumViewExistingAlarms": "查看现有闹钟",
+  "premiumClientVerificationNotice": "订阅状态通过应用商店在此设备上验证。",
+  "premiumUnableToVerify": "无法验证订阅状态。",
+  "premiumRestrictedAlarmsTitle": "受限的闹钟访问",
+  "premiumRestrictedAlarmsBody": "您可以停用或删除现有闹钟。订阅后可创建或编辑闹钟。",
+  "@trialDaysRemaining": {
     "placeholders": {
       "count": {
         "type": "int"

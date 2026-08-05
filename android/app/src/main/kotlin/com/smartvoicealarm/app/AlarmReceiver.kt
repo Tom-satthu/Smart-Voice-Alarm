@@ -8,17 +8,27 @@ import org.json.JSONArray
 
 /**
  * Fires when AlarmManager triggers. Starts the foreground ringing service and
- * brings the full-screen alarm UI to the front without requiring a tap.
+ * posts a full-screen-capable alarm notification. Also handles its Stop action.
  */
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val app = context.applicationContext
-        if (intent?.action == Intent.ACTION_BOOT_COMPLETED ||
-            intent?.action == Intent.ACTION_LOCKED_BOOT_COMPLETED ||
-            intent?.action == "android.intent.action.QUICKBOOT_POWERON" ||
-            intent?.action == "com.htc.intent.action.QUICKBOOT_POWERON"
-        ) {
-            AlarmScheduler.rescheduleAll(app)
+        if (intent?.action == ACTION_STOP) {
+            // Bring the ringing UI forward so the user must solve the dismiss
+            // challenge. Do not silently kill playback from the notification.
+            val alarmId = intent.getStringExtra(AlarmScheduler.EXTRA_ALARM_ID)
+            val activity = Intent(app, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+                if (!alarmId.isNullOrBlank()) {
+                    putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId)
+                }
+                putExtra("from_native_alarm", true)
+                putExtra(MainActivity.EXTRA_REQUEST_DISMISS_CHALLENGE, true)
+            }
+            app.startActivity(activity)
+            // Flutter is notified via MainActivity.onNewIntent / cold-start consume.
             return
         }
 
@@ -39,15 +49,6 @@ class AlarmReceiver : BroadcastReceiver() {
         } else {
             app.startService(serviceIntent)
         }
-
-        val activity = Intent(app, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId)
-            putExtra("from_native_alarm", true)
-        }
-        app.startActivity(activity)
 
         rescheduleOrDisable(app, alarmId)
     }
@@ -90,5 +91,6 @@ class AlarmReceiver : BroadcastReceiver() {
 
     companion object {
         const val ACTION_FIRE = "com.smartvoicealarm.app.ACTION_FIRE_ALARM"
+        const val ACTION_STOP = "com.smartvoicealarm.app.ACTION_STOP_ALARM_UI"
     }
 }

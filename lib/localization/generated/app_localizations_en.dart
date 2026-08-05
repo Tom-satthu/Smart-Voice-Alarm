@@ -289,6 +289,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordDefaultName => 'Voice recording';
 
   @override
+  String get recordPermissionTitle => 'Microphone access';
+
+  @override
+  String get recordPermissionRationale =>
+      'The app needs microphone access to record the audio clip you use as an alarm.';
+
+  @override
+  String get recordPermissionDenied =>
+      'Microphone access was not granted. No recording was started. You can try again when you are ready.';
+
+  @override
+  String get recordPermissionPermanentlyDenied =>
+      'Microphone access is blocked. Open system settings to allow it before recording.';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -619,31 +634,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutDeveloper => 'Developer';
 
   @override
-  String get aboutDeveloperValue => 'Tom Satthu';
-
-  @override
-  String get aboutGithub => 'GitHub Repository';
-
-  @override
-  String get aboutGithubValue => 'github.com/Tom-satthu/Smart-Voice-Alarm';
+  String get aboutDeveloperValue => 'Nguyên Đức';
 
   @override
   String get aboutEmail => 'Email Support';
 
   @override
-  String get aboutEmailValue => 'support@smartvoicealarm.app';
+  String get aboutEmailValue => 'timeforwork789@gmail.com';
 
   @override
   String get aboutWebsite => 'Website';
 
   @override
-  String get aboutWebsiteValue => 'www.smartvoicealarm.app';
+  String get aboutWebsiteValue => '';
 
   @override
   String get aboutWebsitePlaceholder => 'Coming soon';
 
   @override
   String get voiceSystemDefault => 'System Default';
+
+  @override
+  String get voiceSystemDefaultHint => 'Managed in device settings';
 
   @override
   String get notificationChannelAlarms => 'Alarms';
@@ -724,4 +736,352 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get alarmSelectTime => 'Tap to choose time';
+
+  @override
+  String get segmentPlay => 'Play';
+
+  @override
+  String get voicePlaying => 'Playing';
+
+  @override
+  String get voiceSelect => 'Select';
+
+  @override
+  String get voiceUnavailable => 'Voice unavailable';
+
+  @override
+  String get recordingFileMissing =>
+      'Recording file missing. Delete this segment or record again.';
+
+  @override
+  String get voiceDetails => 'Voice details';
+
+  @override
+  String get ttsSelectedVoice => 'Selected voice';
+
+  @override
+  String get voicePreviewSample => 'This is a short preview of this voice.';
+
+  @override
+  String get alarmDismissTitle => 'Solve to stop';
+
+  @override
+  String get alarmDismissHint => 'Answer correctly to turn off the alarm.';
+
+  @override
+  String get alarmDismissWrong => 'Incorrect. Try a new question.';
+
+  @override
+  String get alarmDismissCheck => 'Check answer';
+
+  @override
+  String get alarmDismissAnswerHint => 'Your answer';
+
+  @override
+  String voicesRefreshed(int count) {
+    return 'Refreshed: $count voices found';
+  }
+
+  @override
+  String voicesSelectedSaved(String name) {
+    return 'Saved voice: $name';
+  }
+
+  @override
+  String get voicesDownloadThenSelect =>
+      'Open your device voice manager. After downloading, return here.';
+
+  @override
+  String get voicesRefreshHint =>
+      'Rescan Voices reloads system TTS voices after you install new packs.';
+
+  @override
+  String get ringtonePreview => 'Preview';
+
+  @override
+  String get ringtonePreviewHint =>
+      'Tap play to preview, then tap a name to select it.';
+
+  @override
+  String get voicesCurrentVoice => 'Current voice';
+
+  @override
+  String get voicesNewlyInstalled => 'Newly installed voices';
+
+  @override
+  String get voicesOnDevice => 'Voices on this device';
+
+  @override
+  String get voicesDownloadHint =>
+      'Open your device voice manager. After downloading, return here.';
+
+  @override
+  String get voicesRescan => 'Rescan voices';
+
+  @override
+  String voicesRescanResult(int count) {
+    return 'Found $count usable voices';
+  }
+
+  @override
+  String voicesNewFound(int count) {
+    return 'Found $count new voices.';
+  }
+
+  @override
+  String get voicesNoNewFound => 'No new voices detected.';
+
+  @override
+  String voicesSystemUpdated(String language) {
+    return 'Updated the $language voice from device settings.';
+  }
+
+  @override
+  String get voicesNoChange => 'Device voice settings were refreshed.';
+
+  @override
+  String get voicesSettingsRefreshed => 'Device voice settings were refreshed.';
+
+  @override
+  String get voicesSystemChanges => 'Device voice updates';
+
+  @override
+  String voicesSystemChangeEvent(String language) {
+    return 'Device $language voice settings were updated.';
+  }
+
+  @override
+  String get voicesNewlyInstalledEmpty =>
+      'New voices and device voice updates will appear here after you install or change them.';
+
+  @override
+  String get voicesNewBadge => 'New';
+
+  @override
+  String get commonClear => 'Clear';
+
+  @override
+  String voiceFriendlyName(String number) {
+    return 'Voice $number';
+  }
+
+  @override
+  String get voicesOpenManagerFailed =>
+      'Could not open the device voice manager. Open system Text-to-speech settings and install voices there.';
+
+  @override
+  String get currentVoice => 'Current voice';
+
+  @override
+  String get scanDeviceVoices => 'Scan voices on this device';
+
+  @override
+  String get availableDeviceVoices => 'Voices available on this device';
+
+  @override
+  String get scanVoicesHint =>
+      'Tap Scan voices on this device to list the voices currently installed.';
+
+  @override
+  String get noDeviceVoicesFound =>
+      'No suitable voices were found on this device.';
+
+  @override
+  String get scanVoicesFailed => 'Could not scan device voices. Try again.';
+
+  @override
+  String get voiceSetupGuide => 'How to add voices';
+
+  @override
+  String get openVoiceSettings => 'Open voice settings';
+
+  @override
+  String get androidVoiceSetupSteps =>
+      '1. Open your device Settings.\n2. Search for Text-to-speech or Text to speech output.\n3. Open the TTS engine you use.\n4. Open languages or install voice data.\n5. Install a new voice.\n6. Return here and tap Scan voices on this device.';
+
+  @override
+  String get iosVoiceSetupSteps =>
+      '1. Open Settings.\n2. Open Accessibility.\n3. Open Spoken Content or Voices.\n4. Choose a language and download an available voice.\n5. Return here and scan again.\nMenu names can vary by iOS version.';
+
+  @override
+  String get webVoiceAvailabilityInfo =>
+      'On the web, available voices come from your browser and operating system.';
+
+  @override
+  String lastScanned(String time) {
+    return 'Last scanned: $time';
+  }
+
+  @override
+  String get voiceInUse => 'In use';
+
+  @override
+  String get otherLanguages => 'Other languages';
+
+  @override
+  String voicesInLanguage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voices',
+      one: '1 voice',
+      zero: 'No voices',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expandLanguageVoices => 'Expand language voices';
+
+  @override
+  String get collapseLanguageVoices => 'Collapse language voices';
+
+  @override
+  String voicePreviewNamed(String name) {
+    return 'Preview $name';
+  }
+
+  @override
+  String get settingsSoundAndVoice => 'Sound and voice';
+
+  @override
+  String get settingsAlarmsSection => 'Alarms';
+
+  @override
+  String get supportAndFeedback => 'Support';
+
+  @override
+  String get contactSupport => 'Contact and feedback';
+
+  @override
+  String get supportEmailSubject => 'Smart Voice Alarm Support';
+
+  @override
+  String get emailCopied => 'Support email copied';
+
+  @override
+  String get linkUnavailable => 'This link is not available yet';
+
+  @override
+  String get openSourceLicenses => 'Open-source licenses';
+
+  @override
+  String get appInformation => 'About the app';
+
+  @override
+  String get appVersion => 'App version';
+
+  @override
+  String get permissionsAndBackground => 'Permissions and background';
+
+  @override
+  String get notificationPermission => 'Notifications';
+
+  @override
+  String get exactAlarmPermission => 'Exact alarms';
+
+  @override
+  String get fullScreenAlarmPermission => 'Full-screen alarms';
+
+  @override
+  String get openSystemSettings => 'Open system settings';
+
+  @override
+  String get openSystemSettingsHint =>
+      'Manage notifications and related permissions';
+
+  @override
+  String get permissionStatusGranted => 'Granted';
+
+  @override
+  String get permissionStatusDenied => 'Not granted';
+
+  @override
+  String get permissionStatusUnknown => 'Unknown';
+
+  @override
+  String trialDaysRemaining(int count) {
+    return '$count days left in your trial';
+  }
+
+  @override
+  String get trialLessThanOneDay => 'Less than 1 day left in your trial';
+
+  @override
+  String get premiumUpgrade => 'Upgrade to Premium';
+
+  @override
+  String get premiumAnnualTitle => 'Premium for one year';
+
+  @override
+  String get premiumAnnualDescription =>
+      'Continue using every Smart Voice Alarm feature after your 7-day trial.';
+
+  @override
+  String get premiumAnnualPlan => 'Premium annual plan';
+
+  @override
+  String get premiumAnnualAutoRenew =>
+      'Automatically renews every year until cancelled.';
+
+  @override
+  String get premiumAnnualCancelInPlay =>
+      'Manage or cancel through Google Play.';
+
+  @override
+  String get premiumAnnualAccess =>
+      'Full access continues while the subscription is active.';
+
+  @override
+  String get premiumSubscribeAnnual => 'Subscribe to Premium for one year';
+
+  @override
+  String get premiumDefer => 'Maybe later';
+
+  @override
+  String get premiumRestoreTransactions => 'Restore transactions';
+
+  @override
+  String get premiumManageSubscription => 'Manage subscription';
+
+  @override
+  String get premiumProductUnavailable =>
+      'The annual subscription is not available from Google Play yet.';
+
+  @override
+  String get premiumBillingUnavailable =>
+      'Google Play Billing is currently unavailable.';
+
+  @override
+  String get premiumPurchaseActive => 'Premium is active';
+
+  @override
+  String get premiumTrialExpiredTitle => 'Your trial has ended';
+
+  @override
+  String get premiumTrialExpiredBody =>
+      'Subscribe to continue using the main features. Existing alarms can still ring and can be disabled or deleted.';
+
+  @override
+  String get premiumRetryVerification => 'Try again';
+
+  @override
+  String get premiumViewExistingAlarms => 'View existing alarms';
+
+  @override
+  String get premiumClientVerificationNotice =>
+      'Subscription status is verified on this device through the app store.';
+
+  @override
+  String get premiumUnableToVerify => 'Unable to verify subscription status.';
+
+  @override
+  String get premiumRestrictedAlarmsTitle => 'Limited alarm access';
+
+  @override
+  String get premiumRestrictedAlarmsBody =>
+      'You can disable or delete existing alarms. Subscribe to create or edit alarms.';
 }

@@ -10,24 +10,27 @@ Use this before submitting Android / iOS builds.
 - [ ] Version `1.0.0` / build `1` (bump as needed)
 - [ ] App icons + splash verified on light and dark launch
 
-## App Store Connect
+## App Store Connect (deferred until Mac available)
 
 - [ ] Create app record with bundle ID `com.smartvoicealarm.app`
 - [ ] Fill metadata, subtitle, keywords, categories
 - [ ] Upload screenshots for required device sizes
-- [ ] Privacy Policy URL: `https://tom-satthu.github.io/Smart-Voice-Alarm/privacy/`
-- [ ] Support URL: `https://tom-satthu.github.io/Smart-Voice-Alarm/support/`
-- [ ] Terms / EULA or custom Terms URL: `https://tom-satthu.github.io/Smart-Voice-Alarm/terms/`
+- [ ] Privacy Policy URL: PENDING (host via proposed `smart-voice-alarm-legal` GitHub Pages)
+- [ ] Support URL: PENDING
+- [ ] Terms / EULA: optional for current local + lifetime IAP model — do not use placeholder URLs
 - [ ] Age rating questionnaire completed
 - [ ] Export compliance / encryption answers completed
 - [ ] Create sandbox Apple ID for purchase testing
+- [ ] Verify iOS seller name against Apple account (`IOS_SELLER_NAME_NEEDS_VERIFICATION_AGAINST_APPLE_ACCOUNT`)
 
-## Google Play Console
+## Google Play Console (priority)
 
 - [ ] Create app with package `com.smartvoicealarm.app`
 - [ ] Complete store listing + graphics
-- [ ] Privacy Policy URL set
-- [ ] Data safety form: local-only storage, no account, no sale of data, mic for user-initiated recording
+- [ ] Privacy Policy URL set (PENDING until legal Pages published)
+- [ ] Support email: timeforwork789@gmail.com
+- [ ] Public developer name: Nguyên Đức
+- [ ] Data safety form: see `docs/privacy_data_audit.md` (do not claim “no data collection” without reviewing fonts/billing)
 - [ ] Content rating questionnaire
 - [ ] Create license testers for IAP
 - [ ] Upload AAB to internal testing first

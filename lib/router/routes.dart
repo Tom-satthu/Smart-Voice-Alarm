@@ -14,7 +14,8 @@ abstract final class AppRoutes {
   static const String premium = '/premium';
 
   static String editAlarmPath(String id) => '/alarm/edit/$id';
-  static String ringingPath(String id) => '/alarm/ringing/$id';
+  static String ringingPath(String id, {bool challenge = false}) =>
+      challenge ? '/alarm/ringing/$id?challenge=1' : '/alarm/ringing/$id';
 
   static String voiceSequencePath(String sequenceId) =>
       '/voice-sequence?id=$sequenceId';
