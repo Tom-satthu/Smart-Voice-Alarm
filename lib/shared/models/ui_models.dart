@@ -17,6 +17,7 @@ class AlarmUiModel {
     this.voiceSequenceId,
     this.ringtoneName,
     this.repeatCount = 3,
+    this.audioNeedsRegeneration = false,
   });
 
   final String id;
@@ -29,6 +30,10 @@ class AlarmUiModel {
   final String? ringtoneName;
   final int repeatCount;
 
+  /// Set when iOS rendered notification audio is missing/corrupt; user must
+  /// re-save the alarm to regenerate. Never auto-render at launch.
+  final bool audioNeedsRegeneration;
+
   AlarmUiModel copyWith({
     String? id,
     TimeOfDay? time,
@@ -39,6 +44,7 @@ class AlarmUiModel {
     String? voiceSequenceId,
     String? ringtoneName,
     int? repeatCount,
+    bool? audioNeedsRegeneration,
   }) {
     return AlarmUiModel(
       id: id ?? this.id,
@@ -50,6 +56,8 @@ class AlarmUiModel {
       voiceSequenceId: voiceSequenceId ?? this.voiceSequenceId,
       ringtoneName: ringtoneName ?? this.ringtoneName,
       repeatCount: repeatCount ?? this.repeatCount,
+      audioNeedsRegeneration:
+          audioNeedsRegeneration ?? this.audioNeedsRegeneration,
     );
   }
 
@@ -64,6 +72,7 @@ class AlarmUiModel {
     'voiceSequenceId': voiceSequenceId,
     'ringtoneName': ringtoneName,
     'repeatCount': repeatCount,
+    'audioNeedsRegeneration': audioNeedsRegeneration,
   };
 
   factory AlarmUiModel.fromJson(Map<String, dynamic> json) {
@@ -81,6 +90,7 @@ class AlarmUiModel {
       voiceSequenceId: json['voiceSequenceId'] as String?,
       ringtoneName: json['ringtoneName'] as String?,
       repeatCount: json['repeatCount'] as int? ?? 3,
+      audioNeedsRegeneration: json['audioNeedsRegeneration'] as bool? ?? false,
     );
   }
 }

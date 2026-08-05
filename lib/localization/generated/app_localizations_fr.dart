@@ -1170,4 +1170,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get iosCapabilityLearnMore => 'How alarms work on this iPhone';
+
+  @override
+  String get alarmAudioNeedsRegeneration =>
+      'L\'audio de l\'alarme vocale doit être régénéré.';
 }

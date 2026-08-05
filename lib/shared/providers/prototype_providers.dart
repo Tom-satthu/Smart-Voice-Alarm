@@ -257,18 +257,24 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
   }
 
   Future<void> add(AlarmUiModel alarm) async {
-    state = [...state, alarm]..sort(_byTime);
-    await _repo.upsert(alarm);
-    await _notifications.scheduleAlarm(alarm);
+    final scheduled = await _notifications.scheduleAlarm(alarm);
+    final saved = alarm.copyWith(
+      audioNeedsRegeneration: !scheduled && alarm.type != AlarmType.ringtone,
+    );
+    state = [...state, saved]..sort(_byTime);
+    await _repo.upsert(saved);
   }
 
   Future<void> update(AlarmUiModel alarm) async {
+    final scheduled = await _notifications.scheduleAlarm(alarm);
+    final saved = alarm.copyWith(
+      audioNeedsRegeneration: !scheduled && alarm.type != AlarmType.ringtone,
+    );
     state = [
       for (final item in state)
-        if (item.id == alarm.id) alarm else item,
+        if (item.id == saved.id) saved else item,
     ]..sort(_byTime);
-    await _repo.upsert(alarm);
-    await _notifications.scheduleAlarm(alarm);
+    await _repo.upsert(saved);
   }
 
   /// Returns the duplicated alarm id for navigation into edit.

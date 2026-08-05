@@ -467,5 +467,6 @@
   "savedVoicesTitle": "Suara tersimpan",
   "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
   "savedVoiceAdded": "Suara ditambahkan ke urutan",
-  "iosCapabilityLearnMore": "How alarms work on this iPhone"
+  "iosCapabilityLearnMore": "How alarms work on this iPhone",
+  "alarmAudioNeedsRegeneration": "Audio alarm suara perlu dibuat ulang."
 }

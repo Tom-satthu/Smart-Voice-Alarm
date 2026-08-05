@@ -2170,6 +2170,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'How alarms work on this iPhone'**
   String get iosCapabilityLearnMore;
+
+  /// No description provided for @alarmAudioNeedsRegeneration.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice alarm audio needs to be regenerated.'**
+  String get alarmAudioNeedsRegeneration;
 }
 
 class _AppLocalizationsDelegate

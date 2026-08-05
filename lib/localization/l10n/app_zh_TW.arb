@@ -467,5 +467,6 @@
   "savedVoicesTitle": "已儲存的語音",
   "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
   "savedVoiceAdded": "已加入語音序列",
-  "iosCapabilityLearnMore": "How alarms work on this iPhone"
+  "iosCapabilityLearnMore": "How alarms work on this iPhone",
+  "alarmAudioNeedsRegeneration": "需要重新產生語音鬧鐘音訊。"
 }

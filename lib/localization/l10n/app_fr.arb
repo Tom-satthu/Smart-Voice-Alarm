@@ -467,5 +467,6 @@
   "savedVoicesTitle": "Voix enregistrées",
   "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
   "savedVoiceAdded": "Voix ajoutée à la séquence",
-  "iosCapabilityLearnMore": "How alarms work on this iPhone"
+  "iosCapabilityLearnMore": "How alarms work on this iPhone",
+  "alarmAudioNeedsRegeneration": "L'audio de l'alarme vocale doit être régénéré."
 }

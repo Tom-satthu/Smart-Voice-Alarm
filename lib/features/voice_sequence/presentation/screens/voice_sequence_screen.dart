@@ -436,10 +436,8 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
               )
             else
               ...saved.map((voice) {
-                final playing =
-                    _previewId == voice.id && !_previewLoading;
-                final loading =
-                    _previewId == voice.id && _previewLoading;
+                final playing = _previewId == voice.id && !_previewLoading;
+                final loading = _previewId == voice.id && _previewLoading;
                 final stamped = _formatCreatedAt(context, voice.createdAt);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppConstants.spaceSm),

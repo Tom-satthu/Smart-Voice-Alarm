@@ -467,5 +467,6 @@
   "savedVoicesTitle": "Opgeslagen stemmen",
   "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
   "savedVoiceAdded": "Stem toegevoegd aan reeks",
-  "iosCapabilityLearnMore": "How alarms work on this iPhone"
+  "iosCapabilityLearnMore": "How alarms work on this iPhone",
+  "alarmAudioNeedsRegeneration": "Voice-alarm-audio moet opnieuw worden gegenereerd."
 }

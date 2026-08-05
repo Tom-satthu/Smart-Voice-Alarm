@@ -1125,6 +1125,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get iosCapabilityLearnMore => 'How alarms work on this iPhone';
+
+  @override
+  String get alarmAudioNeedsRegeneration => '需要重新生成语音闹钟音频。';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2248,4 +2251,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get iosCapabilityLearnMore => 'How alarms work on this iPhone';
+
+  @override
+  String get alarmAudioNeedsRegeneration => '需要重新產生語音鬧鐘音訊。';
 }

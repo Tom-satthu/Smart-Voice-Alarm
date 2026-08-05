@@ -198,28 +198,27 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleAlarm(AlarmUiModel alarm) async {
-    if (kIsWeb) return;
+  Future<bool> scheduleAlarm(AlarmUiModel alarm) async {
+    if (kIsWeb) return true;
     try {
       if (!alarm.isEnabled) {
         await cancelAlarm(alarm.id);
-        return;
+        return true;
       }
 
       final next = _nextOccurrence(alarm);
       if (next == null) {
         await cancelAlarm(alarm.id);
-        return;
+        return true;
       }
 
       // Android: AlarmManager + FGS so audio starts without a notification tap.
       if (_native.isSupported) {
         await _native.scheduleAlarm(alarm, next);
-        // Still cancel any stale FLN alarm ids.
         if (_initialized) {
           await _plugin.cancel(alarm.id.hashCode);
         }
-        return;
+        return true;
       }
 
       // iOS: notification fan-out with pre-rendered Library/Sounds clips.
@@ -227,25 +226,23 @@ class NotificationService {
         if (_initialized) {
           await _plugin.cancel(alarm.id.hashCode);
         }
-        // Ensure notification permission before scheduling silent-drops.
         try {
           await _iosFanout.scheduler.requestAuthorization();
         } catch (e) {
-          debugPrint('iOS auth before schedule: $e');
+          debugPrint('[SVA-Schedule] iOS auth before schedule: $e');
         }
-        await _iosFanout.scheduleAlarm(alarm, next);
-        // Optionally materialize the following occurrence for repeats.
-        final following = _iosFanout.nextAfter(alarm, next);
-        if (following != null &&
-            following.difference(DateTime.now()) < const Duration(hours: 36)) {
-          // scheduleAlarm cancels parent first — schedule only nearest.
-          // Next occurrence is rescheduled when this occurrence is dismissed
-          // or when alarms are resynced on launch.
+        final result = await _iosFanout.scheduleAlarm(alarm, next);
+        if (!result.ok) {
+          debugPrint(
+            '[SVA-Schedule] scheduleAlarm soft-fail code=${result.errorCode} '
+            'msg=${result.errorMessage}',
+          );
+          return false;
         }
-        return;
+        return true;
       }
 
-      if (!_initialized) return;
+      if (!_initialized) return false;
       await _plugin.cancel(alarm.id.hashCode);
 
       final details = NotificationDetails(
@@ -278,8 +275,10 @@ class NotificationService {
             ? null
             : DateTimeComponents.dayOfWeekAndTime,
       );
+      return true;
     } catch (error) {
       debugPrint('scheduleAlarm failed: $error');
+      return false;
     }
   }
 
@@ -287,6 +286,19 @@ class NotificationService {
     if (kIsWeb) return;
     for (final alarm in alarms) {
       await scheduleAlarm(alarm);
+    }
+  }
+
+  /// iOS launch-safe reconcile: no native audio render, no orphan wipe.
+  Future<void> reconcileIosAlarmsWithoutRender(
+    List<AlarmUiModel> alarms,
+  ) async {
+    if (kIsWeb || !_iosFanout.isSupported) return;
+    debugPrint('[SVA-Startup] reconcileIosAlarmsWithoutRender');
+    try {
+      await _iosFanout.reconcileWithoutRender(alarms);
+    } catch (error, stack) {
+      debugPrint('[SVA-Startup] light reconcile error: $error\n$stack');
     }
   }
 

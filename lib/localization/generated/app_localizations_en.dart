@@ -1165,4 +1165,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get iosCapabilityLearnMore => 'How alarms work on this iPhone';
+
+  @override
+  String get alarmAudioNeedsRegeneration =>
+      'Voice alarm audio needs to be regenerated.';
 }

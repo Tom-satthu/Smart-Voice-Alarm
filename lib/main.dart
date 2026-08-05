@@ -17,6 +17,7 @@ import 'shared/providers/prototype_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('[SVA-Startup] begin');
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -28,23 +29,17 @@ Future<void> main() async {
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
 
+  // Light startup only: local store + notification handlers + pending route.
   await LocalDatabase.initFlutter();
   await seedPrototypeDataIfNeeded();
 
   final notifications = NotificationService();
   await notifications.init();
+  debugPrint('[SVA-Startup] store+notifications ready');
 
   final container = ProviderContainer(
     overrides: [notificationServiceProvider.overrideWithValue(notifications)],
   );
-
-  // Sync native / local schedules with persisted alarms.
-  try {
-    await notifications.rescheduleAll(container.read(alarmListProvider));
-    await container.read(reminderSettingsProvider.notifier).ensureScheduled();
-  } catch (error, stack) {
-    debugPrint('Initial reschedule failed: $error\n$stack');
-  }
 
   notifications.onAlarmTriggered = (alarmId) {
     unawaited(_openRinging(container, alarmId));
@@ -54,8 +49,6 @@ Future<void> main() async {
     unawaited(_openIosChallenge(container, challenge, consumePending: false));
   };
 
-  // Native → Flutter: notification tap / full-screen while app is warm, and
-  // notification Stop action.
   final native = notifications.native;
   native.onAlarmTriggered = (alarmId) {
     notifications.onAlarmTriggered?.call(alarmId);
@@ -68,7 +61,6 @@ Future<void> main() async {
   };
   native.attachPlatformHandlers();
 
-  // Prefer pending iOS challenge payload before choosing the first route.
   String? initialLocation;
   try {
     final iosPending = await notifications.consumeIosPendingChallenge();
@@ -81,8 +73,8 @@ Future<void> main() async {
       markChallengeOpen(iosPending.parentAlarmId, iosPending.occurrenceId);
     } else {
       final launchAlarmId = await notifications.consumeLaunchAlarmId();
-      final launchChallenge =
-          await notifications.consumeLaunchDismissChallenge();
+      final launchChallenge = await notifications
+          .consumeLaunchDismissChallenge();
       if (launchAlarmId != null) {
         initialLocation = AppRoutes.ringingPath(
           launchAlarmId,
@@ -91,7 +83,7 @@ Future<void> main() async {
       }
     }
   } catch (error, stack) {
-    debugPrint('Launch challenge routing failed: $error\n$stack');
+    debugPrint('[SVA-Startup] launch routing failed: $error\n$stack');
   }
 
   FlutterError.onError = (details) {
@@ -101,12 +93,52 @@ Future<void> main() async {
     }
   };
 
+  // CRITICAL: never await iOS audio render / fan-out rebuild before first frame.
+  // Android may still sync schedules after UI is up via the same post-frame path.
+  debugPrint('[SVA-Startup] runApp');
   runApp(
     UncontrolledProviderScope(
       container: container,
       child: SmartVoiceAlarmApp(initialLocation: initialLocation),
     ),
   );
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(_postUiStartup(container, notifications));
+  });
+}
+
+/// Runs after the first Flutter frame. Must not block UI or abort the process.
+Future<void> _postUiStartup(
+  ProviderContainer container,
+  NotificationService notifications,
+) async {
+  debugPrint('[SVA-Startup] post-frame reconcile begin');
+  try {
+    // Reminder is FLN-only and does not touch native audio renderers.
+    await container.read(reminderSettingsProvider.notifier).ensureScheduled();
+  } catch (error, stack) {
+    debugPrint('[SVA-Startup] reminder schedule failed: $error\n$stack');
+  }
+
+  final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+  if (isIos) {
+    try {
+      await notifications.reconcileIosAlarmsWithoutRender(
+        container.read(alarmListProvider),
+      );
+    } catch (error, stack) {
+      debugPrint('[SVA-Startup] iOS light reconcile failed: $error\n$stack');
+    }
+  } else {
+    // Non-iOS: full reschedule is safe (Android native AlarmManager path).
+    try {
+      await notifications.rescheduleAll(container.read(alarmListProvider));
+    } catch (error, stack) {
+      debugPrint('[SVA-Startup] non-iOS reschedule failed: $error\n$stack');
+    }
+  }
+  debugPrint('[SVA-Startup] post-frame reconcile done');
 }
 
 Future<void> _openIosChallenge(
@@ -139,7 +171,6 @@ Future<void> _openRinging(
   bool skipEngineEnqueue = false,
 }) async {
   final engine = container.read(alarmEngineProvider);
-  // On iOS fan-out, the system already plays segment audio — do not dual-play.
   final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
   if (!skipEngineEnqueue && !isIos) {
     unawaited(engine.enqueue(alarmId));
@@ -155,7 +186,6 @@ Future<void> _openRinging(
     if (current.contains('/ringing/') &&
         current.contains(alarmId) &&
         challenge) {
-      // Already on this ringing route — force challenge query.
       GoRouter.of(ctx).go(path);
       return;
     }

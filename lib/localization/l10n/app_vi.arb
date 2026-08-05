@@ -467,5 +467,6 @@
   "savedVoicesTitle": "Giọng nói đã lưu",
   "savedVoicesEmpty": "Bản ghi và TTS đã lưu sẽ hiện ở đây sau khi bạn thêm.",
   "savedVoiceAdded": "Đã thêm giọng nói vào chuỗi",
-  "iosCapabilityLearnMore": "Cách báo thức hoạt động trên iPhone này"
+  "iosCapabilityLearnMore": "Cách báo thức hoạt động trên iPhone này",
+  "alarmAudioNeedsRegeneration": "Âm thanh báo thức giọng nói cần được tạo lại."
 }

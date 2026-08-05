@@ -3,10 +3,11 @@ import Foundation
 import UIKit
 import UserNotifications
 
-/// MethodChannel bridge for iOS alarm fan-out (AlarmKit on 26+, notifications otherwise).
+/// MethodChannel bridge for iOS alarm fan-out (notification schedule path).
 final class SvaAlarmBridge: NSObject, FlutterPlugin {
   private static let shared = SvaAlarmBridge()
   private var channel: FlutterMethodChannel?
+  private let audioQueue = DispatchQueue(label: "com.smartvoicealarm.bridge.audio")
 
   static func register(with registrar: FlutterPluginRegistrar) {
     register(withMessenger: registrar.messenger())
@@ -20,14 +21,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     )
     instance.channel = channel
     channel.setMethodCallHandler(instance.handle)
+    // Categories only — never render audio during plugin registration.
     SvaNotificationFanout.configureCategories()
-
-    NotificationCenter.default.addObserver(
-      instance,
-      selector: #selector(instance.onPendingChallengeUpdated(_:)),
-      name: Notification.Name("SvaPendingChallengeUpdated"),
-      object: nil
-    )
   }
 
   static func sharedHandleWillPresent(_ notification: UNNotification) {
@@ -38,51 +33,91 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     shared.openChallenge(from: response.notification.request.content.userInfo)
   }
 
-  @objc private func onPendingChallengeUpdated(_ note: Notification) {
-    guard let info = note.userInfo else { return }
-    channel?.invokeMethod("onOpenChallenge", arguments: info)
+  private func reply(_ result: @escaping FlutterResult, _ value: Any?) {
+    DispatchQueue.main.async { result(value) }
+  }
+
+  private func replyError(
+    _ result: @escaping FlutterResult,
+    code: String,
+    message: String,
+    stage: String,
+    sourceType: String? = nil,
+    fileName: String? = nil
+  ) {
+    var details: [String: String] = ["stage": stage]
+    if let sourceType { details["sourceType"] = sourceType }
+    if let fileName { details["fileName"] = fileName }
+    DispatchQueue.main.async {
+      result(FlutterError(code: code, message: message, details: details))
+    }
   }
 
   func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "getCapability":
-      result(capability())
+      reply(result, capability())
     case "requestAuthorization":
       Task {
         do {
           let status = try await requestAuth()
-          result(status)
+          reply(result, status)
         } catch {
-          result(FlutterError(code: "auth", message: error.localizedDescription, details: nil))
+          replyError(
+            result,
+            code: "auth",
+            message: error.localizedDescription,
+            stage: "requestAuthorization"
+          )
         }
       }
     case "renderSound":
       guard let args = call.arguments as? [String: Any],
             let fileName = args["fileName"] as? String
       else {
-        result(FlutterError(code: "args", message: "fileName required", details: nil))
+        replyError(result, code: "args", message: "fileName required", stage: "renderSound")
         return
       }
-      Task {
-        do {
-          let out = try await SvaAudioRenderer.render(
-            sourcePath: args["sourcePath"] as? String,
-            assetKey: args["assetKey"] as? String,
-            ttsText: args["ttsText"] as? String,
-            ttsLocale: args["ttsLocale"] as? String,
-            fileName: fileName,
-            maxSeconds: (args["maxSeconds"] as? Double) ?? 20
-          )
-          result(out)
-        } catch {
-          result(FlutterError(code: "render", message: error.localizedDescription, details: nil))
+      let sourcePath = args["sourcePath"] as? String
+      let assetKey = args["assetKey"] as? String
+      let ttsText = args["ttsText"] as? String
+      let ttsLocale = args["ttsLocale"] as? String
+      let maxSeconds = (args["maxSeconds"] as? Double) ?? 20
+      let sourceType: String = {
+        if ttsText?.isEmpty == false { return "tts" }
+        if sourcePath?.isEmpty == false { return "recording" }
+        if assetKey?.isEmpty == false { return "asset" }
+        return "unknown"
+      }()
+      audioQueue.async {
+        Task {
+          do {
+            let out = try await SvaAudioRenderer.render(
+              sourcePath: sourcePath,
+              assetKey: assetKey,
+              ttsText: ttsText,
+              ttsLocale: ttsLocale,
+              fileName: fileName,
+              maxSeconds: maxSeconds
+            )
+            self.reply(result, out)
+          } catch {
+            self.replyError(
+              result,
+              code: "render",
+              message: error.localizedDescription,
+              stage: "renderSound",
+              sourceType: sourceType,
+              fileName: fileName
+            )
+          }
         }
       }
     case "scheduleSegments":
       guard let args = call.arguments as? [String: Any],
             let rawSegments = args["segments"] as? [[String: Any]]
       else {
-        result(FlutterError(code: "args", message: "segments required", details: nil))
+        replyError(result, code: "args", message: "segments required", stage: "scheduleSegments")
         return
       }
       let title = (args["title"] as? String) ?? "Smart Voice Alarm"
@@ -91,54 +126,73 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       Task {
         do {
           try await schedule(segments: segments, title: title, body: body)
-          result(true)
+          self.reply(result, true)
         } catch {
-          result(FlutterError(code: "schedule", message: error.localizedDescription, details: nil))
+          self.replyError(
+            result,
+            code: "schedule",
+            message: error.localizedDescription,
+            stage: "scheduleSegments"
+          )
         }
       }
     case "cancelParent":
       let parent = (call.arguments as? [String: Any])?["parentAlarmId"] as? String ?? ""
       cancelParent(parent)
-      result(true)
+      reply(result, true)
+    case "cancelParentExcept":
+      let args = call.arguments as? [String: Any]
+      let parent = args?["parentAlarmId"] as? String ?? ""
+      let keep = Set(args?["keepChildIds"] as? [String] ?? [])
+      SvaNotificationFanout.cancelParentExcept(parentAlarmId: parent, keepChildIds: keep)
+      reply(result, true)
     case "cancelOccurrence":
       let args = call.arguments as? [String: Any]
       let parent = args?["parentAlarmId"] as? String ?? ""
       let occurrence = args?["occurrenceId"] as? String ?? ""
       cancelOccurrence(parent: parent, occurrence: occurrence)
-      result(true)
+      reply(result, true)
     case "cancelChildren":
       let ids = (call.arguments as? [String: Any])?["childIds"] as? [String] ?? []
       cancelChildren(ids)
-      result(true)
+      reply(result, true)
     case "consumePendingChallenge":
       if let pending = SvaPendingStore.consume() {
-        result(pending.asDictionary)
+        reply(result, pending.asDictionary)
       } else {
-        result(nil)
+        reply(result, nil)
       }
     case "peekPendingChallenge":
       if let pending = SvaPendingStore.peek() {
-        result(pending.asDictionary)
+        reply(result, pending.asDictionary)
       } else {
-        result(nil)
+        reply(result, nil)
       }
     case "cleanupOrphanSounds":
       let active = Set((call.arguments as? [String: Any])?["activeFileNames"] as? [String] ?? [])
-      SvaAudioRenderer.cleanupOrphans(activeFileNames: active)
-      result(true)
+      if active.isEmpty {
+        NSLog("[SVA-Audio] cleanupOrphanSounds refused empty active set")
+        reply(result, false)
+      } else {
+        SvaAudioRenderer.cleanupOrphans(activeFileNames: active)
+        reply(result, true)
+      }
+    case "deleteSoundFile":
+      let name = (call.arguments as? [String: Any])?["fileName"] as? String ?? ""
+      SvaAudioRenderer.deleteSoundFile(name)
+      reply(result, true)
     default:
-      result(FlutterMethodNotImplemented)
-    }
+      reply(result, FlutterMethodNotImplemented)
+  }
   }
 
   private func capability() -> [String: Any] {
-    // Notification fan-out with Library/Sounds CAF files is the active path.
-    // AlarmKit is stubbed until entitlements + intents are safe on device.
+    // AlarmKit is stubbed — do not advertise full AlarmKit support.
     return [
       "iosVersion": UIDevice.current.systemVersion,
       "usesAlarmKit": false,
       "alarmKitAuthorization": "unsupported",
-      "supportsFullVoiceAlarm": true,
+      "supportsFullVoiceAlarm": false,
       "maxVoiceSeconds": 20,
       "maxVoiceSegments": 5,
       "maxRingtoneSegments": 2,
@@ -228,6 +282,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     guard var challenge = SvaPendingChallenge.from(dictionary: dict) else { return }
     challenge.openChallenge = true
     SvaPendingStore.save(challenge)
-    channel?.invokeMethod("onOpenChallenge", arguments: challenge.asDictionary)
+    DispatchQueue.main.async {
+      self.channel?.invokeMethod("onOpenChallenge", arguments: challenge.asDictionary)
+    }
   }
 }

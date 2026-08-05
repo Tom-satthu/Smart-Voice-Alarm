@@ -467,5 +467,6 @@
   "savedVoicesTitle": "저장된 음성",
   "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
   "savedVoiceAdded": "시퀀스에 음성이 추가됨",
-  "iosCapabilityLearnMore": "How alarms work on this iPhone"
+  "iosCapabilityLearnMore": "How alarms work on this iPhone",
+  "alarmAudioNeedsRegeneration": "음성 알람 오디오를 다시 생성해야 합니다."
 }

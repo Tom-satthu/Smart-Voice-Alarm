@@ -217,6 +217,25 @@ class IosAlarmScheduler {
     });
   }
 
+  /// Cancels pending children for [parentAlarmId] except [keepChildIds].
+  Future<void> cancelParentExcept({
+    required String parentAlarmId,
+    required Set<String> keepChildIds,
+  }) async {
+    if (!isSupported) return;
+    await _channel.invokeMethod<void>('cancelParentExcept', {
+      'parentAlarmId': parentAlarmId,
+      'keepChildIds': keepChildIds.toList(),
+    });
+  }
+
+  Future<void> deleteSoundFile(String fileName) async {
+    if (!isSupported || fileName.isEmpty) return;
+    await _channel.invokeMethod<void>('deleteSoundFile', {
+      'fileName': fileName,
+    });
+  }
+
   Future<void> cancelOccurrence({
     required String parentAlarmId,
     required String occurrenceId,
@@ -252,6 +271,11 @@ class IosAlarmScheduler {
 
   Future<void> cleanupOrphanSounds(Set<String> activeFileNames) async {
     if (!isSupported) return;
+    // Never run with an empty active set — that would delete every sva_* file.
+    if (activeFileNames.isEmpty) {
+      debugPrint('[SVA-Audio] cleanupOrphanSounds skipped (empty active set)');
+      return;
+    }
     await _channel.invokeMethod<void>('cleanupOrphanSounds', {
       'activeFileNames': activeFileNames.toList(),
     });

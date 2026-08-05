@@ -534,7 +534,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                       ),
                     ),
                   ],
-                  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
+                  if (!kIsWeb &&
+                      defaultTargetPlatform == TargetPlatform.iOS) ...[
                     const SizedBox(height: AppConstants.spaceXl),
                     const _IosCapabilityCard(),
                   ],
@@ -690,4 +691,3 @@ class _IosCapabilityCardState extends ConsumerState<_IosCapabilityCard> {
     );
   }
 }
-

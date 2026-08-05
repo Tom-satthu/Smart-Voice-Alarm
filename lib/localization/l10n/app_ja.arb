@@ -467,5 +467,6 @@
   "savedVoicesTitle": "保存した音声",
   "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
   "savedVoiceAdded": "シーケンスに追加しました",
-  "iosCapabilityLearnMore": "How alarms work on this iPhone"
+  "iosCapabilityLearnMore": "How alarms work on this iPhone",
+  "alarmAudioNeedsRegeneration": "音声アラームのオーディオを再生成する必要があります。"
 }

@@ -1162,4 +1162,8 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get iosCapabilityLearnMore =>
       'Cách báo thức hoạt động trên iPhone này';
+
+  @override
+  String get alarmAudioNeedsRegeneration =>
+      'Âm thanh báo thức giọng nói cần được tạo lại.';
 }
