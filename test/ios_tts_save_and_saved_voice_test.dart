@@ -61,6 +61,7 @@ void main() {
         seqRepo,
         seqRepo.findById('seq-test'),
         savedRepo,
+        true, // persisted edit path
       );
 
       await controller.addExistingSavedVoice(saved);
@@ -70,6 +71,7 @@ void main() {
       expect(controller.state.segments.first.name, 'Keep me');
       expect(controller.state.segments.last.text, 'Hello world');
       expect(controller.state.segments.last.id, isNot('saved-1'));
+      expect(controller.state.segments.last.sourceSavedVoiceId, 'saved-1');
       expect(savedRepo.loadAll(), hasLength(savedBefore.length));
       expect(savedRepo.loadAll().single.id, 'saved-1');
       expect(seqRepo.findById('seq-test')!.segments, hasLength(2));
@@ -78,20 +80,19 @@ void main() {
 
   group('schedule contract', () {
     test('unsupported platform soft-succeeds without rendering', () async {
-      final result = await IosAlarmFanoutService(
-        scheduler: IosAlarmScheduler(),
-      ).scheduleAlarm(
-        AlarmUiModel(
-          id: 'a1',
-          time: const TimeOfDay(hour: 7, minute: 0),
-          repeatDays: const {},
-          isEnabled: true,
-          type: AlarmType.voice,
-          label: 'T',
-          voiceSequenceId: 'missing',
-        ),
-        DateTime.now().add(const Duration(minutes: 3)),
-      );
+      final result = await IosAlarmFanoutService(scheduler: IosAlarmScheduler())
+          .scheduleAlarm(
+            AlarmUiModel(
+              id: 'a1',
+              time: const TimeOfDay(hour: 7, minute: 0),
+              repeatDays: const {},
+              isEnabled: true,
+              type: AlarmType.voice,
+              label: 'T',
+              voiceSequenceId: 'missing',
+            ),
+            DateTime.now().add(const Duration(minutes: 3)),
+          );
       expect(result.ok, isTrue);
     });
   });

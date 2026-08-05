@@ -2054,7 +2054,7 @@ abstract class AppLocalizations {
   /// No description provided for @iosLimitedSupportBody.
   ///
   /// In en, this message translates to:
-  /// **'On iOS 13–25, voice alarms still play through notification sounds. There is no AlarmKit full-screen experience. Silent Mode or Focus may mute or delay sound, and dismissing a notification without solving the challenge will not stop later segments.'**
+  /// **'Voice alarms use local notifications (AlarmKit is not active yet). Open the notification or choose Solve to stop to start the math challenge. Swiping a notification away without opening it will not stop later segments. Silent Mode or Focus may mute or delay sound.'**
   String get iosLimitedSupportBody;
 
   /// No description provided for @iosSilentModeWarning.
@@ -2188,6 +2188,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add to sequence'**
   String get addSavedVoiceToSequence;
+
+  /// No description provided for @savedVoiceInUseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice in use'**
+  String get savedVoiceInUseTitle;
+
+  /// No description provided for @savedVoiceInUseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This voice is used by 1 alarm and cannot be deleted.} other{This voice is used by {count} alarms and cannot be deleted.}}'**
+  String savedVoiceInUseBody(int count);
+
+  /// No description provided for @savedVoiceInUseBodyOne.
+  ///
+  /// In en, this message translates to:
+  /// **'This voice is used by 1 alarm and cannot be deleted.'**
+  String get savedVoiceInUseBodyOne;
+
+  /// No description provided for @savedVoiceInUseBodyMany.
+  ///
+  /// In en, this message translates to:
+  /// **'This voice is used by {count} alarms and cannot be deleted.'**
+  String savedVoiceInUseBodyMany(int count);
+
+  /// No description provided for @savedVoiceInOpenDraftBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This voice is in the current unsaved alarm.'**
+  String get savedVoiceInOpenDraftBody;
+
+  /// No description provided for @savedVoiceUsageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarms using this voice'**
+  String get savedVoiceUsageTitle;
+
+  /// No description provided for @savedVoiceUsageEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No alarms currently use this voice.'**
+  String get savedVoiceUsageEmpty;
+
+  /// No description provided for @mixedAlarmNeedsVoiceAndRingtone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed alarms need at least one voice and a ringtone.'**
+  String get mixedAlarmNeedsVoiceAndRingtone;
+
+  /// No description provided for @alarmNotificationLimitExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many notification segments. Lower repeat count or remove some voices.'**
+  String get alarmNotificationLimitExceeded;
+
+  /// No description provided for @savedVoiceViewAlarms.
+  ///
+  /// In en, this message translates to:
+  /// **'View alarms'**
+  String get savedVoiceViewAlarms;
+
+  /// No description provided for @savedVoiceDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete saved voice?'**
+  String get savedVoiceDeleteTitle;
+
+  /// No description provided for @savedVoiceDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the voice from your library. Alarms are not changed.'**
+  String get savedVoiceDeleteBody;
+
+  /// No description provided for @savedVoiceDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved voice deleted'**
+  String get savedVoiceDeleted;
+
+  /// No description provided for @savedVoiceCleanupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean up unused voices'**
+  String get savedVoiceCleanupTitle;
+
+  /// No description provided for @savedVoiceCleanupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove library voices that are not used by any alarm.'**
+  String get savedVoiceCleanupSubtitle;
+
+  /// No description provided for @savedVoiceCleanupEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No unused voices to clean up.'**
+  String get savedVoiceCleanupEmpty;
+
+  /// No description provided for @savedVoiceCleanupConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count} unused voices?'**
+  String savedVoiceCleanupConfirm(int count);
+
+  /// No description provided for @savedVoiceCleanupBytes.
+  ///
+  /// In en, this message translates to:
+  /// **'About {size} of recordings can be freed.'**
+  String savedVoiceCleanupBytes(String size);
+
+  /// No description provided for @savedVoiceSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get savedVoiceSelectAll;
+
+  /// No description provided for @savedVoiceDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get savedVoiceDeleteAction;
+
+  /// No description provided for @savedVoicePreviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get savedVoicePreviewAction;
+
+  /// No description provided for @iosNotificationPathHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification sound volume follows Ringtone and Alerts, which can be quieter than in-app preview even for the same file.'**
+  String get iosNotificationPathHint;
+
+  /// No description provided for @debugPlayRenderedCaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Play rendered CAF (debug)'**
+  String get debugPlayRenderedCaf;
 }
 
 class _AppLocalizationsDelegate

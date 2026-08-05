@@ -1094,7 +1094,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get iosLimitedSupportBody =>
-      'On iOS 13–25, voice alarms still play through notification sounds. There is no AlarmKit full-screen experience. Silent Mode or Focus may mute or delay sound, and dismissing a notification without solving the challenge will not stop later segments.';
+      'Alarm suara memakai notifikasi lokal (AlarmKit belum aktif). Buka notifikasi atau pilih Solve to stop untuk mulai tantangan. Menggeser tanpa membuka tidak menghentikan segmen berikutnya.';
 
   @override
   String get iosSilentModeWarning =>
@@ -1173,4 +1173,94 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get addSavedVoiceToSequence => 'Tambahkan ke urutan';
+
+  @override
+  String get savedVoiceInUseTitle => 'Voice in use';
+
+  @override
+  String savedVoiceInUseBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'This voice is used by $count alarms and cannot be deleted.',
+      one: 'This voice is used by 1 alarm and cannot be deleted.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get savedVoiceInUseBodyOne =>
+      'This voice is used by 1 alarm and cannot be deleted.';
+
+  @override
+  String savedVoiceInUseBodyMany(int count) {
+    return 'This voice is used by $count alarms and cannot be deleted.';
+  }
+
+  @override
+  String get savedVoiceInOpenDraftBody =>
+      'This voice is in the current unsaved alarm.';
+
+  @override
+  String get savedVoiceUsageTitle => 'Alarms using this voice';
+
+  @override
+  String get savedVoiceUsageEmpty => 'No alarms currently use this voice.';
+
+  @override
+  String get mixedAlarmNeedsVoiceAndRingtone =>
+      'Mixed alarms need at least one voice and a ringtone.';
+
+  @override
+  String get alarmNotificationLimitExceeded =>
+      'Too many notification segments. Lower repeat count or remove some voices.';
+
+  @override
+  String get savedVoiceViewAlarms => 'View alarms';
+
+  @override
+  String get savedVoiceDeleteTitle => 'Delete saved voice?';
+
+  @override
+  String get savedVoiceDeleteBody =>
+      'This removes the voice from your library. Alarms are not changed.';
+
+  @override
+  String get savedVoiceDeleted => 'Saved voice deleted';
+
+  @override
+  String get savedVoiceCleanupTitle => 'Clean up unused voices';
+
+  @override
+  String get savedVoiceCleanupSubtitle =>
+      'Remove library voices that are not used by any alarm.';
+
+  @override
+  String get savedVoiceCleanupEmpty => 'No unused voices to clean up.';
+
+  @override
+  String savedVoiceCleanupConfirm(int count) {
+    return 'Delete $count unused voices?';
+  }
+
+  @override
+  String savedVoiceCleanupBytes(String size) {
+    return 'About $size of recordings can be freed.';
+  }
+
+  @override
+  String get savedVoiceSelectAll => 'Select all';
+
+  @override
+  String get savedVoiceDeleteAction => 'Delete';
+
+  @override
+  String get savedVoicePreviewAction => 'Preview';
+
+  @override
+  String get iosNotificationPathHint =>
+      'Notification sound volume follows Ringtone and Alerts, which can be quieter than in-app preview even for the same file.';
+
+  @override
+  String get debugPlayRenderedCaf => 'Play rendered CAF (debug)';
 }

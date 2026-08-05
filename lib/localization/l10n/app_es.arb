@@ -448,7 +448,7 @@
   "iosFullVoiceAlarmSupport": "Compatibilidad completa con alarmas de voz",
   "iosFullVoiceAlarmSupportBody": "On iOS 26 and later, Smart Voice Alarm uses AlarmKit so voice segments and ringtones can ring with system alarm behavior.",
   "iosLimitedSupportTitle": "Compatibilidad limitada en iOS antiguos",
-  "iosLimitedSupportBody": "On iOS 13–25, voice alarms still play through notification sounds. There is no AlarmKit full-screen experience. Silent Mode or Focus may mute or delay sound, and dismissing a notification without solving the challenge will not stop later segments.",
+  "iosLimitedSupportBody": "Las alarmas de voz usan notificaciones locales (AlarmKit aún no está activo). Abre la notificación o elige Solve to stop para iniciar el desafío. Deslizar sin abrir no detiene segmentos posteriores.",
   "iosSilentModeWarning": "Silent Mode may prevent notification alarm sounds from playing on older iOS versions.",
   "iosFocusWarning": "Focus modes can affect notification delivery on older iOS versions.",
   "ios26Recommendation": "For the most reliable voice alarms, use iOS 26 or later.",
@@ -470,5 +470,56 @@
   "iosCapabilityLearnMore": "How alarms work on this iPhone",
   "alarmAudioNeedsRegeneration": "Es necesario regenerar el audio de la alarma de voz.",
   "iosAlarmLoudnessHint": "El volumen de la alarma también depende de Ajustes → Sonidos y háptica → Tono y alertas.",
-  "addSavedVoiceToSequence": "Añadir a la secuencia"
+  "addSavedVoiceToSequence": "Añadir a la secuencia",
+  "savedVoiceInUseTitle": "Voice in use",
+  "savedVoiceInUseBody": "{count, plural, =1{This voice is used by 1 alarm and cannot be deleted.} other{This voice is used by {count} alarms and cannot be deleted.}}",
+  "@savedVoiceInUseBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savedVoiceInUseBodyOne": "This voice is used by 1 alarm and cannot be deleted.",
+  "savedVoiceInUseBodyMany": "This voice is used by {count} alarms and cannot be deleted.",
+  "@savedVoiceInUseBodyMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savedVoiceInOpenDraftBody": "This voice is in the current unsaved alarm.",
+  "savedVoiceUsageTitle": "Alarms using this voice",
+  "savedVoiceUsageEmpty": "No alarms currently use this voice.",
+  "mixedAlarmNeedsVoiceAndRingtone": "Mixed alarms need at least one voice and a ringtone.",
+  "alarmNotificationLimitExceeded": "Too many notification segments. Lower repeat count or remove some voices.",
+  "savedVoiceViewAlarms": "View alarms",
+  "savedVoiceDeleteTitle": "Delete saved voice?",
+  "savedVoiceDeleteBody": "This removes the voice from your library. Alarms are not changed.",
+  "savedVoiceDeleted": "Saved voice deleted",
+  "savedVoiceCleanupTitle": "Clean up unused voices",
+  "savedVoiceCleanupSubtitle": "Remove library voices that are not used by any alarm.",
+  "savedVoiceCleanupEmpty": "No unused voices to clean up.",
+  "savedVoiceCleanupConfirm": "Delete {count} unused voices?",
+  "@savedVoiceCleanupConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savedVoiceCleanupBytes": "About {size} of recordings can be freed.",
+  "@savedVoiceCleanupBytes": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "savedVoiceSelectAll": "Select all",
+  "savedVoiceDeleteAction": "Delete",
+  "savedVoicePreviewAction": "Preview",
+  "iosNotificationPathHint": "Notification sound volume follows Ringtone and Alerts, which can be quieter than in-app preview even for the same file.",
+  "debugPlayRenderedCaf": "Play rendered CAF (debug)"
 }

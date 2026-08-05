@@ -45,6 +45,7 @@ void main() {
         isEnabled: true,
         type: AlarmType.voice,
         label: 'Test',
+        repeatCount: 1,
       );
       final segments = planner.plan(
         alarm: alarm,

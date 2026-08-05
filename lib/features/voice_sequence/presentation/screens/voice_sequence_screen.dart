@@ -10,6 +10,7 @@ import '../../../../core/services/io_dir_stub.dart'
     if (dart.library.io) '../../../../core/services/io_dir_io.dart'
     as io_dir;
 import '../../../../core/services/ios_alarm_scheduler.dart';
+import '../../../../core/services/saved_voice_usage_service.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../core/services/trial_entitlement_service.dart';
 import '../../../../router/routes.dart';
@@ -147,6 +148,11 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
         maxSeconds: 20,
       );
       if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+      debugPrint(
+        '[SVA-Audio] previewPath=${rendered.path} file=${rendered.fileName} '
+        'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+        'hash=${rendered.debugHash}',
+      );
       return rendered.path;
     }
     final path = segment.filePath;
@@ -161,6 +167,11 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
       maxSeconds: 20,
     );
     if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+    debugPrint(
+      '[SVA-Audio] previewPath=${rendered.path} file=${rendered.fileName} '
+      'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+      'hash=${rendered.debugHash} source=$path',
+    );
     return rendered.path;
   }
 
@@ -409,6 +420,11 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
         maxSeconds: 20,
       );
       if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+      debugPrint(
+        '[SVA-Audio] previewPath=${rendered.path} file=${rendered.fileName} '
+        'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+        'hash=${rendered.debugHash}',
+      );
       return rendered.path;
     }
     final path = segment.filePath;
@@ -423,6 +439,11 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
       maxSeconds: 20,
     );
     if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+    debugPrint(
+      '[SVA-Audio] previewPath=${rendered.path} file=${rendered.fileName} '
+      'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+      'hash=${rendered.debugHash} source=$path',
+    );
     return rendered.path;
   }
 
@@ -507,6 +528,198 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
     super.deactivate();
   }
 
+  Future<void> _deleteSavedVoice(VoiceSegmentUiModel voice) async {
+    final l10n = AppLocalizations.of(context);
+    final draftIds = ref.read(openDraftSequenceIdsProvider);
+    final sequence = ref.read(voiceSequenceProvider(_sequenceId));
+    final inOpenDraft = sequence.segments.any(
+      (s) => s.sourceSavedVoiceId == voice.id || s.id == voice.id,
+    );
+    final usage = SavedVoiceUsageService(draftSequenceIds: draftIds)
+        .usageForWithDraftPresence(
+          voice.id,
+          inOpenDraft: inOpenDraft && draftIds.contains(_sequenceId),
+          openDraftSequenceId: _sequenceId,
+        );
+
+    if (usage.activeAlarmIds.isNotEmpty) {
+      final body = usage.usageCount == 1
+          ? l10n.savedVoiceInUseBodyOne
+          : l10n.savedVoiceInUseBodyMany(usage.usageCount);
+      final view = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.savedVoiceInUseTitle),
+          content: Text(body),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.commonClose),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l10n.savedVoiceViewAlarms),
+            ),
+          ],
+        ),
+      );
+      if (view == true && mounted) {
+        // Push so Create Alarm / sequence draft stays on the stack.
+        await context.push(AppRoutes.savedVoiceUsagePath(voice.id));
+      }
+      return;
+    }
+
+    if (usage.isInOpenDraft) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.savedVoiceInUseTitle),
+          content: Text(l10n.savedVoiceInOpenDraftBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.commonClose),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.savedVoiceDeleteTitle),
+        content: Text(l10n.savedVoiceDeleteBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.savedVoiceDeleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final ok = await SavedVoiceUsageService(
+      draftSequenceIds: draftIds,
+    ).deleteUnused(voice);
+    await ref.read(savedVoicesProvider.notifier).refresh();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok ? l10n.savedVoiceDeleted : l10n.savedVoiceInUseTitle),
+      ),
+    );
+  }
+
+  Future<void> _openCleanupUnused() async {
+    final l10n = AppLocalizations.of(context);
+    final service = SavedVoiceUsageService();
+    final unused = service.unusedVoices();
+    if (unused.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.savedVoiceCleanupEmpty)));
+      return;
+    }
+    final selected = <String>{for (final v in unused) v.id};
+    final bytes = await service.estimateRecordingBytes(unused);
+    if (!mounted) return;
+    final sizeLabel = bytes >= 1024 * 1024
+        ? '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB'
+        : '${(bytes / 1024).ceil()} KB';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setLocal) {
+            return AlertDialog(
+              title: Text(l10n.savedVoiceCleanupTitle),
+              content: SizedBox(
+                width: 360,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.savedVoiceCleanupSubtitle),
+                    const SizedBox(height: 8),
+                    Text(l10n.savedVoiceCleanupBytes(sizeLabel)),
+                    TextButton(
+                      onPressed: () => setLocal(() {
+                        selected
+                          ..clear()
+                          ..addAll(unused.map((v) => v.id));
+                      }),
+                      child: Text(l10n.savedVoiceSelectAll),
+                    ),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 240),
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: [
+                          for (final voice in unused)
+                            CheckboxListTile(
+                              value: selected.contains(voice.id),
+                              onChanged: (on) => setLocal(() {
+                                if (on == true) {
+                                  selected.add(voice.id);
+                                } else {
+                                  selected.remove(voice.id);
+                                }
+                              }),
+                              title: Text(voice.name),
+                              dense: true,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(l10n.commonCancel),
+                ),
+                FilledButton(
+                  onPressed: selected.isEmpty
+                      ? null
+                      : () => Navigator.pop(context, true),
+                  child: Text(l10n.savedVoiceCleanupConfirm(selected.length)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (confirmed != true) return;
+    for (final voice in unused.where((v) => selected.contains(v.id))) {
+      await service.deleteUnused(voice);
+    }
+    await ref.read(savedVoicesProvider.notifier).refresh();
+  }
+
+  Future<void> _onSavedVoiceMenu(
+    VoiceSegmentUiModel voice,
+    String action,
+  ) async {
+    switch (action) {
+      case 'preview':
+        await _togglePreview(voice);
+      case 'add':
+        await _addSavedVoiceToSequence(voice);
+      case 'delete':
+        await _deleteSavedVoice(voice);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -542,7 +755,20 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
               },
             ),
             const SizedBox(height: AppConstants.spaceXl),
-            Text(l10n.savedVoicesTitle, style: context.textTheme.titleMedium),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.savedVoicesTitle,
+                    style: context.textTheme.titleMedium,
+                  ),
+                ),
+                TextButton(
+                  onPressed: _openCleanupUnused,
+                  child: Text(l10n.savedVoiceCleanupTitle),
+                ),
+              ],
+            ),
             const SizedBox(height: AppConstants.spaceSm),
             if (saved.isEmpty)
               Text(
@@ -590,7 +816,9 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
                           ),
                         ),
                         IconButton(
-                          tooltip: playing ? l10n.commonClose : l10n.ttsPreview,
+                          tooltip: playing
+                              ? l10n.commonClose
+                              : l10n.savedVoicePreviewAction,
                           onPressed: () => _togglePreview(voice),
                           icon: loading
                               ? const SizedBox(
@@ -616,6 +844,26 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
                               color: context.colors.primary,
                             ),
                           ),
+                        PopupMenuButton<String>(
+                          tooltip: l10n.homeMore,
+                          onSelected: (value) =>
+                              _onSavedVoiceMenu(voice, value),
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'preview',
+                              child: Text(l10n.savedVoicePreviewAction),
+                            ),
+                            if (_hasSequenceContext)
+                              PopupMenuItem(
+                                value: 'add',
+                                child: Text(l10n.addSavedVoiceToSequence),
+                              ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Text(l10n.savedVoiceDeleteAction),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),

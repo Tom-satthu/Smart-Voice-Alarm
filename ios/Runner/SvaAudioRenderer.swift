@@ -1,4 +1,5 @@
 import AVFoundation
+import CryptoKit
 import Foundation
 
 /// Renders recordings / TTS / ringtone assets into Library/Sounds as Linear PCM CAF.
@@ -12,8 +13,13 @@ enum SvaAudioRenderer {
 
   /// Peak target ≈ -1 dBFS with a small headroom.
   private static let targetPeakLinear: Float = 0.8912509
-  /// Cap boost for very quiet sources (~26 dB).
-  private static let maxNormalizeGain: Float = 20.0
+  /// Speech RMS target ≈ -14 dBFS (perceived loudness, not just peak).
+  private static let targetRmsLinear: Float = 0.20
+  /// Cap make-up gain (~18 dB). Avoid 20× distortion on quiet speech.
+  private static let maxNormalizeGain: Float = 8.0
+  private static let compressorThreshold: Float = 0.35
+  private static let compressorRatio: Float = 2.5
+  private static let windowMs: Float = 50
 
   static var soundsDirectory: URL {
     let library = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first
@@ -85,11 +91,23 @@ enum SvaAudioRenderer {
       }
       try FileManager.default.moveItem(at: temp, to: dest)
       let duration = try measureDuration(url: dest)
-      NSLog("[SVA-Audio] render ok file=%@ durationMs=%d", fileName, Int(duration * 1000))
+      let attrs = try? FileManager.default.attributesOfItem(atPath: dest.path)
+      let size = (attrs?[.size] as? NSNumber)?.intValue ?? 0
+      let hash = (try? debugFileHash(dest)) ?? "na"
+      NSLog(
+        "[SVA-Audio] render ok file=%@ path=%@ size=%d durationMs=%d hash=%@",
+        fileName,
+        dest.path,
+        size,
+        Int(duration * 1000),
+        hash
+      )
       return [
         "fileName": fileName,
         "path": dest.path,
         "durationMs": Int((duration * 1000).rounded()),
+        "byteSize": size,
+        "debugHash": hash,
       ]
     } catch {
       try? FileManager.default.removeItem(at: temp)
@@ -303,7 +321,8 @@ enum SvaAudioRenderer {
     }
   }
 
-  /// Peak-normalize toward -1 dBFS with soft limiting. Never mutates system volume.
+  /// Perceived-loudness pipeline: DC remove → RMS make-up → soft compress → limit.
+  /// Never mutates system volume. Idempotent when already loud enough.
   static func normalizeLoudness(at url: URL) throws {
     guard let outFormat = outputFormat() else {
       throw svaError(500, "Unable to create output format")
@@ -317,7 +336,6 @@ enum SvaAudioRenderer {
     try input.read(into: readBuffer)
     guard readBuffer.frameLength > 0 else { throw svaError(422, "Normalize read empty") }
 
-    // Convert to canonical Int16 mono if needed.
     let pcm: AVAudioPCMBuffer
     if formatsCompatible(readBuffer.format, outFormat) {
       pcm = readBuffer
@@ -351,32 +369,85 @@ enum SvaAudioRenderer {
       throw svaError(422, "Normalize missing Int16 channel data")
     }
     let frames = Int(pcm.frameLength)
-    var peak: Float = 0
-    var sumSquares: Float = 0
+    var floats = [Float](repeating: 0, count: frames)
+    var mean: Float = 0
     for i in 0..<frames {
-      let v = abs(Float(samples[i]) / 32768.0)
-      if v > peak { peak = v }
-      sumSquares += v * v
+      let v = Float(samples[i]) / 32768.0
+      floats[i] = v
+      mean += v
     }
-    let rms = frames > 0 ? sqrtf(sumSquares / Float(frames)) : 0
-    NSLog("[SVA-Audio] loudness before peak=%.4f rms=%.4f frames=%d", peak, rms, frames)
+    mean /= Float(max(frames, 1))
+    // Remove DC offset.
+    for i in 0..<frames {
+      floats[i] -= mean
+    }
 
-    if peak <= 0.0001 {
+    let before = measureLoudness(floats)
+    NSLog(
+      "[SVA-Audio] loudness peakBefore=%.4f rmsBefore=%.4f windowRms=%.4f nearClip=%d frames=%d",
+      before.peak,
+      before.rms,
+      before.windowRms,
+      before.nearClipCount,
+      frames
+    )
+
+    if before.peak <= 0.0001 && before.rms <= 0.0001 {
       throw svaError(422, "Audio is silent")
     }
 
-    // Already near full scale — leave alone.
-    if peak >= targetPeakLinear * 0.98 {
-      NSLog("[SVA-Audio] loudness skip (already hot) peak=%.4f", peak)
+    // Already loud enough — skip second pass (idempotent).
+    if before.rms >= targetRmsLinear * 0.92 && before.peak >= targetPeakLinear * 0.85 {
+      NSLog("[SVA-Audio] loudness skip (already processed) peak=%.4f rms=%.4f", before.peak, before.rms)
       return
     }
 
-    var gain = targetPeakLinear / peak
-    if gain > maxNormalizeGain { gain = maxNormalizeGain }
-    if gain < 1.01 {
-      NSLog("[SVA-Audio] loudness skip (gain tiny) gain=%.3f", gain)
-      return
+    // Make-up from RMS (speech body), not only absolute peak.
+    let rmsRef = max(before.windowRms, before.rms)
+    var gain: Float = 1.0
+    if rmsRef > 0.0001 {
+      gain = targetRmsLinear / rmsRef
     }
+    // Also respect peak headroom so compressor/limiter are not overloaded.
+    if before.peak > 0.0001 {
+      let peakCap = (targetPeakLinear * 1.15) / before.peak
+      if peakCap < gain { gain = peakCap }
+    }
+    if gain > maxNormalizeGain { gain = maxNormalizeGain }
+    if gain < 1.0 { gain = 1.0 }
+
+    var compressedSamples = 0
+    var limitedSamples = 0
+    for i in 0..<frames {
+      var x = floats[i] * gain
+      let ax = abs(x)
+      if ax > compressorThreshold {
+        let over = ax - compressorThreshold
+        let compressed = compressorThreshold + over / compressorRatio
+        x = (x >= 0 ? 1 : -1) * compressed
+        compressedSamples += 1
+      }
+      // Soft final limiter toward -1 dBFS (no hard clip).
+      let peakLimit = targetPeakLinear
+      if abs(x) > peakLimit * 0.92 {
+        let sign: Float = x >= 0 ? 1 : -1
+        let t = abs(x)
+        x = sign * (peakLimit * 0.92 + (peakLimit * 0.08) * tanhf((t - peakLimit * 0.92) * 10))
+        limitedSamples += 1
+      }
+      x = max(-0.999, min(0.999, x))
+      floats[i] = x
+    }
+
+    let after = measureLoudness(floats)
+    NSLog(
+      "[SVA-Audio] loudness peakAfter=%.4f rmsAfter=%.4f gain=%.2f compressedSamples=%d limitedSamples=%d",
+      after.peak,
+      after.rms,
+      gain,
+      compressedSamples,
+      limitedSamples
+    )
 
     guard let outBuffer = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: AVAudioFrameCount(frames))
     else { throw svaError(500, "Unable to allocate normalize output buffer") }
@@ -384,33 +455,9 @@ enum SvaAudioRenderer {
     guard let dst = outBuffer.int16ChannelData?[0] else {
       throw svaError(500, "Normalize output channel missing")
     }
-
-    var outPeak: Float = 0
-    var outSum: Float = 0
     for i in 0..<frames {
-      let x = Float(samples[i]) / 32768.0 * gain
-      // Soft limiter near ±1 to avoid harsh clipping.
-      let y: Float
-      if abs(x) < 0.9 {
-        y = x
-      } else {
-        let sign: Float = x >= 0 ? 1 : -1
-        let t = abs(x)
-        y = sign * (0.9 + 0.1 * tanhf((t - 0.9) * 8))
-      }
-      let clamped = max(-0.999, min(0.999, y))
-      dst[i] = Int16((clamped * 32767.0).rounded())
-      let av = abs(clamped)
-      if av > outPeak { outPeak = av }
-      outSum += av * av
+      dst[i] = Int16((floats[i] * 32767.0).rounded())
     }
-    let outRms = frames > 0 ? sqrtf(outSum / Float(frames)) : 0
-    NSLog(
-      "[SVA-Audio] loudness after gain=%.2f peak=%.4f rms=%.4f",
-      gain,
-      outPeak,
-      outRms
-    )
 
     guard bufferHasValidAudioBytes(outBuffer) else {
       throw svaError(422, "Normalized buffer invalid")
@@ -430,6 +477,46 @@ enum SvaAudioRenderer {
       try FileManager.default.removeItem(at: url)
     }
     try FileManager.default.moveItem(at: normalizedTemp, to: url)
+  }
+
+  private struct LoudnessStats {
+    var peak: Float
+    var rms: Float
+    var windowRms: Float
+    var nearClipCount: Int
+  }
+
+  private static func measureLoudness(_ samples: [Float]) -> LoudnessStats {
+    let frames = samples.count
+    guard frames > 0 else {
+      return LoudnessStats(peak: 0, rms: 0, windowRms: 0, nearClipCount: 0)
+    }
+    var peak: Float = 0
+    var sumSquares: Float = 0
+    var nearClip = 0
+    for v in samples {
+      let a = abs(v)
+      if a > peak { peak = a }
+      sumSquares += a * a
+      if a >= 0.98 { nearClip += 1 }
+    }
+    let rms = sqrtf(sumSquares / Float(frames))
+    let window = max(1, Int(44100.0 * windowMs / 1000.0))
+    var bestWindow: Float = 0
+    var i = 0
+    while i < frames {
+      let end = min(frames, i + window)
+      var wSum: Float = 0
+      let count = end - i
+      for j in i..<end {
+        let a = abs(samples[j])
+        wSum += a * a
+      }
+      let wRms = count > 0 ? sqrtf(wSum / Float(count)) : 0
+      if wRms > bestWindow { bestWindow = wRms }
+      i += window
+    }
+    return LoudnessStats(peak: peak, rms: rms, windowRms: bestWindow, nearClipCount: nearClip)
   }
 
   private static func formatsCompatible(_ a: AVAudioFormat, _ b: AVAudioFormat) -> Bool {
@@ -457,6 +544,13 @@ enum SvaAudioRenderer {
     let rate = file.processingFormat.sampleRate
     if rate <= 0 { return 0 }
     return Double(file.length) / rate
+  }
+
+  /// Debug-only fingerprint so preview vs schedule can prove same CAF bytes.
+  private static func debugFileHash(_ url: URL) throws -> String {
+    let data = try Data(contentsOf: url)
+    let digest = SHA256.hash(data: data)
+    return digest.prefix(8).map { String(format: "%02x", $0) }.joined()
   }
 }
 

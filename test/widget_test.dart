@@ -181,6 +181,12 @@ void main() {
     await _pumpApp(tester, emptyAlarms: true);
     expect(find.text('No alarms yet'), findsOneWidget);
     await _tapVisible(tester, find.text('Create Alarm').first);
+    expect(find.text('New Alarm'), findsOneWidget);
+    // Mixed requires a voice; use ringtone-only for the smoke save path.
+    final ringtoneChip = find.widgetWithText(FilterChip, 'Ringtone');
+    await tester.scrollUntilVisible(ringtoneChip, 300);
+    await tester.tap(ringtoneChip);
+    await _pumpFrames(tester);
     await _tapVisible(tester, find.text('Save Alarm'));
     expect(find.text('Alarms'), findsOneWidget);
     expect(find.text('Alarm'), findsWidgets);

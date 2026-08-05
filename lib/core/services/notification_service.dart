@@ -383,6 +383,10 @@ class NotificationService {
     return _iosFanout.scheduler.consumePendingChallenge();
   }
 
+  Future<IosPendingChallenge?> peekIosPendingChallenge() {
+    return _iosFanout.scheduler.peekPendingChallenge();
+  }
+
   tz.TZDateTime? nextOccurrence(AlarmUiModel alarm) => _nextOccurrence(alarm);
 
   void _ensureTimeZone() {

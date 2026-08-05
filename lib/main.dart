@@ -11,6 +11,7 @@ import 'core/navigation/challenge_session.dart';
 import 'core/navigation/root_navigator.dart';
 import 'core/services/ios_alarm_scheduler.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/saved_voice_usage_service.dart';
 import 'router/routes.dart';
 import 'shared/data/local_store.dart';
 import 'shared/providers/prototype_providers.dart';
@@ -64,13 +65,19 @@ Future<void> main() async {
   String? initialLocation;
   try {
     final iosPending = await notifications.consumeIosPendingChallenge();
+    debugPrint(
+      '[SVA-Challenge] pendingConsumed=${iosPending != null} '
+      'parentAlarmId=${iosPending?.parentAlarmId ?? ''} '
+      'occurrenceId=${iosPending?.occurrenceId ?? ''}',
+    );
     if (iosPending != null && iosPending.parentAlarmId.isNotEmpty) {
       initialLocation = AppRoutes.ringingPath(
         iosPending.parentAlarmId,
-        challenge: iosPending.openChallenge,
+        challenge: true,
         occurrenceId: iosPending.occurrenceId,
       );
       markChallengeOpen(iosPending.parentAlarmId, iosPending.occurrenceId);
+      debugPrint('[SVA-Challenge] initialRoute=$initialLocation');
     } else {
       final launchAlarmId = await notifications.consumeLaunchAlarmId();
       final launchChallenge = await notifications
@@ -79,6 +86,10 @@ Future<void> main() async {
         initialLocation = AppRoutes.ringingPath(
           launchAlarmId,
           challenge: launchChallenge,
+        );
+        debugPrint(
+          '[SVA-Challenge] initialRoute=$initialLocation '
+          '(launchAlarm challenge=$launchChallenge)',
         );
       }
     }
@@ -130,6 +141,14 @@ Future<void> _postUiStartup(
     } catch (error, stack) {
       debugPrint('[SVA-Startup] iOS light reconcile failed: $error\n$stack');
     }
+    try {
+      final linked = await SavedVoiceUsageService().migrateSourceLinks();
+      debugPrint('[SVA-Startup] saved-voice links migrated=$linked');
+      final orphans = await SavedVoiceUsageService().migrateOrphanSequences();
+      debugPrint('[SVA-Startup] orphan sequences noted=$orphans');
+    } catch (error, stack) {
+      debugPrint('[SVA-Startup] saved-voice migration failed: $error\n$stack');
+    }
   } else {
     // Non-iOS: full reschedule is safe (Android native AlarmManager path).
     try {
@@ -146,18 +165,27 @@ Future<void> _openIosChallenge(
   IosPendingChallenge challenge, {
   required bool consumePending,
 }) async {
-  if (!markChallengeOpen(challenge.parentAlarmId, challenge.occurrenceId)) {
-    return;
-  }
+  // Do not use markChallengeOpen as a gate for the first navigation.
+  markChallengeOpen(challenge.parentAlarmId, challenge.occurrenceId);
   if (consumePending) {
     await container
         .read(notificationServiceProvider)
         .consumeIosPendingChallenge();
+    debugPrint('[SVA-Challenge] pendingConsumed=true');
   }
+  final path = AppRoutes.ringingPath(
+    challenge.parentAlarmId,
+    challenge: true,
+    occurrenceId: challenge.occurrenceId,
+  );
+  debugPrint(
+    '[SVA-Challenge] parentAlarmId=${challenge.parentAlarmId} '
+    'occurrenceId=${challenge.occurrenceId} initialRoute=$path',
+  );
   await _openRinging(
     container,
     challenge.parentAlarmId,
-    challenge: challenge.openChallenge,
+    challenge: true,
     occurrenceId: challenge.occurrenceId,
     skipEngineEnqueue: true,
   );
@@ -181,20 +209,22 @@ Future<void> _openRinging(
     challenge: challenge,
     occurrenceId: occurrenceId,
   );
+  debugPrint(
+    '[SVA-Challenge] routerLocation target=$path challenge=$challenge',
+  );
   if (ctx != null && ctx.mounted) {
-    final current = GoRouter.of(ctx).state.uri.toString();
-    if (current.contains('/ringing/') &&
-        current.contains(alarmId) &&
-        challenge) {
-      GoRouter.of(ctx).go(path);
-      return;
-    }
     GoRouter.of(ctx).go(path);
+    debugPrint(
+      '[SVA-Challenge] routerLocation now=${GoRouter.of(ctx).state.uri}',
+    );
   } else {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final later = rootNavigatorKey.currentContext;
       if (later != null && later.mounted) {
         GoRouter.of(later).go(path);
+        debugPrint(
+          '[SVA-Challenge] routerLocation deferred=${GoRouter.of(later).state.uri}',
+        );
       }
     });
   }

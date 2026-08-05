@@ -79,11 +79,15 @@ class IosRenderedSound {
     required this.fileName,
     required this.path,
     required this.durationMs,
+    this.byteSize = 0,
+    this.debugHash = '',
   });
 
   final String fileName;
   final String path;
   final int durationMs;
+  final int byteSize;
+  final String debugHash;
 }
 
 class IosAlarmSegment {
@@ -194,6 +198,8 @@ class IosAlarmScheduler {
       fileName: raw['fileName']?.toString() ?? fileName,
       path: raw['path']?.toString() ?? '',
       durationMs: (raw['durationMs'] as num?)?.toInt() ?? 0,
+      byteSize: (raw['byteSize'] as num?)?.toInt() ?? 0,
+      debugHash: raw['debugHash']?.toString() ?? '',
     );
   }
 

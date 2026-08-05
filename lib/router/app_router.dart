@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/navigation/root_navigator.dart';
@@ -9,6 +10,7 @@ import '../features/settings/presentation/screens/about_screen.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
 import '../features/settings/presentation/screens/voice_speech_settings_screen.dart';
 import '../features/splash/presentation/screens/splash_screen.dart';
+import '../features/voice_sequence/presentation/screens/saved_voice_usage_screen.dart';
 import '../features/voice_sequence/presentation/screens/tts_record_screens.dart';
 import '../features/voice_sequence/presentation/screens/voice_sequence_screen.dart';
 import '../shared/providers/prototype_providers.dart';
@@ -100,6 +102,14 @@ GoRouter createAppRouter({String? initialLocation}) {
         },
       ),
       GoRoute(
+        path: AppRoutes.savedVoiceUsage,
+        name: 'savedVoiceUsage',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return SavedVoiceUsageScreen(savedVoiceId: id);
+        },
+      ),
+      GoRoute(
         path: AppRoutes.ringing,
         name: 'ringing',
         builder: (context, state) {
@@ -107,6 +117,9 @@ GoRouter createAppRouter({String? initialLocation}) {
           final challenge = state.uri.queryParameters['challenge'] == '1';
           final occurrenceId = state.uri.queryParameters['occurrenceId'];
           return AlarmRingingScreen(
+            key: ValueKey(
+              '$alarmId|${occurrenceId ?? ''}|${challenge ? 1 : 0}',
+            ),
             alarmId: alarmId,
             openDismissChallenge: challenge,
             occurrenceId: occurrenceId,

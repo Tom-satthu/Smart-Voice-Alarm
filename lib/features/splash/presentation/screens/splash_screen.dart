@@ -47,6 +47,27 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         .initializeSuccessfulLaunch();
     await minimumSplash;
     if (!mounted) return;
+    final location = GoRouter.of(context).state.uri.toString();
+    // Never overwrite an in-flight Math Challenge / ringing route.
+    if (location.contains('/alarm/ringing/')) {
+      debugPrint('[SVA-Challenge] splash skip home overwrite loc=$location');
+      return;
+    }
+    final pending = await ref
+        .read(notificationServiceProvider)
+        .peekIosPendingChallenge();
+    if (!mounted) return;
+    if (pending != null && pending.parentAlarmId.isNotEmpty) {
+      final path = AppRoutes.ringingPath(
+        pending.parentAlarmId,
+        challenge: true,
+        occurrenceId: pending.occurrenceId,
+      );
+      debugPrint('[SVA-Challenge] splash → pending challenge route=$path');
+      context.go(path);
+      return;
+    }
+    if (!mounted) return;
     context.go(AppRoutes.home);
   }
 

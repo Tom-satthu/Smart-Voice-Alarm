@@ -106,6 +106,7 @@ class VoiceSegmentUiModel {
     this.voiceId,
     this.localeId,
     this.createdAt,
+    this.sourceSavedVoiceId,
   });
 
   final String id;
@@ -118,6 +119,9 @@ class VoiceSegmentUiModel {
   final String? localeId;
   final DateTime? createdAt;
 
+  /// When set, this sequence segment references a library saved voice.
+  final String? sourceSavedVoiceId;
+
   VoiceSegmentUiModel copyWith({
     String? id,
     String? name,
@@ -128,6 +132,7 @@ class VoiceSegmentUiModel {
     String? voiceId,
     String? localeId,
     DateTime? createdAt,
+    String? sourceSavedVoiceId,
   }) {
     return VoiceSegmentUiModel(
       id: id ?? this.id,
@@ -139,6 +144,7 @@ class VoiceSegmentUiModel {
       voiceId: voiceId ?? this.voiceId,
       localeId: localeId ?? this.localeId,
       createdAt: createdAt ?? this.createdAt,
+      sourceSavedVoiceId: sourceSavedVoiceId ?? this.sourceSavedVoiceId,
     );
   }
 
@@ -152,6 +158,7 @@ class VoiceSegmentUiModel {
     'voiceId': voiceId,
     'localeId': localeId,
     if (createdAt != null) 'createdAtMs': createdAt!.millisecondsSinceEpoch,
+    if (sourceSavedVoiceId != null) 'sourceSavedVoiceId': sourceSavedVoiceId,
   };
 
   factory VoiceSegmentUiModel.fromJson(Map<String, dynamic> json) {
@@ -170,6 +177,7 @@ class VoiceSegmentUiModel {
       createdAt: createdRaw is int
           ? DateTime.fromMillisecondsSinceEpoch(createdRaw)
           : null,
+      sourceSavedVoiceId: json['sourceSavedVoiceId'] as String?,
     );
   }
 }

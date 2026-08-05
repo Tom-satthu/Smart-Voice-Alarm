@@ -5,6 +5,7 @@ import '../../shared/data/local_store.dart';
 import '../../shared/models/ui_models.dart';
 import 'ios_alarm_scheduler.dart';
 import 'ios_alarm_segment_planner.dart';
+import 'storage_paths.dart';
 
 /// Outcome of an iOS schedule attempt (structured for UI / logs).
 class IosScheduleResult {
@@ -147,6 +148,11 @@ class IosAlarmFanoutService {
               label: segment.name,
             ),
           );
+          debugPrint(
+            '[SVA-Audio] scheduleSound path=${rendered.path} '
+            'file=${rendered.fileName} size=${rendered.byteSize} '
+            'durationMs=${rendered.durationMs} hash=${rendered.debugHash}',
+          );
           voiceIndex += 1;
         } catch (e) {
           debugPrint('[SVA-Audio] voice render failed ${segment.id}: $e');
@@ -191,9 +197,6 @@ class IosAlarmFanoutService {
         );
       } catch (e) {
         debugPrint('[SVA-Audio] ringtone render failed: $e');
-        // Ringtone-only may fall back to system default. Mixed/voice must not
-        // become ringtone-only when voice was required — voice path already
-        // failed hard above. For ringtone/mixed ringtone part, keep default.
         if (alarm.type == AlarmType.ringtone) {
           ringtoneClips.add(
             preparedClip(
@@ -202,15 +205,20 @@ class IosAlarmFanoutService {
               label: 'fallback',
             ),
           );
-        } else if (voiceClips.isEmpty) {
-          return failRender(code: 'ringtone_render_failed', message: '$e');
         } else {
-          // Mixed with successful voice: keep voice clips; omit broken ringtone.
-          debugPrint(
-            '[SVA-Schedule] mixed alarm keeps voice; ringtone omitted after error',
-          );
+          // Mixed must not silently become voice-only.
+          return failRender(code: 'ringtone_render_failed', message: '$e');
         }
       }
+    }
+
+    if (alarm.type == AlarmType.mixed &&
+        voiceClips.isNotEmpty &&
+        ringtoneClips.isEmpty) {
+      return failRender(
+        code: 'mixed_missing_ringtone',
+        message: 'Mixed alarm requires a ringtone clip',
+      );
     }
 
     if (voiceClips.isEmpty && ringtoneClips.isEmpty) {
@@ -221,13 +229,42 @@ class IosAlarmFanoutService {
       );
     }
 
-    final planned = _planner.plan(
-      alarm: alarm,
-      occurrenceId: occurrenceId,
-      occurrenceStart: occurrence,
-      voiceClips: voiceClips,
-      ringtoneClips: ringtoneClips,
+    List<IosAlarmSegment> planned;
+    try {
+      planned = _planner.plan(
+        alarm: alarm,
+        occurrenceId: occurrenceId,
+        occurrenceStart: occurrence,
+        voiceClips: voiceClips,
+        ringtoneClips: ringtoneClips,
+      );
+    } on IosPlanValidationException catch (e) {
+      debugPrint('[SVA-Plan] validation failed ${e.code}: ${e.message}');
+      for (final name in renderedNames) {
+        try {
+          await _scheduler.deleteSoundFile(name);
+        } catch (_) {}
+      }
+      return IosScheduleResult(
+        ok: false,
+        errorCode: e.code,
+        errorMessage: e.message,
+        needsAudioRepair: true,
+      );
+    }
+
+    debugPrint(
+      '[SVA-Plan] type=${alarm.type.name} voiceCount=${voiceClips.length} '
+      'ringtoneCount=${ringtoneClips.length} repeatCount=${alarm.repeatCount} '
+      'planned=${planned.length}',
     );
+    for (final segment in planned) {
+      debugPrint(
+        '[SVA-Plan] child index=${segment.segmentIndex} '
+        'start=${segment.startAt.toIso8601String()} '
+        'file=${segment.soundFileName}',
+      );
+    }
 
     // Phase 2 — schedule new children (unique UUIDs), then cancel old.
     try {
@@ -268,6 +305,13 @@ class IosAlarmFanoutService {
     debugPrint(
       '[SVA-Schedule] success parent=${alarm.id} segments=${planned.length}',
     );
+    for (final segment in planned) {
+      if (segment.soundFileName.isEmpty) continue;
+      debugPrint(
+        '[SVA-Audio] scheduleSound parent=${alarm.id} '
+        'file=${segment.soundFileName} child=${segment.childId}',
+      );
+    }
     return const IosScheduleResult(ok: true);
   }
 
@@ -295,6 +339,11 @@ class IosAlarmFanoutService {
   }
 
   String _ringtoneAssetKey(String? name) {
+    // Prefer catalog mapping from display name → asset basename.
+    final path = RingtoneAssets.pathForName(name);
+    final file = path.split('/').last;
+    final base = file.replaceAll(RegExp(r'\.(wav|caf|mp3)$'), '');
+    if (base.isNotEmpty) return base;
     if (name == null || name.isEmpty) return 'soft_chime';
     final slug = name
         .trim()

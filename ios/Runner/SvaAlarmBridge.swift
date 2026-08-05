@@ -26,11 +26,29 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
   }
 
   static func sharedHandleWillPresent(_ notification: UNNotification) {
-    shared.openChallenge(from: notification.request.content.userInfo)
+    // Foreground delivery only presents the banner/sound.
+    // Math Challenge opens on body tap or "Solve to stop" — not automatically.
+    NSLog(
+      "[SVA-Schedule] willPresent child=%@",
+      notification.request.identifier
+    )
   }
 
   static func sharedHandleDidReceive(_ response: UNNotificationResponse) {
-    shared.openChallenge(from: response.notification.request.content.userInfo)
+    let action = response.actionIdentifier
+    NSLog("[SVA-Challenge] actionIdentifier=%@", action)
+    if action == UNNotificationDismissActionIdentifier {
+      NSLog("[SVA-Challenge] dismiss — no challenge open")
+      return
+    }
+    if action == UNNotificationDefaultActionIdentifier
+      || action == SvaAlarmKeys.actionSolve
+    {
+      NSLog("[SVA-Challenge] openChallenge via action=%@", action)
+      shared.openChallenge(from: response.notification.request.content.userInfo)
+      return
+    }
+    NSLog("[SVA-Challenge] ignored notification action=%@", action)
   }
 
   private func reply(_ result: @escaping FlutterResult, _ value: Any?) {
@@ -285,9 +303,17 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     for (k, v) in userInfo {
       if let key = k as? String { dict[key] = v }
     }
-    guard var challenge = SvaPendingChallenge.from(dictionary: dict) else { return }
+    guard var challenge = SvaPendingChallenge.from(dictionary: dict) else {
+      NSLog("[SVA-Challenge] pendingSaved=false parseFailed")
+      return
+    }
     challenge.openChallenge = true
     SvaPendingStore.save(challenge)
+    NSLog(
+      "[SVA-Challenge] pendingSaved=true parent=%@ occurrence=%@",
+      challenge.parentAlarmId,
+      challenge.occurrenceId
+    )
     DispatchQueue.main.async {
       self.channel?.invokeMethod("onOpenChallenge", arguments: challenge.asDictionary)
     }

@@ -43,6 +43,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   String? _voiceSequenceId;
   bool _hydrated = false;
   bool _enabled = true;
+  bool _committed = false;
+  bool _hadPersistedSequence = false;
 
   bool get _isEdit => widget.alarmId != null;
 
@@ -62,6 +64,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
         : ref.read(alarmListProvider.notifier).findById(widget.alarmId!);
     if (existing == null) {
       _voiceSequenceId = const Uuid().v4();
+      _hadPersistedSequence = false;
+      _registerDraftSequence(_voiceSequenceId!);
       return;
     }
 
@@ -73,6 +77,23 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     _label = existing.label;
     _voiceSequenceId = existing.voiceSequenceId ?? const Uuid().v4();
     _enabled = existing.isEnabled;
+    _hadPersistedSequence =
+        existing.voiceSequenceId != null &&
+        ref.read(sequenceRepositoryProvider).findById(_voiceSequenceId!) !=
+            null;
+    _registerDraftSequence(_voiceSequenceId!);
+  }
+
+  void _registerDraftSequence(String sequenceId) {
+    // Riverpod forbids provider writes during didChangeDependencies/build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(openDraftSequenceIdsProvider.notifier).update((ids) {
+        return {...ids, sequenceId};
+      });
+      // Touch provider so draft exists in memory without persisting.
+      ref.read(voiceSequenceProvider(sequenceId));
+    });
   }
 
   void _applyCopy(AlarmUiModel source) {
@@ -133,8 +154,41 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
     final sequenceId = _ensureSequenceId();
-    // Ensure sequence document exists before linking.
-    ref.read(voiceSequenceProvider(sequenceId));
+    final sequenceController = ref.read(
+      voiceSequenceProvider(sequenceId).notifier,
+    );
+    final seq = ref.read(voiceSequenceProvider(sequenceId));
+    final repeats = _repeatCount.clamp(1, 20);
+
+    // Validate before persist so Cancel/abandon never leaves orphans.
+    if (_type == AlarmType.mixed) {
+      if (seq.segments.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.mixedAlarmNeedsVoiceAndRingtone)),
+        );
+        return;
+      }
+      if (_ringtoneName.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.mixedAlarmNeedsVoiceAndRingtone)),
+        );
+        return;
+      }
+    }
+    if (_type != AlarmType.ringtone && seq.segments.isNotEmpty) {
+      final voiceCount = seq.segments.length.clamp(0, 5);
+      final toneCount = _type == AlarmType.voice ? 0 : 1;
+      final planned = voiceCount * repeats + toneCount;
+      if (planned > 64) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.alarmNotificationLimitExceeded)),
+        );
+        return;
+      }
+    }
+
+    // Persist draft sequence only when the alarm itself is saved.
+    await sequenceController.commit();
 
     final wantsEnabled = _isEdit ? _enabled : true;
     final notificationAllowed =
@@ -151,7 +205,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       label: _label.trim().isEmpty ? l10n.alarmDefaultLabel : _label.trim(),
       voiceSequenceId: sequenceId,
       ringtoneName: _ringtoneName,
-      repeatCount: _repeatCount,
+      repeatCount: repeats,
     );
 
     final controller = ref.read(alarmListProvider.notifier);
@@ -169,18 +223,35 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
         .read(notificationServiceProvider)
         .iosFanout
         .isSupported;
-    if (!scheduled &&
-        iosFanoutSupported &&
-        model.type != AlarmType.ringtone) {
+    if (!scheduled && iosFanoutSupported && model.type != AlarmType.ringtone) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.audioRenderingError)));
       return;
     }
+    _committed = true;
+    ref.read(openDraftSequenceIdsProvider.notifier).update((ids) {
+      final next = Set<String>.from(ids)..remove(sequenceId);
+      return next;
+    });
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.alarmSaved)));
     context.pop();
+  }
+
+  Future<void> _discardDraftIfNeeded() async {
+    if (_committed) return;
+    final sequenceId = _voiceSequenceId;
+    if (sequenceId == null) return;
+    await ref
+        .read(voiceSequenceProvider(sequenceId).notifier)
+        .discard(hadPersistedOriginal: _hadPersistedSequence);
+    ref.read(openDraftSequenceIdsProvider.notifier).update((ids) {
+      final next = Set<String>.from(ids)..remove(sequenceId);
+      return next;
+    });
+    ref.invalidate(voiceSequenceProvider(sequenceId));
   }
 
   Future<void> _pickTime() async {
@@ -319,247 +390,254 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     final sequence = ref.watch(voiceSequenceProvider(sequenceId));
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return AppScaffold(
-      showBack: true,
-      title: _isEdit ? l10n.editAlarmTitle : l10n.createAlarmTitle,
-      resizeToAvoidBottomInset: true,
-      body: ResponsiveCenter(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.only(
-                  top: AppConstants.spaceMd,
-                  bottom: 24 + bottomInset,
-                ),
-                children: [
-                  SectionHeader(title: l10n.alarmTime),
-                  SurfacePanel(
-                    onTap: _pickTime,
-                    emphasized: true,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.schedule_rounded,
-                          color: context.colors.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                TimeFormatters.formatTime(_time),
-                                style: context.textTheme.headlineMedium
-                                    ?.copyWith(letterSpacing: -1.0),
-                              ),
-                              Text(
-                                l10n.alarmSelectTime,
-                                style: context.textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (!didPop) return;
+        await _discardDraftIfNeeded();
+      },
+      child: AppScaffold(
+        showBack: true,
+        title: _isEdit ? l10n.editAlarmTitle : l10n.createAlarmTitle,
+        resizeToAvoidBottomInset: true,
+        body: ResponsiveCenter(
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.only(
+                    top: AppConstants.spaceMd,
+                    bottom: 24 + bottomInset,
                   ),
-                  const SizedBox(height: AppConstants.spaceXl),
-                  SectionHeader(title: l10n.alarmRepeat),
-                  SurfacePanel(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 10,
-                    ),
-                    child: Row(
-                      children: [
-                        for (final day in Weekday.values)
+                  children: [
+                    SectionHeader(title: l10n.alarmTime),
+                    SurfacePanel(
+                      onTap: _pickTime,
+                      emphasized: true,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.schedule_rounded,
+                            color: context.colors.primary,
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 2,
-                              ),
-                              child: _DayToggle(
-                                label: switch (day) {
-                                  Weekday.monday => l10n.dayMon,
-                                  Weekday.tuesday => l10n.dayTue,
-                                  Weekday.wednesday => l10n.dayWed,
-                                  Weekday.thursday => l10n.dayThu,
-                                  Weekday.friday => l10n.dayFri,
-                                  Weekday.saturday => l10n.daySat,
-                                  Weekday.sunday => l10n.daySun,
-                                },
-                                selected: _repeatDays.contains(day),
-                                onTap: () {
-                                  setState(() {
-                                    if (_repeatDays.contains(day)) {
-                                      _repeatDays.remove(day);
-                                    } else {
-                                      _repeatDays.add(day);
-                                    }
-                                  });
-                                },
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  TimeFormatters.formatTime(_time),
+                                  style: context.textTheme.headlineMedium
+                                      ?.copyWith(letterSpacing: -1.0),
+                                ),
+                                Text(
+                                  l10n.alarmSelectTime,
+                                  style: context.textTheme.bodySmall,
+                                ),
+                              ],
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.spaceXl),
-                  SectionHeader(title: l10n.alarmVoiceSequence),
-                  SurfacePanel(
-                    onTap: () =>
-                        context.push(AppRoutes.voiceSequencePath(sequenceId)),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.queue_music_rounded,
-                          color: context.colors.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                sequence.name,
-                                style: context.textTheme.titleSmall,
-                              ),
-                              Text(
-                                '${l10n.segmentsLabel(sequence.segments.length)} · ${l10n.alarmSelectSequence}',
-                                style: context.textTheme.bodySmall,
-                              ),
-                            ],
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: context.colors.onSurfaceVariant,
                           ),
-                        ),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppConstants.spaceXl),
-                  SectionHeader(title: l10n.alarmRepeatCount),
-                  SurfacePanel(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.timesLabel(_repeatCount),
-                            style: context.textTheme.titleMedium,
-                          ),
-                        ),
-                        IconButton.filledTonal(
-                          onPressed: _repeatCount > 1
-                              ? () => setState(() => _repeatCount--)
-                              : null,
-                          icon: const Icon(Icons.remove_rounded),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            '$_repeatCount',
-                            style: context.textTheme.headlineSmall,
-                          ),
-                        ),
-                        IconButton.filledTonal(
-                          onPressed: _repeatCount < 10
-                              ? () => setState(() => _repeatCount++)
-                              : null,
-                          icon: const Icon(Icons.add_rounded),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.spaceXl),
-                  SectionHeader(title: l10n.alarmRingtone),
-                  SurfacePanel(
-                    onTap: _pickRingtone,
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.notifications_active_outlined,
-                          color: context.colors.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                localizedRingtone(l10n, _ringtoneName),
-                                style: context.textTheme.titleSmall,
-                              ),
-                              Text(
-                                l10n.alarmSelectRingtone,
-                                style: context.textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.spaceXl),
-                  SectionHeader(title: l10n.alarmTypeLabel),
-                  SurfacePanel(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: AlarmType.values.map((type) {
-                        return AppChip(
-                          label: alarmTypeLabel(l10n, type),
-                          selected: _type == type,
-                          onTap: () => setState(() => _type = type),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  if (alarms.isNotEmpty) ...[
                     const SizedBox(height: AppConstants.spaceXl),
-                    SectionHeader(title: l10n.alarmCopyFrom),
+                    SectionHeader(title: l10n.alarmRepeat),
                     SurfacePanel(
-                      child: Column(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 10,
+                      ),
+                      child: Row(
                         children: [
-                          for (final alarm in alarms.take(5))
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(
-                                TimeFormatters.formatTime(alarm.time),
+                          for (final day in Weekday.values)
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                ),
+                                child: _DayToggle(
+                                  label: switch (day) {
+                                    Weekday.monday => l10n.dayMon,
+                                    Weekday.tuesday => l10n.dayTue,
+                                    Weekday.wednesday => l10n.dayWed,
+                                    Weekday.thursday => l10n.dayThu,
+                                    Weekday.friday => l10n.dayFri,
+                                    Weekday.saturday => l10n.daySat,
+                                    Weekday.sunday => l10n.daySun,
+                                  },
+                                  selected: _repeatDays.contains(day),
+                                  onTap: () {
+                                    setState(() {
+                                      if (_repeatDays.contains(day)) {
+                                        _repeatDays.remove(day);
+                                      } else {
+                                        _repeatDays.add(day);
+                                      }
+                                    });
+                                  },
+                                ),
                               ),
-                              subtitle: Text(
-                                '${alarm.label} · ${formatRepeatDays(l10n, alarm.repeatDays)}',
-                              ),
-                              onTap: () => _applyCopy(alarm),
                             ),
                         ],
                       ),
                     ),
-                  ],
-                  if (!kIsWeb &&
-                      defaultTargetPlatform == TargetPlatform.iOS) ...[
                     const SizedBox(height: AppConstants.spaceXl),
-                    const _IosCapabilityCard(),
+                    SectionHeader(title: l10n.alarmVoiceSequence),
+                    SurfacePanel(
+                      onTap: () =>
+                          context.push(AppRoutes.voiceSequencePath(sequenceId)),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.queue_music_rounded,
+                            color: context.colors.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  sequence.name,
+                                  style: context.textTheme.titleSmall,
+                                ),
+                                Text(
+                                  '${l10n.segmentsLabel(sequence.segments.length)} · ${l10n.alarmSelectSequence}',
+                                  style: context.textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.spaceXl),
+                    SectionHeader(title: l10n.alarmRepeatCount),
+                    SurfacePanel(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.timesLabel(_repeatCount),
+                              style: context.textTheme.titleMedium,
+                            ),
+                          ),
+                          IconButton.filledTonal(
+                            onPressed: _repeatCount > 1
+                                ? () => setState(() => _repeatCount--)
+                                : null,
+                            icon: const Icon(Icons.remove_rounded),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              '$_repeatCount',
+                              style: context.textTheme.headlineSmall,
+                            ),
+                          ),
+                          IconButton.filledTonal(
+                            onPressed: _repeatCount < 10
+                                ? () => setState(() => _repeatCount++)
+                                : null,
+                            icon: const Icon(Icons.add_rounded),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.spaceXl),
+                    SectionHeader(title: l10n.alarmRingtone),
+                    SurfacePanel(
+                      onTap: _pickRingtone,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.notifications_active_outlined,
+                            color: context.colors.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  localizedRingtone(l10n, _ringtoneName),
+                                  style: context.textTheme.titleSmall,
+                                ),
+                                Text(
+                                  l10n.alarmSelectRingtone,
+                                  style: context.textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.spaceXl),
+                    SectionHeader(title: l10n.alarmTypeLabel),
+                    SurfacePanel(
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: AlarmType.values.map((type) {
+                          return AppChip(
+                            label: alarmTypeLabel(l10n, type),
+                            selected: _type == type,
+                            onTap: () => setState(() => _type = type),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    if (alarms.isNotEmpty) ...[
+                      const SizedBox(height: AppConstants.spaceXl),
+                      SectionHeader(title: l10n.alarmCopyFrom),
+                      SurfacePanel(
+                        child: Column(
+                          children: [
+                            for (final alarm in alarms.take(5))
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(
+                                  TimeFormatters.formatTime(alarm.time),
+                                ),
+                                subtitle: Text(
+                                  '${alarm.label} · ${formatRepeatDays(l10n, alarm.repeatDays)}',
+                                ),
+                                onTap: () => _applyCopy(alarm),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (!kIsWeb &&
+                        defaultTargetPlatform == TargetPlatform.iOS) ...[
+                      const SizedBox(height: AppConstants.spaceXl),
+                      const _IosCapabilityCard(),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-            StickyBottomBar(
-              child: PrimaryActionButton(
-                label: l10n.alarmSave,
-                icon: Icons.check_rounded,
-                onPressed: _save,
+              StickyBottomBar(
+                child: PrimaryActionButton(
+                  label: l10n.alarmSave,
+                  icon: Icons.check_rounded,
+                  onPressed: _save,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -684,6 +762,17 @@ class _IosCapabilityCardState extends ConsumerState<_IosCapabilityCard> {
                   const SizedBox(height: 6),
                   Text(
                     l10n.iosAlarmLoudnessHint,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      height: 1.35,
+                      fontSize: 11.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.iosNotificationPathHint,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: context.textTheme.bodySmall?.copyWith(
