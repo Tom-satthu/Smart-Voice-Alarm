@@ -55,8 +55,7 @@ GoRouter createAppRouter({String? initialLocation}) {
         path: AppRoutes.addVoice,
         name: 'addVoice',
         builder: (context, state) {
-          final sequenceId =
-              state.uri.queryParameters['id'] ?? defaultSequenceId;
+          final sequenceId = state.uri.queryParameters['id'];
           return AddVoiceScreen(sequenceId: sequenceId);
         },
       ),

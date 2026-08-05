@@ -1166,4 +1166,11 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get alarmAudioNeedsRegeneration =>
       'Âm thanh báo thức giọng nói cần được tạo lại.';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      'Độ lớn báo thức cũng phụ thuộc vào Cài đặt → Âm thanh & Cảm ứng → Nhạc chuông và Cảnh báo.';
+
+  @override
+  String get addSavedVoiceToSequence => 'Thêm vào chuỗi';
 }

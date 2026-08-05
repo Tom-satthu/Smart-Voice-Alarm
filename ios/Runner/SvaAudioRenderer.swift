@@ -6,9 +6,14 @@ import Foundation
 /// Hard rules:
 /// - No force unwrap / fatalError / try! in production paths.
 /// - Never write a PCM buffer whose AudioBufferList has mData == nil or mDataByteSize == 0.
-/// - TTS synthesizer is owned by a serial operation until end/error/timeout.
+/// - TTS synthesizer is owned by a retained serial operation until end/error/timeout.
 enum SvaAudioRenderer {
   private static let queue = DispatchQueue(label: "com.smartvoicealarm.audio.render")
+
+  /// Peak target ≈ -1 dBFS with a small headroom.
+  private static let targetPeakLinear: Float = 0.8912509
+  /// Cap boost for very quiet sources (~26 dB).
+  private static let maxNormalizeGain: Float = 20.0
 
   static var soundsDirectory: URL {
     let library = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first
@@ -73,6 +78,7 @@ enum SvaAudioRenderer {
         throw svaError(400, "No audio source provided")
       }
 
+      try normalizeLoudness(at: temp)
       try validateRenderedFile(temp)
       if FileManager.default.fileExists(atPath: dest.path) {
         try FileManager.default.removeItem(at: dest)
@@ -174,15 +180,26 @@ enum SvaAudioRenderer {
     else { return nil }
     copy.frameLength = frames
     let channels = Int(buffer.format.channelCount)
-    if let src = buffer.floatChannelData, let dst = copy.floatChannelData {
+    if buffer.format.commonFormat == .pcmFormatFloat32,
+       let src = buffer.floatChannelData,
+       let dst = copy.floatChannelData {
       for c in 0..<channels {
         memcpy(dst[c], src[c], Int(frames) * MemoryLayout<Float>.size)
       }
       return copy
     }
-    if let src = buffer.int16ChannelData, let dst = copy.int16ChannelData {
-      for c in 0..<channels {
-        memcpy(dst[c], src[c], Int(frames) * MemoryLayout<Int16>.size)
+    if buffer.format.commonFormat == .pcmFormatInt16,
+       let src = buffer.int16ChannelData,
+       let dst = copy.int16ChannelData {
+      let bytesPerFrame = buffer.format.isInterleaved
+        ? MemoryLayout<Int16>.size * channels
+        : MemoryLayout<Int16>.size
+      if buffer.format.isInterleaved {
+        memcpy(dst[0], src[0], Int(frames) * bytesPerFrame)
+      } else {
+        for c in 0..<channels {
+          memcpy(dst[c], src[c], Int(frames) * MemoryLayout<Int16>.size)
+        }
       }
       return copy
     }
@@ -286,6 +303,135 @@ enum SvaAudioRenderer {
     }
   }
 
+  /// Peak-normalize toward -1 dBFS with soft limiting. Never mutates system volume.
+  static func normalizeLoudness(at url: URL) throws {
+    guard let outFormat = outputFormat() else {
+      throw svaError(500, "Unable to create output format")
+    }
+    let input = try AVAudioFile(forReading: url)
+    let length = AVAudioFrameCount(input.length)
+    guard length > 0 else { throw svaError(422, "Normalize source empty") }
+
+    guard let readBuffer = AVAudioPCMBuffer(pcmFormat: input.processingFormat, frameCapacity: length)
+    else { throw svaError(500, "Unable to allocate normalize read buffer") }
+    try input.read(into: readBuffer)
+    guard readBuffer.frameLength > 0 else { throw svaError(422, "Normalize read empty") }
+
+    // Convert to canonical Int16 mono if needed.
+    let pcm: AVAudioPCMBuffer
+    if formatsCompatible(readBuffer.format, outFormat) {
+      pcm = readBuffer
+    } else {
+      guard let converter = AVAudioConverter(from: readBuffer.format, to: outFormat) else {
+        throw svaError(501, "Normalize converter unavailable")
+      }
+      let ratio = outFormat.sampleRate / max(readBuffer.format.sampleRate, 1)
+      let capacity = AVAudioFrameCount(Double(readBuffer.frameLength) * ratio) + 32
+      guard let converted = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: capacity)
+      else { throw svaError(500, "Unable to allocate normalize convert buffer") }
+      var gotInput = false
+      var convertError: NSError?
+      let status = converter.convert(to: converted, error: &convertError) { _, outStatus in
+        if gotInput {
+          outStatus.pointee = .noDataNow
+          return nil
+        }
+        gotInput = true
+        outStatus.pointee = .haveData
+        return readBuffer
+      }
+      if let convertError { throw convertError }
+      if status == .error || converted.frameLength == 0 {
+        throw svaError(422, "Normalize convert produced no audio")
+      }
+      pcm = converted
+    }
+
+    guard let samples = pcm.int16ChannelData?[0] else {
+      throw svaError(422, "Normalize missing Int16 channel data")
+    }
+    let frames = Int(pcm.frameLength)
+    var peak: Float = 0
+    var sumSquares: Float = 0
+    for i in 0..<frames {
+      let v = abs(Float(samples[i]) / 32768.0)
+      if v > peak { peak = v }
+      sumSquares += v * v
+    }
+    let rms = frames > 0 ? sqrtf(sumSquares / Float(frames)) : 0
+    NSLog("[SVA-Audio] loudness before peak=%.4f rms=%.4f frames=%d", peak, rms, frames)
+
+    if peak <= 0.0001 {
+      throw svaError(422, "Audio is silent")
+    }
+
+    // Already near full scale — leave alone.
+    if peak >= targetPeakLinear * 0.98 {
+      NSLog("[SVA-Audio] loudness skip (already hot) peak=%.4f", peak)
+      return
+    }
+
+    var gain = targetPeakLinear / peak
+    if gain > maxNormalizeGain { gain = maxNormalizeGain }
+    if gain < 1.01 {
+      NSLog("[SVA-Audio] loudness skip (gain tiny) gain=%.3f", gain)
+      return
+    }
+
+    guard let outBuffer = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: AVAudioFrameCount(frames))
+    else { throw svaError(500, "Unable to allocate normalize output buffer") }
+    outBuffer.frameLength = AVAudioFrameCount(frames)
+    guard let dst = outBuffer.int16ChannelData?[0] else {
+      throw svaError(500, "Normalize output channel missing")
+    }
+
+    var outPeak: Float = 0
+    var outSum: Float = 0
+    for i in 0..<frames {
+      let x = Float(samples[i]) / 32768.0 * gain
+      // Soft limiter near ±1 to avoid harsh clipping.
+      let y: Float
+      if abs(x) < 0.9 {
+        y = x
+      } else {
+        let sign: Float = x >= 0 ? 1 : -1
+        let t = abs(x)
+        y = sign * (0.9 + 0.1 * tanhf((t - 0.9) * 8))
+      }
+      let clamped = max(-0.999, min(0.999, y))
+      dst[i] = Int16((clamped * 32767.0).rounded())
+      let av = abs(clamped)
+      if av > outPeak { outPeak = av }
+      outSum += av * av
+    }
+    let outRms = frames > 0 ? sqrtf(outSum / Float(frames)) : 0
+    NSLog(
+      "[SVA-Audio] loudness after gain=%.2f peak=%.4f rms=%.4f",
+      gain,
+      outPeak,
+      outRms
+    )
+
+    guard bufferHasValidAudioBytes(outBuffer) else {
+      throw svaError(422, "Normalized buffer invalid")
+    }
+
+    let normalizedTemp = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_norm_\(UUID().uuidString).caf")
+    let outputFile = try AVAudioFile(
+      forWriting: normalizedTemp,
+      settings: outFormat.settings,
+      commonFormat: outFormat.commonFormat,
+      interleaved: outFormat.isInterleaved
+    )
+    try outputFile.write(from: outBuffer)
+    try validateRenderedFile(normalizedTemp)
+    if FileManager.default.fileExists(atPath: url.path) {
+      try FileManager.default.removeItem(at: url)
+    }
+    try FileManager.default.moveItem(at: normalizedTemp, to: url)
+  }
+
   private static func formatsCompatible(_ a: AVAudioFormat, _ b: AVAudioFormat) -> Bool {
     a.commonFormat == b.commonFormat
       && abs(a.sampleRate - b.sampleRate) < 0.5
@@ -317,12 +463,13 @@ enum SvaAudioRenderer {
 // MARK: - Serial TTS operation
 
 /// Owns a single AVSpeechSynthesizer for the duration of one write session.
-/// Continuations resume exactly once. Operations are serialized.
+/// Continuations resume exactly once. Operations are serialized and strongly retained.
 final class SvaTtsRenderService {
   static let shared = SvaTtsRenderService()
 
   private let queue = DispatchQueue(label: "com.smartvoicealarm.tts")
-  private var busy = false
+  /// Strong retention for the in-flight operation (must not be a local-only variable).
+  private var currentOperation: SvaTtsOperation?
   private var waiters: [() -> Void] = []
 
   func render(
@@ -333,7 +480,7 @@ final class SvaTtsRenderService {
   ) async throws {
     try await withCheckedThrowingContinuation { (outer: CheckedContinuation<Void, Error>) in
       queue.async {
-        let run = { [weak self] in
+        let startNext: () -> Void = { [weak self] in
           guard let self else {
             outer.resume(throwing: NSError(
               domain: "SvaAudioRenderer",
@@ -342,16 +489,26 @@ final class SvaTtsRenderService {
             ))
             return
           }
-          self.busy = true
           let op = SvaTtsOperation(
             text: text,
             locale: locale,
             dest: dest,
             maxSeconds: maxSeconds
           )
-          op.run { result in
+          self.currentOperation = op
+          op.run { [weak self] result in
+            // Completion is never invoked while holding the operation lock.
+            guard let self else {
+              switch result {
+              case .success:
+                outer.resume()
+              case .failure(let error):
+                outer.resume(throwing: error)
+              }
+              return
+            }
             self.queue.async {
-              self.busy = false
+              self.currentOperation = nil
               switch result {
               case .success:
                 outer.resume()
@@ -365,10 +522,11 @@ final class SvaTtsRenderService {
             }
           }
         }
-        if self.busy {
-          self.waiters.append(run)
+
+        if self.currentOperation != nil {
+          self.waiters.append(startNext)
         } else {
-          run()
+          startNext()
         }
       }
     }
@@ -381,11 +539,11 @@ private final class SvaTtsOperation {
   private let dest: URL
   private let maxSeconds: Double
   private let synthesizer = AVSpeechSynthesizer()
+  private let workQueue = DispatchQueue(label: "com.smartvoicealarm.tts.op")
   private var finished = false
   private var timeoutWork: DispatchWorkItem?
-  private let lock = NSLock()
   private var outputFile: AVAudioFile?
-    private var converter: AVAudioConverter?
+  private var converter: AVAudioConverter?
   private var lastInputFormatDescription: String = ""
   private var outFormat: AVAudioFormat?
   private var writtenFrames: AVAudioFrameCount = 0
@@ -405,7 +563,7 @@ private final class SvaTtsOperation {
     }
 
     guard let format = SvaAudioRenderer.outputFormat() else {
-      finish(.failure(NSError(
+      finishOnce(.failure(NSError(
         domain: "SvaAudioRenderer",
         code: 500,
         userInfo: [NSLocalizedDescriptionKey: "TTS output format unavailable"]
@@ -422,17 +580,15 @@ private final class SvaTtsOperation {
         interleaved: format.isInterleaved
       )
     } catch {
-      finish(.failure(error))
+      finishOnce(.failure(error))
       return
     }
 
     let utterance = AVSpeechUtterance(string: text)
-    if let locale, !locale.isEmpty {
-      let normalized = locale.replacingOccurrences(of: "_", with: "-")
-      utterance.voice = AVSpeechSynthesisVoice(language: normalized)
-        ?? AVSpeechSynthesisVoice(language: String(normalized.prefix(2)))
-    }
+    utterance.voice = resolveVoice(locale: locale)
     utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+    // Slightly higher volume in the utterance domain (0...1). Does not change system volume.
+    utterance.volume = 1.0
 
     let timeout = DispatchWorkItem { [weak self] in
       self?.handleTimeout()
@@ -440,15 +596,43 @@ private final class SvaTtsOperation {
     timeoutWork = timeout
     DispatchQueue.global().asyncAfter(deadline: .now() + 30, execute: timeout)
 
-    // Retain self via synthesizer callback chain until finish().
+    // Strongly capture self so the operation (and synthesizer) survive until EOS/error/timeout.
     synthesizer.write(utterance) { [weak self] buffer in
-      self?.handleBuffer(buffer)
+      guard let self else { return }
+      self.workQueue.async {
+        self.handleBuffer(buffer)
+      }
     }
   }
 
+  private func resolveVoice(locale: String?) -> AVSpeechSynthesisVoice? {
+    guard let locale, !locale.isEmpty else {
+      let fallback = AVSpeechSynthesisVoice(language: AVSpeechSynthesisVoice.currentLanguageCode())
+        ?? AVSpeechSynthesisVoice.speechVoices().first
+      NSLog("[SVA-Audio] TTS voice device default=%@", fallback?.language ?? "nil")
+      return fallback
+    }
+    let normalized = locale.replacingOccurrences(of: "_", with: "-")
+    if let exact = AVSpeechSynthesisVoice(language: normalized) {
+      NSLog("[SVA-Audio] TTS voice exact locale=%@", normalized)
+      return exact
+    }
+    let lang = String(normalized.prefix(2))
+    if lang.count == 2, let byLang = AVSpeechSynthesisVoice(language: lang) {
+      NSLog("[SVA-Audio] TTS voice language fallback %@ → %@", normalized, lang)
+      return byLang
+    }
+    let device = AVSpeechSynthesisVoice(language: AVSpeechSynthesisVoice.currentLanguageCode())
+      ?? AVSpeechSynthesisVoice.speechVoices().first
+    NSLog(
+      "[SVA-Audio] TTS voice locale missing %@ — using device default %@",
+      normalized,
+      device?.language ?? "nil"
+    )
+    return device
+  }
+
   private func handleBuffer(_ buffer: AVAudioBuffer?) {
-    lock.lock()
-    defer { lock.unlock() }
     guard !finished else { return }
 
     guard let pcm = buffer as? AVAudioPCMBuffer else { return }
@@ -466,7 +650,6 @@ private final class SvaTtsOperation {
       return
     }
 
-    // Ensure converter matches THIS buffer's format (do not assume first buffer).
     let formatKey =
       "\(pcm.format.commonFormat.rawValue)|\(pcm.format.sampleRate)|\(pcm.format.channelCount)|\(pcm.format.isInterleaved)"
     if converter == nil || formatKey != lastInputFormatDescription {
@@ -480,7 +663,14 @@ private final class SvaTtsOperation {
         pcm.format.isInterleaved ? 1 : 0
       )
     }
-    guard let converter else { return }
+    guard let converter else {
+      finishOnce(.failure(NSError(
+        domain: "SvaAudioRenderer",
+        code: 501,
+        userInfo: [NSLocalizedDescriptionKey: "TTS converter unavailable for buffer format"]
+      )))
+      return
+    }
 
     let ratio = outFormat.sampleRate / max(pcm.format.sampleRate, 1)
     let outCapacity = AVAudioFrameCount(Double(pcm.frameLength) * ratio) + 32
@@ -498,72 +688,112 @@ private final class SvaTtsOperation {
       outStatus.pointee = .haveData
       return pcm
     }
-    if convertError != nil || status == .error { return }
-    if outputBuffer.frameLength == 0 { return }
+    if let convertError {
+      finishOnce(.failure(convertError))
+      return
+    }
+    if status == .error {
+      finishOnce(.failure(NSError(
+        domain: "SvaAudioRenderer",
+        code: 502,
+        userInfo: [NSLocalizedDescriptionKey: "TTS convert status error"]
+      )))
+      return
+    }
+    if outputBuffer.frameLength == 0 {
+      // No data this callback — wait for more or EOS.
+      return
+    }
 
     let remaining = maxFrames - writtenFrames
-    // Never mutate converter output frameLength in place — copy a sliced buffer.
-    let channels = Int(outFormat.channelCount)
     let frames = min(remaining, outputBuffer.frameLength)
     guard frames > 0 else { return }
     guard let sliced = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: frames)
     else { return }
     sliced.frameLength = frames
-    if let src = outputBuffer.int16ChannelData, let dst = sliced.int16ChannelData {
-      for c in 0..<channels {
-        memcpy(dst[c], src[c], Int(frames) * MemoryLayout<Int16>.size)
-      }
-    } else {
+    guard let src = outputBuffer.int16ChannelData, let dst = sliced.int16ChannelData else {
+      finishOnce(.failure(NSError(
+        domain: "SvaAudioRenderer",
+        code: 422,
+        userInfo: [NSLocalizedDescriptionKey: "TTS Int16 channel data missing"]
+      )))
       return
     }
+    memcpy(dst[0], src[0], Int(frames) * MemoryLayout<Int16>.size)
 
     let abl = UnsafeMutableAudioBufferListPointer(sliced.mutableAudioBufferList)
     for audioBuffer in abl {
-      if audioBuffer.mData == nil || audioBuffer.mDataByteSize == 0 { return }
+      if audioBuffer.mData == nil || audioBuffer.mDataByteSize == 0 {
+        finishOnce(.failure(NSError(
+          domain: "SvaAudioRenderer",
+          code: 422,
+          userInfo: [NSLocalizedDescriptionKey: "TTS buffer has empty AudioBuffer"]
+        )))
+        return
+      }
     }
 
     do {
       try outputFile.write(from: sliced)
       writtenFrames += frames
+      if writtenFrames >= maxFrames {
+        synthesizer.stopSpeaking(at: .immediate)
+        finalizeStream()
+      }
     } catch {
-      finish(.failure(error))
+      finishOnce(.failure(error))
     }
   }
 
   private func finalizeStream() {
     guard !finished else { return }
+    // Release file handle before caller validates/normalizes.
+    outputFile = nil
+    converter = nil
     if writtenFrames == 0 {
-      finish(.failure(NSError(
+      try? FileManager.default.removeItem(at: dest)
+      finishOnce(.failure(NSError(
         domain: "SvaAudioRenderer",
         code: 423,
         userInfo: [NSLocalizedDescriptionKey: "TTS produced no audio"]
       )))
       return
     }
-    finish(.success(()))
+    finishOnce(.success(()))
   }
 
   private func handleTimeout() {
-    lock.lock()
-    defer { lock.unlock() }
-    guard !finished else { return }
-    synthesizer.stopSpeaking(at: .immediate)
-    try? FileManager.default.removeItem(at: dest)
-    finish(.failure(NSError(
-      domain: "SvaAudioRenderer",
-      code: 408,
-      userInfo: [NSLocalizedDescriptionKey: "TTS render timed out"]
-    )))
+    workQueue.async { [weak self] in
+      guard let self else { return }
+      guard !self.finished else { return }
+      self.synthesizer.stopSpeaking(at: .immediate)
+      try? FileManager.default.removeItem(at: self.dest)
+      self.finishOnce(.failure(NSError(
+        domain: "SvaAudioRenderer",
+        code: 408,
+        userInfo: [NSLocalizedDescriptionKey: "TTS render timed out"]
+      )))
+    }
   }
 
-  private func finish(_ result: Result<Void, Error>) {
-    guard !finished else { return }
-    finished = true
+  private func finishOnce(_ result: Result<Void, Error>) {
+    // Serialize all terminal transitions on workQueue. Completion is never
+    // invoked while holding an NSLock.
+    workQueue.async { [weak self] in
+      guard let self else { return }
+      guard !self.finished else { return }
+      self.finished = true
+      self.timeoutWork?.cancel()
+      self.timeoutWork = nil
+      self.outputFile = nil
+      self.converter = nil
+      let cb = self.completion
+      self.completion = nil
+      cb?(result)
+    }
+  }
+
+  deinit {
     timeoutWork?.cancel()
-    timeoutWork = nil
-    outputFile = nil
-    converter = nil
-    completion?(result)
-    completion = nil
   }
 }

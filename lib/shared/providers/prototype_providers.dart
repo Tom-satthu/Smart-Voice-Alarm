@@ -256,16 +256,19 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
     }
   }
 
-  Future<void> add(AlarmUiModel alarm) async {
+  /// Returns whether native/iOS scheduling succeeded.
+  Future<bool> add(AlarmUiModel alarm) async {
     final scheduled = await _notifications.scheduleAlarm(alarm);
     final saved = alarm.copyWith(
       audioNeedsRegeneration: !scheduled && alarm.type != AlarmType.ringtone,
     );
     state = [...state, saved]..sort(_byTime);
     await _repo.upsert(saved);
+    return scheduled;
   }
 
-  Future<void> update(AlarmUiModel alarm) async {
+  /// Returns whether native/iOS scheduling succeeded.
+  Future<bool> update(AlarmUiModel alarm) async {
     final scheduled = await _notifications.scheduleAlarm(alarm);
     final saved = alarm.copyWith(
       audioNeedsRegeneration: !scheduled && alarm.type != AlarmType.ringtone,
@@ -275,6 +278,7 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
         if (item.id == saved.id) saved else item,
     ]..sort(_byTime);
     await _repo.upsert(saved);
+    return scheduled;
   }
 
   /// Returns the duplicated alarm id for navigation into edit.
@@ -381,6 +385,24 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
     state = state.copyWith(segments: [...state.segments, segment]);
     await persist();
     await _savedVoices.upsert(segment);
+  }
+
+  /// Adds a saved voice into the current sequence draft without creating a new
+  /// saved-voice persistence row or copying recording files.
+  Future<void> addExistingSavedVoice(VoiceSegmentUiModel saved) async {
+    final entry = VoiceSegmentUiModel(
+      id: _uuid.v4(),
+      name: saved.name,
+      type: saved.type,
+      duration: saved.duration,
+      text: saved.text,
+      filePath: saved.filePath,
+      voiceId: saved.voiceId,
+      localeId: saved.localeId,
+      createdAt: saved.createdAt,
+    );
+    state = state.copyWith(segments: [...state.segments, entry]);
+    await persist();
   }
 
   Future<void> updateAt(int index, VoiceSegmentUiModel segment) async {

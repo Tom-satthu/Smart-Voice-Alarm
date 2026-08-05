@@ -1128,6 +1128,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get alarmAudioNeedsRegeneration => '需要重新生成语音闹钟音频。';
+
+  @override
+  String get iosAlarmLoudnessHint => '闹钟音量还取决于“设置 → 声音与触感 → 铃声和提醒”。';
+
+  @override
+  String get addSavedVoiceToSequence => '添加到序列';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2254,4 +2260,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get alarmAudioNeedsRegeneration => '需要重新產生語音鬧鐘音訊。';
+
+  @override
+  String get iosAlarmLoudnessHint => '鬧鐘音量也取決於「設定 → 聲音與觸覺 → 鈴聲與警示」。';
+
+  @override
+  String get addSavedVoiceToSequence => '加入序列';
 }

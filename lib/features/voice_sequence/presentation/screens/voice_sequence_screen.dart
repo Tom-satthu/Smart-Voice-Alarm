@@ -9,6 +9,7 @@ import '../../../../core/responsive/responsive.dart';
 import '../../../../core/services/io_dir_stub.dart'
     if (dart.library.io) '../../../../core/services/io_dir_io.dart'
     as io_dir;
+import '../../../../core/services/ios_alarm_scheduler.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../core/services/trial_entitlement_service.dart';
 import '../../../../router/routes.dart';
@@ -73,7 +74,20 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
     });
 
     try {
-      if (segment.type == VoiceSegmentType.recording) {
+      final iosScheduler = ref
+          .read(notificationServiceProvider)
+          .iosFanout
+          .scheduler;
+      if (!kIsWeb && iosScheduler.isSupported) {
+        final path = await _renderNormalizedPreview(
+          iosScheduler,
+          segment,
+          l10n,
+        );
+        if (!mounted) return;
+        setState(() => _loadingPreview = false);
+        await ref.read(audioPlayerServiceProvider).playFile(path);
+      } else if (segment.type == VoiceSegmentType.recording) {
         final path = segment.filePath;
         if (kIsWeb || path == null || path.isEmpty) {
           throw StateError(l10n.recordingFileMissing);
@@ -114,6 +128,40 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
         });
       }
     }
+  }
+
+  Future<String> _renderNormalizedPreview(
+    IosAlarmScheduler scheduler,
+    VoiceSegmentUiModel segment,
+    AppLocalizations l10n,
+  ) async {
+    final fileName =
+        'sva_preview_${segment.id.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.caf';
+    if (segment.type == VoiceSegmentType.tts) {
+      final text = segment.text?.trim() ?? '';
+      if (text.isEmpty) throw StateError(l10n.voiceUnavailable);
+      final rendered = await scheduler.renderSound(
+        fileName: fileName,
+        ttsText: text,
+        ttsLocale: segment.localeId,
+        maxSeconds: 20,
+      );
+      if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+      return rendered.path;
+    }
+    final path = segment.filePath;
+    if (path == null || path.isEmpty) {
+      throw StateError(l10n.recordingFileMissing);
+    }
+    final exists = await io_dir.fileExists(path);
+    if (!exists) throw StateError(l10n.recordingFileMissing);
+    final rendered = await scheduler.renderSound(
+      fileName: fileName,
+      sourcePath: path,
+      maxSeconds: 20,
+    );
+    if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+    return rendered.path;
   }
 
   Future<void> _confirmDelete(int index) async {
@@ -307,6 +355,9 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
 
   String get _sequenceId => widget.sequenceId ?? defaultSequenceId;
 
+  bool get _hasSequenceContext =>
+      widget.sequenceId != null && widget.sequenceId!.trim().isNotEmpty;
+
   Future<void> _stopPreview() async {
     await ref.read(audioPlayerServiceProvider).stop();
     await ref.read(ttsServiceProvider).stop();
@@ -316,6 +367,63 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
         _previewLoading = false;
       });
     }
+  }
+
+  Future<void> _addSavedVoiceToSequence(VoiceSegmentUiModel voice) async {
+    if (!_hasSequenceContext) return;
+    final sequenceId = widget.sequenceId!;
+    final beforeCount = ref
+        .read(voiceSequenceProvider(sequenceId))
+        .segments
+        .length;
+    await ref
+        .read(voiceSequenceProvider(sequenceId).notifier)
+        .addExistingSavedVoice(voice);
+    final after = ref.read(voiceSequenceProvider(sequenceId));
+    if (!mounted) return;
+    if (after.segments.length != beforeCount + 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).audioRenderingError),
+        ),
+      );
+      return;
+    }
+    context.pop();
+  }
+
+  Future<String> _renderNormalizedPreview(
+    IosAlarmScheduler scheduler,
+    VoiceSegmentUiModel segment,
+    AppLocalizations l10n,
+  ) async {
+    final fileName =
+        'sva_preview_${segment.id.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.caf';
+    if (segment.type == VoiceSegmentType.tts) {
+      final text = segment.text?.trim() ?? '';
+      if (text.isEmpty) throw StateError(l10n.voiceUnavailable);
+      final rendered = await scheduler.renderSound(
+        fileName: fileName,
+        ttsText: text,
+        ttsLocale: segment.localeId,
+        maxSeconds: 20,
+      );
+      if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+      return rendered.path;
+    }
+    final path = segment.filePath;
+    if (path == null || path.isEmpty) {
+      throw StateError(l10n.recordingFileMissing);
+    }
+    final exists = await io_dir.fileExists(path);
+    if (!exists) throw StateError(l10n.recordingFileMissing);
+    final rendered = await scheduler.renderSound(
+      fileName: fileName,
+      sourcePath: path,
+      maxSeconds: 20,
+    );
+    if (rendered.path.isEmpty) throw StateError(l10n.audioRenderingError);
+    return rendered.path;
   }
 
   Future<void> _togglePreview(VoiceSegmentUiModel voice) async {
@@ -331,7 +439,16 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
       _previewLoading = true;
     });
     try {
-      if (voice.type == VoiceSegmentType.recording) {
+      final iosScheduler = ref
+          .read(notificationServiceProvider)
+          .iosFanout
+          .scheduler;
+      if (!kIsWeb && iosScheduler.isSupported) {
+        final path = await _renderNormalizedPreview(iosScheduler, voice, l10n);
+        if (!mounted) return;
+        setState(() => _previewLoading = false);
+        await ref.read(audioPlayerServiceProvider).playFile(path);
+      } else if (voice.type == VoiceSegmentType.recording) {
         final path = voice.filePath;
         if (kIsWeb || path == null || path.isEmpty) {
           throw StateError(l10n.recordingFileMissing);
@@ -490,6 +607,15 @@ class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
                                   color: context.colors.primary,
                                 ),
                         ),
+                        if (_hasSequenceContext)
+                          IconButton(
+                            tooltip: l10n.addSavedVoiceToSequence,
+                            onPressed: () => _addSavedVoiceToSequence(voice),
+                            icon: Icon(
+                              Icons.add_circle_outline_rounded,
+                              color: context.colors.primary,
+                            ),
+                          ),
                       ],
                     ),
                   ),

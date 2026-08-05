@@ -1166,4 +1166,11 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get alarmAudioNeedsRegeneration =>
       'Audio alarm suara perlu dibuat ulang.';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      'Kenyaringan alarm juga bergantung pada Pengaturan → Suara & Haptik → Nada Dering dan Peringatan.';
+
+  @override
+  String get addSavedVoiceToSequence => 'Tambahkan ke urutan';
 }

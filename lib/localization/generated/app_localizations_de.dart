@@ -1179,4 +1179,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get alarmAudioNeedsRegeneration =>
       'Die Sprachalarm-Audiodatei muss neu erzeugt werden.';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      'Die Lautstärke des Alarms hängt auch von Einstellungen → Töne & Haptik → Klingelton und Warnungen ab.';
+
+  @override
+  String get addSavedVoiceToSequence => 'Zur Sequenz hinzufügen';
 }

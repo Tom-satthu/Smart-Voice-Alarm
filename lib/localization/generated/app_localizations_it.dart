@@ -1175,4 +1175,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get alarmAudioNeedsRegeneration =>
       'L\'audio della sveglia vocale deve essere rigenerato.';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      'Il volume della sveglia dipende anche da Impostazioni → Suoni e feedback aptico → Suoneria e avvisi.';
+
+  @override
+  String get addSavedVoiceToSequence => 'Aggiungi alla sequenza';
 }

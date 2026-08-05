@@ -19,7 +19,6 @@ Native conversion could hit an unsafe `AVAudioFile.write` / format-mismatch path
 - Call `runApp` before iOS alarm reconciliation.
 - Startup reconciliation does **not** render TTS, recording, or ringtone audio.
 - Reuse valid rendered files; mark missing/corrupt audio for repair instead of regenerating at launch.
-- Fallback local notifications may use the system default sound only (no renderer).
 - Serial TTS render operation retains a strong `AVSpeechSynthesizer` for the operation lifetime.
 - TTS callbacks are serialized; single-resume completion; **30s** timeout.
 - Output processing format: Linear PCM **Int16**, mono, **44100 Hz**, consistent interleaving.
@@ -27,20 +26,50 @@ Native conversion could hit an unsafe `AVAudioFile.write` / format-mismatch path
 - Two-phase schedule: render + validate + schedule new children, then cancel old revision.
 - Method channel results complete on the main thread; audio work off main.
 
-## 4. Physical iPhone results (overlay install, data kept)
+## 4. TTS operation retention (follow-up)
+
+- `SvaTtsRenderService` keeps the in-flight work in `currentOperation`.
+- The operation is released only after success, error, or timeout.
+- Timeout and buffer-path terminals go through `finishOnce` (completion runs once).
+- Locale missing a specific voice falls back to language code, then device default.
+
+## 5. Loudness normalization
+
+- Peak target ≈ **-1 dBFS**
+- Max gain **20×** for very quiet sources
+- Soft limiter near full scale
+- Does **not** change iOS system / ringtone volume
+- Preview on iOS plays the same normalized rendered CAF when possible
+
+## 6. Schedule / startup safety (follow-up)
+
+- `cleanupOrphanSounds` was **removed** from `scheduleAlarm` (no cross-alarm file deletion).
+- Failed renders delete only the new revision files and keep the old schedule.
+- Required voice-segment render failures are hard failures (no silent partial success).
+- `reconcileWithoutRender` is a **no-op** (no schedule / cancel / render on launch).
+
+## 7. Add Voice: saved voice reuse
+
+- Each saved voice row can show a **+** when an active sequence draft (`?id=`) is present.
+- Tapping + appends that voice into the current sequence without a new saved-voice persistence row or file copy, then returns to the Voice Sequence screen.
+
+## 8. Physical iPhone results (overlay install, data kept)
 
 - Overlay install: passed
 - App icon launch: **10/10** passed
 - Force-close and relaunch: **5/5** passed
 - 30-second post-launch observation: passed (no late crash)
+- Automated tests: **90/90**
 
-## 5. Still pending (manual)
+## 9. Still pending (manual on device)
 
-- Save short TTS and preview
-- Save short recording and preview
-- Create/fire a real single-voice alarm end-to-end
+- TTS-only alarm save / fire
+- Recording + TTS combined alarm
+- Notification loudness vs in-app preview
+- Saved-voice **+** button end-to-end
+- Confirm two alarms do not delete each other’s rendered files
 
-## 6. AlarmKit status
+## 10. AlarmKit status
 
 AlarmKit is **not** active yet:
 
@@ -48,6 +77,6 @@ AlarmKit is **not** active yet:
 - `supportsFullVoiceAlarm = false`
 - Scheduling uses local-notification fan-out (`SvaNotificationFanout`)
 
-## 7. Android
+## 11. Android
 
 No Android behavior changes. `git diff -- android/` is empty for this fix.

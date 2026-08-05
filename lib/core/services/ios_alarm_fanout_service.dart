@@ -57,44 +57,14 @@ class IosAlarmFanoutService {
     );
   }
 
-  /// Launch-safe path: never renders audio. Leaves existing system schedules
-  /// intact and may add a default-sound placeholder for the next fire.
+  /// Launch-safe path: never renders audio, never schedules, never cancels.
+  /// Existing pending notifications are left untouched.
   Future<void> reconcileWithoutRender(List<AlarmUiModel> alarms) async {
     if (!isSupported) return;
-    debugPrint('[SVA-Startup] reconcileWithoutRender alarms=${alarms.length}');
-    for (final alarm in alarms) {
-      if (!alarm.isEnabled) continue;
-      final next = _nextOccurrence(alarm);
-      if (next == null) continue;
-      try {
-        // Placeholder only — empty soundFileName → system default. New child
-        // UUID so we never collide with / cancel existing revision children.
-        final occurrenceId = IosAlarmSegmentPlanner.occurrenceIdFor(
-          alarm,
-          next,
-        );
-        final placeholder = IosAlarmSegment(
-          parentAlarmId: alarm.id,
-          occurrenceId: occurrenceId,
-          segmentIndex: 900,
-          childId: 'sva_fallback_${alarm.id}_${_uuid.v4().substring(0, 8)}',
-          startAt: next,
-          soundFileName: '',
-          duration: const Duration(seconds: 8),
-          label: 'fallback',
-        );
-        await _scheduler.scheduleSegments(
-          segments: [placeholder],
-          title: alarm.label.isEmpty ? 'Smart Voice Alarm' : alarm.label,
-          body: 'Solve to stop',
-        );
-        debugPrint(
-          '[SVA-Schedule] fallback placeholder scheduled for ${alarm.id}',
-        );
-      } catch (e) {
-        debugPrint('[SVA-Schedule] fallback failed for ${alarm.id}: $e');
-      }
-    }
+    debugPrint(
+      '[SVA-Startup] reconcileWithoutRender no-op '
+      '(alarms=${alarms.length}; no schedule/cancel/render)',
+    );
   }
 
   Future<IosScheduleResult> scheduleAlarm(
@@ -122,13 +92,36 @@ class IosAlarmFanoutService {
     final voiceClips = <PreparedAlarmClip>[];
     final ringtoneClips = <PreparedAlarmClip>[];
     final renderedNames = <String>[];
-    var renderFailed = false;
+
+    Future<IosScheduleResult> failRender({
+      required String code,
+      required String message,
+    }) async {
+      debugPrint('[SVA-Schedule] render abort code=$code msg=$message');
+      for (final name in renderedNames) {
+        try {
+          await _scheduler.deleteSoundFile(name);
+        } catch (_) {}
+      }
+      return IosScheduleResult(
+        ok: false,
+        errorCode: code,
+        errorMessage: message,
+        needsAudioRepair: true,
+      );
+    }
 
     if (alarm.type != AlarmType.ringtone) {
       final sequence = alarm.voiceSequenceId == null
           ? null
           : _sequences.findById(alarm.voiceSequenceId!);
       final segments = sequence?.segments ?? const <VoiceSegmentUiModel>[];
+      if (segments.isEmpty && alarm.type == AlarmType.voice) {
+        return failRender(
+          code: 'voice_empty',
+          message: 'Voice alarm has no segments to render',
+        );
+      }
       var voiceIndex = 0;
       for (final segment in segments) {
         if (voiceIndex >= 5) break;
@@ -140,6 +133,12 @@ class IosAlarmFanoutService {
             revision: revision,
           );
           final rendered = await _renderVoiceSegment(segment, fileName);
+          if (rendered.durationMs <= 0 || rendered.path.isEmpty) {
+            return failRender(
+              code: 'render_invalid',
+              message: 'Rendered voice segment invalid: ${segment.id}',
+            );
+          }
           renderedNames.add(rendered.fileName);
           voiceClips.add(
             preparedClip(
@@ -151,8 +150,17 @@ class IosAlarmFanoutService {
           voiceIndex += 1;
         } catch (e) {
           debugPrint('[SVA-Audio] voice render failed ${segment.id}: $e');
-          renderFailed = true;
+          // Never silently drop a failed required voice segment.
+          return failRender(code: 'voice_render_failed', message: '$e');
         }
+      }
+      if (alarm.type != AlarmType.ringtone &&
+          segments.isNotEmpty &&
+          voiceClips.isEmpty) {
+        return failRender(
+          code: 'voice_render_empty',
+          message: 'No voice clips rendered',
+        );
       }
     }
 
@@ -183,23 +191,33 @@ class IosAlarmFanoutService {
         );
       } catch (e) {
         debugPrint('[SVA-Audio] ringtone render failed: $e');
-        ringtoneClips.add(
-          preparedClip(
-            fileName: '',
-            duration: const Duration(seconds: 8),
-            label: 'fallback',
-          ),
-        );
+        // Ringtone-only may fall back to system default. Mixed/voice must not
+        // become ringtone-only when voice was required — voice path already
+        // failed hard above. For ringtone/mixed ringtone part, keep default.
+        if (alarm.type == AlarmType.ringtone) {
+          ringtoneClips.add(
+            preparedClip(
+              fileName: '',
+              duration: const Duration(seconds: 8),
+              label: 'fallback',
+            ),
+          );
+        } else if (voiceClips.isEmpty) {
+          return failRender(code: 'ringtone_render_failed', message: '$e');
+        } else {
+          // Mixed with successful voice: keep voice clips; omit broken ringtone.
+          debugPrint(
+            '[SVA-Schedule] mixed alarm keeps voice; ringtone omitted after error',
+          );
+        }
       }
     }
 
     if (voiceClips.isEmpty && ringtoneClips.isEmpty) {
       debugPrint('[SVA-Schedule] no clips — keeping old schedule');
-      return IosScheduleResult(
-        ok: false,
-        errorCode: 'render_empty',
-        errorMessage: 'Unable to render alarm audio',
-        needsAudioRepair: true,
+      return failRender(
+        code: 'render_empty',
+        message: 'Unable to render alarm audio',
       );
     }
 
@@ -220,8 +238,6 @@ class IosAlarmFanoutService {
       );
     } catch (e) {
       debugPrint('[SVA-Schedule] new schedule failed, keeping old: $e');
-      // Leave old notifications + old files. Best-effort delete only the
-      // newly rendered revision files that were never scheduled.
       for (final name in renderedNames) {
         try {
           await _scheduler.deleteSoundFile(name);
@@ -231,14 +247,11 @@ class IosAlarmFanoutService {
         ok: false,
         errorCode: 'schedule_failed',
         errorMessage: '$e',
-        needsAudioRepair: renderFailed,
+        needsAudioRepair: true,
       );
     }
 
     // Phase 3 — only now remove previous children for this parent.
-    // New child IDs are already registered in the native child map; cancelParent
-    // removes by map prefix then we re-save the new map entries by scheduling
-    // again is wrong. Instead cancel only IDs not in the new plan.
     try {
       await _scheduler.cancelParentExcept(
         parentAlarmId: alarm.id,
@@ -248,20 +261,14 @@ class IosAlarmFanoutService {
       debugPrint('[SVA-Schedule] selective cancel failed: $e');
     }
 
-    // Cleanup orphaned CAF files not referenced by the new revision.
-    try {
-      await _scheduler.cleanupOrphanSounds(renderedNames.toSet());
-    } catch (e) {
-      debugPrint('[SVA-Audio] orphan cleanup skipped: $e');
-    }
+    // Do NOT cleanupOrphanSounds with only this alarm's new files — that would
+    // delete other alarms' rendered CAF files. Only delete superseded files for
+    // this parent once we have a full active manifest (not in this path).
 
     debugPrint(
       '[SVA-Schedule] success parent=${alarm.id} segments=${planned.length}',
     );
-    return IosScheduleResult(
-      ok: true,
-      needsAudioRepair: renderFailed && voiceClips.isEmpty,
-    );
+    return const IosScheduleResult(ok: true);
   }
 
   Future<IosRenderedSound> _renderVoiceSegment(
@@ -296,37 +303,6 @@ class IosAlarmFanoutService {
         .replaceAll(RegExp(r'^_|_$'), '');
     if (slug.isEmpty) return 'soft_chime';
     return slug;
-  }
-
-  DateTime? _nextOccurrence(AlarmUiModel alarm) {
-    final now = DateTime.now();
-    for (var offset = 0; offset < 8; offset++) {
-      final day = DateTime(
-        now.year,
-        now.month,
-        now.day,
-      ).add(Duration(days: offset));
-      final candidate = DateTime(
-        day.year,
-        day.month,
-        day.day,
-        alarm.time.hour,
-        alarm.time.minute,
-      );
-      if (!candidate.isAfter(now)) continue;
-      if (alarm.repeatDays.isEmpty) return candidate;
-      final weekday = switch (candidate.weekday) {
-        DateTime.monday => Weekday.monday,
-        DateTime.tuesday => Weekday.tuesday,
-        DateTime.wednesday => Weekday.wednesday,
-        DateTime.thursday => Weekday.thursday,
-        DateTime.friday => Weekday.friday,
-        DateTime.saturday => Weekday.saturday,
-        _ => Weekday.sunday,
-      };
-      if (alarm.repeatDays.contains(weekday)) return candidate;
-    }
-    return null;
   }
 
   DateTime? nextAfter(AlarmUiModel alarm, DateTime from) {

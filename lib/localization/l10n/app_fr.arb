@@ -468,5 +468,7 @@
   "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
   "savedVoiceAdded": "Voix ajoutée à la séquence",
   "iosCapabilityLearnMore": "How alarms work on this iPhone",
-  "alarmAudioNeedsRegeneration": "L'audio de l'alarme vocale doit être régénéré."
+  "alarmAudioNeedsRegeneration": "L'audio de l'alarme vocale doit être régénéré.",
+  "iosAlarmLoudnessHint": "Le volume de l’alarme dépend aussi de Réglages → Sons et vibrations → Sonnerie et alertes.",
+  "addSavedVoiceToSequence": "Ajouter à la séquence"
 }

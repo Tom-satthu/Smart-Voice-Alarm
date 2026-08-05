@@ -155,17 +155,27 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     );
 
     final controller = ref.read(alarmListProvider.notifier);
-    if (_isEdit) {
-      await controller.update(model);
-    } else {
-      await controller.add(model);
-    }
+    final scheduled = _isEdit
+        ? await controller.update(model)
+        : await controller.add(model);
 
     if (!mounted) return;
     if (!notificationAllowed) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.permissionStatusDenied)));
+    }
+    final iosFanoutSupported = ref
+        .read(notificationServiceProvider)
+        .iosFanout
+        .isSupported;
+    if (!scheduled &&
+        iosFanoutSupported &&
+        model.type != AlarmType.ringtone) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.audioRenderingError)));
+      return;
     }
     ScaffoldMessenger.of(
       context,
@@ -663,6 +673,17 @@ class _IosCapabilityCardState extends ConsumerState<_IosCapabilityCard> {
                   const SizedBox(height: 2),
                   Text(
                     l10n.iosLimitedSupportBody,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      height: 1.35,
+                      fontSize: 11.5,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.iosAlarmLoudnessHint,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: context.textTheme.bodySmall?.copyWith(

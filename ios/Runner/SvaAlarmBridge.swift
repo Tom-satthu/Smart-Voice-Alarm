@@ -181,9 +181,15 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       let name = (call.arguments as? [String: Any])?["fileName"] as? String ?? ""
       SvaAudioRenderer.deleteSoundFile(name)
       reply(result, true)
+    case "pendingRequestCount":
+      UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+        let count = requests.count
+        NSLog("[SVA-Schedule] pendingRequestCount=%d", count)
+        self.reply(result, count)
+      }
     default:
       reply(result, FlutterMethodNotImplemented)
-  }
+    }
   }
 
   private func capability() -> [String: Any] {

@@ -1174,4 +1174,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get alarmAudioNeedsRegeneration =>
       'O áudio do alarme de voz precisa ser regenerado.';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      'O volume do alarme também depende de Ajustes → Sons e toques → Toque e alertas.';
+
+  @override
+  String get addSavedVoiceToSequence => 'Adicionar à sequência';
 }

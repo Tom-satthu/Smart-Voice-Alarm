@@ -2176,6 +2176,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Voice alarm audio needs to be regenerated.'**
   String get alarmAudioNeedsRegeneration;
+
+  /// No description provided for @iosAlarmLoudnessHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm loudness also depends on Settings → Sounds & Haptics → Ringtone and Alerts.'**
+  String get iosAlarmLoudnessHint;
+
+  /// No description provided for @addSavedVoiceToSequence.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to sequence'**
+  String get addSavedVoiceToSequence;
 }
 
 class _AppLocalizationsDelegate

@@ -1135,4 +1135,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get alarmAudioNeedsRegeneration => '音声アラームのオーディオを再生成する必要があります。';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      'アラームの音量は、「設定 → サウンドと触覚 → 着信音とアラート」にも依存します。';
+
+  @override
+  String get addSavedVoiceToSequence => 'シーケンスに追加';
 }

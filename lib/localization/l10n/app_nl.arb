@@ -468,5 +468,7 @@
   "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
   "savedVoiceAdded": "Stem toegevoegd aan reeks",
   "iosCapabilityLearnMore": "How alarms work on this iPhone",
-  "alarmAudioNeedsRegeneration": "Voice-alarm-audio moet opnieuw worden gegenereerd."
+  "alarmAudioNeedsRegeneration": "Voice-alarm-audio moet opnieuw worden gegenereerd.",
+  "iosAlarmLoudnessHint": "Het alarmvolume hangt ook af van Instellingen → Geluiden en haptiek → Beltoon en meldingen.",
+  "addSavedVoiceToSequence": "Toevoegen aan reeks"
 }

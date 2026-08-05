@@ -30,6 +30,8 @@ void main() {
         label: 'Test',
       );
       await service.reconcileWithoutRender([alarm]);
+      // Must not throw and must not attempt scheduling when unsupported.
+      expect(service.isSupported, isFalse);
     });
   });
 

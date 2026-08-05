@@ -1171,4 +1171,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get alarmAudioNeedsRegeneration =>
       'Voice-alarm-audio moet opnieuw worden gegenereerd.';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      'Het alarmvolume hangt ook af van Instellingen → Geluiden en haptiek → Beltoon en meldingen.';
+
+  @override
+  String get addSavedVoiceToSequence => 'Toevoegen aan reeks';
 }

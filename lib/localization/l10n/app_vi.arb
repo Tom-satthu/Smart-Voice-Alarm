@@ -468,5 +468,7 @@
   "savedVoicesEmpty": "Bản ghi và TTS đã lưu sẽ hiện ở đây sau khi bạn thêm.",
   "savedVoiceAdded": "Đã thêm giọng nói vào chuỗi",
   "iosCapabilityLearnMore": "Cách báo thức hoạt động trên iPhone này",
-  "alarmAudioNeedsRegeneration": "Âm thanh báo thức giọng nói cần được tạo lại."
+  "alarmAudioNeedsRegeneration": "Âm thanh báo thức giọng nói cần được tạo lại.",
+  "iosAlarmLoudnessHint": "Độ lớn báo thức cũng phụ thuộc vào Cài đặt → Âm thanh & Cảm ứng → Nhạc chuông và Cảnh báo.",
+  "addSavedVoiceToSequence": "Thêm vào chuỗi"
 }

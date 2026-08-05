@@ -280,4 +280,15 @@ class IosAlarmScheduler {
       'activeFileNames': activeFileNames.toList(),
     });
   }
+
+  Future<int> pendingRequestCount() async {
+    if (!isSupported) return 0;
+    try {
+      final raw = await _channel.invokeMethod<int>('pendingRequestCount');
+      return raw ?? 0;
+    } catch (e) {
+      debugPrint('[SVA-Schedule] pendingRequestCount failed: $e');
+      return 0;
+    }
+  }
 }

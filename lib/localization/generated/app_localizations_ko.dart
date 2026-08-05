@@ -1138,4 +1138,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get alarmAudioNeedsRegeneration => '음성 알람 오디오를 다시 생성해야 합니다.';
+
+  @override
+  String get iosAlarmLoudnessHint =>
+      '알람 음량은 설정 → 사운드 및 햅틱 → 벨소리 및 알림에도 영향을 받습니다.';
+
+  @override
+  String get addSavedVoiceToSequence => '시퀀스에 추가';
 }

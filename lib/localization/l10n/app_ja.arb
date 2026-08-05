@@ -468,5 +468,7 @@
   "savedVoicesEmpty": "Saved recordings and TTS voices will appear here after you add them.",
   "savedVoiceAdded": "シーケンスに追加しました",
   "iosCapabilityLearnMore": "How alarms work on this iPhone",
-  "alarmAudioNeedsRegeneration": "音声アラームのオーディオを再生成する必要があります。"
+  "alarmAudioNeedsRegeneration": "音声アラームのオーディオを再生成する必要があります。",
+  "iosAlarmLoudnessHint": "アラームの音量は、「設定 → サウンドと触覚 → 着信音とアラート」にも依存します。",
+  "addSavedVoiceToSequence": "シーケンスに追加"
 }
