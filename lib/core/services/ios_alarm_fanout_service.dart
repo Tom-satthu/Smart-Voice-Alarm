@@ -1,26 +1,16 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../shared/data/local_store.dart';
 import '../../shared/models/ui_models.dart';
+import 'alarm_schedule_result.dart';
+import 'io_dir_stub.dart' if (dart.library.io) 'io_dir_io.dart' as io_file;
 import 'ios_alarm_scheduler.dart';
 import 'ios_alarm_segment_planner.dart';
 import 'storage_paths.dart';
-
-/// Outcome of an iOS schedule attempt (structured for UI / logs).
-class IosScheduleResult {
-  const IosScheduleResult({
-    required this.ok,
-    this.errorCode,
-    this.errorMessage,
-    this.needsAudioRepair = false,
-  });
-
-  final bool ok;
-  final String? errorCode;
-  final String? errorMessage;
-  final bool needsAudioRepair;
-}
 
 /// Renders voice/ringtone clips and schedules iOS fan-out segments.
 ///
@@ -59,7 +49,6 @@ class IosAlarmFanoutService {
   }
 
   /// Launch-safe path: never renders audio, never schedules, never cancels.
-  /// Existing pending notifications are left untouched.
   Future<void> reconcileWithoutRender(List<AlarmUiModel> alarms) async {
     if (!isSupported) return;
     debugPrint(
@@ -68,64 +57,129 @@ class IosAlarmFanoutService {
     );
   }
 
-  Future<IosScheduleResult> scheduleAlarm(
+  Future<AlarmScheduleResult> scheduleAlarm(
     AlarmUiModel alarm,
-    DateTime occurrence,
-  ) async {
+    DateTime occurrence, {
+    VoiceSequenceUiModel? sequenceOverride,
+  }) async {
+    final tx = _uuid.v4().substring(0, 8);
+    void log(String stage, String detail) {
+      debugPrint('[SVA-Save] transaction=$tx stage=$stage $detail');
+    }
+
     if (!_scheduler.isSupported) {
-      return const IosScheduleResult(ok: true);
+      return AlarmScheduleResult.ok(
+        stage: 'notification_schedule',
+        transactionId: tx,
+      );
     }
     if (!alarm.isEnabled) {
       await cancelAlarm(alarm.id);
-      return const IosScheduleResult(ok: true);
+      return AlarmScheduleResult.ok(
+        stage: 'notification_schedule',
+        transactionId: tx,
+      );
     }
 
+    log('validation', 'alarmType=${alarm.type.name}');
     final occurrenceId = IosAlarmSegmentPlanner.occurrenceIdFor(
       alarm,
       occurrence,
     );
     final revision = _uuid.v4().substring(0, 8);
     debugPrint(
-      '[SVA-Schedule] begin parent=${alarm.id} occurrence=$occurrenceId rev=$revision',
+      '[SVA-Schedule] begin parent=${alarm.id} occurrence=$occurrenceId '
+      'rev=$revision tx=$tx',
     );
 
-    // Phase 1 — render new revision (do NOT cancel old schedule yet).
     final voiceClips = <PreparedAlarmClip>[];
     final ringtoneClips = <PreparedAlarmClip>[];
     final renderedNames = <String>[];
+    String? warningCode;
+    String? warningMessage;
 
-    Future<IosScheduleResult> failRender({
+    Future<AlarmScheduleResult> fail({
       required String code,
       required String message,
+      required String stage,
+      String? sourceType,
+      String? sourceId,
+      String? filePath,
     }) async {
-      debugPrint('[SVA-Schedule] render abort code=$code msg=$message');
+      log(stage, 'FAIL code=$code');
       for (final name in renderedNames) {
         try {
           await _scheduler.deleteSoundFile(name);
         } catch (_) {}
       }
-      return IosScheduleResult(
-        ok: false,
+      return AlarmScheduleResult.fail(
         errorCode: code,
         errorMessage: message,
+        stage: stage,
+        sourceType: sourceType,
+        sourceId: sourceId,
+        filePath: filePath,
         needsAudioRepair: true,
+        transactionId: tx,
       );
     }
 
+    // Resolve sequence: prefer in-memory draft snapshot.
+    VoiceSequenceUiModel? sequence;
     if (alarm.type != AlarmType.ringtone) {
-      final sequence = alarm.voiceSequenceId == null
-          ? null
-          : _sequences.findById(alarm.voiceSequenceId!);
+      log('voice_sequence_lookup', 'override=${sequenceOverride != null}');
+      sequence =
+          sequenceOverride ??
+          (alarm.voiceSequenceId == null
+              ? null
+              : _sequences.findById(alarm.voiceSequenceId!));
       final segments = sequence?.segments ?? const <VoiceSegmentUiModel>[];
+      log('voice_sequence_lookup', 'sequenceSegments=${segments.length}');
+
       if (segments.isEmpty && alarm.type == AlarmType.voice) {
-        return failRender(
+        return fail(
           code: 'voice_empty',
           message: 'Voice alarm has no segments to render',
+          stage: 'validation',
         );
       }
+      if (alarm.type == AlarmType.mixed && segments.isEmpty) {
+        return fail(
+          code: 'mixed_missing_voice',
+          message: 'Mixed alarm requires at least one voice segment',
+          stage: 'validation',
+        );
+      }
+
       var voiceIndex = 0;
       for (final segment in segments) {
         if (voiceIndex >= 5) break;
+
+        if (segment.type == VoiceSegmentType.recording) {
+          final pre = await _preflightRecording(segment);
+          if (pre != null) {
+            return fail(
+              code: pre.errorCode!,
+              message: pre.errorMessage!,
+              stage: pre.stage!,
+              sourceType: 'recording',
+              sourceId: segment.id,
+              filePath: segment.filePath,
+            );
+          }
+        } else if (segment.type == VoiceSegmentType.tts) {
+          final text = segment.text?.trim() ?? '';
+          if (text.isEmpty) {
+            return fail(
+              code: 'tts_empty',
+              message: 'TTS segment has empty text',
+              stage: 'validation',
+              sourceType: 'tts',
+              sourceId: segment.id,
+            );
+          }
+        }
+
         try {
           final fileName = IosAlarmSegmentPlanner.soundFileName(
             parentId: alarm.id,
@@ -133,11 +187,18 @@ class IosAlarmFanoutService {
             segmentIndex: voiceIndex,
             revision: revision,
           );
+          final stage = segment.type == VoiceSegmentType.tts
+              ? 'tts_render'
+              : 'recording_render';
+          log(stage, 'segmentIndex=$voiceIndex');
           final rendered = await _renderVoiceSegment(segment, fileName);
           if (rendered.durationMs <= 0 || rendered.path.isEmpty) {
-            return failRender(
+            return fail(
               code: 'render_invalid',
-              message: 'Rendered voice segment invalid: ${segment.id}',
+              message: 'Rendered voice segment invalid',
+              stage: stage,
+              sourceType: segment.type.name,
+              sourceId: segment.id,
             );
           }
           renderedNames.add(rendered.fileName);
@@ -155,23 +216,46 @@ class IosAlarmFanoutService {
           );
           voiceIndex += 1;
         } catch (e) {
+          final stage = segment.type == VoiceSegmentType.tts
+              ? 'tts_render'
+              : 'recording_render';
           debugPrint('[SVA-Audio] voice render failed ${segment.id}: $e');
-          // Never silently drop a failed required voice segment.
-          return failRender(code: 'voice_render_failed', message: '$e');
+          return fail(
+            code: segment.type == VoiceSegmentType.tts
+                ? 'tts_render_failed'
+                : 'recording_render_failed',
+            message: '$e',
+            stage: stage,
+            sourceType: segment.type.name,
+            sourceId: segment.id,
+            filePath: segment.filePath,
+          );
         }
       }
-      if (alarm.type != AlarmType.ringtone &&
-          segments.isNotEmpty &&
-          voiceClips.isEmpty) {
-        return failRender(
+
+      if (segments.isNotEmpty && voiceClips.isEmpty) {
+        return fail(
           code: 'voice_render_empty',
           message: 'No voice clips rendered',
+          stage: 'recording_render',
         );
       }
     }
 
     if (alarm.type != AlarmType.voice) {
+      final assetPath = RingtoneAssets.pathForName(alarm.ringtoneName);
       final key = _ringtoneAssetKey(alarm.ringtoneName);
+      log(
+        'ringtone_asset_lookup',
+        'name=${alarm.ringtoneName} asset=$assetPath key=$key',
+      );
+
+      final assetOk = await _flutterAssetExists(assetPath);
+      log(
+        'ringtone_asset_lookup',
+        'flutterBundleExists=$assetOk nativeKey=$key',
+      );
+
       try {
         final fileName = IosAlarmSegmentPlanner.soundFileName(
           parentId: alarm.id,
@@ -179,11 +263,26 @@ class IosAlarmFanoutService {
           segmentIndex: 100,
           revision: revision,
         );
-        final rendered = await _scheduler.renderSound(
-          fileName: fileName,
-          assetKey: key,
-          maxSeconds: 30,
-        );
+        log('ringtone_render', 'begin file=$fileName');
+
+        // Prefer materializing via Flutter AssetBundle so iOS App.framework
+        // layout cannot break native Bundle.main lookups.
+        IosRenderedSound rendered;
+        final materialized = await _materializeFlutterAsset(assetPath);
+        if (materialized != null) {
+          log('ringtone_render', 'materialized path exists — using sourcePath');
+          rendered = await _scheduler.renderSound(
+            fileName: fileName,
+            sourcePath: materialized,
+            maxSeconds: 30,
+          );
+        } else {
+          rendered = await _scheduler.renderSound(
+            fileName: fileName,
+            assetKey: key,
+            maxSeconds: 30,
+          );
+        }
         renderedNames.add(rendered.fileName);
         final full = Duration(milliseconds: rendered.durationMs);
         ringtoneClips.add(
@@ -197,40 +296,46 @@ class IosAlarmFanoutService {
         );
       } catch (e) {
         debugPrint('[SVA-Audio] ringtone render failed: $e');
-        if (alarm.type == AlarmType.ringtone) {
-          ringtoneClips.add(
-            preparedClip(
-              fileName: '',
-              duration: const Duration(seconds: 8),
-              label: 'fallback',
-            ),
-          );
-        } else {
-          // Mixed must not silently become voice-only.
-          return failRender(code: 'ringtone_render_failed', message: '$e');
-        }
+        // Mixed/ringtone: fall back to system default sound child — never
+        // silently drop the ringtone slot or blame the voice recording.
+        ringtoneClips.add(
+          preparedClip(
+            fileName: '',
+            duration: const Duration(seconds: 8),
+            label: 'system_default',
+          ),
+        );
+        warningCode = 'ringtone_fallback_system';
+        warningMessage =
+            'Custom ringtone could not be prepared. The system alarm sound will be used.';
+        log('ringtone_render', 'fallback system default after error');
       }
     }
 
     if (alarm.type == AlarmType.mixed &&
         voiceClips.isNotEmpty &&
         ringtoneClips.isEmpty) {
-      return failRender(
+      return fail(
         code: 'mixed_missing_ringtone',
         message: 'Mixed alarm requires a ringtone clip',
+        stage: 'plan',
       );
     }
 
     if (voiceClips.isEmpty && ringtoneClips.isEmpty) {
-      debugPrint('[SVA-Schedule] no clips — keeping old schedule');
-      return failRender(
+      return fail(
         code: 'render_empty',
         message: 'Unable to render alarm audio',
+        stage: 'plan',
       );
     }
 
     List<IosAlarmSegment> planned;
     try {
+      log(
+        'plan',
+        'voice=${voiceClips.length} ringtone=${ringtoneClips.length}',
+      );
       planned = _planner.plan(
         alarm: alarm,
         occurrenceId: occurrenceId,
@@ -239,18 +344,12 @@ class IosAlarmFanoutService {
         ringtoneClips: ringtoneClips,
       );
     } on IosPlanValidationException catch (e) {
-      debugPrint('[SVA-Plan] validation failed ${e.code}: ${e.message}');
       for (final name in renderedNames) {
         try {
           await _scheduler.deleteSoundFile(name);
         } catch (_) {}
       }
-      return IosScheduleResult(
-        ok: false,
-        errorCode: e.code,
-        errorMessage: e.message,
-        needsAudioRepair: true,
-      );
+      return fail(code: e.code, message: e.message, stage: 'plan');
     }
 
     debugPrint(
@@ -266,30 +365,28 @@ class IosAlarmFanoutService {
       );
     }
 
-    // Phase 2 — schedule new children (unique UUIDs), then cancel old.
     try {
+      log('notification_schedule', 'segments=${planned.length}');
       await _scheduler.scheduleSegments(
         segments: planned,
         title: alarm.label.isEmpty ? 'Smart Voice Alarm' : alarm.label,
         body: 'Solve to stop',
       );
     } catch (e) {
-      debugPrint('[SVA-Schedule] new schedule failed, keeping old: $e');
       for (final name in renderedNames) {
         try {
           await _scheduler.deleteSoundFile(name);
         } catch (_) {}
       }
-      return IosScheduleResult(
-        ok: false,
-        errorCode: 'schedule_failed',
-        errorMessage: '$e',
-        needsAudioRepair: true,
+      return fail(
+        code: 'schedule_failed',
+        message: '$e',
+        stage: 'notification_schedule',
       );
     }
 
-    // Phase 3 — only now remove previous children for this parent.
     try {
+      log('selective_cancel', 'keep=${planned.length}');
       await _scheduler.cancelParentExcept(
         parentAlarmId: alarm.id,
         keepChildIds: planned.map((s) => s.childId).toSet(),
@@ -298,21 +395,109 @@ class IosAlarmFanoutService {
       debugPrint('[SVA-Schedule] selective cancel failed: $e');
     }
 
-    // Do NOT cleanupOrphanSounds with only this alarm's new files — that would
-    // delete other alarms' rendered CAF files. Only delete superseded files for
-    // this parent once we have a full active manifest (not in this path).
-
-    debugPrint(
-      '[SVA-Schedule] success parent=${alarm.id} segments=${planned.length}',
+    log(
+      'result',
+      'code=${warningCode ?? 'ok'} stage=notification_schedule ok=true',
     );
-    for (final segment in planned) {
-      if (segment.soundFileName.isEmpty) continue;
-      debugPrint(
-        '[SVA-Audio] scheduleSound parent=${alarm.id} '
-        'file=${segment.soundFileName} child=${segment.childId}',
+    return AlarmScheduleResult.ok(
+      stage: 'notification_schedule',
+      warningCode: warningCode,
+      warningMessage: warningMessage,
+      transactionId: tx,
+    );
+  }
+
+  Future<AlarmScheduleResult?> _preflightRecording(
+    VoiceSegmentUiModel segment,
+  ) async {
+    final path = segment.filePath;
+    if (path == null || path.isEmpty) {
+      return AlarmScheduleResult.fail(
+        errorCode: 'recording_path_missing',
+        errorMessage: 'Recording segment missing file path',
+        stage: 'recording_source_validation',
+        sourceType: 'recording',
+        sourceId: segment.id,
       );
     }
-    return const IosScheduleResult(ok: true);
+    final exists = await io_file.fileExists(path);
+    debugPrint('[SVA-Save] recording pathExists=$exists size check next');
+    if (!exists) {
+      return AlarmScheduleResult.fail(
+        errorCode: 'recording_file_missing',
+        errorMessage: 'Recording file does not exist',
+        stage: 'recording_source_validation',
+        sourceType: 'recording',
+        sourceId: segment.id,
+        filePath: path,
+      );
+    }
+    final size = await io_file.fileLength(path);
+    debugPrint('[SVA-Save] recording pathExists=true size=$size');
+    if (size <= 0) {
+      return AlarmScheduleResult.fail(
+        errorCode: 'recording_file_empty',
+        errorMessage: 'Recording file is empty',
+        stage: 'recording_source_validation',
+        sourceType: 'recording',
+        sourceId: segment.id,
+        filePath: path,
+      );
+    }
+    final ext = p.extension(path).toLowerCase();
+    const allowed = {'.m4a', '.wav', '.caf', '.mp3', '.aac', '.mp4'};
+    if (ext.isNotEmpty && !allowed.contains(ext)) {
+      return AlarmScheduleResult.fail(
+        errorCode: 'recording_unsupported_format',
+        errorMessage: 'Recording container not supported: $ext',
+        stage: 'recording_source_validation',
+        sourceType: 'recording',
+        sourceId: segment.id,
+        filePath: path,
+      );
+    }
+    return null;
+  }
+
+  Future<bool> _flutterAssetExists(String assetPath) async {
+    try {
+      await rootBundle.load(assetPath);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<String?> _materializeFlutterAsset(String assetPath) async {
+    try {
+      final data = await rootBundle.load(assetPath);
+      final dir = await getTemporaryDirectory();
+      final name = p.basename(assetPath);
+      final out = p.join(dir.path, 'sva_asset_$name');
+      await io_file.ensureDirectoryExists(dir.path);
+      // Write via dart:io through conditional import helpers is awkward for
+      // bytes — use MethodChannel-free path via path_provider + write.
+      // ignore: avoid_slow_async_io
+      final bytes = data.buffer.asUint8List(
+        data.offsetInBytes,
+        data.lengthInBytes,
+      );
+      // Use scheduler-free file write via dynamic File when IO available.
+      return await _writeBytes(out, bytes);
+    } catch (e) {
+      debugPrint('[SVA-Save] materialize asset failed: $e');
+      return null;
+    }
+  }
+
+  Future<String?> _writeBytes(String path, List<int> bytes) async {
+    try {
+      // Delegated through a tiny helper that uses dart:io when available.
+      await _ByteWriter.write(path, bytes);
+      return path;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<IosRenderedSound> _renderVoiceSegment(
@@ -339,7 +524,6 @@ class IosAlarmFanoutService {
   }
 
   String _ringtoneAssetKey(String? name) {
-    // Prefer catalog mapping from display name → asset basename.
     final path = RingtoneAssets.pathForName(name);
     final file = path.split('/').last;
     final base = file.replaceAll(RegExp(r'\.(wav|caf|mp3)$'), '');
@@ -377,5 +561,13 @@ class IosAlarmFanoutService {
       if (alarm.repeatDays.contains(weekday)) return candidate;
     }
     return null;
+  }
+}
+
+/// Tiny IO helper so fanout can write materialized assets without importing
+/// dart:io at the library top level on web.
+class _ByteWriter {
+  static Future<void> write(String path, List<int> bytes) async {
+    await io_file.writeBytes(path, bytes);
   }
 }

@@ -7,6 +7,7 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../shared/models/ui_models.dart';
+import 'alarm_schedule_result.dart';
 import 'ios_alarm_fanout_service.dart';
 import 'ios_alarm_scheduler.dart';
 import 'native_alarm_scheduler.dart';
@@ -198,18 +199,21 @@ class NotificationService {
     }
   }
 
-  Future<bool> scheduleAlarm(AlarmUiModel alarm) async {
-    if (kIsWeb) return true;
+  Future<AlarmScheduleResult> scheduleAlarm(
+    AlarmUiModel alarm, {
+    VoiceSequenceUiModel? sequenceOverride,
+  }) async {
+    if (kIsWeb) return AlarmScheduleResult.success;
     try {
       if (!alarm.isEnabled) {
         await cancelAlarm(alarm.id);
-        return true;
+        return AlarmScheduleResult.ok(stage: 'notification_schedule');
       }
 
       final next = _nextOccurrence(alarm);
       if (next == null) {
         await cancelAlarm(alarm.id);
-        return true;
+        return AlarmScheduleResult.ok(stage: 'notification_schedule');
       }
 
       // Android: AlarmManager + FGS so audio starts without a notification tap.
@@ -218,7 +222,7 @@ class NotificationService {
         if (_initialized) {
           await _plugin.cancel(alarm.id.hashCode);
         }
-        return true;
+        return AlarmScheduleResult.ok(stage: 'notification_schedule');
       }
 
       // iOS: notification fan-out with pre-rendered Library/Sounds clips.
@@ -231,18 +235,27 @@ class NotificationService {
         } catch (e) {
           debugPrint('[SVA-Schedule] iOS auth before schedule: $e');
         }
-        final result = await _iosFanout.scheduleAlarm(alarm, next);
+        final result = await _iosFanout.scheduleAlarm(
+          alarm,
+          next,
+          sequenceOverride: sequenceOverride,
+        );
         if (!result.ok) {
           debugPrint(
-            '[SVA-Schedule] scheduleAlarm soft-fail code=${result.errorCode} '
-            'msg=${result.errorMessage}',
+            '[SVA-Save] result code=${result.errorCode} '
+            'stage=${result.stage} msg=${result.errorMessage}',
           );
-          return false;
         }
-        return true;
+        return result;
       }
 
-      if (!_initialized) return false;
+      if (!_initialized) {
+        return AlarmScheduleResult.fail(
+          errorCode: 'notifications_uninitialized',
+          errorMessage: 'Notification plugin not initialized',
+          stage: 'notification_schedule',
+        );
+      }
       await _plugin.cancel(alarm.id.hashCode);
 
       final details = NotificationDetails(
@@ -275,10 +288,14 @@ class NotificationService {
             ? null
             : DateTimeComponents.dayOfWeekAndTime,
       );
-      return true;
+      return AlarmScheduleResult.ok(stage: 'notification_schedule');
     } catch (error) {
       debugPrint('scheduleAlarm failed: $error');
-      return false;
+      return AlarmScheduleResult.fail(
+        errorCode: 'schedule_exception',
+        errorMessage: '$error',
+        stage: 'notification_schedule',
+      );
     }
   }
 

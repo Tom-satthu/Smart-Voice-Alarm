@@ -12,6 +12,7 @@ import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/localization/app_locale_support.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/services/app_version_info.dart';
+import '../../../../core/services/ios_alarm_diagnostics.dart';
 import '../../../../core/services/support_contact.dart';
 import '../../../../core/services/trial_entitlement_service.dart';
 import '../../../../core/utils/time_formatters.dart';
@@ -402,8 +403,56 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               title: l10n.appVersion,
               subtitle: versionLabel,
             ),
+            if (kDebugMode &&
+                !kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.iOS) ...[
+              const SizedBox(height: AppConstants.spaceXl),
+              SectionHeader(title: 'Debug'),
+              SettingTile(
+                icon: Icons.bug_report_outlined,
+                title: l10n.iosAlarmDiagnosticsTitle,
+                subtitle: 'Automated iOS alarm fixture checks',
+                onTap: () => _runIosDiagnostics(context),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _runIosDiagnostics(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.iosAlarmDiagnosticsRunning)));
+    final report = await IosAlarmDiagnostics(
+      notifications: ref.read(notificationServiceProvider),
+    ).runAll();
+    if (!context.mounted) return;
+    await Clipboard.setData(ClipboardData(text: report));
+    if (!context.mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.iosAlarmDiagnosticsTitle),
+        content: SizedBox(
+          width: 420,
+          child: SingleChildScrollView(child: SelectableText(report)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.commonClose),
+          ),
+          FilledButton(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: report));
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: Text(l10n.iosAlarmDiagnosticsCopy),
+          ),
+        ],
       ),
     );
   }

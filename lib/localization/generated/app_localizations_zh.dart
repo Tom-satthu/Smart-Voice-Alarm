@@ -1114,6 +1114,23 @@ class AppLocalizationsZh extends AppLocalizations {
       'Using a system fallback sound because the selected audio could not be prepared.';
 
   @override
+  String get ringtoneFallbackSystemWarning =>
+      'Custom ringtone could not be prepared. The system alarm sound will be used.';
+
+  @override
+  String get iosAlarmDiagnosticsTitle => 'Run iOS alarm diagnostics';
+
+  @override
+  String get iosAlarmDiagnosticsRunning => 'Running diagnostics…';
+
+  @override
+  String get iosAlarmDiagnosticsDone =>
+      'Diagnostics finished. Report copied when available.';
+
+  @override
+  String get iosAlarmDiagnosticsCopy => 'Copy report';
+
+  @override
   String get savedVoicesTitle => '已保存的语音';
 
   @override
@@ -2334,6 +2351,23 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String get fallbackSoundWarning =>
       'Using a system fallback sound because the selected audio could not be prepared.';
+
+  @override
+  String get ringtoneFallbackSystemWarning =>
+      'Custom ringtone could not be prepared. The system alarm sound will be used.';
+
+  @override
+  String get iosAlarmDiagnosticsTitle => 'Run iOS alarm diagnostics';
+
+  @override
+  String get iosAlarmDiagnosticsRunning => 'Running diagnostics…';
+
+  @override
+  String get iosAlarmDiagnosticsDone =>
+      'Diagnostics finished. Report copied when available.';
+
+  @override
+  String get iosAlarmDiagnosticsCopy => 'Copy report';
 
   @override
   String get savedVoicesTitle => '已儲存的語音';

@@ -152,18 +152,59 @@ enum SvaAudioRenderer {
   }
 
   private static func resolveBundledSound(key: String) -> URL? {
-    let base = key.replacingOccurrences(of: ".wav", with: "")
-      .replacingOccurrences(of: ".caf", with: "")
-    if let url = Bundle.main.url(forResource: base, withExtension: "wav") { return url }
-    if let url = Bundle.main.url(forResource: base, withExtension: "caf") { return url }
-    let paths = [
-      "flutter_assets/assets/ringtones/\(base).wav",
-      "flutter_assets/assets/ringtones/\(base)",
-    ]
-    for path in paths {
-      let full = Bundle.main.bundleURL.appendingPathComponent(path)
-      if FileManager.default.fileExists(atPath: full.path) { return full }
+    // Accept basename ("soft_chime"), filename, or Flutter asset path.
+    var base = key
+      .replacingOccurrences(of: "assets/ringtones/", with: "")
+      .replacingOccurrences(of: "flutter_assets/assets/ringtones/", with: "")
+    if base.hasSuffix(".wav") || base.hasSuffix(".caf") {
+      base = String(base.dropLast(4))
     }
+    base = (base as NSString).lastPathComponent
+
+    let candidates: [URL] = {
+      var urls: [URL] = []
+      if let u = Bundle.main.url(forResource: base, withExtension: "wav") {
+        urls.append(u)
+      }
+      if let u = Bundle.main.url(forResource: base, withExtension: "caf") {
+        urls.append(u)
+      }
+      let relativePaths = [
+        "flutter_assets/assets/ringtones/\(base).wav",
+        "flutter_assets/assets/ringtones/\(base)",
+        "Frameworks/App.framework/flutter_assets/assets/ringtones/\(base).wav",
+        "Frameworks/App.framework/flutter_assets/assets/ringtones/\(base)",
+      ]
+      for path in relativePaths {
+        urls.append(Bundle.main.bundleURL.appendingPathComponent(path))
+      }
+      if let appFramework = Bundle.main.privateFrameworksURL?
+        .appendingPathComponent("App.framework")
+      {
+        urls.append(
+          appFramework
+            .appendingPathComponent("flutter_assets/assets/ringtones/\(base).wav")
+        )
+        if let bundle = Bundle(url: appFramework),
+           let u = bundle.url(
+             forResource: base,
+             withExtension: "wav",
+             subdirectory: "flutter_assets/assets/ringtones"
+           )
+        {
+          urls.append(u)
+        }
+      }
+      return urls
+    }()
+
+    for url in candidates {
+      if FileManager.default.fileExists(atPath: url.path) {
+        NSLog("[SVA-Audio] ringtone resolved key=%@ path=%@", key, url.path)
+        return url
+      }
+    }
+    NSLog("[SVA-Audio] ringtone NOT found key=%@", key)
     return nil
   }
 

@@ -2147,6 +2147,36 @@ abstract class AppLocalizations {
   /// **'Using a system fallback sound because the selected audio could not be prepared.'**
   String get fallbackSoundWarning;
 
+  /// No description provided for @ringtoneFallbackSystemWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom ringtone could not be prepared. The system alarm sound will be used.'**
+  String get ringtoneFallbackSystemWarning;
+
+  /// No description provided for @iosAlarmDiagnosticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Run iOS alarm diagnostics'**
+  String get iosAlarmDiagnosticsTitle;
+
+  /// No description provided for @iosAlarmDiagnosticsRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running diagnostics…'**
+  String get iosAlarmDiagnosticsRunning;
+
+  /// No description provided for @iosAlarmDiagnosticsDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics finished. Report copied when available.'**
+  String get iosAlarmDiagnosticsDone;
+
+  /// No description provided for @iosAlarmDiagnosticsCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy report'**
+  String get iosAlarmDiagnosticsCopy;
+
   /// No description provided for @savedVoicesTitle.
   ///
   /// In en, this message translates to:

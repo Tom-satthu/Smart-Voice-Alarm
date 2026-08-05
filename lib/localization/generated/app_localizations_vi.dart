@@ -1150,6 +1150,23 @@ class AppLocalizationsVi extends AppLocalizations {
       'Đang dùng âm thanh dự phòng của hệ thống vì không chuẩn bị được âm thanh đã chọn.';
 
   @override
+  String get ringtoneFallbackSystemWarning =>
+      'Custom ringtone could not be prepared. The system alarm sound will be used.';
+
+  @override
+  String get iosAlarmDiagnosticsTitle => 'Run iOS alarm diagnostics';
+
+  @override
+  String get iosAlarmDiagnosticsRunning => 'Running diagnostics…';
+
+  @override
+  String get iosAlarmDiagnosticsDone =>
+      'Diagnostics finished. Report copied when available.';
+
+  @override
+  String get iosAlarmDiagnosticsCopy => 'Copy report';
+
+  @override
   String get savedVoicesTitle => 'Giọng nói đã lưu';
 
   @override

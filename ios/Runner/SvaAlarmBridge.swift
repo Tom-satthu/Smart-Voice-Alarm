@@ -205,6 +205,12 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
         NSLog("[SVA-Schedule] pendingRequestCount=%d", count)
         self.reply(result, count)
       }
+    case "pendingRequestIdentifiers":
+      UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+        let ids = requests.map { $0.identifier }
+        NSLog("[SVA-Schedule] pendingRequestIdentifiers count=%d", ids.count)
+        self.reply(result, ids)
+      }
     default:
       reply(result, FlutterMethodNotImplemented)
     }

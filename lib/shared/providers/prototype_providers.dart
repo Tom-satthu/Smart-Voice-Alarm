@@ -8,6 +8,7 @@ import '../../core/localization/app_locale_support.dart';
 import '../../core/localization/voice_catalog.dart';
 import '../../core/services/alarm_engine.dart';
 import '../../core/services/audio_player_service.dart';
+import '../../core/services/alarm_schedule_result.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/premium_purchase_service.dart';
 import '../../core/services/recording_file_store.dart';
@@ -262,29 +263,51 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
     }
   }
 
-  /// Returns whether native/iOS scheduling succeeded.
-  Future<bool> add(AlarmUiModel alarm) async {
-    final scheduled = await _notifications.scheduleAlarm(alarm);
-    final saved = alarm.copyWith(
-      audioNeedsRegeneration: !scheduled && alarm.type != AlarmType.ringtone,
+  /// Schedules then persists. On failure neither alarm nor [sequenceOverride]
+  /// are written. [audioNeedsRegeneration] is never set for a failed new save.
+  Future<AlarmScheduleResult> add(
+    AlarmUiModel alarm, {
+    VoiceSequenceUiModel? sequenceOverride,
+  }) async {
+    final result = await _notifications.scheduleAlarm(
+      alarm,
+      sequenceOverride: sequenceOverride,
     );
+    if (!result.ok) {
+      return result;
+    }
+    if (sequenceOverride != null) {
+      await _sequences.upsert(sequenceOverride);
+    }
+    final saved = alarm.copyWith(audioNeedsRegeneration: false);
     state = [...state, saved]..sort(_byTime);
     await _repo.upsert(saved);
-    return scheduled;
+    return result.copyWith(stage: 'repository_commit');
   }
 
-  /// Returns whether native/iOS scheduling succeeded.
-  Future<bool> update(AlarmUiModel alarm) async {
-    final scheduled = await _notifications.scheduleAlarm(alarm);
-    final saved = alarm.copyWith(
-      audioNeedsRegeneration: !scheduled && alarm.type != AlarmType.ringtone,
+  /// Schedules the new revision first. On failure the existing alarm,
+  /// sequence, and pending notifications remain unchanged.
+  Future<AlarmScheduleResult> update(
+    AlarmUiModel alarm, {
+    VoiceSequenceUiModel? sequenceOverride,
+  }) async {
+    final result = await _notifications.scheduleAlarm(
+      alarm,
+      sequenceOverride: sequenceOverride,
     );
+    if (!result.ok) {
+      return result;
+    }
+    if (sequenceOverride != null) {
+      await _sequences.upsert(sequenceOverride);
+    }
+    final saved = alarm.copyWith(audioNeedsRegeneration: false);
     state = [
       for (final item in state)
         if (item.id == saved.id) saved else item,
     ]..sort(_byTime);
     await _repo.upsert(saved);
-    return scheduled;
+    return result.copyWith(stage: 'repository_commit');
   }
 
   /// Returns the duplicated alarm id for navigation into edit.

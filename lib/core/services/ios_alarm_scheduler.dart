@@ -297,4 +297,18 @@ class IosAlarmScheduler {
       return 0;
     }
   }
+
+  Future<List<String>> pendingRequestIdentifiers() async {
+    if (!isSupported) return const [];
+    try {
+      final raw = await _channel.invokeMethod<List>(
+        'pendingRequestIdentifiers',
+      );
+      if (raw == null) return const [];
+      return raw.map((e) => e.toString()).toList();
+    } catch (e) {
+      debugPrint('[SVA-Schedule] pendingRequestIdentifiers failed: $e');
+      return const [];
+    }
+  }
 }

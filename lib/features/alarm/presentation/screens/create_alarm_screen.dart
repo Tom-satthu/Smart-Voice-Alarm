@@ -160,7 +160,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     final seq = ref.read(voiceSequenceProvider(sequenceId));
     final repeats = _repeatCount.clamp(1, 20);
 
-    // Validate before persist so Cancel/abandon never leaves orphans.
+    // Validate in memory — never persist draft before schedule succeeds.
     if (_type == AlarmType.mixed) {
       if (seq.segments.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -175,6 +175,12 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
         return;
       }
     }
+    if (_type == AlarmType.voice && seq.segments.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.alarmSelectSequence)),
+      );
+      return;
+    }
     if (_type != AlarmType.ringtone && seq.segments.isNotEmpty) {
       final voiceCount = seq.segments.length.clamp(0, 5);
       final toneCount = _type == AlarmType.voice ? 0 : 1;
@@ -187,9 +193,6 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       }
     }
 
-    // Persist draft sequence only when the alarm itself is saved.
-    await sequenceController.commit();
-
     final wantsEnabled = _isEdit ? _enabled : true;
     final notificationAllowed =
         !wantsEnabled || await _ensureNotificationAccess();
@@ -199,19 +202,20 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       id: widget.alarmId ?? const Uuid().v4(),
       time: _time,
       repeatDays: Set<Weekday>.from(_repeatDays),
-      // New alarms are always enabled so users do not forget to turn them on.
       isEnabled: wantsEnabled && notificationAllowed,
       type: _type,
       label: _label.trim().isEmpty ? l10n.alarmDefaultLabel : _label.trim(),
       voiceSequenceId: sequenceId,
       ringtoneName: _ringtoneName,
       repeatCount: repeats,
+      audioNeedsRegeneration: false,
     );
 
     final controller = ref.read(alarmListProvider.notifier);
-    final scheduled = _isEdit
-        ? await controller.update(model)
-        : await controller.add(model);
+    // Schedule with in-memory draft; persist only on success.
+    final result = _isEdit
+        ? await controller.update(model, sequenceOverride: seq)
+        : await controller.add(model, sequenceOverride: seq);
 
     if (!mounted) return;
     if (!notificationAllowed) {
@@ -219,24 +223,40 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.permissionStatusDenied)));
     }
-    final iosFanoutSupported = ref
-        .read(notificationServiceProvider)
-        .iosFanout
-        .isSupported;
-    if (!scheduled && iosFanoutSupported && model.type != AlarmType.ringtone) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.audioRenderingError)));
+
+    if (!result.ok) {
+      final detail = [
+        if (result.stage != null) 'stage=${result.stage}',
+        if (result.errorCode != null) 'code=${result.errorCode}',
+        if (result.errorMessage != null) result.errorMessage,
+      ].join(' · ');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(detail.isEmpty ? l10n.audioRenderingError : detail),
+        ),
+      );
+      // Keep draft editable; do not persist alarm/sequence.
       return;
     }
+
+    // Mark draft committed so pop does not discard the now-persisted sequence.
+    await sequenceController.commit();
+    if (!mounted) return;
     _committed = true;
     ref.read(openDraftSequenceIdsProvider.notifier).update((ids) {
       final next = Set<String>.from(ids)..remove(sequenceId);
       return next;
     });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.alarmSaved)));
+
+    if (result.hasWarning && result.warningMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.ringtoneFallbackSystemWarning)),
+      );
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.alarmSaved)));
+    }
     context.pop();
   }
 
