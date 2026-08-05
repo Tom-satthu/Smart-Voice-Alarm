@@ -95,6 +95,7 @@ class VoiceSegmentUiModel {
     this.filePath,
     this.voiceId,
     this.localeId,
+    this.createdAt,
   });
 
   final String id;
@@ -105,6 +106,7 @@ class VoiceSegmentUiModel {
   final String? filePath;
   final String? voiceId;
   final String? localeId;
+  final DateTime? createdAt;
 
   VoiceSegmentUiModel copyWith({
     String? id,
@@ -115,6 +117,7 @@ class VoiceSegmentUiModel {
     String? filePath,
     String? voiceId,
     String? localeId,
+    DateTime? createdAt,
   }) {
     return VoiceSegmentUiModel(
       id: id ?? this.id,
@@ -125,6 +128,7 @@ class VoiceSegmentUiModel {
       filePath: filePath ?? this.filePath,
       voiceId: voiceId ?? this.voiceId,
       localeId: localeId ?? this.localeId,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -137,9 +141,11 @@ class VoiceSegmentUiModel {
     'filePath': filePath,
     'voiceId': voiceId,
     'localeId': localeId,
+    if (createdAt != null) 'createdAtMs': createdAt!.millisecondsSinceEpoch,
   };
 
   factory VoiceSegmentUiModel.fromJson(Map<String, dynamic> json) {
+    final createdRaw = json['createdAtMs'];
     return VoiceSegmentUiModel(
       id: json['id'] as String,
       name: json['name'] as String? ?? 'Segment',
@@ -151,6 +157,9 @@ class VoiceSegmentUiModel {
       filePath: json['filePath'] as String?,
       voiceId: json['voiceId'] as String?,
       localeId: json['localeId'] as String?,
+      createdAt: createdRaw is int
+          ? DateTime.fromMillisecondsSinceEpoch(createdRaw)
+          : null,
     );
   }
 }

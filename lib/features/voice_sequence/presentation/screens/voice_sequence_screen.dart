@@ -292,36 +292,211 @@ class _TrialStatusCard extends StatelessWidget {
   }
 }
 
-class AddVoiceScreen extends StatelessWidget {
+class AddVoiceScreen extends ConsumerStatefulWidget {
   const AddVoiceScreen({super.key, this.sequenceId});
 
   final String? sequenceId;
 
   @override
+  ConsumerState<AddVoiceScreen> createState() => _AddVoiceScreenState();
+}
+
+class _AddVoiceScreenState extends ConsumerState<AddVoiceScreen> {
+  String? _previewId;
+  bool _previewLoading = false;
+
+  String get _sequenceId => widget.sequenceId ?? defaultSequenceId;
+
+  Future<void> _stopPreview() async {
+    await ref.read(audioPlayerServiceProvider).stop();
+    await ref.read(ttsServiceProvider).stop();
+    if (mounted) {
+      setState(() {
+        _previewId = null;
+        _previewLoading = false;
+      });
+    }
+  }
+
+  Future<void> _togglePreview(VoiceSegmentUiModel voice) async {
+    final l10n = AppLocalizations.of(context);
+    if (_previewId == voice.id) {
+      await _stopPreview();
+      return;
+    }
+    await _stopPreview();
+    if (!mounted) return;
+    setState(() {
+      _previewId = voice.id;
+      _previewLoading = true;
+    });
+    try {
+      if (voice.type == VoiceSegmentType.recording) {
+        final path = voice.filePath;
+        if (kIsWeb || path == null || path.isEmpty) {
+          throw StateError(l10n.recordingFileMissing);
+        }
+        final exists = await io_dir.fileExists(path);
+        if (!exists) throw StateError(l10n.recordingFileMissing);
+        if (!mounted) return;
+        setState(() => _previewLoading = false);
+        await ref.read(audioPlayerServiceProvider).playFile(path);
+      } else {
+        final text = voice.text?.trim() ?? '';
+        if (text.isEmpty) throw StateError(l10n.voiceUnavailable);
+        if (!mounted) return;
+        setState(() => _previewLoading = false);
+        await ref
+            .read(ttsServiceProvider)
+            .preview(
+              text: text,
+              voiceId: voice.voiceId,
+              locale: voice.localeId,
+            );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      final message = error is StateError ? error.message : '$error';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted && _previewId == voice.id) {
+        setState(() {
+          _previewId = null;
+          _previewLoading = false;
+        });
+      }
+    }
+  }
+
+  String _formatCreatedAt(BuildContext context, DateTime? createdAt) {
+    if (createdAt == null) return '';
+    final local = createdAt.toLocal();
+    final y = local.year.toString().padLeft(4, '0');
+    final m = local.month.toString().padLeft(2, '0');
+    final d = local.day.toString().padLeft(2, '0');
+    final h = local.hour.toString().padLeft(2, '0');
+    final min = local.minute.toString().padLeft(2, '0');
+    return '$y-$m-$d $h:$min';
+  }
+
+  @override
+  void deactivate() {
+    if (!ref.read(alarmEngineProvider).isRunning) {
+      ref.read(audioPlayerServiceProvider).stop();
+      ref.read(ttsServiceProvider).stop();
+    }
+    super.deactivate();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final id = sequenceId ?? defaultSequenceId;
+    final saved = ref.watch(savedVoicesProvider);
 
     return AppScaffold(
       showBack: true,
       title: l10n.addVoiceTitle,
       body: ResponsiveCenter(
         child: ListView(
-          padding: const EdgeInsets.only(top: AppConstants.spaceLg),
+          padding: const EdgeInsets.only(
+            top: AppConstants.spaceLg,
+            bottom: AppConstants.space2xl,
+          ),
           children: [
             _ChoiceCard(
               icon: Icons.mic_rounded,
               title: l10n.addVoiceRecord,
               subtitle: l10n.addVoiceRecordSubtitle,
-              onTap: () => context.push(AppRoutes.recordPath(id)),
+              onTap: () async {
+                await context.push(AppRoutes.recordPath(_sequenceId));
+                await ref.read(savedVoicesProvider.notifier).refresh();
+              },
             ),
             const SizedBox(height: AppConstants.spaceMd),
             _ChoiceCard(
               icon: Icons.record_voice_over_rounded,
               title: l10n.addVoiceTts,
               subtitle: l10n.addVoiceTtsSubtitle,
-              onTap: () => context.push(AppRoutes.ttsPath(id)),
+              onTap: () async {
+                await context.push(AppRoutes.ttsPath(_sequenceId));
+                await ref.read(savedVoicesProvider.notifier).refresh();
+              },
             ),
+            const SizedBox(height: AppConstants.spaceXl),
+            Text(l10n.savedVoicesTitle, style: context.textTheme.titleMedium),
+            const SizedBox(height: AppConstants.spaceSm),
+            if (saved.isEmpty)
+              Text(
+                l10n.savedVoicesEmpty,
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: context.colors.onSurfaceVariant,
+                ),
+              )
+            else
+              ...saved.map((voice) {
+                final playing =
+                    _previewId == voice.id && !_previewLoading;
+                final loading =
+                    _previewId == voice.id && _previewLoading;
+                final stamped = _formatCreatedAt(context, voice.createdAt);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppConstants.spaceSm),
+                  child: SurfacePanel(
+                    child: Row(
+                      children: [
+                        Icon(
+                          voice.type == VoiceSegmentType.recording
+                              ? Icons.mic_rounded
+                              : Icons.record_voice_over_rounded,
+                          color: context.colors.primary,
+                        ),
+                        const SizedBox(width: AppConstants.spaceMd),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                voice.name,
+                                style: context.textTheme.titleSmall,
+                              ),
+                              Text(
+                                stamped.isEmpty
+                                    ? '${voice.duration.inSeconds}s'
+                                    : '${voice.duration.inSeconds}s · $stamped',
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.onSurfaceVariant,
+                                  fontSize: 11.5,
+                                  height: 1.25,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: playing ? l10n.commonClose : l10n.ttsPreview,
+                          onPressed: () => _togglePreview(voice),
+                          icon: loading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Icon(
+                                  playing
+                                      ? Icons.stop_circle_outlined
+                                      : Icons.play_circle_outline_rounded,
+                                  color: context.colors.primary,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
           ],
         ),
       ),

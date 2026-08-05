@@ -29,6 +29,10 @@ final sequenceRepositoryProvider = Provider<VoiceSequenceRepository>((ref) {
   return VoiceSequenceRepository();
 });
 
+final savedVoiceRepositoryProvider = Provider<SavedVoiceRepository>((ref) {
+  return SavedVoiceRepository();
+});
+
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository();
 });
@@ -328,7 +332,9 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
   VoiceSequenceController([
     VoiceSequenceRepository? repo,
     VoiceSequenceUiModel? initial,
+    SavedVoiceRepository? savedVoices,
   ]) : _repo = repo ?? VoiceSequenceRepository(),
+       _savedVoices = savedVoices ?? SavedVoiceRepository(),
        super(
          initial ??
              const VoiceSequenceUiModel(
@@ -339,6 +345,7 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
        );
 
   final VoiceSequenceRepository _repo;
+  final SavedVoiceRepository _savedVoices;
 
   Future<void> persist() => _repo.upsert(state);
 
@@ -367,6 +374,7 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
   Future<void> add(VoiceSegmentUiModel segment) async {
     state = state.copyWith(segments: [...state.segments, segment]);
     await persist();
+    await _savedVoices.upsert(segment);
   }
 
   Future<void> updateAt(int index, VoiceSegmentUiModel segment) async {
@@ -382,6 +390,28 @@ class VoiceSequenceController extends StateNotifier<VoiceSequenceUiModel> {
   }
 }
 
+final savedVoicesProvider =
+    StateNotifierProvider<SavedVoicesController, List<VoiceSegmentUiModel>>((
+      ref,
+    ) {
+      return SavedVoicesController(ref.watch(savedVoiceRepositoryProvider));
+    });
+
+class SavedVoicesController extends StateNotifier<List<VoiceSegmentUiModel>> {
+  SavedVoicesController(this._repo) : super(_repo.loadAll());
+
+  final SavedVoiceRepository _repo;
+
+  Future<void> refresh() async {
+    state = _repo.loadAll();
+  }
+
+  Future<void> upsert(VoiceSegmentUiModel voice) async {
+    await _repo.upsert(voice);
+    state = _repo.loadAll();
+  }
+}
+
 final voiceSequenceProvider =
     StateNotifierProvider.family<
       VoiceSequenceController,
@@ -389,6 +419,7 @@ final voiceSequenceProvider =
       String
     >((ref, sequenceId) {
       final repo = ref.watch(sequenceRepositoryProvider);
+      final saved = ref.watch(savedVoiceRepositoryProvider);
       final existing = repo.findById(sequenceId);
       final initial =
           existing ??
@@ -397,7 +428,7 @@ final voiceSequenceProvider =
             name: 'Voice Sequence',
             segments: const [],
           );
-      final controller = VoiceSequenceController(repo, initial);
+      final controller = VoiceSequenceController(repo, initial, saved);
       if (existing == null) {
         // Fire-and-forget create so nested screens can write segments.
         controller.persist();

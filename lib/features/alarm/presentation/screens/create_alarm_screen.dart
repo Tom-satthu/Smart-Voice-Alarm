@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/responsive/responsive.dart';
+import '../../../../core/services/ios_alarm_scheduler.dart';
 import '../../../../core/utils/time_formatters.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
@@ -32,9 +33,11 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     Weekday.wednesday,
     Weekday.thursday,
     Weekday.friday,
+    Weekday.saturday,
+    Weekday.sunday,
   };
   int _repeatCount = 3;
-  AlarmType _type = AlarmType.voice;
+  AlarmType _type = AlarmType.mixed;
   String _ringtoneName = 'Soft Chime';
   String _label = '';
   String? _voiceSequenceId;
@@ -90,6 +93,19 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   Future<bool> _ensureNotificationAccess() async {
     if (kIsWeb) return true;
     final notifications = ref.read(notificationServiceProvider);
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final auth = await notifications.iosFanout.scheduler
+          .requestAuthorization();
+      if (auth['notifications'] == true) return true;
+      final alarmKit = auth['alarmKitAuthorization']?.toString();
+      if (alarmKit == 'denied') {
+        if (!mounted) return false;
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.alarmKitDenied)));
+      }
+    }
     if (await notifications.notificationPermissionGranted) return true;
     if (!mounted) return false;
     final l10n = AppLocalizations.of(context);
@@ -518,6 +534,10 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                       ),
                     ),
                   ],
+                  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
+                    const SizedBox(height: AppConstants.spaceXl),
+                    const _IosCapabilityCard(),
+                  ],
                 ],
               ),
             ),
@@ -578,3 +598,96 @@ class _DayToggle extends StatelessWidget {
     );
   }
 }
+
+class _IosCapabilityCard extends ConsumerStatefulWidget {
+  const _IosCapabilityCard();
+
+  @override
+  ConsumerState<_IosCapabilityCard> createState() => _IosCapabilityCardState();
+}
+
+class _IosCapabilityCardState extends ConsumerState<_IosCapabilityCard> {
+  IosAlarmCapability? _capability;
+  bool _dismissed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final cap = await ref
+          .read(notificationServiceProvider)
+          .iosFanout
+          .capability();
+      if (!mounted) return;
+      setState(() => _capability = cap);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_dismissed) return const SizedBox.shrink();
+    final cap = _capability;
+    // Only show the compact limited-support notice (hide while loading / full).
+    if (cap == null || cap.isFullSupport) return const SizedBox.shrink();
+
+    final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
+    return Material(
+      color: colors.surfaceContainerHighest.withValues(alpha: 0.85),
+      borderRadius: BorderRadius.circular(AppConstants.radiusMd),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Icon(
+                Icons.info_outline_rounded,
+                size: 18,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.iosLimitedSupportTitle,
+                    style: context.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n.iosLimitedSupportBody,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      height: 1.35,
+                      fontSize: 11.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: l10n.commonClose,
+              visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              onPressed: () => setState(() => _dismissed = true),
+              icon: Icon(
+                Icons.close_rounded,
+                size: 16,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

@@ -107,43 +107,46 @@ class SurfacePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? BorderRadius.circular(20);
-    final panel = AnimatedContainer(
-      duration: AppConstants.animationFast,
-      curve: Curves.easeOutCubic,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: context.colors.surface,
+    final color = context.colors.surface;
+    final borderColor = emphasized
+        ? context.colors.primary.withValues(alpha: 0.32)
+        : context.colors.outline.withValues(alpha: 0.38);
+    final shadows = emphasized
+        ? [
+            BoxShadow(
+              color: context.colors.primary.withValues(alpha: 0.10),
+              blurRadius: 28,
+              offset: const Offset(0, 10),
+            ),
+          ]
+        : [
+            BoxShadow(
+              color: context.colors.shadow.withValues(alpha: 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ];
+
+    // Use Material as the colored surface so ListTile ink/splash paint correctly.
+    final panel = Material(
+      color: color,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
         borderRadius: radius,
-        border: Border.all(
-          color: emphasized
-              ? context.colors.primary.withValues(alpha: 0.32)
-              : context.colors.outline.withValues(alpha: 0.38),
-          width: emphasized ? 1.2 : 1,
-        ),
-        boxShadow: emphasized
-            ? [
-                BoxShadow(
-                  color: context.colors.primary.withValues(alpha: 0.10),
-                  blurRadius: 28,
-                  offset: const Offset(0, 10),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: context.colors.shadow.withValues(alpha: 0.04),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+        side: BorderSide(color: borderColor, width: emphasized ? 1.2 : 1),
       ),
-      child: child,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Padding(padding: padding, child: child),
+      ),
     );
 
-    if (onTap == null) return panel;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(onTap: onTap, borderRadius: radius, child: panel),
+    return DecoratedBox(
+      decoration: BoxDecoration(borderRadius: radius, boxShadow: shadows),
+      child: panel,
     );
   }
 }

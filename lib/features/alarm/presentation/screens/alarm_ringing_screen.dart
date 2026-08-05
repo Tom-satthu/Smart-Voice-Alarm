@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/navigation/challenge_session.dart';
 import '../../../../core/services/alarm_engine.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
@@ -21,10 +21,12 @@ class AlarmRingingScreen extends ConsumerStatefulWidget {
     super.key,
     required this.alarmId,
     this.openDismissChallenge = false,
+    this.occurrenceId,
   });
 
   final String alarmId;
   final bool openDismissChallenge;
+  final String? occurrenceId;
 
   @override
   ConsumerState<AlarmRingingScreen> createState() => _AlarmRingingScreenState();
@@ -38,6 +40,9 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
   StreamSubscription<String?>? _activeSub;
   bool _showChallenge = false;
   bool _dismissing = false;
+  bool _dismissed = false;
+
+  bool get _isIos => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   @override
   void initState() {
@@ -54,7 +59,10 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
       setState(() => _activeId = id ?? _activeId);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _engine.enqueue(widget.alarmId);
+      // Android / in-app playback only. iOS fan-out plays via system sounds.
+      if (!_isIos && !_showChallenge) {
+        _engine.enqueue(widget.alarmId);
+      }
     });
   }
 
@@ -77,19 +85,37 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
     setState(() => _showChallenge = true);
   }
 
-  /// Ends this alarm session: stop all playback, clear ringing route, and leave
-  /// the app UI so the user does not land on Home/Settings with toggles.
-  Future<void> _completeDismiss() async {
+  Future<void> _onSolved() async {
     if (_dismissing) return;
     _dismissing = true;
+    final occurrenceId = widget.occurrenceId;
+    final notifications = ref.read(notificationServiceProvider);
+
     await _engine.stopAll();
-    await ref.read(notificationServiceProvider).native.stopForegroundAlarm();
-    if (!mounted) return;
-    // Reset route so a later resume is not stuck on /ringing.
-    context.go(AppRoutes.home);
-    if (!kIsWeb) {
-      await SystemNavigator.pop();
+    await notifications.native.stopForegroundAlarm();
+
+    if (_isIos && occurrenceId != null && occurrenceId.isNotEmpty) {
+      await notifications.iosFanout.cancelOccurrence(
+        parentAlarmId: widget.alarmId,
+        occurrenceId: occurrenceId,
+      );
+      clearChallengeKey(widget.alarmId, occurrenceId);
+    } else if (_isIos) {
+      await notifications.iosFanout.cancelAlarm(widget.alarmId);
     }
+
+    // Reschedule next occurrence after successful dismiss.
+    final alarm = ref.read(alarmListProvider.notifier).findById(widget.alarmId);
+    if (alarm != null && alarm.isEnabled) {
+      await notifications.scheduleAlarm(alarm);
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _dismissed = true;
+      _showChallenge = false;
+      _dismissing = false;
+    });
   }
 
   @override
@@ -103,12 +129,57 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
         _phase == AlarmEnginePhase.playingRingtone;
     final queued = _engine.queuedCount;
 
+    if (_dismissed) {
+      return Scaffold(
+        body: AmbientBackground(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(AppConstants.spaceXl),
+              child: Column(
+                children: [
+                  const Spacer(),
+                  Icon(
+                    Icons.check_circle_rounded,
+                    size: 72,
+                    color: context.colors.primary,
+                  ),
+                  const SizedBox(height: AppConstants.spaceLg),
+                  Text(
+                    l10n.alarmDismissedTitle,
+                    style: context.textTheme.headlineMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppConstants.spaceSm),
+                  Text(
+                    l10n.alarmDismissedBody,
+                    style: context.textTheme.bodyLarge?.copyWith(
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const Spacer(),
+                  PrimaryActionButton(
+                    label: l10n.commonDone,
+                    onPressed: () => context.go(AppRoutes.home),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     final body = _showChallenge
         ? Scaffold(
             resizeToAvoidBottomInset: true,
             body: AlarmMathChallenge(
-              onCancel: () => setState(() => _showChallenge = false),
-              onSolved: _completeDismiss,
+              onCancel: () {
+                // Leaving challenge without solving: remaining iOS children keep
+                // their schedule. Do not cancel them.
+                setState(() => _showChallenge = false);
+              },
+              onSolved: _onSolved,
             ),
           )
         : Scaffold(
@@ -124,9 +195,11 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
                       Text(title, style: context.textTheme.headlineLarge),
                       const SizedBox(height: AppConstants.spaceSm),
                       Text(
-                        _phase == AlarmEnginePhase.playingRingtone
-                            ? l10n.alarmTypeRingtone
-                            : l10n.alarmTypeVoice,
+                        _isIos
+                            ? l10n.alarmSolveToStop
+                            : (_phase == AlarmEnginePhase.playingRingtone
+                                  ? l10n.alarmTypeRingtone
+                                  : l10n.alarmTypeVoice),
                         style: context.textTheme.bodyLarge?.copyWith(
                           color: context.colors.onSurfaceVariant,
                         ),
@@ -141,7 +214,7 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
                         ),
                       ],
                       const SizedBox(height: AppConstants.spaceXl),
-                      WaveVisualizer(active: active),
+                      WaveVisualizer(active: active || _isIos),
                       if (_engine.statusText != null) ...[
                         const SizedBox(height: AppConstants.spaceMd),
                         Text(
@@ -170,7 +243,6 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
         if (_showChallenge) {
           setState(() => _showChallenge = false);
         }
-        // While ringing, ignore system back — dismiss requires the challenge.
       },
       child: body,
     );
