@@ -103,7 +103,9 @@ void main() {
     test('unsupported capability is not full AlarmKit support', () {
       final cap = IosAlarmCapability.unsupported();
       expect(cap.usesAlarmKit, isFalse);
+      expect(cap.supportsFullVoiceAlarm, isFalse);
       expect(cap.isFullSupport, isFalse);
+      expect(cap.shouldUseAlarmKitBackend, isFalse);
     });
   });
 

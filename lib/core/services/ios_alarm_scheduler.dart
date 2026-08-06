@@ -7,6 +7,7 @@ class IosAlarmCapability {
     required this.usesAlarmKit,
     required this.alarmKitAuthorization,
     required this.iosVersion,
+    this.supportsFullVoiceAlarm = false,
     this.maxVoiceSeconds = 20,
     this.maxVoiceSegments = 5,
     this.maxRingtoneSegments = 2,
@@ -16,27 +17,36 @@ class IosAlarmCapability {
   final bool usesAlarmKit;
   final String alarmKitAuthorization;
   final String iosVersion;
+  final bool supportsFullVoiceAlarm;
   final int maxVoiceSeconds;
   final int maxVoiceSegments;
   final int maxRingtoneSegments;
   final int gapSeconds;
 
-  bool get isFullSupport => usesAlarmKit;
+  bool get isFullSupport => usesAlarmKit && supportsFullVoiceAlarm;
   bool get isAlarmKitAuthorized => alarmKitAuthorization == 'authorized';
   bool get isAlarmKitDenied => alarmKitAuthorization == 'denied';
+  bool get isAlarmKitNotDetermined => alarmKitAuthorization == 'notDetermined';
+
+  /// Prefer AlarmKit when the OS supports it and the user authorized it.
+  bool get shouldUseAlarmKitBackend =>
+      usesAlarmKit && isAlarmKitAuthorized && supportsFullVoiceAlarm;
 
   factory IosAlarmCapability.unsupported() => const IosAlarmCapability(
     usesAlarmKit: false,
     alarmKitAuthorization: 'unsupported',
     iosVersion: '',
+    supportsFullVoiceAlarm: false,
   );
 
   factory IosAlarmCapability.fromMap(Map<dynamic, dynamic> map) {
+    final uses = map['usesAlarmKit'] == true;
     return IosAlarmCapability(
-      usesAlarmKit: map['usesAlarmKit'] == true,
+      usesAlarmKit: uses,
       alarmKitAuthorization:
           map['alarmKitAuthorization']?.toString() ?? 'unknown',
       iosVersion: map['iosVersion']?.toString() ?? '',
+      supportsFullVoiceAlarm: map['supportsFullVoiceAlarm'] == true || uses,
       maxVoiceSeconds: (map['maxVoiceSeconds'] as num?)?.toInt() ?? 20,
       maxVoiceSegments: (map['maxVoiceSegments'] as num?)?.toInt() ?? 5,
       maxRingtoneSegments: (map['maxRingtoneSegments'] as num?)?.toInt() ?? 2,
@@ -203,17 +213,41 @@ class IosAlarmScheduler {
     );
   }
 
-  Future<void> scheduleSegments({
+  /// Schedules segments on exactly one backend.
+  ///
+  /// [backend] must be `alarmKit` or `notificationFanout`. Never schedules both.
+  Future<Map<String, dynamic>> scheduleSegments({
     required List<IosAlarmSegment> segments,
     required String title,
     required String body,
+    required String backend,
   }) async {
-    if (!isSupported || segments.isEmpty) return;
-    await _channel.invokeMethod<void>('scheduleSegments', {
+    if (!isSupported || segments.isEmpty) {
+      return {
+        'ok': true,
+        'backend': backend,
+        'scheduledIds': <String>[],
+        'stage': 'notification_schedule',
+      };
+    }
+    final raw = await _channel.invokeMethod<Map>('scheduleSegments', {
       'title': title,
       'body': body,
+      'backend': backend,
       'segments': segments.map((s) => s.toNativeMap()).toList(),
     });
+    return Map<String, dynamic>.from(raw ?? {'ok': true, 'backend': backend});
+  }
+
+  Future<Map<String, dynamic>> alarmKitDiagnostics() async {
+    if (!isSupported) return const {};
+    try {
+      final raw = await _channel.invokeMethod<Map>('alarmKitDiagnostics');
+      return Map<String, dynamic>.from(raw ?? const {});
+    } catch (e) {
+      debugPrint('[SVA-AlarmKit] diagnostics failed: $e');
+      return const {};
+    }
   }
 
   Future<void> cancelParent(String parentAlarmId) async {

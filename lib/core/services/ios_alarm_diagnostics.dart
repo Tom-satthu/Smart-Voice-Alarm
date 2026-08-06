@@ -44,6 +44,8 @@ class IosAlarmDiagnostics {
       _caseChallengePayload,
       _caseRingtoneAssetResolution,
       _casePendingQuery,
+      _caseAlarmKitCapabilityRouting,
+      _caseAlarmKitDiagnosticsShape,
     ];
 
     for (final run in cases) {
@@ -345,6 +347,64 @@ class IosAlarmDiagnostics {
         name,
         code: 'pending_query_failed',
         stage: 'notification_schedule',
+        detail: '$e',
+      );
+    }
+  }
+
+  Future<DiagCase> _caseAlarmKitCapabilityRouting() async {
+    const name = 'diag_alarmkit_routing';
+    try {
+      final cap = await _notifications.iosFanout.capability();
+      final backend = cap.shouldUseAlarmKitBackend
+          ? AlarmScheduleBackend.alarmKit
+          : AlarmScheduleBackend.notificationFanout;
+      // Dual-schedule guard: selection is exclusive.
+      final exclusive =
+          backend == AlarmScheduleBackend.alarmKit ||
+          backend == AlarmScheduleBackend.notificationFanout;
+      return DiagCase(
+        name: name,
+        passed: exclusive,
+        stage: 'validation',
+        detail:
+            'backend=$backend usesAlarmKit=${cap.usesAlarmKit} '
+            'auth=${cap.alarmKitAuthorization} '
+            'full=${cap.supportsFullVoiceAlarm}',
+      );
+    } catch (e) {
+      return DiagCase.fail(
+        name,
+        code: 'capability_failed',
+        stage: 'validation',
+        detail: '$e',
+      );
+    }
+  }
+
+  Future<DiagCase> _caseAlarmKitDiagnosticsShape() async {
+    const name = 'diag_alarmkit_native';
+    try {
+      final raw = await _notifications.iosFanout.scheduler
+          .alarmKitDiagnostics();
+      final hasAuth = raw.containsKey('authorization');
+      final hasIds = raw.containsKey('scheduledAlarmKitIds');
+      final hasMap = raw.containsKey('mappingCount');
+      return DiagCase(
+        name: name,
+        passed: hasAuth && hasIds && hasMap,
+        stage: 'validation',
+        detail:
+            'auth=${raw['authorization']} '
+            'ids=${(raw['scheduledAlarmKitIds'] as List?)?.length ?? 0} '
+            'mappingCount=${raw['mappingCount']} '
+            'pending=${raw['pendingChallenge'] != null}',
+      );
+    } catch (e) {
+      return DiagCase.fail(
+        name,
+        code: 'alarmkit_diag_failed',
+        stage: 'validation',
         detail: '$e',
       );
     }

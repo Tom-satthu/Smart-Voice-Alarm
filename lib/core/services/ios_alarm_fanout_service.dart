@@ -366,11 +366,89 @@ class IosAlarmFanoutService {
     }
 
     try {
-      log('notification_schedule', 'segments=${planned.length}');
-      await _scheduler.scheduleSegments(
+      // Backend selection: AlarmKit only when iOS 26+ capability is authorized.
+      // Never schedule both backends for the same occurrence.
+      var cap = await _scheduler.getCapability();
+      if (cap.usesAlarmKit &&
+          (cap.isAlarmKitNotDetermined ||
+              cap.alarmKitAuthorization == 'unknown')) {
+        // Save Alarm path already requested auth; refresh capability once.
+        try {
+          await _scheduler.requestAuthorization();
+        } catch (e) {
+          debugPrint('[SVA-AlarmKit] auth refresh: $e');
+        }
+        cap = await _scheduler.getCapability();
+      }
+
+      final useAlarmKit = cap.shouldUseAlarmKitBackend;
+      final backend = useAlarmKit
+          ? AlarmScheduleBackend.alarmKit
+          : AlarmScheduleBackend.notificationFanout;
+      debugPrint(
+        '[SVA-AlarmKit] backend=$backend authorization=${cap.alarmKitAuthorization}',
+      );
+      log('schedule_backend', 'backend=$backend segments=${planned.length}');
+
+      final native = await _scheduler.scheduleSegments(
         segments: planned,
         title: alarm.label.isEmpty ? 'Smart Voice Alarm' : alarm.label,
         body: 'Solve to stop',
+        backend: backend,
+      );
+      final ok = native['ok'] != false;
+      if (!ok) {
+        for (final name in renderedNames) {
+          try {
+            await _scheduler.deleteSoundFile(name);
+          } catch (_) {}
+        }
+        return AlarmScheduleResult.fail(
+          errorCode: native['errorCode']?.toString() ?? 'schedule_failed',
+          errorMessage: native['errorMessage']?.toString() ?? 'Schedule failed',
+          stage: native['stage']?.toString() ?? 'notification_schedule',
+          transactionId: tx,
+          backend: native['backend']?.toString() ?? backend,
+        );
+      }
+
+      final scheduledIds =
+          (native['scheduledIds'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          planned.map((s) => s.childId).toList();
+      final keepIds = useAlarmKit
+          ? scheduledIds.toSet()
+          : planned.map((s) => s.childId).toSet();
+
+      try {
+        log('selective_cancel', 'keep=${keepIds.length}');
+        await _scheduler.cancelParentExcept(
+          parentAlarmId: alarm.id,
+          keepChildIds: keepIds,
+        );
+      } catch (e) {
+        debugPrint('[SVA-Schedule] selective cancel failed: $e');
+      }
+
+      final mergedWarning = native['warningCode']?.toString() ?? warningCode;
+      final mergedWarningMsg =
+          native['warningMessage']?.toString() ?? warningMessage;
+
+      log(
+        'result',
+        'code=${mergedWarning ?? 'ok'} stage=${native['stage']} '
+            'backend=$backend ok=true',
+      );
+      return AlarmScheduleResult.ok(
+        stage:
+            native['stage']?.toString() ??
+            (useAlarmKit ? 'alarmkit_schedule' : 'notification_schedule'),
+        warningCode: mergedWarning,
+        warningMessage: mergedWarningMsg,
+        transactionId: tx,
+        backend: backend,
+        scheduledIds: scheduledIds,
       );
     } catch (e) {
       for (final name in renderedNames) {
@@ -384,27 +462,6 @@ class IosAlarmFanoutService {
         stage: 'notification_schedule',
       );
     }
-
-    try {
-      log('selective_cancel', 'keep=${planned.length}');
-      await _scheduler.cancelParentExcept(
-        parentAlarmId: alarm.id,
-        keepChildIds: planned.map((s) => s.childId).toSet(),
-      );
-    } catch (e) {
-      debugPrint('[SVA-Schedule] selective cancel failed: $e');
-    }
-
-    log(
-      'result',
-      'code=${warningCode ?? 'ok'} stage=notification_schedule ok=true',
-    );
-    return AlarmScheduleResult.ok(
-      stage: 'notification_schedule',
-      warningCode: warningCode,
-      warningMessage: warningMessage,
-      transactionId: tx,
-    );
   }
 
   Future<AlarmScheduleResult?> _preflightRecording(

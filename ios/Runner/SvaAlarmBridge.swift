@@ -23,6 +23,14 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     channel.setMethodCallHandler(instance.handle)
     // Categories only — never render audio during plugin registration.
     SvaNotificationFanout.configureCategories()
+    NotificationCenter.default.addObserver(
+      forName: Notification.Name("SvaOpenChallenge"),
+      object: nil,
+      queue: .main
+    ) { note in
+      guard let info = note.userInfo as? [String: Any] else { return }
+      instance.channel?.invokeMethod("onOpenChallenge", arguments: info)
+    }
   }
 
   static func sharedHandleWillPresent(_ notification: UNNotification) {
@@ -78,7 +86,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     case "requestAuthorization":
       Task {
         do {
-          let status = try await requestAuth()
+          // Called only from Save Alarm — may prompt AlarmKit + notifications.
+          let status = try await requestAuth(includeAlarmKit: true)
           reply(result, status)
         } catch {
           replyError(
@@ -86,6 +95,24 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
             code: "auth",
             message: error.localizedDescription,
             stage: "requestAuthorization"
+          )
+        }
+      }
+    case "requestAlarmKitAuthorization":
+      Task {
+        do {
+          let state = try await SvaAlarmKitScheduler.requestAuthorization()
+          NSLog("[SVA-AlarmKit] authorization=%@", state)
+          reply(result, [
+            "alarmKitAuthorization": state,
+            "usesAlarmKit": SvaAlarmKitManager.isRuntimeAvailable,
+          ])
+        } catch {
+          replyError(
+            result,
+            code: "alarmkit_auth",
+            message: error.localizedDescription,
+            stage: "requestAlarmKitAuthorization"
           )
         }
       }
@@ -140,11 +167,17 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       }
       let title = (args["title"] as? String) ?? "Smart Voice Alarm"
       let body = (args["body"] as? String) ?? "Solve to stop"
+      let backend = (args["backend"] as? String) ?? "notificationFanout"
       let segments = rawSegments.compactMap(Self.parseSegment)
       Task {
         do {
-          try await schedule(segments: segments, title: title, body: body)
-          self.reply(result, true)
+          let outcome = try await schedule(
+            segments: segments,
+            title: title,
+            body: body,
+            backend: backend
+          )
+          self.reply(result, outcome)
         } catch {
           self.replyError(
             result,
@@ -163,6 +196,7 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       let parent = args?["parentAlarmId"] as? String ?? ""
       let keep = Set(args?["keepChildIds"] as? [String] ?? [])
       SvaNotificationFanout.cancelParentExcept(parentAlarmId: parent, keepChildIds: keep)
+      SvaAlarmKitScheduler.cancelParentExcept(parentAlarmId: parent, keepChildIds: keep)
       reply(result, true)
     case "cancelOccurrence":
       let args = call.arguments as? [String: Any]
@@ -173,6 +207,11 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     case "cancelChildren":
       let ids = (call.arguments as? [String: Any])?["childIds"] as? [String] ?? []
       cancelChildren(ids)
+      reply(result, true)
+    case "alarmKitDiagnostics":
+      reply(result, SvaAlarmKitScheduler.diagnostics())
+    case "reconcileAlarmKit":
+      SvaAlarmKitScheduler.reconcile()
       reply(result, true)
     case "consumePendingChallenge":
       if let pending = SvaPendingStore.consume() {
@@ -217,12 +256,18 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
   }
 
   private func capability() -> [String: Any] {
-    // AlarmKit is stubbed — do not advertise full AlarmKit support.
+    let uses = SvaAlarmKitManager.isRuntimeAvailable
+    let auth = uses ? SvaAlarmKitScheduler.authorizationState() : "unavailable"
+    NSLog(
+      "[SVA-AlarmKit] capability usesAlarmKit=%@ authorization=%@",
+      uses ? "true" : "false",
+      auth
+    )
     return [
       "iosVersion": UIDevice.current.systemVersion,
-      "usesAlarmKit": false,
-      "alarmKitAuthorization": "unsupported",
-      "supportsFullVoiceAlarm": false,
+      "usesAlarmKit": uses,
+      "alarmKitAuthorization": auth,
+      "supportsFullVoiceAlarm": uses,
       "maxVoiceSeconds": 20,
       "maxVoiceSegments": 5,
       "maxRingtoneSegments": 2,
@@ -230,30 +275,60 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     ]
   }
 
-  private func requestAuth() async throws -> [String: Any] {
+  private func requestAuth(includeAlarmKit: Bool) async throws -> [String: Any] {
     let notif = try await UNUserNotificationCenter.current()
       .requestAuthorization(options: [.alert, .sound, .badge])
+    var alarmKitAuth = "unavailable"
+    let uses = SvaAlarmKitManager.isRuntimeAvailable
+    if includeAlarmKit && uses {
+      alarmKitAuth = try await SvaAlarmKitScheduler.requestAuthorization()
+      NSLog("[SVA-AlarmKit] authorization=%@", alarmKitAuth)
+    } else if uses {
+      alarmKitAuth = SvaAlarmKitScheduler.authorizationState()
+    }
     return [
       "notifications": notif,
-      "alarmKitAuthorization": "unsupported",
-      "usesAlarmKit": false,
+      "alarmKitAuthorization": alarmKitAuth,
+      "usesAlarmKit": uses,
     ]
   }
 
-  private func schedule(segments: [SvaSegmentSpec], title: String, body: String) async throws {
+  private func schedule(
+    segments: [SvaSegmentSpec],
+    title: String,
+    body: String,
+    backend: String
+  ) async throws -> [String: Any] {
+    if backend == "alarmKit" {
+      NSLog("[SVA-AlarmKit] backend=alarmKit")
+      let outcome = try await SvaAlarmKitScheduler.schedule(segments: segments, title: title)
+      // Never silently fall back to notification fan-out after a partial AlarmKit attempt.
+      return outcome.asDictionary
+    }
+
+    NSLog("[SVA-AlarmKit] backend=notificationFanout")
     try await SvaNotificationFanout.schedule(segments: segments, title: title, body: body)
+    return [
+      "ok": true,
+      "backend": "notificationFanout",
+      "scheduledIds": segments.map(\.childId),
+      "stage": "notification_schedule",
+    ]
   }
 
   private func cancelParent(_ parent: String) {
     SvaNotificationFanout.cancelParent(parentAlarmId: parent)
+    SvaAlarmKitScheduler.cancelParent(parentAlarmId: parent)
   }
 
   private func cancelOccurrence(parent: String, occurrence: String) {
     SvaNotificationFanout.cancelOccurrence(parentAlarmId: parent, occurrenceId: occurrence)
+    SvaAlarmKitScheduler.cancelOccurrence(parentAlarmId: parent, occurrenceId: occurrence)
   }
 
   private func cancelChildren(_ ids: [String]) {
     SvaNotificationFanout.cancel(childIds: ids)
+    SvaAlarmKitScheduler.cancel(childIds: ids)
   }
 
   private static func parseSegment(_ raw: [String: Any]) -> SvaSegmentSpec? {

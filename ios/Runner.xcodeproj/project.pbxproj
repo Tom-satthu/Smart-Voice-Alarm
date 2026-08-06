@@ -23,6 +23,9 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		B5AA285C56EE39E1BED1FD17 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 194573371FC43DEACC9739B9 /* Pods_RunnerTests.framework */; };
 		DE3F11F3439279382792B821 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5511B1A833AE406F54880D90 /* Pods_Runner.framework */; };
+		A11ARMKITMGR01BUILD /* SvaAlarmKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ARMKITMGR01FILE /* SvaAlarmKitManager.swift */; };
+		A11ARMKITINT01BUILD /* SvaAlarmKitIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ARMKITINT01FILE /* SvaAlarmKitIntents.swift */; };
+		A11ARMKITFRM01BUILD /* AlarmKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11ARMKITFRM01FILE /* AlarmKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +82,10 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A11ARMKITMGR01FILE /* SvaAlarmKitManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitManager.swift; sourceTree = "<group>"; };
+		A11ARMKITINT01FILE /* SvaAlarmKitIntents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitIntents.swift; sourceTree = "<group>"; };
+		A11ARMKITENT01FILE /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		A11ARMKITFRM01FILE /* AlarmKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AlarmKit.framework; path = System/Library/Frameworks/AlarmKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +94,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
+				A11ARMKITFRM01BUILD /* AlarmKit.framework in Frameworks */,
 				DE3F11F3439279382792B821 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -105,6 +113,7 @@
 		2EA03CDC2196F67EEC69A414 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A11ARMKITFRM01FILE /* AlarmKit.framework */,
 				5511B1A833AE406F54880D90 /* Pods_Runner.framework */,
 				194573371FC43DEACC9739B9 /* Pods_RunnerTests.framework */,
 			);
@@ -166,6 +175,9 @@
 				B0B9B63B84584651B4AC5F22 /* SvaAlarmModels.swift */,
 				9C8CBDD4F6F54241ACC2BFB7 /* SvaAudioRenderer.swift */,
 				3DB4BE6B480E4CE48A1041E5 /* SvaAlarmKitScheduler.swift */,
+				A11ARMKITMGR01FILE /* SvaAlarmKitManager.swift */,
+				A11ARMKITINT01FILE /* SvaAlarmKitIntents.swift */,
+				A11ARMKITENT01FILE /* Runner.entitlements */,
 				5C8BDDB393B549268440C806 /* SvaNotificationFanout.swift */,
 				193F01D04AFF4ACDA2BFFAC7 /* SvaAlarmBridge.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
@@ -391,6 +403,8 @@
 				55C8DB2CED80469AB777A239 /* SvaAlarmModels.swift in Sources */,
 				96DD2D1B2154468DBECC168A /* SvaAudioRenderer.swift in Sources */,
 				05B84C68C4FD43B79016B231 /* SvaAlarmKitScheduler.swift in Sources */,
+				A11ARMKITMGR01BUILD /* SvaAlarmKitManager.swift in Sources */,
+				A11ARMKITINT01BUILD /* SvaAlarmKitIntents.swift in Sources */,
 				F48C50F4EF924EF4B1CECE49 /* SvaNotificationFanout.swift in Sources */,
 				7BDB97E53BB046A2BBC55541 /* SvaAlarmBridge.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
@@ -485,6 +499,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					AlarmKit,
+					"-weak_framework",
+					AppIntents,
+				);
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 52VVJZC2GX;
 				ENABLE_BITCODE = NO;
@@ -668,6 +690,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					AlarmKit,
+					"-weak_framework",
+					AppIntents,
+				);
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 52VVJZC2GX;
 				ENABLE_BITCODE = NO;
@@ -691,6 +721,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					AlarmKit,
+					"-weak_framework",
+					AppIntents,
+				);
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 52VVJZC2GX;
 				ENABLE_BITCODE = NO;

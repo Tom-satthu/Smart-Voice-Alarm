@@ -176,9 +176,9 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       }
     }
     if (_type == AlarmType.voice && seq.segments.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.alarmSelectSequence)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.alarmSelectSequence)));
       return;
     }
     if (_type != AlarmType.ringtone && seq.segments.isNotEmpty) {
