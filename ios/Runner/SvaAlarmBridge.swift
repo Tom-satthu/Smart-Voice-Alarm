@@ -111,9 +111,23 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
         let probe = await SvaAlarmKitRuntime.userInitiatedRequestAuthorization()
         reply(result, probe)
       }
-    case "debugClearAlarmKitKillSwitch":
-      SvaAlarmKitRuntime.debugClearKillSwitch()
+    case "debugClearAlarmKitKillSwitch", "resetLegacyAlarmKitDiagnosticState":
+      let clearUser = (call.arguments as? [String: Any])?["clearUserDisabled"] as? Bool ?? false
+      SvaAlarmKitRuntime.resetLegacyDiagnosticState(clearUserDisabled: clearUser)
       reply(result, true)
+    case "acknowledgePendingChallenge":
+      let args = call.arguments as? [String: Any]
+      let parent = args?["parentAlarmId"] as? String ?? ""
+      let occurrence = args?["occurrenceId"] as? String ?? ""
+      reply(result, SvaPendingStore.acknowledge(parent: parent, occurrence: occurrence))
+    case "clearPendingChallengeAfterSolve":
+      let args = call.arguments as? [String: Any]
+      let parent = args?["parentAlarmId"] as? String ?? ""
+      let occurrence = args?["occurrenceId"] as? String ?? ""
+      SvaPendingStore.clearAfterSolve(parent: parent, occurrence: occurrence)
+      reply(result, true)
+    case "passiveAlarmKitDiagnostics":
+      reply(result, SvaAlarmKitRuntime.passiveDiagnostics())
     case "renderSound":
       guard let args = call.arguments as? [String: Any],
             let fileName = args["fileName"] as? String
@@ -268,7 +282,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     var supportsFull = false
     if includeAlarmKit,
        SvaAlarmKitRuntime.isVersionEligible,
-       !SvaAlarmKitRuntime.isKillSwitchActive
+       !SvaAlarmKitRuntime.isUserDisabled,
+       !SvaAlarmKitRuntime.isDiagnosticForceDisabled
     {
       let probe = await SvaAlarmKitRuntime.userInitiatedRequestAuthorization()
       alarmKitAuth = probe["alarmKitAuthorization"] as? String ?? "unknown"
@@ -280,7 +295,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       "alarmKitAuthorization": alarmKitAuth,
       "usesAlarmKit": uses,
       "supportsFullVoiceAlarm": supportsFull,
-      "alarmKitDisabled": SvaAlarmKitRuntime.isKillSwitchActive,
+      "alarmKitDisabled": SvaAlarmKitRuntime.isUserDisabled
+        || SvaAlarmKitRuntime.isDiagnosticForceDisabled,
     ]
   }
 

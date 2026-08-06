@@ -13,6 +13,9 @@ void main() {
         runtimeVersionEligible: true,
         alarmKitRuntimeEnabled: true,
         supportsFullVoiceAlarm: true,
+        probeEverSucceeded: true,
+        selectedBackend: 'alarmKit',
+        backendSelectionReason: 'authorized',
       );
       expect(cap.shouldUseAlarmKitBackend, isTrue);
       expect(cap.isFullSupport, isTrue);
@@ -37,8 +40,11 @@ void main() {
         iosVersion: '26.5.2',
         runtimeVersionEligible: true,
         alarmKitRuntimeEnabled: true,
-        alarmKitDisabled: true,
+        userDisabled: true,
+        selectedBackend: 'notificationFanout',
+        backendSelectionReason: 'user_disabled',
         supportsFullVoiceAlarm: true,
+        probeEverSucceeded: true,
       );
       expect(cap.shouldUseAlarmKitBackend, isFalse);
     });
@@ -96,13 +102,26 @@ void main() {
       final cap = IosAlarmCapability.fromMap({
         'usesAlarmKit': true,
         'supportsFullVoiceAlarm': true,
-        'alarmKitAuthorization': 'authorized',
+        'cachedAuthorization': 'authorized',
         'runtimeVersionEligible': true,
         'alarmKitRuntimeEnabled': true,
+        'probeEverSucceeded': true,
+        'selectedBackend': 'alarmKit',
         'iosVersion': '26.0',
       });
       expect(cap.supportsFullVoiceAlarm, isTrue);
       expect(cap.shouldUseAlarmKitBackend, isTrue);
+    });
+
+    test('schedule result carries backendReason', () {
+      final ok = AlarmScheduleResult.ok(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'denied',
+        warningCode: 'alarmkit_denied_fallback',
+        warningMessage: 'fallback',
+      );
+      expect(ok.backendReason, 'denied');
+      expect(ok.hasWarning, isTrue);
     });
   });
 }

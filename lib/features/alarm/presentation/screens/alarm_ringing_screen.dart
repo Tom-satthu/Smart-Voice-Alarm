@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/navigation/challenge_launch_coordinator.dart';
 import '../../../../core/navigation/challenge_session.dart';
 import '../../../../core/services/alarm_engine.dart';
 import '../../../../localization/generated/app_localizations.dart';
@@ -99,7 +100,10 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
         parentAlarmId: widget.alarmId,
         occurrenceId: occurrenceId,
       );
-      clearChallengeKey(widget.alarmId, occurrenceId);
+      await ChallengeLaunchCoordinator.instance.clearAfterSolved(
+        parentAlarmId: widget.alarmId,
+        occurrenceId: occurrenceId,
+      );
     } else if (_isIos) {
       await notifications.iosFanout.cancelAlarm(widget.alarmId);
     }

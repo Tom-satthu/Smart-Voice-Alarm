@@ -10,6 +10,10 @@ void main() {
       // Default in unit test VM: not a review build unless injected at compile time.
       expect(SvaBuildStamp.reviewBuild, isFalse);
     });
+
+    test('production autoProbe is false without review build', () {
+      expect(SvaBuildStamp.autoProbe, isFalse);
+    });
   });
 
   group('SvaReviewBuildStampSection', () {

@@ -13,6 +13,7 @@ class AlarmScheduleResult {
     this.needsAudioRepair = false,
     this.transactionId,
     this.backend,
+    this.backendReason,
     this.scheduledIds = const [],
   });
 
@@ -30,6 +31,7 @@ class AlarmScheduleResult {
 
   /// `alarmKit` or `notificationFanout` when known.
   final String? backend;
+  final String? backendReason;
   final List<String> scheduledIds;
 
   bool get hasWarning => warningCode != null && warningCode!.trim().isNotEmpty;
@@ -42,6 +44,7 @@ class AlarmScheduleResult {
     String? stage,
     String? transactionId,
     String? backend,
+    String? backendReason,
     List<String> scheduledIds = const [],
   }) {
     return AlarmScheduleResult(
@@ -51,6 +54,7 @@ class AlarmScheduleResult {
       warningMessage: warningMessage,
       transactionId: transactionId,
       backend: backend,
+      backendReason: backendReason,
       scheduledIds: scheduledIds,
     );
   }
@@ -65,6 +69,7 @@ class AlarmScheduleResult {
     bool needsAudioRepair = false,
     String? transactionId,
     String? backend,
+    String? backendReason,
   }) {
     return AlarmScheduleResult(
       ok: false,
@@ -77,6 +82,7 @@ class AlarmScheduleResult {
       needsAudioRepair: needsAudioRepair,
       transactionId: transactionId,
       backend: backend,
+      backendReason: backendReason,
     );
   }
 
@@ -93,6 +99,7 @@ class AlarmScheduleResult {
     bool? needsAudioRepair,
     String? transactionId,
     String? backend,
+    String? backendReason,
     List<String>? scheduledIds,
   }) {
     return AlarmScheduleResult(
@@ -108,14 +115,15 @@ class AlarmScheduleResult {
       needsAudioRepair: needsAudioRepair ?? this.needsAudioRepair,
       transactionId: transactionId ?? this.transactionId,
       backend: backend ?? this.backend,
+      backendReason: backendReason ?? this.backendReason,
       scheduledIds: scheduledIds ?? this.scheduledIds,
     );
   }
 
   @override
   String toString() =>
-      'AlarmScheduleResult(ok=$ok backend=$backend code=$errorCode '
-      'stage=$stage warn=$warningCode msg=$errorMessage)';
+      'AlarmScheduleResult(ok=$ok backend=$backend reason=$backendReason '
+      'code=$errorCode stage=$stage warn=$warningCode msg=$errorMessage)';
 }
 
 /// @nodoc Kept for call sites that still reference the iOS-specific name.

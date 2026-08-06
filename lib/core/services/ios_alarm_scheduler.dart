@@ -11,6 +11,12 @@ class IosAlarmCapability {
     this.alarmKitDisabled = false,
     this.alarmKitRuntimeEnabled = false,
     this.supportsFullVoiceAlarm = false,
+    this.probeEverSucceeded = false,
+    this.userDisabled = false,
+    this.diagnosticForceOff = false,
+    this.sessionProbeFailed = false,
+    this.selectedBackend = '',
+    this.backendSelectionReason = '',
     this.maxVoiceSeconds = 20,
     this.maxVoiceSegments = 5,
     this.maxRingtoneSegments = 2,
@@ -24,6 +30,12 @@ class IosAlarmCapability {
   final bool alarmKitDisabled;
   final bool alarmKitRuntimeEnabled;
   final bool supportsFullVoiceAlarm;
+  final bool probeEverSucceeded;
+  final bool userDisabled;
+  final bool diagnosticForceOff;
+  final bool sessionProbeFailed;
+  final String selectedBackend;
+  final String backendSelectionReason;
   final int maxVoiceSeconds;
   final int maxVoiceSegments;
   final int maxRingtoneSegments;
@@ -38,13 +50,20 @@ class IosAlarmCapability {
       alarmKitAuthorization == 'unsupported';
 
   /// Prefer AlarmKit only after user-initiated probe succeeded and authorized.
-  bool get shouldUseAlarmKitBackend =>
-      runtimeVersionEligible &&
-      !alarmKitDisabled &&
-      alarmKitRuntimeEnabled &&
-      usesAlarmKit &&
-      isAlarmKitAuthorized &&
-      supportsFullVoiceAlarm;
+  bool get shouldUseAlarmKitBackend {
+    if (selectedBackend.isNotEmpty) {
+      return selectedBackend == 'alarmKit';
+    }
+    return runtimeVersionEligible &&
+        !alarmKitDisabled &&
+        !userDisabled &&
+        !diagnosticForceOff &&
+        alarmKitRuntimeEnabled &&
+        usesAlarmKit &&
+        isAlarmKitAuthorized &&
+        supportsFullVoiceAlarm &&
+        probeEverSucceeded;
+  }
 
   factory IosAlarmCapability.unsupported() => const IosAlarmCapability(
     usesAlarmKit: false,
@@ -55,15 +74,24 @@ class IosAlarmCapability {
 
   factory IosAlarmCapability.fromMap(Map<dynamic, dynamic> map) {
     final uses = map['usesAlarmKit'] == true;
+    final auth =
+        map['cachedAuthorization']?.toString() ??
+        map['alarmKitAuthorization']?.toString() ??
+        'unknown';
     return IosAlarmCapability(
       usesAlarmKit: uses,
-      alarmKitAuthorization:
-          map['alarmKitAuthorization']?.toString() ?? 'unknown',
+      alarmKitAuthorization: auth,
       iosVersion: map['iosVersion']?.toString() ?? '',
       runtimeVersionEligible: map['runtimeVersionEligible'] == true,
       alarmKitDisabled: map['alarmKitDisabled'] == true,
       alarmKitRuntimeEnabled: map['alarmKitRuntimeEnabled'] == true,
       supportsFullVoiceAlarm: map['supportsFullVoiceAlarm'] == true,
+      probeEverSucceeded: map['probeEverSucceeded'] == true,
+      userDisabled: map['userDisabled'] == true,
+      diagnosticForceOff: map['diagnosticForceOff'] == true,
+      sessionProbeFailed: map['sessionProbeFailed'] == true,
+      selectedBackend: map['selectedBackend']?.toString() ?? '',
+      backendSelectionReason: map['backendSelectionReason']?.toString() ?? '',
       maxVoiceSeconds: (map['maxVoiceSeconds'] as num?)?.toInt() ?? 20,
       maxVoiceSegments: (map['maxVoiceSegments'] as num?)?.toInt() ?? 5,
       maxRingtoneSegments: (map['maxRingtoneSegments'] as num?)?.toInt() ?? 2,
@@ -217,7 +245,9 @@ class IosAlarmScheduler {
   Future<Map<String, dynamic>> requestAlarmKitAuthorization() async {
     if (!isSupported) return const {'ok': false};
     try {
-      final raw = await _channel.invokeMethod<Map>('requestAlarmKitAuthorization');
+      final raw = await _channel.invokeMethod<Map>(
+        'requestAlarmKitAuthorization',
+      );
       return Map<String, dynamic>.from(raw ?? const {'ok': false});
     } catch (e) {
       debugPrint('[SVA-AlarmKit] requestAlarmKitAuthorization failed: $e');
@@ -244,7 +274,47 @@ class IosAlarmScheduler {
 
   Future<void> debugClearAlarmKitKillSwitch() async {
     if (!isSupported) return;
-    await _channel.invokeMethod<void>('debugClearAlarmKitKillSwitch');
+    await _channel.invokeMethod<void>('resetLegacyAlarmKitDiagnosticState');
+  }
+
+  Future<Map<String, dynamic>> passiveAlarmKitDiagnostics() async {
+    if (!isSupported) return const {};
+    try {
+      final raw = await _channel.invokeMethod<Map>(
+        'passiveAlarmKitDiagnostics',
+      );
+      return Map<String, dynamic>.from(raw ?? const {});
+    } catch (e) {
+      debugPrint('[SVA-AlarmKit] passive diagnostics failed: $e');
+      return const {};
+    }
+  }
+
+  Future<bool> acknowledgePendingChallenge({
+    required String parentAlarmId,
+    required String occurrenceId,
+  }) async {
+    if (!isSupported) return false;
+    try {
+      final raw = await _channel.invokeMethod<bool>(
+        'acknowledgePendingChallenge',
+        {'parentAlarmId': parentAlarmId, 'occurrenceId': occurrenceId},
+      );
+      return raw ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> clearPendingChallengeAfterSolve({
+    required String parentAlarmId,
+    required String occurrenceId,
+  }) async {
+    if (!isSupported) return;
+    await _channel.invokeMethod<void>('clearPendingChallengeAfterSolve', {
+      'parentAlarmId': parentAlarmId,
+      'occurrenceId': occurrenceId,
+    });
   }
 
   Future<IosRenderedSound> renderSound({

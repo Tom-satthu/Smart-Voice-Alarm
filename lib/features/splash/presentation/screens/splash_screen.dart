@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../localization/generated/app_localizations.dart';
+import '../../../../core/navigation/challenge_launch_coordinator.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/widgets/visual_widgets.dart';
 import '../../../../shared/providers/prototype_providers.dart';
@@ -58,13 +59,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         .peekIosPendingChallenge();
     if (!mounted) return;
     if (pending != null && pending.parentAlarmId.isNotEmpty) {
-      final path = AppRoutes.ringingPath(
-        pending.parentAlarmId,
-        challenge: true,
-        occurrenceId: pending.occurrenceId,
-      );
-      debugPrint('[SVA-Challenge] splash → pending challenge route=$path');
-      context.go(path);
+      ChallengeLaunchCoordinator.instance.enqueue(pending);
+      debugPrint('[SVA-Challenge] splash → coordinator pending challenge');
       return;
     }
     if (!mounted) return;

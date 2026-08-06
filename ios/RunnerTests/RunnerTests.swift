@@ -9,8 +9,12 @@ final class RunnerTests: XCTestCase {
     SvaAlarmKitRuntime.resetCountersForTests()
     SvaAlarmKitStore.save([])
     UserDefaults.standard.removeObject(forKey: "sva_alarmkit_disabled")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_disabled_reason")
     UserDefaults.standard.removeObject(forKey: "sva_alarmkit_probe_success")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_probe_ever_succeeded")
     UserDefaults.standard.removeObject(forKey: "sva_alarmkit_cached_auth")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_user_disabled")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_state_migrated_v2")
     UserDefaults.standard.removeObject(forKey: SvaAlarmKeys.pendingChallenge)
   }
 
@@ -62,7 +66,8 @@ final class RunnerTests: XCTestCase {
       XCTAssertTrue(SvaAlarmKitManager.isRuntimeAvailable)
     } else {
       XCTAssertFalse(SvaAlarmKitManager.isRuntimeAvailable)
-      XCTAssertEqual(SvaAlarmKitManager.authorizationStateString(), "unavailable")
+      let auth = SvaAlarmKitManager.authorizationStateString()
+      XCTAssertTrue(auth == "unknown" || auth == "unsupported")
     }
   }
 
@@ -271,12 +276,114 @@ final class RunnerTests: XCTestCase {
     }
   }
 
-  func testKillSwitchBlocksRuntimeEnabled() {
-    SvaAlarmKitRuntime.markDisabled(reason: "test", persistent: true)
+  func testLegacyDeniedMigrationCachesDeniedNotUnavailable() {
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_disabled")
+    UserDefaults.standard.set("authorization_denied", forKey: "sva_alarmkit_disabled_reason")
+    SvaAlarmKitRuntime.migrateLegacyStateIfNeeded()
     let cap = SvaAlarmKitRuntime.passiveCapability()
-    XCTAssertEqual(cap["alarmKitDisabled"] as? Bool, true)
-    XCTAssertEqual(cap["usesAlarmKit"] as? Bool, false)
-    SvaAlarmKitRuntime.debugClearKillSwitch()
+    XCTAssertEqual(cap["cachedAuthorization"] as? String, "denied")
+    XCTAssertFalse(UserDefaults.standard.bool(forKey: "sva_alarmkit_disabled"))
+    if #available(iOS 26.0, *) {
+      XCTAssertEqual(cap["selectedBackend"] as? String, "notificationFanout")
+      XCTAssertEqual(cap["backendSelectionReason"] as? String, "denied")
+    }
+  }
+
+  func testLegacyProbeFailureMigrationClearsPersistentDisabled() {
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_disabled")
+    UserDefaults.standard.set("probe_failed", forKey: "sva_alarmkit_disabled_reason")
+    UserDefaults.standard.set("unavailable", forKey: "sva_alarmkit_cached_auth")
+    SvaAlarmKitRuntime.migrateLegacyStateIfNeeded()
+    XCTAssertFalse(UserDefaults.standard.bool(forKey: "sva_alarmkit_disabled"))
+    let cap = SvaAlarmKitRuntime.passiveCapability()
+    XCTAssertNotEqual(cap["cachedAuthorization"] as? String, "unavailable")
+    if #available(iOS 26.0, *) {
+      XCTAssertEqual(
+        cap["backendSelectionReason"] as? String,
+        "needs_user_probe_or_authorization"
+      )
+    }
+  }
+
+  func testSessionProbeFailureDoesNotPersistDisabled() {
+    SvaAlarmKitRuntime.resetSessionStateForTests()
+    SvaAlarmKitRuntime.resetLegacyDiagnosticState()
+    let cap = SvaAlarmKitRuntime.passiveCapability()
+    XCTAssertEqual(cap["sessionProbeFailed"] as? Bool, false)
+    XCTAssertFalse(UserDefaults.standard.bool(forKey: "sva_alarmkit_disabled"))
+  }
+
+  func testResetLegacyDoesNotCallAlarmKitCounters() {
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_disabled")
+    SvaAlarmKitRuntime.resetLegacyDiagnosticState()
+    XCTAssertEqual(SvaAlarmKitRuntime.authorizationStateReadCount, 0)
+    XCTAssertEqual(SvaAlarmKitRuntime.requestAuthorizationCount, 0)
+  }
+
+  func testPendingPeekDoesNotRemove() {
+    let challenge = SvaPendingChallenge(
+      parentAlarmId: "p1",
+      occurrenceId: "o1",
+      childId: "c1",
+      segmentIndex: 0,
+      scheduledTimestamp: 1,
+      openChallenge: true
+    )
+    SvaPendingStore.save(challenge)
+    XCTAssertNotNil(SvaPendingStore.peek())
+    XCTAssertNotNil(SvaPendingStore.peek())
+  }
+
+  func testAcknowledgeRemovesMatchingPending() {
+    SvaPendingStore.save(
+      SvaPendingChallenge(
+        parentAlarmId: "p1",
+        occurrenceId: "o1",
+        childId: "c1",
+        segmentIndex: 0,
+        scheduledTimestamp: 1,
+        openChallenge: true
+      )
+    )
+    XCTAssertTrue(SvaPendingStore.acknowledge(parent: "p1", occurrence: "o1"))
+    XCTAssertNil(SvaPendingStore.peek())
+  }
+
+  func testAcknowledgeMismatchKeepsPending() {
+    SvaPendingStore.save(
+      SvaPendingChallenge(
+        parentAlarmId: "p1",
+        occurrenceId: "o1",
+        childId: "c1",
+        segmentIndex: 0,
+        scheduledTimestamp: 1,
+        openChallenge: true
+      )
+    )
+    XCTAssertFalse(SvaPendingStore.acknowledge(parent: "p1", occurrence: "wrong"))
+    XCTAssertNotNil(SvaPendingStore.peek())
+  }
+
+  func testMalformedPendingPayloadDoesNotCrash() {
+    let bad: [String: Any] = ["parentAlarmId": "", "occurrenceId": 12, "childId": NSNull()]
+    XCTAssertNil(SvaPendingChallenge.from(dictionary: bad))
+  }
+
+  func testUserDisabledSelectsFanout() {
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_user_disabled")
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_state_migrated_v2")
+    let (_, reason) = SvaAlarmKitRuntime.backendSelection()
+    if #available(iOS 26.0, *) {
+      XCTAssertEqual(reason, "user_disabled")
+    } else {
+      XCTAssertEqual(reason, "version_ineligible")
+    }
+    SvaAlarmKitRuntime.setUserDisabled(false)
+  }
+
+  func testSolveActionIdentifierIsLocaleIndependent() {
+    XCTAssertEqual(SvaAlarmKeys.actionSolve, "SVA_SOLVE_TO_STOP")
+    XCTAssertNotEqual(SvaAlarmKeys.actionSolve, "Solve to stop")
   }
 
   // MARK: - Helpers

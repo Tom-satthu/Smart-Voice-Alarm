@@ -20,6 +20,7 @@ import '../../../../core/utils/time_formatters.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/providers/prototype_providers.dart';
+import '../widgets/sva_review_alarmkit_runtime_section.dart';
 import '../widgets/sva_review_build_stamp_section.dart';
 import '../../../../shared/widgets/app_widgets.dart';
 import '../../../../theme/theme_provider.dart';
@@ -428,6 +429,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   !kIsWeb &&
                   defaultTargetPlatform == TargetPlatform.iOS,
               stampText: _reviewBuildLabel ?? SvaBuildStamp.formatForSettings(),
+            ),
+            SvaReviewAlarmKitRuntimeSection(
+              visible:
+                  SvaBuildStamp.reviewBuild &&
+                  !kIsWeb &&
+                  defaultTargetPlatform == TargetPlatform.iOS,
             ),
             if (kDebugMode &&
                 !kIsWeb &&

@@ -366,17 +366,19 @@ class IosAlarmFanoutService {
     }
 
     try {
-      // Passive capability only — never triggers AlarmKit at startup/Save planning.
-      final cap = await _scheduler.getCapability();
-      final useAlarmKit = cap.shouldUseAlarmKitBackend;
-      final backend = useAlarmKit
-          ? AlarmScheduleBackend.alarmKit
-          : AlarmScheduleBackend.notificationFanout;
+      final resolved = await _resolveBackendOnSave();
+      final backend = resolved.backend;
+      final backendReason = resolved.backendReason;
+      var resolvedWarningCode = resolved.warningCode ?? warningCode;
+      var resolvedWarningMessage = resolved.warningMessage ?? warningMessage;
       debugPrint(
-        '[SVA-AlarmKit] backend=$backend authorization=${cap.alarmKitAuthorization} '
-        'disabled=${cap.alarmKitDisabled} runtime=${cap.alarmKitRuntimeEnabled}',
+        '[SVA-AlarmKit] backend=$backend reason=$backendReason '
+        'authorization=${resolved.capability.alarmKitAuthorization}',
       );
-      log('schedule_backend', 'backend=$backend segments=${planned.length}');
+      log(
+        'schedule_backend',
+        'backend=$backend reason=$backendReason segments=${planned.length}',
+      );
 
       final native = await _scheduler.scheduleSegments(
         segments: planned,
@@ -397,9 +399,11 @@ class IosAlarmFanoutService {
           stage: native['stage']?.toString() ?? 'notification_schedule',
           transactionId: tx,
           backend: native['backend']?.toString() ?? backend,
+          backendReason: backendReason,
         );
       }
 
+      final useAlarmKit = backend == AlarmScheduleBackend.alarmKit;
       final scheduledIds =
           (native['scheduledIds'] as List?)
               ?.map((e) => e.toString())
@@ -419,14 +423,15 @@ class IosAlarmFanoutService {
         debugPrint('[SVA-Schedule] selective cancel failed: $e');
       }
 
-      final mergedWarning = native['warningCode']?.toString() ?? warningCode;
+      final mergedWarning =
+          native['warningCode']?.toString() ?? resolvedWarningCode;
       final mergedWarningMsg =
-          native['warningMessage']?.toString() ?? warningMessage;
+          native['warningMessage']?.toString() ?? resolvedWarningMessage;
 
       log(
         'result',
         'code=${mergedWarning ?? 'ok'} stage=${native['stage']} '
-            'backend=$backend ok=true',
+            'backend=$backend reason=$backendReason ok=true',
       );
       return AlarmScheduleResult.ok(
         stage:
@@ -436,6 +441,7 @@ class IosAlarmFanoutService {
         warningMessage: mergedWarningMsg,
         transactionId: tx,
         backend: backend,
+        backendReason: backendReason,
         scheduledIds: scheduledIds,
       );
     } catch (e) {
@@ -450,6 +456,122 @@ class IosAlarmFanoutService {
         stage: 'notification_schedule',
       );
     }
+  }
+
+  Future<_BackendResolution> _resolveBackendOnSave() async {
+    var cap = await _scheduler.getCapability();
+    if (cap.shouldUseAlarmKitBackend) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.alarmKit,
+        backendReason: cap.backendSelectionReason.isNotEmpty
+            ? cap.backendSelectionReason
+            : 'authorized',
+        capability: cap,
+      );
+    }
+    if (!cap.runtimeVersionEligible) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'version_ineligible',
+        capability: cap,
+      );
+    }
+    if (cap.diagnosticForceOff) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'diagnostic_force_off',
+        capability: cap,
+        warningCode: 'alarmkit_diagnostic_off',
+        warningMessage: 'AlarmKit disabled in this review build.',
+      );
+    }
+    if (cap.userDisabled) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'user_disabled',
+        capability: cap,
+        warningCode: 'alarmkit_user_disabled',
+        warningMessage: 'AlarmKit turned off — using notification fallback.',
+      );
+    }
+    if (cap.isAlarmKitDenied) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'denied',
+        capability: cap,
+        warningCode: 'alarmkit_denied_fallback',
+        warningMessage:
+            'Alarm permission denied — notifications will ring instead.',
+      );
+    }
+
+    final probe = await _scheduler.probeAlarmKitPassive();
+    cap = await _scheduler.getCapability();
+    final probeAuth =
+        probe['alarmKitAuthorization']?.toString() ?? cap.alarmKitAuthorization;
+
+    if (probe['ok'] != true) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'session_probe_failed',
+        capability: cap,
+        warningCode: 'alarmkit_probe_failed',
+        warningMessage: 'AlarmKit unavailable this time — using notifications.',
+      );
+    }
+
+    if (probeAuth == 'notDetermined' || probeAuth == 'unknown') {
+      final auth = await _scheduler.requestAlarmKitAuthorization();
+      cap = await _scheduler.getCapability();
+      final authState =
+          auth['alarmKitAuthorization']?.toString() ??
+          cap.alarmKitAuthorization;
+      if (authState == 'authorized' &&
+          (auth['ok'] == true || cap.shouldUseAlarmKitBackend)) {
+        return _BackendResolution(
+          backend: AlarmScheduleBackend.alarmKit,
+          backendReason: 'authorized',
+          capability: cap,
+        );
+      }
+      if (authState == 'denied') {
+        return _BackendResolution(
+          backend: AlarmScheduleBackend.notificationFanout,
+          backendReason: 'denied',
+          capability: cap,
+          warningCode: 'alarmkit_denied_fallback',
+          warningMessage:
+              'Alarm permission denied — notifications will ring instead.',
+        );
+      }
+      if (auth['ok'] != true) {
+        return _BackendResolution(
+          backend: AlarmScheduleBackend.notificationFanout,
+          backendReason: 'session_request_failed',
+          capability: cap,
+          warningCode: 'alarmkit_request_failed',
+          warningMessage: 'Could not enable AlarmKit — using notifications.',
+        );
+      }
+    }
+
+    if (probeAuth == 'authorized' && cap.shouldUseAlarmKitBackend) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.alarmKit,
+        backendReason: 'authorized',
+        capability: cap,
+      );
+    }
+
+    return _BackendResolution(
+      backend: AlarmScheduleBackend.notificationFanout,
+      backendReason: cap.backendSelectionReason.isNotEmpty
+          ? cap.backendSelectionReason
+          : 'needs_user_probe_or_authorization',
+      capability: cap,
+      warningCode: 'alarmkit_fallback',
+      warningMessage: 'Using notification fallback for this alarm.',
+    );
   }
 
   Future<AlarmScheduleResult?> _preflightRecording(
@@ -607,6 +729,22 @@ class IosAlarmFanoutService {
     }
     return null;
   }
+}
+
+class _BackendResolution {
+  const _BackendResolution({
+    required this.backend,
+    required this.backendReason,
+    required this.capability,
+    this.warningCode,
+    this.warningMessage,
+  });
+
+  final String backend;
+  final String backendReason;
+  final IosAlarmCapability capability;
+  final String? warningCode;
+  final String? warningMessage;
 }
 
 /// Tiny IO helper so fanout can write materialized assets without importing
