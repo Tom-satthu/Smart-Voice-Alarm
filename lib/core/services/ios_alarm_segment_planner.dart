@@ -7,18 +7,32 @@ class PreparedAlarmClip {
     required this.fileName,
     required this.duration,
     this.label = '',
+    this.contentDuration,
+    this.trailingSilence = Duration.zero,
   });
 
   final String fileName;
+
+  /// Finalized CAF duration (content + trailing silence) used by the planner.
   final Duration duration;
   final String label;
+  final Duration? contentDuration;
+  final Duration trailingSilence;
 }
 
 PreparedAlarmClip preparedClip({
   required String fileName,
   required Duration duration,
   String label = '',
-}) => PreparedAlarmClip(fileName: fileName, duration: duration, label: label);
+  Duration? contentDuration,
+  Duration trailingSilence = Duration.zero,
+}) => PreparedAlarmClip(
+  fileName: fileName,
+  duration: duration,
+  label: label,
+  contentDuration: contentDuration,
+  trailingSilence: trailingSilence,
+);
 
 class IosPlanValidationException implements Exception {
   IosPlanValidationException(this.code, this.message);
@@ -38,7 +52,6 @@ class IosAlarmPlan {
     required this.audibleChildCount,
     required this.silentChildCount,
     required this.childrenPerCycle,
-    required this.transitionPadding,
   });
 
   final List<IosAlarmSegment> segments;
@@ -48,7 +61,6 @@ class IosAlarmPlan {
   final int audibleChildCount;
   final int silentChildCount;
   final int childrenPerCycle;
-  final Duration transitionPadding;
 
   int get childCount => segments.length;
   DateTime? get lastScheduledEnd {
@@ -61,18 +73,16 @@ class IosAlarmPlan {
 /// Pure planner for iOS AlarmKit / notification fan-out.
 ///
 /// Timeline (mixed):
-/// voice → [transition padding] → silence 5s → … → ringtone 10s →
-/// [transition padding] → silence 5s → next cycle
+/// voice(file=content+trailingSilence) → silence gap 5s → …
+/// → ringtone(file=10s+trailing) → silence gap 5s → next cycle
 ///
-/// Padding protects the audible tail; gap is the product rest. Silence CAF
-/// stays exactly [AlarmKitTimelineConfig.silenceGap].
+/// Planner does **not** add extra transition padding; that lives inside CAF files.
 class IosAlarmSegmentPlanner {
   IosAlarmSegmentPlanner({
     this.maxVoiceSegments = 5,
     this.maxRingtoneSegments = 1,
     this.gap = AlarmKitTimelineConfig.silenceGap,
-    this.transitionPadding = AlarmKitTimelineConfig.transitionPadding,
-    this.maxVoiceDuration = AlarmKitTimelineConfig.maxVoiceDuration,
+    this.maxVoiceDuration = AlarmKitTimelineConfig.maxVoiceContentDuration,
     this.ringtoneDuration = AlarmKitTimelineConfig.ringtoneDuration,
     this.maxChildren = AlarmKitTimelineConfig.maxChildren,
     this.targetHorizon = AlarmKitTimelineConfig.targetHorizon,
@@ -84,7 +94,6 @@ class IosAlarmSegmentPlanner {
   final int maxVoiceSegments;
   final int maxRingtoneSegments;
   final Duration gap;
-  final Duration transitionPadding;
   final Duration maxVoiceDuration;
   final Duration ringtoneDuration;
   final int maxChildren;
@@ -171,16 +180,15 @@ class IosAlarmSegmentPlanner {
     var total = Duration.zero;
     if (type != AlarmType.ringtone) {
       for (final clip in voiceClips.take(maxVoiceSegments)) {
-        total += _clampVoice(clip.duration) + transitionPadding + gap;
+        total += _clampFinalized(clip.duration) + gap;
       }
     }
     if (type != AlarmType.voice && ringtoneClips.isNotEmpty) {
-      total += ringtoneDuration + transitionPadding + gap;
+      total += _clampRingtone(ringtoneClips.first) + gap;
     }
     return total;
   }
 
-  /// One-cycle template clips for native stop-recovery (audible + silence only).
   List<Map<String, dynamic>> cycleTemplateMaps({
     required AlarmType type,
     required List<PreparedAlarmClip> voiceClips,
@@ -189,33 +197,48 @@ class IosAlarmSegmentPlanner {
     final out = <Map<String, dynamic>>[];
     if (type != AlarmType.ringtone) {
       for (final clip in voiceClips.take(maxVoiceSegments)) {
-        final duration = _clampVoice(clip.duration);
+        final duration = _clampFinalized(clip.duration);
         out.add({
           'role': IosSegmentRole.voice.name,
           'soundFileName': clip.fileName,
           'durationMs': duration.inMilliseconds,
+          'contentDurationMs':
+              (clip.contentDuration ?? duration).inMilliseconds,
+          'trailingSilenceMs': clip.trailingSilence.inMilliseconds,
           'label': clip.label.isEmpty ? 'voice' : clip.label,
         });
         out.add({
           'role': IosSegmentRole.silence.name,
           'soundFileName': silenceFileName,
           'durationMs': gap.inMilliseconds,
+          'contentDurationMs': gap.inMilliseconds,
+          'trailingSilenceMs': 0,
           'label': 'silence',
         });
       }
     }
     if (type != AlarmType.voice && ringtoneClips.isNotEmpty) {
       final clip = ringtoneClips.first;
+      final duration = _clampRingtone(clip);
       out.add({
         'role': IosSegmentRole.ringtone.name,
         'soundFileName': clip.fileName,
-        'durationMs': ringtoneDuration.inMilliseconds,
+        'durationMs': duration.inMilliseconds,
+        'contentDurationMs':
+            (clip.contentDuration ?? ringtoneDuration).inMilliseconds,
+        'trailingSilenceMs':
+            (clip.trailingSilence > Duration.zero
+                    ? clip.trailingSilence
+                    : AlarmKitTimelineConfig.trailingSilence)
+                .inMilliseconds,
         'label': clip.label.isEmpty ? 'ringtone' : clip.label,
       });
       out.add({
         'role': IosSegmentRole.silence.name,
         'soundFileName': silenceFileName,
         'durationMs': gap.inMilliseconds,
+        'contentDurationMs': gap.inMilliseconds,
+        'trailingSilenceMs': 0,
         'label': 'silence',
       });
     }
@@ -296,7 +319,7 @@ class IosAlarmSegmentPlanner {
     for (var cycle = 0; cycle < cycles; cycle++) {
       if (alarm.type != AlarmType.ringtone) {
         for (final clip in voices) {
-          final duration = _clampVoice(clip.duration);
+          final duration = _clampFinalized(clip.duration);
           out.add(
             _segment(
               alarm: alarm,
@@ -312,8 +335,7 @@ class IosAlarmSegmentPlanner {
             ),
           );
           audible += 1;
-          // Protect audible tail before silence replaces the alert.
-          cursor = cursor.add(duration).add(transitionPadding);
+          cursor = cursor.add(duration);
           index += 1;
 
           out.add(
@@ -338,6 +360,7 @@ class IosAlarmSegmentPlanner {
 
       if (includeRingtone) {
         final clip = tones.first;
+        final duration = _clampRingtone(clip);
         out.add(
           _segment(
             alarm: alarm,
@@ -345,7 +368,7 @@ class IosAlarmSegmentPlanner {
             index: index,
             cycleIndex: cycle,
             startAt: cursor,
-            duration: ringtoneDuration,
+            duration: duration,
             fileName: clip.fileName,
             role: IosSegmentRole.ringtone,
             label: clip.label.isEmpty ? 'ringtone' : clip.label,
@@ -353,7 +376,7 @@ class IosAlarmSegmentPlanner {
           ),
         );
         audible += 1;
-        cursor = cursor.add(ringtoneDuration).add(transitionPadding);
+        cursor = cursor.add(duration);
         index += 1;
 
         out.add(
@@ -384,7 +407,6 @@ class IosAlarmSegmentPlanner {
       audibleChildCount: audible,
       silentChildCount: silent,
       childrenPerCycle: perCycle,
-      transitionPadding: transitionPadding,
     );
   }
 
@@ -422,9 +444,32 @@ class IosAlarmSegmentPlanner {
     );
   }
 
-  Duration _clampVoice(Duration duration) {
+  /// Finalized CAF may be content+trailing; clamp soft upper to content max + trail + 1s.
+  Duration _clampFinalized(Duration duration) {
     if (duration <= Duration.zero) return const Duration(seconds: 1);
-    if (duration > maxVoiceDuration) return maxVoiceDuration;
+    final maxFinal =
+        maxVoiceDuration +
+        AlarmKitTimelineConfig.trailingSilence +
+        const Duration(seconds: 1);
+    if (duration > maxFinal) return maxFinal;
     return duration;
+  }
+
+  /// Ringtone content is exactly [ringtoneDuration]; file may include trailing silence.
+  Duration _clampRingtone(PreparedAlarmClip clip) {
+    final trail = clip.trailingSilence > Duration.zero
+        ? clip.trailingSilence
+        : AlarmKitTimelineConfig.trailingSilence;
+    final expected = ringtoneDuration + trail;
+    if (clip.duration > Duration.zero &&
+        clip.duration <= expected + const Duration(milliseconds: 500)) {
+      // Prefer measured finalized duration when present.
+      if (clip.contentDuration != null ||
+          clip.trailingSilence > Duration.zero ||
+          clip.duration >= ringtoneDuration) {
+        return clip.duration <= expected ? clip.duration : expected;
+      }
+    }
+    return expected;
   }
 }

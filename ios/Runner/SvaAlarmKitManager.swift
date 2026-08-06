@@ -477,28 +477,86 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
 
     do {
       let soundMode = SvaAlarmKitSoundNameMode.preferred
+      let isRecovery = segments.contains { $0.recoveryGeneration > 0 }
+
+      struct ResolvedChild {
+        let segment: SvaSegmentSpec
+        let alarmId: UUID
+        let sound: AlertConfiguration.AlertSound
+        let diagnostics: SvaSoundDiagnostics
+      }
+      var resolved: [ResolvedChild] = []
       for segment in segments {
         let alarmId = SvaAlarmKitManager.deterministicAlarmId(for: segment.childId)
-        let sourceType = Self.inferSourceType(fileName: segment.soundFileName, label: segment.label)
+        let sourceType = Self.inferSourceType(
+          fileName: segment.soundFileName,
+          label: segment.label
+        )
+        let trimmed = segment.soundFileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let intentionalSystemDefault =
+          trimmed.isEmpty
+          && (segment.label == "system_default" || segment.role == "ringtone")
+        let allowDefault = intentionalSystemDefault && !isRecovery
         let soundResult = SvaAlarmKitSoundResolver.resolve(
           fileName: segment.soundFileName,
           mode: soundMode,
           sourceType: sourceType,
           childId: segment.childId,
           segmentIndex: segment.segmentIndex,
-          alarmKitId: alarmId.uuidString
+          alarmKitId: alarmId.uuidString,
+          allowDefaultFallback: allowDefault,
+          updateSource: isRecovery ? "recovery" : "initial_schedule"
         )
         if let w = soundResult.diagnostics.warningCode {
           warningCode = w
           warningMessage = soundResult.diagnostics.warningMessage
         }
         NSLog(
-          "[SVA-AlarmKit] sound file=%@ named=%@ mode=%@ resolved=%@",
+          "[SVA-AlarmKit] sound file=%@ named=%@ mode=%@ usedDefault=%d requireCustom=%d",
           segment.soundFileName,
           soundResult.diagnostics.alertSoundNameExact,
           soundMode.rawValue,
-          soundResult.diagnostics.usedDefault ? "default" : "custom"
+          soundResult.diagnostics.usedDefault ? 1 : 0,
+          soundResult.diagnostics.requireCustomSound ? 1 : 0
         )
+        guard let sound = soundResult.sound else {
+          return SvaAlarmKitScheduleOutcome(
+            ok: false,
+            backend: "alarmKit",
+            scheduledIds: [],
+            warningCode: soundResult.diagnostics.warningCode ?? warningCode,
+            warningMessage: soundResult.diagnostics.warningMessage ?? warningMessage,
+            errorCode: soundResult.diagnostics.warningCode ?? "custom_sound_invalid",
+            errorMessage: soundResult.diagnostics.warningMessage
+              ?? "Custom sound required — refused default fallback",
+            stage: isRecovery ? "recovery_sound_resolve" : "alarmkit_sound_resolve"
+          )
+        }
+        if soundResult.diagnostics.usedDefault && !allowDefault {
+          return SvaAlarmKitScheduleOutcome(
+            ok: false,
+            backend: "alarmKit",
+            scheduledIds: [],
+            warningCode: "custom_sound_default_refused",
+            warningMessage: "Resolver attempted default for custom child",
+            errorCode: "custom_sound_default_refused",
+            errorMessage: "Custom recovery/voice must not use .default",
+            stage: isRecovery ? "recovery_sound_resolve" : "alarmkit_sound_resolve"
+          )
+        }
+        resolved.append(
+          ResolvedChild(
+            segment: segment,
+            alarmId: alarmId,
+            sound: sound,
+            diagnostics: soundResult.diagnostics
+          )
+        )
+      }
+
+      for item in resolved {
+        let segment = item.segment
+        let alarmId = item.alarmId
         NSLog(
           "[SVA-AlarmKit] schedule child=%@ index=%d id=%@",
           segment.childId,
@@ -562,10 +620,10 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
           attributes: attributes,
           stopIntent: stopIntent,
           secondaryIntent: secondaryIntent,
-          sound: soundResult.sound
+          sound: item.sound
         )
         _ = try await AlarmManager.shared.schedule(id: alarmId, configuration: configuration)
-        var scheduledDiag = soundResult.diagnostics
+        var scheduledDiag = item.diagnostics
         scheduledDiag.scheduleOk = true
         SvaAlarmKitSoundStore.saveLast(scheduledDiag)
         created.append(

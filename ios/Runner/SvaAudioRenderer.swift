@@ -36,13 +36,15 @@ enum SvaAudioRenderer {
     ttsLocale: String?,
     fileName: String,
     maxSeconds: Double,
-    targetDurationSeconds: Double? = nil
+    targetDurationSeconds: Double? = nil,
+    trailingSilenceSeconds: Double = 1.25
   ) async throws -> [String: Any] {
-    NSLog("[SVA-Audio] render begin file=%@ tts=%d path=%d asset=%d",
+    NSLog("[SVA-Audio] render begin file=%@ tts=%d path=%d asset=%d trail=%.2f",
           fileName,
           (ttsText?.isEmpty == false) ? 1 : 0,
           (sourcePath?.isEmpty == false) ? 1 : 0,
-          (assetKey?.isEmpty == false) ? 1 : 0)
+          (assetKey?.isEmpty == false) ? 1 : 0,
+          trailingSilenceSeconds)
 
     let dest = soundsDirectory.appendingPathComponent(fileName)
     let temp = FileManager.default.temporaryDirectory
@@ -88,9 +90,31 @@ enum SvaAudioRenderer {
       try normalizeLoudness(at: temp)
       try validateRenderedFile(temp)
       if let target = targetDurationSeconds, target > 0 {
+        // Fit *content* to exact length (e.g. ringtone 10s) before trailing silence.
         try fitToExactDuration(at: temp, targetSeconds: min(target, maxSeconds))
       }
-      let preValidation = SvaAudioFileValidator.validate(url: temp)
+      let contentValidation = SvaAudioFileValidator.validate(
+        url: temp,
+        maxDurationSeconds: maxSeconds + 0.25
+      )
+      guard contentValidation.ok else {
+        throw svaError(
+          422,
+          contentValidation.errorMessage ?? "Rendered audio failed validation"
+        )
+      }
+      let contentDurationMs = contentValidation.durationMs
+      var trailingMs = 0
+      if trailingSilenceSeconds > 0 {
+        trailingMs = try appendTrailingSilence(
+          at: temp,
+          silenceSeconds: trailingSilenceSeconds
+        )
+      }
+      let preValidation = SvaAudioFileValidator.validate(
+        url: temp,
+        maxDurationSeconds: maxSeconds + trailingSilenceSeconds + 0.5
+      )
       guard preValidation.ok else {
         throw svaError(
           422,
@@ -101,15 +125,20 @@ enum SvaAudioRenderer {
         try FileManager.default.removeItem(at: dest)
       }
       try FileManager.default.moveItem(at: temp, to: dest)
-      let validation = SvaAudioFileValidator.validate(url: dest)
+      let validation = SvaAudioFileValidator.validate(
+        url: dest,
+        maxDurationSeconds: maxSeconds + trailingSilenceSeconds + 0.5
+      )
       let duration = Double(validation.durationMs) / 1000.0
       let size = validation.fileSize
       let hash = (try? debugFileHash(dest)) ?? "na"
       NSLog(
-        "[SVA-Audio] render ok file=%@ path=%@ size=%d durationMs=%d hash=%@ fmt=%@ playable=%d",
+        "[SVA-Audio] render ok file=%@ path=%@ size=%d contentMs=%d trailMs=%d finalMs=%d hash=%@ fmt=%@ playable=%d",
         fileName,
         dest.path,
         size,
+        contentDurationMs,
+        trailingMs,
         validation.durationMs,
         hash,
         validation.formatDescription,
@@ -119,6 +148,9 @@ enum SvaAudioRenderer {
         "fileName": fileName,
         "path": dest.path,
         "durationMs": validation.durationMs,
+        "contentDurationMs": contentDurationMs,
+        "trailingSilenceMs": trailingMs,
+        "finalizedFileDurationMs": validation.durationMs,
         "byteSize": size,
         "debugHash": hash,
         "sampleRate": validation.sampleRate,
@@ -141,8 +173,10 @@ enum SvaAudioRenderer {
   }
 
   static func cleanupOrphans(activeFileNames: Set<String>) {
-    guard !activeFileNames.isEmpty else {
-      NSLog("[SVA-Audio] cleanupOrphans skipped — empty active set")
+    let pinned = SvaActiveSoundRegistry.pinnedFileNames()
+    let keep = activeFileNames.union(pinned)
+    guard !keep.isEmpty else {
+      NSLog("[SVA-Audio] cleanupOrphans skipped — empty active+pinned set")
       return
     }
     let dir = soundsDirectory
@@ -150,13 +184,21 @@ enum SvaAudioRenderer {
       at: dir,
       includingPropertiesForKeys: nil
     ) else { return }
+    var removed = 0
     for file in files {
       let name = file.lastPathComponent
       guard name.hasPrefix("sva_") else { continue }
-      if !activeFileNames.contains(name) {
+      if !keep.contains(name) {
         try? FileManager.default.removeItem(at: file)
+        removed += 1
       }
     }
+    NSLog(
+      "[SVA-Audio] cleanupOrphans keep=%d pinned=%d removed=%d",
+      keep.count,
+      pinned.count,
+      removed
+    )
   }
 
   // MARK: - Helpers
@@ -650,6 +692,90 @@ enum SvaAudioRenderer {
     }
     try FileManager.default.moveItem(at: temp, to: url)
     NSLog("[SVA-Audio] fitToExactDuration target=%.2fs frames=%d", targetSeconds, dstFrames)
+  }
+
+  /// Append linear PCM silence after existing content. Returns trailing silence ms.
+  static func appendTrailingSilence(at url: URL, silenceSeconds: Double) throws -> Int {
+    guard silenceSeconds > 0 else { return 0 }
+    guard let outFormat = outputFormat() else {
+      throw svaError(500, "Unable to create output format")
+    }
+    let input = try AVAudioFile(forReading: url)
+    let srcFormat = input.processingFormat
+    let srcLength = AVAudioFrameCount(input.length)
+    guard srcLength > 0 else { throw svaError(422, "Source empty for trailing silence") }
+
+    guard let srcBuffer = AVAudioPCMBuffer(pcmFormat: srcFormat, frameCapacity: srcLength)
+    else { throw svaError(500, "trail buffer alloc failed") }
+    try input.read(into: srcBuffer)
+
+    let pcm: AVAudioPCMBuffer
+    if formatsCompatible(srcBuffer.format, outFormat) {
+      pcm = srcBuffer
+    } else {
+      guard let converter = AVAudioConverter(from: srcBuffer.format, to: outFormat) else {
+        throw svaError(501, "trail converter unavailable")
+      }
+      let ratio = outFormat.sampleRate / max(srcBuffer.format.sampleRate, 1)
+      let capacity = AVAudioFrameCount(Double(srcBuffer.frameLength) * ratio) + 32
+      guard let converted = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: capacity)
+      else { throw svaError(500, "trail convert buffer failed") }
+      var gotInput = false
+      var convertError: NSError?
+      let status = converter.convert(to: converted, error: &convertError) { _, outStatus in
+        if gotInput {
+          outStatus.pointee = .noDataNow
+          return nil
+        }
+        gotInput = true
+        outStatus.pointee = .haveData
+        return srcBuffer
+      }
+      if let convertError { throw convertError }
+      if status == .error || converted.frameLength == 0 {
+        throw svaError(422, "trail convert produced no audio")
+      }
+      pcm = converted
+    }
+
+    let silenceFrames = AVAudioFrameCount(silenceSeconds * outFormat.sampleRate)
+    guard silenceFrames > 0 else { return 0 }
+    let totalFrames = pcm.frameLength + silenceFrames
+    guard let outBuffer = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: totalFrames),
+          let src = pcm.int16ChannelData?[0],
+          let dst = outBuffer.int16ChannelData?[0]
+    else { throw svaError(500, "trail output channel missing") }
+    outBuffer.frameLength = totalFrames
+    let contentFrames = Int(pcm.frameLength)
+    let total = Int(totalFrames)
+    for i in 0..<contentFrames {
+      dst[i] = src[i]
+    }
+    for i in contentFrames..<total {
+      dst[i] = 0
+    }
+
+    let temp = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_trail_\(UUID().uuidString).caf")
+    let outputFile = try AVAudioFile(
+      forWriting: temp,
+      settings: outFormat.settings,
+      commonFormat: outFormat.commonFormat,
+      interleaved: outFormat.isInterleaved
+    )
+    try outputFile.write(from: outBuffer)
+    if FileManager.default.fileExists(atPath: url.path) {
+      try FileManager.default.removeItem(at: url)
+    }
+    try FileManager.default.moveItem(at: temp, to: url)
+    let trailingMs = Int((Double(silenceFrames) / outFormat.sampleRate * 1000).rounded())
+    NSLog(
+      "[SVA-Audio] appendTrailingSilence silenceSec=%.3f trailMs=%d totalFrames=%d",
+      silenceSeconds,
+      trailingMs,
+      total
+    )
+    return trailingMs
   }
 
   private static func formatsCompatible(_ a: AVAudioFormat, _ b: AVAudioFormat) -> Bool {

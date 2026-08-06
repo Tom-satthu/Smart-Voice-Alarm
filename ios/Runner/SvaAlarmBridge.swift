@@ -141,6 +141,7 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       let ttsLocale = args["ttsLocale"] as? String
       let maxSeconds = (args["maxSeconds"] as? Double) ?? 20
       let targetDuration = args["targetDurationSeconds"] as? Double
+      let trailingSilenceSeconds = (args["trailingSilenceSeconds"] as? Double) ?? 1.25
       let sourceType: String = {
         if ttsText?.isEmpty == false { return "tts" }
         if sourcePath?.isEmpty == false { return "recording" }
@@ -157,7 +158,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
               ttsLocale: ttsLocale,
               fileName: fileName,
               maxSeconds: maxSeconds,
-              targetDurationSeconds: targetDuration
+              targetDurationSeconds: targetDuration,
+              trailingSilenceSeconds: trailingSilenceSeconds
             )
             self.reply(result, out)
           } catch {
@@ -365,11 +367,13 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       }
     case "cleanupOrphanSounds":
       let active = Set((call.arguments as? [String: Any])?["activeFileNames"] as? [String] ?? [])
-      if active.isEmpty {
-        NSLog("[SVA-Audio] cleanupOrphanSounds refused empty active set")
+      // Always union native pins for unsolved occurrences — Flutter may omit them.
+      let keep = active.union(SvaActiveSoundRegistry.pinnedFileNames())
+      if keep.isEmpty {
+        NSLog("[SVA-Audio] cleanupOrphanSounds refused empty active+pinned set")
         reply(result, false)
       } else {
-        SvaAudioRenderer.cleanupOrphans(activeFileNames: active)
+        SvaAudioRenderer.cleanupOrphans(activeFileNames: keep)
         reply(result, true)
       }
     case "deleteSoundFile":
@@ -513,8 +517,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       recoveryScheduledAt: existing?.recoveryScheduledAt ?? 0,
       recoveryAlarmKitId: existing?.recoveryAlarmKitId ?? "",
       recoveryReason: existing?.recoveryReason ?? "",
-      transitionPaddingMs: (meta?["transitionPaddingMs"] as? Int)
-        ?? (meta?["transitionPaddingMs"] as? NSNumber)?.intValue
+      trailingSilenceMs: (meta?["trailingSilenceMs"] as? Int)
+        ?? (meta?["trailingSilenceMs"] as? NSNumber)?.intValue
         ?? 1250,
       gapMs: (meta?["gapMs"] as? Int)
         ?? (meta?["gapMs"] as? NSNumber)?.intValue

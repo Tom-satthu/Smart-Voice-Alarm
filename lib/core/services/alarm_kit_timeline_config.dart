@@ -2,18 +2,18 @@
 class AlarmKitTimelineConfig {
   AlarmKitTimelineConfig._();
 
-  /// Extra wait after rendered audio before the silent gap child starts.
-  /// Protects the audible tail from being cut when AlarmKit fires the next child.
-  static const Duration transitionPadding = Duration(milliseconds: 1250);
+  /// Trailing PCM silence baked into each custom audible CAF after real content.
+  /// Prevents AlarmKit from looping the start of the clip before the next child.
+  static const Duration trailingSilence = Duration(milliseconds: 1250);
 
-  /// Product rest gap between audible segments (silent CAF duration).
+  /// Product rest gap between audible segments (separate silence CAF child).
   static const Duration silenceGap = Duration(seconds: 5);
 
-  /// Ringtone audible length (file is fit to this exact duration).
+  /// Ringtone audible content length (file is fit to this before trailing silence).
   static const Duration ringtoneDuration = Duration(seconds: 10);
 
-  /// Soft ceiling for voice custom sounds.
-  static const Duration maxVoiceDuration = Duration(seconds: 20);
+  /// Soft ceiling for voice/TTS/recording *content* (trailing silence excluded).
+  static const Duration maxVoiceContentDuration = Duration(seconds: 20);
 
   /// Soft ceiling for AlarmKit children per occurrence rolling window.
   static const int maxChildren = 64;

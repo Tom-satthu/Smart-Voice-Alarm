@@ -56,7 +56,8 @@ struct SvaOccurrenceState: Codable, Equatable {
   var recoveryScheduledAt: Double
   var recoveryAlarmKitId: String
   var recoveryReason: String
-  var transitionPaddingMs: Int
+  /// Trailing silence baked into audible CAF (not planner padding).
+  var trailingSilenceMs: Int
   var gapMs: Int
   var alarmTitle: String
   var cycleTemplate: [SvaCycleClip]
@@ -79,7 +80,7 @@ struct SvaOccurrenceState: Codable, Equatable {
     recoveryScheduledAt: Double = 0,
     recoveryAlarmKitId: String = "",
     recoveryReason: String = "",
-    transitionPaddingMs: Int = 1250,
+    trailingSilenceMs: Int = 1250,
     gapMs: Int = 5000,
     alarmTitle: String = "Smart Voice Alarm",
     cycleTemplate: [SvaCycleClip] = []
@@ -101,7 +102,7 @@ struct SvaOccurrenceState: Codable, Equatable {
     self.recoveryScheduledAt = recoveryScheduledAt
     self.recoveryAlarmKitId = recoveryAlarmKitId
     self.recoveryReason = recoveryReason
-    self.transitionPaddingMs = transitionPaddingMs
+    self.trailingSilenceMs = trailingSilenceMs
     self.gapMs = gapMs
     self.alarmTitle = alarmTitle
     self.cycleTemplate = cycleTemplate
@@ -127,7 +128,7 @@ struct SvaOccurrenceState: Codable, Equatable {
       "recoveryScheduledAt": recoveryScheduledAt,
       "recoveryAlarmKitId": recoveryAlarmKitId,
       "recoveryReason": recoveryReason,
-      "transitionPaddingMs": transitionPaddingMs,
+      "trailingSilenceMs": trailingSilenceMs,
       "gapMs": gapMs,
       "alarmTitle": alarmTitle,
       "cycleTemplateCount": cycleTemplate.count,
@@ -139,7 +140,7 @@ struct SvaOccurrenceState: Codable, Equatable {
     case cyclesScheduled, childCount, audibleChildCount, silentChildCount
     case cycleDurationMs, updatedAt, recoveryGeneration, cancellationGeneration
     case lastStoppedAlarmKitId, recoveryScheduledAt, recoveryAlarmKitId
-    case recoveryReason, transitionPaddingMs, gapMs, alarmTitle, cycleTemplate
+    case recoveryReason, trailingSilenceMs, transitionPaddingMs, gapMs, alarmTitle, cycleTemplate
   }
 
   init(from decoder: Decoder) throws {
@@ -161,10 +162,40 @@ struct SvaOccurrenceState: Codable, Equatable {
     recoveryScheduledAt = try c.decodeIfPresent(Double.self, forKey: .recoveryScheduledAt) ?? 0
     recoveryAlarmKitId = try c.decodeIfPresent(String.self, forKey: .recoveryAlarmKitId) ?? ""
     recoveryReason = try c.decodeIfPresent(String.self, forKey: .recoveryReason) ?? ""
-    transitionPaddingMs = try c.decodeIfPresent(Int.self, forKey: .transitionPaddingMs) ?? 1250
+    if let trail = try c.decodeIfPresent(Int.self, forKey: .trailingSilenceMs) {
+      trailingSilenceMs = trail
+    } else {
+      // Legacy R6 field — do not treat as planner padding anymore.
+      trailingSilenceMs = try c.decodeIfPresent(Int.self, forKey: .transitionPaddingMs) ?? 1250
+    }
     gapMs = try c.decodeIfPresent(Int.self, forKey: .gapMs) ?? 5000
     alarmTitle = try c.decodeIfPresent(String.self, forKey: .alarmTitle) ?? "Smart Voice Alarm"
     cycleTemplate = try c.decodeIfPresent([SvaCycleClip].self, forKey: .cycleTemplate) ?? []
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(parentAlarmId, forKey: .parentAlarmId)
+    try c.encode(occurrenceId, forKey: .occurrenceId)
+    try c.encode(solved, forKey: .solved)
+    try c.encode(revision, forKey: .revision)
+    try c.encode(rollingHorizonEnd, forKey: .rollingHorizonEnd)
+    try c.encode(cyclesScheduled, forKey: .cyclesScheduled)
+    try c.encode(childCount, forKey: .childCount)
+    try c.encode(audibleChildCount, forKey: .audibleChildCount)
+    try c.encode(silentChildCount, forKey: .silentChildCount)
+    try c.encode(cycleDurationMs, forKey: .cycleDurationMs)
+    try c.encode(updatedAt, forKey: .updatedAt)
+    try c.encode(recoveryGeneration, forKey: .recoveryGeneration)
+    try c.encode(cancellationGeneration, forKey: .cancellationGeneration)
+    try c.encode(lastStoppedAlarmKitId, forKey: .lastStoppedAlarmKitId)
+    try c.encode(recoveryScheduledAt, forKey: .recoveryScheduledAt)
+    try c.encode(recoveryAlarmKitId, forKey: .recoveryAlarmKitId)
+    try c.encode(recoveryReason, forKey: .recoveryReason)
+    try c.encode(trailingSilenceMs, forKey: .trailingSilenceMs)
+    try c.encode(gapMs, forKey: .gapMs)
+    try c.encode(alarmTitle, forKey: .alarmTitle)
+    try c.encode(cycleTemplate, forKey: .cycleTemplate)
   }
 
   static func empty(parent: String, occurrence: String) -> SvaOccurrenceState {
@@ -186,7 +217,7 @@ struct SvaOccurrenceState: Codable, Equatable {
       recoveryScheduledAt: 0,
       recoveryAlarmKitId: "",
       recoveryReason: "",
-      transitionPaddingMs: 1250,
+      trailingSilenceMs: 1250,
       gapMs: 5000,
       alarmTitle: "Smart Voice Alarm",
       cycleTemplate: []

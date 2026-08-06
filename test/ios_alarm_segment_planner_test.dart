@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:smart_voice_alarm/core/services/alarm_kit_timeline_config.dart';
 import 'package:smart_voice_alarm/core/services/ios_alarm_scheduler.dart';
 import 'package:smart_voice_alarm/core/services/ios_alarm_segment_planner.dart';
 import 'package:smart_voice_alarm/shared/models/ui_models.dart';
@@ -43,7 +44,7 @@ void main() {
       expect(plan.segments.last.role, IosSegmentRole.silence);
     });
 
-    test('2. voice 7s → silence 5s', () {
+    test('2. voice finalized duration → silence 5s (no planner padding)', () {
       const alarm = AlarmUiModel(
         id: 'a2',
         time: TimeOfDay(hour: 7, minute: 0),
@@ -60,20 +61,21 @@ void main() {
         voiceClips: [
           preparedClip(
             fileName: 'v0.caf',
-            duration: const Duration(seconds: 7),
+            duration: const Duration(milliseconds: 8250),
+            contentDuration: const Duration(seconds: 7),
+            trailingSilence: AlarmKitTimelineConfig.trailingSilence,
           ),
         ],
         ringtoneClips: const [],
         maxCyclesOverride: 1,
       );
-      expect(plan.segments[0].duration, const Duration(seconds: 7));
+      expect(plan.segments[0].duration, const Duration(milliseconds: 8250));
       expect(plan.segments[1].duration, gap);
       expect(plan.segments[1].soundFileName, kSvaSilenceFileName);
       expect(
         plan.segments[1].startAt,
-        start.add(const Duration(seconds: 7)).add(planner.transitionPadding),
+        start.add(const Duration(milliseconds: 8250)),
       );
-      expect(plan.transitionPadding, const Duration(milliseconds: 1250));
     });
 
     test('3-4. two voices with silence gaps, no voice overlap', () {
@@ -111,12 +113,9 @@ void main() {
       ]);
       expect(
         plan.segments[2].startAt,
-        start
-            .add(const Duration(seconds: 4))
-            .add(planner.transitionPadding)
-            .add(gap),
+        start.add(const Duration(seconds: 4)).add(gap),
       );
-      // No overlapping windows (silence may start after padding, not at audible end).
+      // No overlapping windows.
       for (var i = 0; i < plan.segments.length - 1; i++) {
         final end = plan.segments[i].startAt.add(plan.segments[i].duration);
         expect(
@@ -127,7 +126,7 @@ void main() {
       }
     });
 
-    test('5-7. mixed: ringtone 10s, trailing silence, next cycle voice1', () {
+    test('5-7. mixed: ringtone 10s content + trailing, next cycle voice1', () {
       const alarm = AlarmUiModel(
         id: 'a4',
         time: TimeOfDay(hour: 7, minute: 0),
@@ -162,10 +161,10 @@ void main() {
       final ringtone = plan.segments.where(
         (s) => s.role == IosSegmentRole.ringtone,
       );
-      expect(
-        ringtone.every((s) => s.duration == const Duration(seconds: 10)),
-        isTrue,
-      );
+      final expectedRingtone =
+          AlarmKitTimelineConfig.ringtoneDuration +
+          AlarmKitTimelineConfig.trailingSilence;
+      expect(ringtone.every((s) => s.duration == expectedRingtone), isTrue);
       final firstCycleEnd = plan.segments[3].startAt.add(
         plan.segments[3].duration,
       );
@@ -215,32 +214,69 @@ void main() {
       }
     });
 
-    test('padding then gap are distinct', () {
+    test(
+      'trailing silence is inside finalized duration; product gap is 5s',
+      () {
+        const alarm = AlarmUiModel(
+          id: 'pad',
+          time: TimeOfDay(hour: 7, minute: 0),
+          repeatDays: {},
+          isEnabled: true,
+          type: AlarmType.voice,
+          label: 'Pad',
+          repeatCount: 1,
+        );
+        final plan = planner.plan(
+          alarm: alarm,
+          occurrenceId: 'occ',
+          occurrenceStart: start,
+          voiceClips: [
+            preparedClip(
+              fileName: 'v0.caf',
+              duration: const Duration(milliseconds: 8250),
+              contentDuration: const Duration(seconds: 7),
+              trailingSilence: AlarmKitTimelineConfig.trailingSilence,
+            ),
+          ],
+          ringtoneClips: const [],
+          maxCyclesOverride: 1,
+        );
+        final voiceEnd = start.add(const Duration(milliseconds: 8250));
+        final silenceStart = plan.segments[1].startAt;
+        expect(silenceStart, voiceEnd);
+        expect(plan.segments[1].duration, gap);
+      },
+    );
+
+    test('short TTS timeline has no audible overlap / no double padding', () {
       const alarm = AlarmUiModel(
-        id: 'pad',
+        id: 'tts-short',
         time: TimeOfDay(hour: 7, minute: 0),
         repeatDays: {},
         isEnabled: true,
         type: AlarmType.voice,
-        label: 'Pad',
+        label: 'Short',
         repeatCount: 1,
       );
+      final content = const Duration(milliseconds: 1800);
+      final finalized = content + AlarmKitTimelineConfig.trailingSilence;
       final plan = planner.plan(
         alarm: alarm,
         occurrenceId: 'occ',
         occurrenceStart: start,
         voiceClips: [
           preparedClip(
-            fileName: 'v0.caf',
-            duration: const Duration(seconds: 7),
+            fileName: 'tts.caf',
+            duration: finalized,
+            contentDuration: content,
+            trailingSilence: AlarmKitTimelineConfig.trailingSilence,
           ),
         ],
         ringtoneClips: const [],
         maxCyclesOverride: 1,
       );
-      final voiceEnd = start.add(const Duration(seconds: 7));
-      final silenceStart = plan.segments[1].startAt;
-      expect(silenceStart.difference(voiceEnd), planner.transitionPadding);
+      expect(plan.segments[0].duration, finalized);
+      expect(plan.segments[1].startAt, start.add(finalized));
       expect(plan.segments[1].duration, gap);
     });
 
@@ -390,7 +426,7 @@ void main() {
       expect(plan.silentChildCount, 3);
     });
 
-    test('voice clamp 20s', () {
+    test('voice clamp content max + trailing silence', () {
       const alarm = AlarmUiModel(
         id: 'a10',
         time: TimeOfDay(hour: 7, minute: 0),
@@ -413,7 +449,32 @@ void main() {
         ringtoneClips: const [],
         maxCyclesOverride: 1,
       );
-      expect(plan.segments.first.duration, const Duration(seconds: 20));
+      expect(
+        plan.segments.first.duration,
+        AlarmKitTimelineConfig.maxVoiceContentDuration +
+            AlarmKitTimelineConfig.trailingSilence +
+            const Duration(seconds: 1),
+      );
+
+      final withMeta = planner.plan(
+        alarm: alarm,
+        occurrenceId: 'occ2',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'ok.caf',
+            duration: const Duration(milliseconds: 21250),
+            contentDuration: const Duration(seconds: 20),
+            trailingSilence: AlarmKitTimelineConfig.trailingSilence,
+          ),
+        ],
+        ringtoneClips: const [],
+        maxCyclesOverride: 1,
+      );
+      expect(
+        withMeta.segments.first.duration,
+        const Duration(milliseconds: 21250),
+      );
     });
 
     test('mixed without ringtone throws', () {

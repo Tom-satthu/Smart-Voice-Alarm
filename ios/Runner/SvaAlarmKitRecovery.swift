@@ -8,12 +8,13 @@ import AlarmKit
 ///
 /// Restarts from voice 1 as soon as AlarmKit allows (min lead ~600ms).
 /// Never marks solved. Solve always wins via cancellationGeneration.
+/// Never schedules `.default` for custom voice/TTS/recording/ringtone/silence.
 enum SvaAlarmKitRecovery {
   /// Soft minimum fire lead used after stop. Must stay > 0.5s skip gate.
   static let minScheduleLeadSeconds: TimeInterval = 0.6
   static let maxChildren = 64
-  static let defaultPaddingMs = 1250
   static let defaultGapMs = 5000
+  static let trailingSilenceMs = 1250
 
   private static let lock = NSLock()
   private static var inFlightKeys = Set<String>()
@@ -99,12 +100,22 @@ enum SvaAlarmKitRecovery {
     }
     guard !state.cycleTemplate.isEmpty else {
       NSLog("[SVA-AlarmKit] stopRecovery failed no cycleTemplate")
+      Self.persistRecoveryError(state: state, reason: "no_cycle_template")
+      return
+    }
+
+    // Pre-validate every custom file — never schedule with .default.
+    if let validationError = Self.validateTemplateFiles(state.cycleTemplate) {
+      NSLog(
+        "[SVA-AlarmKit] stopRecovery refused invalid custom sound code=%@",
+        validationError
+      )
+      Self.persistRecoveryError(state: state, reason: validationError)
       return
     }
 
     let cancelGenAtStart = state.cancellationGeneration
     let generation = state.recoveryGeneration + 1
-    let paddingMs = state.transitionPaddingMs > 0 ? state.transitionPaddingMs : defaultPaddingMs
     let gapMs = state.gapMs > 0 ? state.gapMs : defaultGapMs
     let title = state.alarmTitle.isEmpty ? "Smart Voice Alarm" : state.alarmTitle
 
@@ -114,12 +125,12 @@ enum SvaAlarmKitRecovery {
       occurrence: occurrence,
       template: state.cycleTemplate,
       start: fireStart,
-      paddingMs: paddingMs,
       gapMs: gapMs,
       generation: generation
     )
     guard !segments.isEmpty else {
       NSLog("[SVA-AlarmKit] stopRecovery failed empty segments")
+      Self.persistRecoveryError(state: state, reason: "empty_segments")
       return
     }
 
@@ -135,12 +146,12 @@ enum SvaAlarmKitRecovery {
       outcome = try await SvaAlarmKitScheduler.schedule(segments: segments, title: title)
     } catch {
       NSLog("[SVA-AlarmKit] stopRecovery schedule error %@", error.localizedDescription)
+      Self.persistRecoveryError(state: state, reason: "schedule_error:\(error.localizedDescription)")
       return
     }
 
     // Solve wins: if solved/cancelGen changed, cancel what we just made.
     if SvaOccurrenceStore.isSolved(parent: parent, occurrence: occurrence) {
-      let fresh = SvaOccurrenceStore.get(parent: parent, occurrence: occurrence)
       NSLog("[SVA-AlarmKit] stopRecovery aborted solve-won after schedule")
       if outcome.ok {
         SvaAlarmKitScheduler.cancel(childIds: outcome.scheduledIds)
@@ -168,7 +179,7 @@ enum SvaAlarmKitRecovery {
       return
     }
 
-    // Replace old future children that are not in the new set.
+    // Replace old future children only after successful custom recovery schedule.
     let keep = Set(outcome.scheduledIds)
     let drop = oldAlarmIds.subtracting(keep)
     if !drop.isEmpty {
@@ -192,10 +203,13 @@ enum SvaAlarmKitRecovery {
     }()
     next.updatedAt = Date().timeIntervalSince1970
     next.solved = false
+    next.trailingSilenceMs = state.trailingSilenceMs > 0
+      ? state.trailingSilenceMs
+      : trailingSilenceMs
     SvaOccurrenceStore.upsert(next)
 
     NSLog(
-      "[SVA-AlarmKit] stopRecovery scheduled gen=%d children=%d latencyMs=%d leadMs=%d reason=%@",
+      "[SVA-AlarmKit] stopRecovery scheduled gen=%d children=%d latencyMs=%d leadMs=%d reason=%@ usedDefault=0",
       generation,
       outcome.scheduledIds.count,
       latencyMs,
@@ -204,11 +218,47 @@ enum SvaAlarmKitRecovery {
     )
   }
 
+  private static func persistRecoveryError(state: SvaOccurrenceState, reason: String) {
+    var failed = state
+    failed.recoveryReason = reason
+    failed.updatedAt = Date().timeIntervalSince1970
+    SvaOccurrenceStore.upsert(failed)
+  }
+
+  /// Returns error code if any custom template file is not schedule-ready.
+  static func validateTemplateFiles(_ template: [SvaCycleClip]) -> String? {
+    for clip in template {
+      let name = clip.soundFileName.trimmingCharacters(in: .whitespacesAndNewlines)
+      if name.isEmpty {
+        return "custom_sound_missing_name"
+      }
+      if !name.lowercased().hasSuffix(".caf") {
+        return "custom_sound_extension_required"
+      }
+      let diag = SvaAudioFileValidator.diagnoseRendered(
+        fileName: name,
+        sourceType: clip.role
+      )
+      if !diag.renderedExists {
+        return "custom_sound_missing:\(name)"
+      }
+      if diag.fileSize <= 0 {
+        return "custom_sound_empty:\(name)"
+      }
+      if !diag.avPlayerPlayable {
+        return "custom_sound_not_playable:\(name)"
+      }
+      if diag.warningCode != nil {
+        return "\(diag.warningCode!):\(name)"
+      }
+    }
+    return nil
+  }
+
   private static func templateFromMappings(parent: String, occurrence: String) -> [SvaCycleClip] {
     let mapped = SvaAlarmKitStore.load()
       .filter { $0.parentAlarmId == parent && $0.occurrenceId == occurrence }
       .sorted { $0.segmentIndex < $1.segmentIndex }
-    // Take unique sound roles in order until ringtone+silence pattern for one cycle.
     var clips: [SvaCycleClip] = []
     var seenSilenceAfterRingtone = false
     for m in mapped {
@@ -229,13 +279,11 @@ enum SvaAlarmKitRecovery {
         seenSilenceAfterRingtone = true
         break
       }
-      // Voice-only: stop after first silence following first voice set of unique files.
       if role == "silence",
          clips.filter({ $0.role == "voice" }).count >= 1,
          !clips.contains(where: { $0.role == "ringtone" }),
          clips.filter({ $0.role == "silence" }).count >= clips.filter({ $0.role == "voice" }).count
       {
-        // Keep going until we mirrored all voices then break at last silence of first pass
         let voices = Set(clips.filter { $0.role == "voice" }.map(\.soundFileName))
         if clips.filter({ $0.role == "voice" }).count == voices.count,
            clips.filter({ $0.role == "silence" }).count == voices.count
@@ -249,12 +297,12 @@ enum SvaAlarmKitRecovery {
     return clips
   }
 
+  /// Timeline uses finalized CAF duration only — no extra planner padding.
   private static func buildRecoverySegments(
     parent: String,
     occurrence: String,
     template: [SvaCycleClip],
     start: Date,
-    paddingMs: Int,
     gapMs: Int,
     generation: Int
   ) -> [SvaSegmentSpec] {
@@ -287,11 +335,7 @@ enum SvaAlarmKitRecovery {
             recoveryGeneration: generation
           )
         )
-        if role == "silence" {
-          cursor = cursor.addingTimeInterval(Double(durationMs) / 1000.0)
-        } else {
-          cursor = cursor.addingTimeInterval(Double(durationMs + paddingMs) / 1000.0)
-        }
+        cursor = cursor.addingTimeInterval(Double(durationMs) / 1000.0)
         index += 1
       }
     }

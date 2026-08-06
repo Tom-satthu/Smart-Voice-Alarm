@@ -1,5 +1,8 @@
 import AVFoundation
 import Foundation
+#if canImport(UIKit)
+import UIKit
+#endif
 
 #if canImport(AlarmKit)
 import AlarmKit
@@ -42,8 +45,12 @@ struct SvaSoundDiagnostics {
   var formatDescription: String = ""
   var avPlayerPlayable: Bool = false
   var alertSoundNameExact: String = ""
+  var requestedSoundName: String = ""
+  var resolvedSoundName: String = ""
   var soundNameMode: String = ""
   var usedDefault: Bool = false
+  var fileExists: Bool = false
+  var playable: Bool = false
   var warningCode: String?
   var warningMessage: String?
   var backend: String = "alarmKit"
@@ -51,6 +58,9 @@ struct SvaSoundDiagnostics {
   var segmentIndex: Int = 0
   var alarmKitId: String = ""
   var scheduleOk: Bool?
+  var requireCustomSound: Bool = false
+  var applicationState: String = ""
+  var updateSource: String = ""
 
   var asDictionary: [String: Any] {
     var out: [String: Any] = [
@@ -65,12 +75,19 @@ struct SvaSoundDiagnostics {
       "formatDescription": formatDescription,
       "avPlayerPlayable": avPlayerPlayable,
       "alertSoundNameExact": alertSoundNameExact,
+      "requestedSoundName": requestedSoundName,
+      "resolvedSoundName": resolvedSoundName,
       "soundNameMode": soundNameMode,
       "usedDefault": usedDefault,
+      "fileExists": fileExists,
+      "playable": playable,
       "backend": backend,
       "childId": childId,
       "segmentIndex": segmentIndex,
       "alarmKitId": alarmKitId,
+      "requireCustomSound": requireCustomSound,
+      "applicationState": applicationState,
+      "updateSource": updateSource,
     ]
     if let originalSourceExists { out["originalSourceExists"] = originalSourceExists }
     if let warningCode { out["warningCode"] = warningCode }
@@ -81,7 +98,7 @@ struct SvaSoundDiagnostics {
 
   func logLine(prefix: String = "[SVA-Sound]") {
     NSLog(
-      "%@ type=%@ file=%@ exists=%d size=%d durMs=%d rate=%.0f ch=%d fmt=%@ playable=%d named=%@ mode=%@ default=%d warn=%@",
+      "%@ type=%@ file=%@ exists=%d size=%d durMs=%d rate=%.0f ch=%d fmt=%@ playable=%d named=%@ mode=%@ default=%d requireCustom=%d warn=%@",
       prefix,
       sourceType,
       renderedFileName,
@@ -95,6 +112,7 @@ struct SvaSoundDiagnostics {
       alertSoundNameExact,
       soundNameMode,
       usedDefault ? 1 : 0,
+      requireCustomSound ? 1 : 0,
       warningCode ?? ""
     )
   }
@@ -154,11 +172,16 @@ enum SvaAudioFileValidator {
     }
   }
 
-  /// Max AlarmKit / notification custom sound length we accept.
+  /// Soft ceiling for content-only renders (trailing silence excluded).
   static let maxDurationSeconds: Double = 20
+  /// Soft ceiling for finalized CAF files (content + trailing silence).
+  static let maxFinalizedDurationSeconds: Double = 22
   static let minDurationSeconds: Double = 0.05
 
-  static func validate(url: URL) -> Result {
+  static func validate(
+    url: URL,
+    maxDurationSeconds: Double = maxFinalizedDurationSeconds
+  ) -> Result {
     var isDir: ObjCBool = false
     let exists = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir)
       && !isDir.boolValue
@@ -227,7 +250,7 @@ enum SvaAudioFileValidator {
           formatDescription: fmt,
           avPlayerPlayable: false,
           errorCode: "sound_duration_too_long",
-          errorMessage: "Rendered sound exceeds 20s"
+          errorMessage: "Rendered sound exceeds \(Int(maxDurationSeconds))s"
         )
       }
       guard channels == 1 || channels == 2 else {
@@ -375,9 +398,11 @@ enum SvaAlarmKitSoundResolver {
     sourceType: String = "unknown",
     childId: String = "",
     segmentIndex: Int = 0,
-    alarmKitId: String = ""
+    alarmKitId: String = "",
+    allowDefaultFallback: Bool = true,
+    updateSource: String = ""
   ) -> (
-    sound: AlertConfiguration.AlertSound,
+    sound: AlertConfiguration.AlertSound?,
     diagnostics: SvaSoundDiagnostics
   ) {
     var diag = SvaAudioFileValidator.diagnoseRendered(
@@ -389,39 +414,116 @@ enum SvaAlarmKitSoundResolver {
     diag.segmentIndex = segmentIndex
     diag.alarmKitId = alarmKitId
     diag.backend = "alarmKit"
+    diag.requireCustomSound = !allowDefaultFallback
+    diag.requestedSoundName = fileName
+    diag.fileExists = diag.renderedExists
+    diag.playable = diag.avPlayerPlayable
+    diag.updateSource = updateSource
+    diag.applicationState = Self.applicationStateLabel()
 
     let trimmed = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
     if trimmed.isEmpty {
-      diag.usedDefault = true
+      if allowDefaultFallback {
+        diag.usedDefault = true
+        diag.alertSoundNameExact = ""
+        diag.resolvedSoundName = ""
+        diag.warningCode = "custom_sound_fallback"
+        diag.warningMessage = "Missing sound file — using default AlarmKit sound"
+        diag.logLine()
+        SvaAlarmKitSoundStore.saveLast(diag)
+        return (.default, diag)
+      }
+      diag.usedDefault = false
       diag.alertSoundNameExact = ""
-      diag.warningCode = "custom_sound_fallback"
-      diag.warningMessage = "Missing sound file — using default AlarmKit sound"
+      diag.resolvedSoundName = ""
+      diag.warningCode = "custom_sound_missing_name"
+      diag.warningMessage = "Empty sound file name — recovery refused default fallback"
       diag.logLine()
       SvaAlarmKitSoundStore.saveLast(diag)
-      return (.default, diag)
+      return (nil, diag)
     }
 
-    if !diag.renderedExists || !diag.avPlayerPlayable {
-      diag.usedDefault = true
+    // Custom recovery / voice path requires exact `.caf` name.
+    if !allowDefaultFallback, !trimmed.lowercased().hasSuffix(".caf") {
+      diag.usedDefault = false
       diag.alertSoundNameExact = ""
+      diag.resolvedSoundName = ""
+      diag.warningCode = "custom_sound_extension_required"
+      diag.warningMessage = "Custom sound must include .caf extension"
+      diag.logLine()
+      SvaAlarmKitSoundStore.saveLast(diag)
+      return (nil, diag)
+    }
+
+    if !diag.renderedExists || !diag.avPlayerPlayable || diag.fileSize <= 0 {
+      if allowDefaultFallback {
+        diag.usedDefault = true
+        diag.alertSoundNameExact = ""
+        diag.resolvedSoundName = ""
+        if diag.warningCode == nil {
+          diag.warningCode = "custom_sound_fallback"
+          diag.warningMessage = "Custom sound invalid — using default AlarmKit sound"
+        } else {
+          diag.warningMessage = (diag.warningMessage ?? "") + " — using default AlarmKit sound"
+        }
+        diag.logLine()
+        SvaAlarmKitSoundStore.saveLast(diag)
+        return (.default, diag)
+      }
+      diag.usedDefault = false
+      diag.alertSoundNameExact = ""
+      diag.resolvedSoundName = ""
       if diag.warningCode == nil {
-        diag.warningCode = "custom_sound_fallback"
-        diag.warningMessage = "Custom sound invalid — using default AlarmKit sound"
+        diag.warningCode = "custom_sound_invalid"
+        diag.warningMessage = "Custom sound invalid — recovery refused default fallback"
       } else {
-        // Keep validation code but mark fallback.
-        diag.warningMessage = (diag.warningMessage ?? "") + " — using default AlarmKit sound"
+        diag.warningMessage = (diag.warningMessage ?? "") + " — recovery refused default fallback"
       }
       diag.logLine()
       SvaAlarmKitSoundStore.saveLast(diag)
-      return (.default, diag)
+      return (nil, diag)
     }
 
     let exact = alertSoundName(fileName: trimmed, mode: mode)
+    if exact.isEmpty {
+      if allowDefaultFallback {
+        diag.usedDefault = true
+        diag.alertSoundNameExact = ""
+        diag.resolvedSoundName = ""
+        diag.warningCode = "custom_sound_fallback"
+        diag.warningMessage = "Resolved empty sound name — using default"
+        diag.logLine()
+        SvaAlarmKitSoundStore.saveLast(diag)
+        return (.default, diag)
+      }
+      diag.usedDefault = false
+      diag.warningCode = "custom_sound_empty_resolved"
+      diag.warningMessage = "Resolved empty sound name — recovery refused default"
+      diag.logLine()
+      SvaAlarmKitSoundStore.saveLast(diag)
+      return (nil, diag)
+    }
+
     diag.alertSoundNameExact = exact
+    diag.resolvedSoundName = exact
     diag.usedDefault = false
     diag.logLine()
     SvaAlarmKitSoundStore.saveLast(diag)
     return (.named(exact), diag)
+  }
+
+  private static func applicationStateLabel() -> String {
+    #if canImport(UIKit)
+    guard Thread.isMainThread else { return "off_main" }
+    switch UIApplication.shared.applicationState {
+    case .active: return "active"
+    case .inactive: return "inactive"
+    case .background: return "background"
+    @unknown default: return "unknown"
+    }
+    #else
+    return "unknown"
+    #endif
   }
   #endif
 }

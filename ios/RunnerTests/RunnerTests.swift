@@ -507,6 +507,81 @@ final class RunnerTests: XCTestCase {
     try? FileManager.default.removeItem(at: dest)
   }
 
+  func testAppendTrailingSilenceExtendsFinalizedDuration() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_trail_\(UUID().uuidString).caf")
+    let contentSec = 2.0
+    let frames = AVAudioFrameCount(format.sampleRate * contentSec)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 30.0) * 6000)
+      }
+    }
+    try file.write(from: buffer)
+    let trailMs = try SvaAudioRenderer.appendTrailingSilence(at: dest, silenceSeconds: 1.25)
+    XCTAssertEqual(Double(trailMs), 1250, accuracy: 50)
+    let audio = try AVAudioFile(forReading: dest)
+    let duration = Double(audio.length) / audio.processingFormat.sampleRate
+    XCTAssertEqual(duration, contentSec + 1.25, accuracy: 0.08)
+    let validation = SvaAudioFileValidator.validate(
+      url: dest,
+      maxDurationSeconds: SvaAudioFileValidator.maxFinalizedDurationSeconds
+    )
+    XCTAssertTrue(validation.ok)
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testRecoveryValidateTemplateRejectsMissingFile() {
+    let err = SvaAlarmKitRecovery.validateTemplateFiles([
+      SvaCycleClip(
+        role: "voice",
+        soundFileName: "sva_missing_does_not_exist.caf",
+        durationMs: 2000,
+        label: "voice"
+      ),
+    ])
+    XCTAssertNotNil(err)
+    XCTAssertTrue(
+      err?.contains("missing") == true || err?.contains("custom_sound") == true
+    )
+  }
+
+  func testRecoveryValidateTemplateRejectsEmptyName() {
+    let err = SvaAlarmKitRecovery.validateTemplateFiles([
+      SvaCycleClip(role: "voice", soundFileName: "", durationMs: 2000, label: "voice"),
+    ])
+    XCTAssertEqual(err, "custom_sound_missing_name")
+  }
+
+  func testActiveSoundRegistryPinsUnsolvedTemplate() {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    let file = "sva_pin_\(UUID().uuidString).caf"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.solved = false
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: file, durationMs: 3000, label: "voice"),
+    ]
+    SvaOccurrenceStore.upsert(state)
+    XCTAssertTrue(SvaActiveSoundRegistry.pinnedFileNames().contains(file))
+    SvaOccurrenceStore.markSolved(parent: parent, occurrence: occ)
+    XCTAssertFalse(SvaActiveSoundRegistry.pinnedFileNames().contains(file))
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
   func testOccurrenceStoreSolvedOnlyViaMarkSolved() {
     let parent = "p_\(UUID().uuidString)"
     let occ = "o_\(UUID().uuidString)"

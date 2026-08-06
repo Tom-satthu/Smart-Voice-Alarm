@@ -136,13 +136,27 @@ class IosRenderedSound {
     required this.durationMs,
     this.byteSize = 0,
     this.debugHash = '',
+    this.contentDurationMs,
+    this.trailingSilenceMs = 0,
+    this.finalizedFileDurationMs,
   });
 
   final String fileName;
   final String path;
+
+  /// Finalized CAF duration (content + trailing silence).
   final int durationMs;
   final int byteSize;
   final String debugHash;
+  final int? contentDurationMs;
+  final int trailingSilenceMs;
+  final int? finalizedFileDurationMs;
+
+  int get effectiveContentDurationMs =>
+      contentDurationMs ??
+      (durationMs - trailingSilenceMs).clamp(0, durationMs);
+
+  int get effectiveFinalizedMs => finalizedFileDurationMs ?? durationMs;
 }
 
 /// Role of a scheduled child in the AlarmKit / fan-out timeline.
@@ -340,6 +354,7 @@ class IosAlarmScheduler {
     String? ttsLocale,
     double maxSeconds = 20,
     double? targetDurationSeconds,
+    double trailingSilenceSeconds = 1.25,
   }) async {
     final raw = await _channel.invokeMethod<Map>('renderSound', {
       'fileName': fileName,
@@ -350,6 +365,7 @@ class IosAlarmScheduler {
       'maxSeconds': maxSeconds,
       if (targetDurationSeconds != null)
         'targetDurationSeconds': targetDurationSeconds,
+      'trailingSilenceSeconds': trailingSilenceSeconds,
     });
     if (raw == null) {
       throw StateError('renderSound returned null');
@@ -360,6 +376,10 @@ class IosAlarmScheduler {
       durationMs: (raw['durationMs'] as num?)?.toInt() ?? 0,
       byteSize: (raw['byteSize'] as num?)?.toInt() ?? 0,
       debugHash: raw['debugHash']?.toString() ?? '',
+      contentDurationMs: (raw['contentDurationMs'] as num?)?.toInt(),
+      trailingSilenceMs: (raw['trailingSilenceMs'] as num?)?.toInt() ?? 0,
+      finalizedFileDurationMs: (raw['finalizedFileDurationMs'] as num?)
+          ?.toInt(),
     );
   }
 

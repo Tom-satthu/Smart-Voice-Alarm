@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../shared/data/local_store.dart';
 import '../../shared/models/ui_models.dart';
+import 'alarm_kit_timeline_config.dart';
 import 'alarm_schedule_result.dart';
 import 'io_dir_stub.dart' if (dart.library.io) 'io_dir_io.dart' as io_file;
 import 'ios_alarm_scheduler.dart';
@@ -205,14 +206,24 @@ class IosAlarmFanoutService {
           voiceClips.add(
             preparedClip(
               fileName: rendered.fileName,
-              duration: Duration(milliseconds: rendered.durationMs),
+              duration: Duration(milliseconds: rendered.effectiveFinalizedMs),
               label: segment.type == VoiceSegmentType.tts ? 'tts' : 'recording',
+              contentDuration: Duration(
+                milliseconds: rendered.effectiveContentDurationMs,
+              ),
+              trailingSilence: Duration(
+                milliseconds: rendered.trailingSilenceMs > 0
+                    ? rendered.trailingSilenceMs
+                    : AlarmKitTimelineConfig.trailingSilence.inMilliseconds,
+              ),
             ),
           );
           debugPrint(
             '[SVA-Audio] scheduleSound type=${segment.type.name} '
             'path=${rendered.path} file=${rendered.fileName} '
-            'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+            'size=${rendered.byteSize} contentMs=${rendered.effectiveContentDurationMs} '
+            'trailMs=${rendered.trailingSilenceMs} '
+            'finalMs=${rendered.effectiveFinalizedMs} '
             'hash=${rendered.debugHash}',
           );
           voiceIndex += 1;
@@ -277,6 +288,8 @@ class IosAlarmFanoutService {
             sourcePath: materialized,
             maxSeconds: 10,
             targetDurationSeconds: 10,
+            trailingSilenceSeconds:
+                AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
           );
         } else {
           rendered = await _scheduler.renderSound(
@@ -284,14 +297,26 @@ class IosAlarmFanoutService {
             assetKey: key,
             maxSeconds: 10,
             targetDurationSeconds: 10,
+            trailingSilenceSeconds:
+                AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
           );
         }
         renderedNames.add(rendered.fileName);
         ringtoneClips.add(
           preparedClip(
             fileName: rendered.fileName,
-            duration: const Duration(seconds: 10),
+            duration: Duration(milliseconds: rendered.effectiveFinalizedMs),
             label: 'ringtone',
+            contentDuration: Duration(
+              milliseconds: rendered.effectiveContentDurationMs > 0
+                  ? rendered.effectiveContentDurationMs
+                  : AlarmKitTimelineConfig.ringtoneDuration.inMilliseconds,
+            ),
+            trailingSilence: Duration(
+              milliseconds: rendered.trailingSilenceMs > 0
+                  ? rendered.trailingSilenceMs
+                  : AlarmKitTimelineConfig.trailingSilence.inMilliseconds,
+            ),
           ),
         );
       } catch (e) {
@@ -411,7 +436,8 @@ class IosAlarmFanoutService {
           'silentChildCount': planMeta.silentChildCount,
           'rollingHorizonEnd':
               planMeta.lastScheduledEnd?.millisecondsSinceEpoch.toDouble() ?? 0,
-          'transitionPaddingMs': planMeta.transitionPadding.inMilliseconds,
+          'trailingSilenceMs':
+              AlarmKitTimelineConfig.trailingSilence.inMilliseconds,
           'gapMs': _planner.gap.inMilliseconds,
           'alarmTitle': alarm.label.isEmpty ? 'Smart Voice Alarm' : alarm.label,
           'cycleTemplate': _planner.cycleTemplateMaps(
@@ -712,6 +738,8 @@ class IosAlarmFanoutService {
         ttsText: segment.text ?? segment.name,
         ttsLocale: segment.localeId,
         maxSeconds: 20,
+        trailingSilenceSeconds:
+            AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
       );
     }
     final path = segment.filePath;
@@ -727,6 +755,8 @@ class IosAlarmFanoutService {
       fileName: fileName,
       sourcePath: path,
       maxSeconds: 20,
+      trailingSilenceSeconds:
+          AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
     );
   }
 

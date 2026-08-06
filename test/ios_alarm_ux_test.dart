@@ -50,25 +50,23 @@ void main() {
       expect(segments[1].role, IosSegmentRole.silence);
       expect(
         segments[2].startAt,
-        start
-            .add(const Duration(seconds: 10))
-            .add(const Duration(milliseconds: 1250))
-            .add(const Duration(seconds: 5)),
+        start.add(const Duration(seconds: 10)).add(const Duration(seconds: 5)),
       );
       expect(
         segments[4].startAt,
         start
             .add(const Duration(seconds: 10))
-            .add(const Duration(milliseconds: 1250))
             .add(const Duration(seconds: 5))
             .add(const Duration(seconds: 8))
-            .add(const Duration(milliseconds: 1250))
             .add(const Duration(seconds: 5)),
       );
-      expect(segments[4].duration, const Duration(seconds: 10));
+      expect(
+        segments[4].duration,
+        const Duration(seconds: 10) + const Duration(milliseconds: 1250),
+      );
     });
 
-    test('clamps voice clips to 20 seconds', () {
+    test('clamps oversized voice clips to content max + trailing', () {
       final planner = IosAlarmSegmentPlanner();
       final alarm = AlarmUiModel(
         id: 'a1',
@@ -92,7 +90,12 @@ void main() {
         ringtoneClips: const [],
         maxCyclesOverride: 1,
       );
-      expect(plan.segments.first.duration, const Duration(seconds: 20));
+      expect(
+        plan.segments.first.duration,
+        const Duration(seconds: 20) +
+            const Duration(milliseconds: 1250) +
+            const Duration(seconds: 1),
+      );
     });
   });
 
