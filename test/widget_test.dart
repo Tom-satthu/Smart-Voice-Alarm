@@ -168,7 +168,10 @@ void main() {
   testWidgets('2. Navigate Home to Create Alarm', (tester) async {
     await _pumpApp(tester);
     expect(find.text('Alarms'), findsOneWidget);
-    await _tapVisible(tester, find.text('Create Alarm'));
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('home_create_alarm_fab')),
+    );
     expect(find.text('New Alarm'), findsOneWidget);
     expect(find.text('Save Alarm'), findsOneWidget);
   });
@@ -176,7 +179,8 @@ void main() {
   testWidgets('3. Create alarm appears on Home', (tester) async {
     await _pumpApp(tester, emptyAlarms: true);
     expect(find.text('No alarms yet'), findsOneWidget);
-    await _tapVisible(tester, find.text('Create Alarm').first);
+    expect(find.byKey(const ValueKey('home_create_alarm_fab')), findsNothing);
+    await _tapVisible(tester, find.byKey(const ValueKey('empty_state_action')));
     expect(find.text('New Alarm'), findsOneWidget);
     // Mixed requires a voice; use ringtone-only for the smoke save path.
     final ringtoneChip = find.widgetWithText(FilterChip, 'Ringtone');
@@ -397,7 +401,10 @@ void main() {
     addTearDown(() => FlutterError.onError = original);
 
     await _pumpApp(tester, size: const Size(375, 667));
-    await _tapVisible(tester, find.text('Create Alarm'));
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('home_create_alarm_fab')),
+    );
     await tester.pageBack();
     await _pumpFrames(tester);
     await tester.tap(find.byTooltip('Settings'));

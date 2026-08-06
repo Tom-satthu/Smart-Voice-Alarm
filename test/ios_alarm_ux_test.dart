@@ -100,19 +100,15 @@ void main() {
   });
 
   group('new alarm defaults', () {
-    test('expected defaults are 7 days and Combined', () {
-      final days = {
-        Weekday.monday,
-        Weekday.tuesday,
-        Weekday.wednesday,
-        Weekday.thursday,
-        Weekday.friday,
-        Weekday.saturday,
-        Weekday.sunday,
-      };
-      expect(days.length, 7);
-      expect(AlarmType.mixed, isNot(AlarmType.voice));
-    });
+    test(
+      'new alarms default to empty weekday repeat (one-shot) and Combined',
+      () {
+        // Matches CreateAlarmScreen initial state after weekday UI removal.
+        const days = <Weekday>{};
+        expect(days, isEmpty);
+        expect(AlarmType.mixed, isNot(AlarmType.voice));
+      },
+    );
   });
 
   group('PlatformAttribution', () {

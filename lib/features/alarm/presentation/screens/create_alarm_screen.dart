@@ -27,15 +27,10 @@ class CreateAlarmScreen extends ConsumerStatefulWidget {
 
 class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   TimeOfDay _time = const TimeOfDay(hour: 7, minute: 0);
-  Set<Weekday> _repeatDays = {
-    Weekday.monday,
-    Weekday.tuesday,
-    Weekday.wednesday,
-    Weekday.thursday,
-    Weekday.friday,
-    Weekday.saturday,
-    Weekday.sunday,
-  };
+
+  /// Weekday repeat is no longer editable in UI. New alarms default to
+  /// one-shot (empty). Existing alarms keep persisted values for compatibility.
+  Set<Weekday> _repeatDays = {};
   int _repeatCount = 3;
   AlarmType _type = AlarmType.mixed;
   String _ringtoneName = 'Soft Chime';
@@ -468,47 +463,6 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                       ),
                     ),
                     const SizedBox(height: AppConstants.spaceXl),
-                    SectionHeader(title: l10n.alarmRepeat),
-                    SurfacePanel(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 10,
-                      ),
-                      child: Row(
-                        children: [
-                          for (final day in Weekday.values)
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 2,
-                                ),
-                                child: _DayToggle(
-                                  label: switch (day) {
-                                    Weekday.monday => l10n.dayMon,
-                                    Weekday.tuesday => l10n.dayTue,
-                                    Weekday.wednesday => l10n.dayWed,
-                                    Weekday.thursday => l10n.dayThu,
-                                    Weekday.friday => l10n.dayFri,
-                                    Weekday.saturday => l10n.daySat,
-                                    Weekday.sunday => l10n.daySun,
-                                  },
-                                  selected: _repeatDays.contains(day),
-                                  onTap: () {
-                                    setState(() {
-                                      if (_repeatDays.contains(day)) {
-                                        _repeatDays.remove(day);
-                                      } else {
-                                        _repeatDays.add(day);
-                                      }
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppConstants.spaceXl),
                     SectionHeader(title: l10n.alarmVoiceSequence),
                     SurfacePanel(
                       onTap: () =>
@@ -665,50 +619,6 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DayToggle extends StatelessWidget {
-  const _DayToggle({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Material(
-      color: selected ? colors.primary : colors.surface,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: SizedBox(
-          height: 40,
-          child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  style: context.textTheme.labelSmall?.copyWith(
-                    color: selected ? colors.onPrimary : colors.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
           ),
         ),
       ),
