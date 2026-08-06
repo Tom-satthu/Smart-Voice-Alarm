@@ -278,10 +278,17 @@ class _SvaReviewAlarmKitRuntimeSectionState
             _actionChip('Mode .caf', () => _setMode('withExtension')),
             _actionChip('Mode bare', () => _setMode('withoutExtension')),
             _actionChip('Test recorded voice 60s', _testRecordedVoice),
+            _actionChip('RT source WAV', _previewRingtoneSourceAsset),
             _actionChip(
-              'Preview rendered ringtone CAF',
-              _previewRenderedRingtone,
+              'RT passthrough',
+              () => _previewRingtoneStage('passthrough'),
             ),
+            _actionChip('RT loopOnly', () => _previewRingtoneStage('loopOnly')),
+            _actionChip(
+              'RT gainOnly',
+              () => _previewRingtoneStage('limiterOnly'),
+            ),
+            _actionChip('RT final CAF', () => _previewRingtoneStage('final')),
             _actionChip('Cancel test', _cancelTest),
             _actionChip('Copy', _copyDiagnostics),
           ],
@@ -290,35 +297,67 @@ class _SvaReviewAlarmKitRuntimeSectionState
     );
   }
 
-  /// Review-only: render Soft Chime through AlarmKit ringtone pipeline and play CAF.
-  Future<void> _previewRenderedRingtone() async {
+  /// Review-only: play bundled Soft Chime WAV (no AlarmKit pipeline).
+  Future<void> _previewRingtoneSourceAsset() async {
+    final audio = ref.read(audioPlayerServiceProvider);
+    try {
+      await audio.playAsset(RingtoneAssets.softChime);
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Ringtone stage: source'),
+          content: const SelectableText(
+            'Playing bundled soft_chime.wav (no resample/processing).\n'
+            'Mark YES/NO in the R9 table for source preview.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      await audio.stop();
+    } catch (e) {
+      debugPrint('[SVA-Review] ringtone source preview failed: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Source preview failed: $e')));
+    }
+  }
+
+  /// Review-only: preview Soft Chime at a ringtone processing stage.
+  Future<void> _previewRingtoneStage(String mode) async {
     final audio = ref.read(audioPlayerServiceProvider);
     final fileName =
-        'sva_diag_ringtone_${const Uuid().v4().substring(0, 8)}.caf';
+        'sva_diag_rt_${mode}_${const Uuid().v4().substring(0, 8)}.caf';
     try {
+      final trail = mode == 'final'
+          ? AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0
+          : 0.0;
       final rendered = await _scheduler.renderSound(
         fileName: fileName,
         assetKey: 'soft_chime',
         maxSeconds: 10,
-        targetDurationSeconds: 10,
-        trailingSilenceSeconds:
-            AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
+        targetDurationSeconds: mode == 'passthrough' || mode == 'limiterOnly'
+            ? null
+            : 10,
+        trailingSilenceSeconds: trail,
         audioRole: 'ringtone',
-      );
-      final diag = await _scheduler.diagnoseSoundFile(
-        fileName: rendered.fileName,
-        sourceType: 'ringtone',
+        ringtoneProcessingMode: mode,
       );
       debugPrint(
-        '[SVA-Review] ringtone CAF hash=${rendered.debugHash} '
-        'contentMs=${rendered.contentDurationMs} '
-        'finalMs=${rendered.effectiveFinalizedMs} path=${rendered.path} diag=$diag',
+        '[SVA-Review] ringtone stage=$mode hash=${rendered.debugHash} '
+        'finalMs=${rendered.effectiveFinalizedMs} path=${rendered.path}',
       );
       if (rendered.path.isEmpty) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Rendered ringtone path empty')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Stage $mode path empty')));
         return;
       }
       await audio.playFilePreview(rendered.path);
@@ -326,15 +365,16 @@ class _SvaReviewAlarmKitRuntimeSectionState
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Rendered ringtone CAF'),
+          title: Text('Ringtone stage: $mode'),
           content: SelectableText(
-            'Playing AlarmKit-bound CAF (not asset WAV).\n'
+            'Listen for continuous “tẹt tẹt”.\n'
+            'mode=$mode\n'
             'file=${rendered.fileName}\n'
             'hash=${rendered.debugHash}\n'
             'contentMs=${rendered.effectiveContentDurationMs}\n'
             'trailMs=${rendered.trailingSilenceMs}\n'
             'finalMs=${rendered.effectiveFinalizedMs}\n'
-            'asset=${RingtoneAssets.softChime}',
+            'Mark YES/NO in the R9 table.',
           ),
           actions: [
             TextButton(
@@ -349,11 +389,11 @@ class _SvaReviewAlarmKitRuntimeSectionState
       );
       await audio.stop();
     } catch (e) {
-      debugPrint('[SVA-Review] ringtone preview failed: $e');
+      debugPrint('[SVA-Review] ringtone stage $mode failed: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ringtone CAF preview failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Stage $mode failed: $e')));
     }
   }
 

@@ -38,12 +38,15 @@ enum SvaAudioRenderer {
     maxSeconds: Double,
     targetDurationSeconds: Double? = nil,
     trailingSilenceSeconds: Double = 1.25,
-    audioRole: String = "speech"
+    audioRole: String = "speech",
+    ringtoneProcessingMode: String = "final"
   ) async throws -> [String: Any] {
     let role = SvaAudioRenderRole.parse(audioRole)
-    NSLog("[SVA-Audio] render begin file=%@ role=%@ tts=%d path=%d asset=%d trail=%.2f",
+    let ringMode = SvaRingtoneProcessingMode.parse(ringtoneProcessingMode)
+    NSLog("[SVA-Audio] render begin file=%@ role=%@ ringMode=%@ tts=%d path=%d asset=%d trail=%.2f",
           fileName,
           role.rawValue,
+          ringMode.rawValue,
           (ttsText?.isEmpty == false) ? 1 : 0,
           (sourcePath?.isEmpty == false) ? 1 : 0,
           (assetKey?.isEmpty == false) ? 1 : 0,
@@ -91,28 +94,35 @@ enum SvaAudioRenderer {
       }
 
       var ringtoneDiag: [String: Any] = [:]
+      var effectiveTrailing = trailingSilenceSeconds
       switch role {
       case .ringtone:
-        // Ringtone: preserve gain — no speech RMS make-up / compressor.
-        ringtoneDiag = try processRingtoneAudio(at: temp)
-        let target = targetDurationSeconds ?? SvaRingtoneAudioConfig.contentSeconds
-        let fitDiag = try fitRingtoneToExactDuration(
+        ringtoneDiag = try applyRingtoneProcessing(
           at: temp,
-          targetSeconds: min(target, maxSeconds)
+          mode: ringMode,
+          targetDurationSeconds: targetDurationSeconds ?? SvaRingtoneAudioConfig.contentSeconds,
+          maxSeconds: maxSeconds
         )
-        for (k, v) in fitDiag { ringtoneDiag[k] = v }
+        switch ringMode {
+        case .passthrough, .loopOnly, .limiterOnly:
+          effectiveTrailing = 0
+        case .final:
+          break
+        }
       case .speech, .silence:
         try normalizeLoudness(at: temp)
         try validateRenderedFile(temp)
         if let target = targetDurationSeconds, target > 0 {
-          // Legacy modulo fit — speech should not use this; kept for non-ringtone callers.
           try fitToExactDuration(at: temp, targetSeconds: min(target, maxSeconds))
         }
       }
 
+      let contentCap = role == .ringtone
+        ? max(maxSeconds, SvaRingtoneAudioConfig.contentSeconds) + 0.25
+        : maxSeconds + 0.25
       let contentValidation = SvaAudioFileValidator.validate(
         url: temp,
-        maxDurationSeconds: maxSeconds + 0.25
+        maxDurationSeconds: contentCap
       )
       guard contentValidation.ok else {
         throw svaError(
@@ -122,15 +132,15 @@ enum SvaAudioRenderer {
       }
       let contentDurationMs = contentValidation.durationMs
       var trailingMs = 0
-      if trailingSilenceSeconds > 0 {
+      if effectiveTrailing > 0 {
         trailingMs = try appendTrailingSilence(
           at: temp,
-          silenceSeconds: trailingSilenceSeconds
+          silenceSeconds: effectiveTrailing
         )
       }
       let preValidation = SvaAudioFileValidator.validate(
         url: temp,
-        maxDurationSeconds: maxSeconds + trailingSilenceSeconds + 0.5
+        maxDurationSeconds: maxSeconds + max(effectiveTrailing, 0) + 0.5
       )
       guard preValidation.ok else {
         throw svaError(
@@ -144,25 +154,24 @@ enum SvaAudioRenderer {
       try FileManager.default.moveItem(at: temp, to: dest)
       let validation = SvaAudioFileValidator.validate(
         url: dest,
-        maxDurationSeconds: maxSeconds + trailingSilenceSeconds + 0.5
+        maxDurationSeconds: maxSeconds + max(effectiveTrailing, 0) + 0.5
       )
       let size = validation.fileSize
       let hash = (try? debugFileHash(dest)) ?? "na"
-      let loud = try measureFileLoudness(url: dest)
+      let pcmMetrics = try measurePcmFileMetrics(url: dest)
+      let chunkDelta = (pcmMetrics["maxChunkBoundaryDelta"] as? Int) ?? 0
       NSLog(
-        "[SVA-Audio] render ok file=%@ role=%@ path=%@ size=%d contentMs=%d trailMs=%d finalMs=%d hash=%@ peak=%.4f rms=%.4f nearClip=%d fmt=%@ playable=%d",
+        "[SVA-Audio] render ok file=%@ role=%@ mode=%@ size=%d contentMs=%d trailMs=%d finalMs=%d hash=%@ peak=%@ chunkBoundDelta=%d playable=%d",
         fileName,
         role.rawValue,
-        dest.path,
+        ringMode.rawValue,
         size,
         contentDurationMs,
         trailingMs,
         validation.durationMs,
         hash,
-        loud.peak,
-        loud.rms,
-        loud.nearClipCount,
-        validation.formatDescription,
+        String(describing: pcmMetrics["peakLinear"] ?? ""),
+        chunkDelta,
         validation.avPlayerPlayable ? 1 : 0
       )
       var out: [String: Any] = [
@@ -180,11 +189,10 @@ enum SvaAudioRenderer {
         "avPlayerPlayable": validation.avPlayerPlayable,
         "renderedExists": validation.exists,
         "audioRole": role.rawValue,
-        "peakLinear": loud.peak,
-        "rmsLinear": loud.rms,
-        "nearClipCount": loud.nearClipCount,
+        "ringtoneProcessingMode": ringMode.rawValue,
         "usedSpeechNormalize": role == .speech,
       ]
+      for (k, v) in pcmMetrics { out[k] = v }
       for (k, v) in ringtoneDiag { out[k] = v }
       return out
     } catch {
@@ -374,6 +382,50 @@ enum SvaAudioRenderer {
       throw svaError(500, "Unable to create output format")
     }
 
+    let inputFormat = inputFile.processingFormat
+    let maxInFrames = AVAudioFrameCount(
+      min(Double(inputFile.length), max(1, maxSeconds * inputFormat.sampleRate))
+    )
+    guard maxInFrames > 0 else { throw svaError(422, "Convert source empty") }
+    guard let inputBuffer = AVAudioPCMBuffer(pcmFormat: inputFormat, frameCapacity: maxInFrames)
+    else { throw svaError(500, "Unable to allocate full input buffer") }
+    try inputFile.read(into: inputBuffer, frameCount: maxInFrames)
+    guard inputBuffer.frameLength > 0 else { throw svaError(422, "Convert read empty") }
+
+    // Same rate/format: write through without converter.
+    if formatsCompatible(inputFormat, outFormat) {
+      let outputFile = try AVAudioFile(
+        forWriting: dest,
+        settings: outFormat.settings,
+        commonFormat: outFormat.commonFormat,
+        interleaved: outFormat.isInterleaved
+      )
+      try outputFile.write(from: inputBuffer)
+      return
+    }
+
+    guard let converter = AVAudioConverter(from: inputFormat, to: outFormat) else {
+      throw svaError(501, "Unable to create audio converter")
+    }
+    converter.sampleRateConverterQuality = Int(AVAudioQuality.max.rawValue)
+
+    NSLog(
+      "[SVA-Audio] convertFull in=%@/%.0fHz/%dch frames=%d → Int16/44100/1ch quality=max",
+      String(describing: inputFormat.commonFormat.rawValue),
+      inputFormat.sampleRate,
+      inputFormat.channelCount,
+      inputBuffer.frameLength
+    )
+
+    let ratio = outFormat.sampleRate / max(inputFormat.sampleRate, 1)
+    // Capacity for one convert pull; loop until endOfStream.
+    let pullCapacity = max(
+      AVAudioFrameCount(4096),
+      AVAudioFrameCount(Double(inputBuffer.frameLength) * ratio) + 256
+    )
+    guard let outputBuffer = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: pullCapacity)
+    else { throw svaError(500, "Unable to allocate convert output buffer") }
+
     let outputFile = try AVAudioFile(
       forWriting: dest,
       settings: outFormat.settings,
@@ -381,39 +433,89 @@ enum SvaAudioRenderer {
       interleaved: outFormat.isInterleaved
     )
 
+    var inputProvided = false
+    var written = AVAudioFramePosition(0)
+    let maxOutFrames = AVAudioFramePosition(maxSeconds * outFormat.sampleRate)
+    var pulls = 0
+    while written < maxOutFrames, pulls < 10_000 {
+      pulls += 1
+      var convertError: NSError?
+      let status = converter.convert(to: outputBuffer, error: &convertError) { _, outStatus in
+        if inputProvided {
+          outStatus.pointee = .endOfStream
+          return nil
+        }
+        inputProvided = true
+        outStatus.pointee = .haveData
+        return inputBuffer
+      }
+      if let convertError { throw convertError }
+      if status == .error {
+        throw svaError(422, "Audio converter error")
+      }
+      if outputBuffer.frameLength > 0 {
+        let remaining = AVAudioFrameCount(maxOutFrames - written)
+        let toWriteFrames = min(outputBuffer.frameLength, remaining)
+        guard let toWrite = copyBuffer(outputBuffer, frameLength: toWriteFrames) else {
+          throw svaError(500, "Convert copy failed")
+        }
+        guard bufferHasValidAudioBytes(toWrite) else {
+          throw svaError(422, "Convert produced invalid buffer")
+        }
+        try outputFile.write(from: toWrite)
+        written += AVAudioFramePosition(toWrite.frameLength)
+      }
+      if status == .endOfStream {
+        break
+      }
+      if outputBuffer.frameLength == 0, status == .inputRanDry {
+        continue
+      }
+    }
+
+    if written == 0 {
+      throw svaError(422, "Converted audio is empty")
+    }
+    NSLog("[SVA-Audio] convertFull wrote frames=%lld", written)
+  }
+
+  /// Legacy chunked converter kept only for regression tests (periodic boundary artifacts).
+  static func convertAudioLegacyChunked(
+    from source: URL,
+    to dest: URL,
+    maxSeconds: Double,
+    chunkFrames: AVAudioFrameCount = AVAudioFrameCount(SvaRingtoneAudioConfig.legacyConvertChunkFrames)
+  ) throws {
+    if FileManager.default.fileExists(atPath: dest.path) {
+      try FileManager.default.removeItem(at: dest)
+    }
+    let inputFile = try AVAudioFile(forReading: source)
+    guard let outFormat = outputFormat() else {
+      throw svaError(500, "Unable to create output format")
+    }
+    let outputFile = try AVAudioFile(
+      forWriting: dest,
+      settings: outFormat.settings,
+      commonFormat: outFormat.commonFormat,
+      interleaved: outFormat.isInterleaved
+    )
     let maxFrames = AVAudioFramePosition(maxSeconds * outFormat.sampleRate)
     let inputFormat = inputFile.processingFormat
     guard let converter = AVAudioConverter(from: inputFormat, to: outFormat) else {
       throw svaError(501, "Unable to create audio converter")
     }
-
-    NSLog(
-      "[SVA-Audio] convert in=%@/%.0fHz/%dch → out=Int16/44100/1ch",
-      String(describing: inputFormat.commonFormat.rawValue),
-      inputFormat.sampleRate,
-      inputFormat.channelCount
-    )
-
-    let frameCapacity: AVAudioFrameCount = 4096
-    guard let inputBuffer = AVAudioPCMBuffer(pcmFormat: inputFormat, frameCapacity: frameCapacity)
+    guard let inputBuffer = AVAudioPCMBuffer(pcmFormat: inputFormat, frameCapacity: chunkFrames)
     else { throw svaError(500, "Unable to allocate input buffer") }
-
     var written = AVAudioFramePosition(0)
     while inputFile.framePosition < inputFile.length, written < maxFrames {
       let remainingInput = AVAudioFrameCount(inputFile.length - inputFile.framePosition)
-      let readCount = min(frameCapacity, remainingInput)
-      do {
-        try inputFile.read(into: inputBuffer, frameCount: readCount)
-      } catch {
-        break
-      }
+      let readCount = min(chunkFrames, remainingInput)
+      try inputFile.read(into: inputBuffer, frameCount: readCount)
       if inputBuffer.frameLength == 0 { break }
-
       let ratio = outFormat.sampleRate / max(inputFormat.sampleRate, 1)
       let outCapacity = AVAudioFrameCount(Double(inputBuffer.frameLength) * ratio) + 32
       guard let outputBuffer = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: outCapacity)
       else { break }
-
       var gotInput = false
       var convertError: NSError?
       let status = converter.convert(to: outputBuffer, error: &convertError) { _, outStatus in
@@ -426,28 +528,13 @@ enum SvaAudioRenderer {
         return inputBuffer
       }
       if let convertError { throw convertError }
-      switch status {
-      case .haveData, .inputRanDry, .endOfStream:
-        break
-      case .error:
-        break
-      @unknown default:
-        break
-      }
-      if status == .error { break }
-      if outputBuffer.frameLength == 0 { continue }
-
+      if status == .error || outputBuffer.frameLength == 0 { continue }
       let remainingOut = AVAudioFrameCount(maxFrames - written)
       guard let toWrite = copyBuffer(outputBuffer, frameLength: remainingOut) else { continue }
-      guard bufferHasValidAudioBytes(toWrite) else { continue }
-      guard formatsCompatible(toWrite.format, outputFile.processingFormat) else { continue }
       try outputFile.write(from: toWrite)
       written += AVAudioFramePosition(toWrite.frameLength)
     }
-
-    if written == 0 {
-      throw svaError(422, "Converted audio is empty")
-    }
+    if written == 0 { throw svaError(422, "Legacy converted audio is empty") }
   }
 
   /// Perceived-loudness pipeline: DC remove → RMS make-up → soft compress → limit.
@@ -648,62 +735,118 @@ enum SvaAudioRenderer {
     return LoudnessStats(peak: peak, rms: rms, windowRms: bestWindow, nearClipCount: nearClip)
   }
 
-  /// Transparent peak limiter for ringtone — never applies speech RMS make-up.
+  /// Applies ringtone stage processing after clean resample.
+  static func applyRingtoneProcessing(
+    at url: URL,
+    mode: SvaRingtoneProcessingMode,
+    targetDurationSeconds: Double,
+    maxSeconds: Double
+  ) throws -> [String: Any] {
+    var diag: [String: Any] = [
+      "ringtoneProcessingMode": mode.rawValue,
+    ]
+    switch mode {
+    case .passthrough:
+      diag["ringtoneSpeechNormalize"] = false
+      diag["ringtoneGain"] = Float(1.0)
+      return diag
+    case .limiterOnly:
+      let gainDiag = try processRingtoneAudio(at: url)
+      for (k, v) in gainDiag { diag[k] = v }
+      return diag
+    case .loopOnly:
+      let fitDiag = try fitRingtoneToExactDuration(
+        at: url,
+        targetSeconds: min(targetDurationSeconds, maxSeconds),
+        applyEdgeFades: false
+      )
+      for (k, v) in fitDiag { diag[k] = v }
+      diag["ringtoneGain"] = Float(1.0)
+      diag["ringtoneSpeechNormalize"] = false
+      return diag
+    case .final:
+      let gainDiag = try processRingtoneAudio(at: url)
+      for (k, v) in gainDiag { diag[k] = v }
+      let fitDiag = try fitRingtoneToExactDuration(
+        at: url,
+        targetSeconds: min(targetDurationSeconds, maxSeconds),
+        applyEdgeFades: true
+      )
+      for (k, v) in fitDiag { diag[k] = v }
+      return diag
+    }
+  }
+
+  /// Static whole-file gain only — never boosts, never sample-by-sample nonlinear limit.
   static func processRingtoneAudio(at url: URL) throws -> [String: Any] {
     guard let outFormat = outputFormat() else {
       throw svaError(500, "Unable to create output format")
     }
-    let pcm = try readAsInt16Mono(url: url, outFormat: outFormat)
-    guard let samples = pcm.int16ChannelData?[0] else {
-      throw svaError(422, "Ringtone missing Int16 channel")
+    var samples = try readInt16Samples(url: url, outFormat: outFormat)
+    guard !samples.isEmpty else { throw svaError(422, "Ringtone audio is silent") }
+
+    var peakAbs = 0
+    var sumSquares: Double = 0
+    for s in samples {
+      let a = abs(Int(s))
+      if a > peakAbs { peakAbs = a }
+      let f = Double(s) / 32768.0
+      sumSquares += f * f
     }
-    let frames = Int(pcm.frameLength)
-    var floats = [Float](repeating: 0, count: frames)
-    for i in 0..<frames {
-      floats[i] = Float(samples[i]) / 32768.0
-    }
-    let before = measureLoudness(floats)
-    if before.peak <= 0.0001 && before.rms <= 0.0001 {
+    let peakBefore = Float(peakAbs) / 32768.0
+    let rmsBefore = Float(sqrt(sumSquares / Double(samples.count)))
+    if peakBefore <= 0.0001 && rmsBefore <= 0.0001 {
       throw svaError(422, "Ringtone audio is silent")
     }
 
     var gain: Float = 1.0
-    var limited = 0
-    if before.peak > SvaRingtoneAudioConfig.peakLimitLinear {
-      gain = SvaRingtoneAudioConfig.peakLimitLinear / before.peak
-      for i in 0..<frames {
-        floats[i] *= gain
-      }
-      limited = frames
+    if peakBefore > SvaRingtoneAudioConfig.peakLimitLinear {
+      gain = SvaRingtoneAudioConfig.peakLimitLinear / peakBefore
     }
-    // Soft ceiling only — no make-up.
-    for i in 0..<frames {
-      var x = floats[i]
-      if abs(x) > SvaRingtoneAudioConfig.peakLimitLinear {
-        let sign: Float = x >= 0 ? 1 : -1
-        x = sign * SvaRingtoneAudioConfig.peakLimitLinear
-        limited += 1
-      }
-      floats[i] = max(-0.999, min(0.999, x))
+    // Never boost.
+    if gain > 1.0 { gain = 1.0 }
+
+    if gain >= 0.999999 {
+      // Exact preserve — do not rewrite the CAF (avoids encode round-trip churn).
+      NSLog(
+        "[SVA-Audio] ringtoneStaticGain skipWrite peak=%.4f rms=%.4f gain=1",
+        peakBefore,
+        rmsBefore
+      )
+      return [
+        "ringtonePeakBefore": peakBefore,
+        "ringtonePeakAfter": peakBefore,
+        "ringtoneRmsBefore": rmsBefore,
+        "ringtoneGain": Float(1.0),
+        "ringtoneSpeechNormalize": false,
+        "ringtoneNonlinearLimiter": false,
+      ]
     }
-    let after = measureLoudness(floats)
-    try writeInt16Mono(floats: floats, to: url, format: outFormat)
+
+    for i in 0..<samples.count {
+      let scaled = Int((Float(samples[i]) * gain).rounded())
+      samples[i] = Int16(clamping: scaled)
+    }
+
+    var peakAfterAbs = 0
+    for s in samples {
+      peakAfterAbs = max(peakAfterAbs, abs(Int(s)))
+    }
+    try writeInt16Samples(samples, to: url, format: outFormat)
     NSLog(
-      "[SVA-Audio] ringtonePeakOnly peakBefore=%.4f peakAfter=%.4f rmsBefore=%.4f rmsAfter=%.4f gain=%.3f limited=%d",
-      before.peak,
-      after.peak,
-      before.rms,
-      after.rms,
-      gain,
-      limited
+      "[SVA-Audio] ringtoneStaticGain peakBefore=%.4f peakAfter=%.4f rmsBefore=%.4f gain=%.6f",
+      peakBefore,
+      Float(peakAfterAbs) / 32768.0,
+      rmsBefore,
+      gain
     )
     return [
-      "ringtonePeakBefore": before.peak,
-      "ringtonePeakAfter": after.peak,
-      "ringtoneRmsBefore": before.rms,
-      "ringtoneRmsAfter": after.rms,
+      "ringtonePeakBefore": peakBefore,
+      "ringtonePeakAfter": Float(peakAfterAbs) / 32768.0,
+      "ringtoneRmsBefore": rmsBefore,
       "ringtoneGain": gain,
       "ringtoneSpeechNormalize": false,
+      "ringtoneNonlinearLimiter": false,
     ]
   }
 
@@ -711,7 +854,8 @@ enum SvaAudioRenderer {
   @discardableResult
   static func fitRingtoneToExactDuration(
     at url: URL,
-    targetSeconds: Double
+    targetSeconds: Double,
+    applyEdgeFades: Bool = true
   ) throws -> [String: Any] {
     guard targetSeconds > 0 else { return [:] }
     guard let outFormat = outputFormat() else {
@@ -720,15 +864,9 @@ enum SvaAudioRenderer {
     let targetFrames = Int((targetSeconds * outFormat.sampleRate).rounded())
     guard targetFrames > 0 else { throw svaError(422, "Target duration invalid") }
 
-    let pcm = try readAsInt16Mono(url: url, outFormat: outFormat)
-    guard let srcPtr = pcm.int16ChannelData?[0] else {
-      throw svaError(422, "Ringtone fit missing channel")
-    }
-    let srcFrames = Int(pcm.frameLength)
+    let src = try readInt16Samples(url: url, outFormat: outFormat)
+    let srcFrames = src.count
     guard srcFrames > 0 else { throw svaError(422, "Source empty for ringtone fit") }
-
-    var src = [Int16](repeating: 0, count: srcFrames)
-    for i in 0..<srcFrames { src[i] = srcPtr[i] }
 
     let crossfade = min(
       SvaRingtoneAudioConfig.crossfadeFrames,
@@ -757,8 +895,10 @@ enum SvaAudioRenderer {
     }
 
     var out = built
-    applyFadeInIfNeeded(&out, fadeFrames: fadeIn)
-    applyFadeOut(&out, fadeFrames: fadeOut)
+    if applyEdgeFades {
+      applyFadeInIfNeeded(&out, fadeFrames: fadeIn)
+      applyFadeOut(&out, fadeFrames: fadeOut)
+    }
 
     let crossDelta = Self.crossfadeLoopMaxBoundaryDelta(
       output: out,
@@ -766,7 +906,6 @@ enum SvaAudioRenderer {
       crossfadeFrames: crossfade
     )
 
-    // Ensure no Int16 overflow / hard clip.
     var clipCount = 0
     var peak: Int = 0
     for i in 0..<out.count {
@@ -778,7 +917,7 @@ enum SvaAudioRenderer {
     try writeInt16Samples(out, to: url, format: outFormat)
     let duration = Double(out.count) / outFormat.sampleRate
     NSLog(
-      "[SVA-Audio] fitRingtone target=%.2fs frames=%d src=%d loops≈%d xfade=%d moduloDelta=%d crossDelta=%d peak=%d clip=%d",
+      "[SVA-Audio] fitRingtone target=%.2fs frames=%d src=%d loops≈%d xfade=%d moduloDelta=%d crossDelta=%d peak=%d clip=%d fades=%d",
       targetSeconds,
       out.count,
       srcFrames,
@@ -787,7 +926,8 @@ enum SvaAudioRenderer {
       moduloDelta,
       crossDelta,
       peak,
-      clipCount
+      clipCount,
+      applyEdgeFades ? 1 : 0
     )
     guard abs(duration - targetSeconds) <= (2.0 / outFormat.sampleRate) + 0.001 else {
       throw svaError(422, "Ringtone fit duration mismatch")
@@ -795,8 +935,8 @@ enum SvaAudioRenderer {
     return [
       "loopCount": loopCount,
       "crossfadeFrames": crossfade,
-      "fadeInFrames": fadeIn,
-      "fadeOutFrames": fadeOut,
+      "fadeInFrames": applyEdgeFades ? fadeIn : 0,
+      "fadeOutFrames": applyEdgeFades ? fadeOut : 0,
       "moduloBoundaryDelta": moduloDelta,
       "maxBoundaryDiscontinuity": crossDelta,
       "ringtoneClipCount": clipCount,
@@ -881,8 +1021,9 @@ enum SvaAudioRenderer {
         let a = Float(out[filled - blend + i]) / 32768.0
         let b = Float(source[i]) / 32768.0
         let mixed = a * gOut + b * gIn
-        let clamped = max(-0.999, min(0.999, mixed))
-        out[filled - blend + i] = Int16((clamped * 32767.0).rounded())
+        let clamped = max(-1.0, min(1.0 - 1.0 / 32768.0, mixed))
+        let scaled = Int((clamped * 32768.0).rounded())
+        out[filled - blend + i] = Int16(clamping: max(-32768, min(32767, scaled)))
       }
       let copyStart = blend
       let copyLen = min(n - copyStart, remaining)
@@ -965,26 +1106,169 @@ enum SvaAudioRenderer {
     guard let converter = AVAudioConverter(from: srcBuffer.format, to: outFormat) else {
       throw svaError(501, "converter unavailable")
     }
+    converter.sampleRateConverterQuality = Int(AVAudioQuality.max.rawValue)
     let ratio = outFormat.sampleRate / max(srcBuffer.format.sampleRate, 1)
-    let capacity = AVAudioFrameCount(Double(srcBuffer.frameLength) * ratio) + 32
+    let capacity = AVAudioFrameCount(Double(srcBuffer.frameLength) * ratio) + 256
     guard let converted = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: capacity)
     else { throw svaError(500, "convert buffer failed") }
-    var gotInput = false
+    var inputProvided = false
     var convertError: NSError?
-    let status = converter.convert(to: converted, error: &convertError) { _, outStatus in
-      if gotInput {
-        outStatus.pointee = .noDataNow
-        return nil
+    var collected = [Int16]()
+    while true {
+      converted.frameLength = 0
+      let status = converter.convert(to: converted, error: &convertError) { _, outStatus in
+        if inputProvided {
+          outStatus.pointee = .endOfStream
+          return nil
+        }
+        inputProvided = true
+        outStatus.pointee = .haveData
+        return srcBuffer
       }
-      gotInput = true
-      outStatus.pointee = .haveData
-      return srcBuffer
+      if let convertError { throw convertError }
+      if status == .error { throw svaError(422, "convert produced error") }
+      if converted.frameLength > 0, let ch = converted.int16ChannelData?[0] {
+        for i in 0..<Int(converted.frameLength) {
+          collected.append(ch[i])
+        }
+      }
+      if status == .endOfStream { break }
     }
-    if let convertError { throw convertError }
-    if status == .error || converted.frameLength == 0 {
-      throw svaError(422, "convert produced no audio")
+    guard !collected.isEmpty else { throw svaError(422, "convert produced no audio") }
+    guard let out = AVAudioPCMBuffer(
+      pcmFormat: outFormat,
+      frameCapacity: AVAudioFrameCount(collected.count)
+    ),
+      let dst = out.int16ChannelData?[0]
+    else { throw svaError(500, "assemble buffer failed") }
+    out.frameLength = AVAudioFrameCount(collected.count)
+    for i in 0..<collected.count { dst[i] = collected[i] }
+    return out
+  }
+
+  static func readInt16Samples(url: URL, outFormat: AVAudioFormat) throws -> [Int16] {
+    let pcm = try readAsInt16Mono(url: url, outFormat: outFormat)
+    guard let ch = pcm.int16ChannelData?[0] else {
+      throw svaError(422, "Missing Int16 channel")
     }
-    return converted
+    let n = Int(pcm.frameLength)
+    var out = [Int16](repeating: 0, count: n)
+    for i in 0..<n { out[i] = ch[i] }
+    return out
+  }
+
+  /// Chunk-boundary discontinuity metric (legacy 4096-style artifacts).
+  static func maxChunkBoundaryDelta(samples: [Int16], chunkSize: Int) -> Int {
+    guard chunkSize > 1, samples.count > chunkSize else { return 0 }
+    var maxDelta = 0
+    var i = chunkSize
+    while i < samples.count {
+      let delta = abs(Int(samples[i]) - Int(samples[i - 1]))
+      if delta > maxDelta { maxDelta = delta }
+      i += chunkSize
+    }
+    return maxDelta
+  }
+
+  static func averageAdjacentDelta(samples: [Int16]) -> Double {
+    guard samples.count > 1 else { return 0 }
+    var sum = 0
+    for i in 1..<samples.count {
+      sum += abs(Int(samples[i]) - Int(samples[i - 1]))
+    }
+    return Double(sum) / Double(samples.count - 1)
+  }
+
+  /// Count samples outside transition zones that differ by more than 1 LSB.
+  static func countChangedOutsideTransitions(
+    reference: [Int16],
+    candidate: [Int16],
+    sourceFrames: Int,
+    crossfadeFrames: Int,
+    fadeInFrames: Int,
+    fadeOutFrames: Int
+  ) -> Int {
+    let n = min(reference.count, candidate.count)
+    guard n > 0 else { return 0 }
+    var protected = Set<Int>()
+    for i in 0..<min(fadeInFrames, n) { protected.insert(i) }
+    for i in max(0, n - fadeOutFrames)..<n { protected.insert(i) }
+    let x = max(1, crossfadeFrames)
+    let strideLen = max(1, sourceFrames - x)
+    var boundary = sourceFrames
+    while boundary < n {
+      let start = max(0, boundary - x)
+      let end = min(n, boundary)
+      for i in start..<end { protected.insert(i) }
+      boundary += strideLen
+    }
+    var changed = 0
+    for i in 0..<n where !protected.contains(i) {
+      if abs(Int(reference[i]) - Int(candidate[i])) > 1 {
+        changed += 1
+      }
+    }
+    return changed
+  }
+
+  static func measurePcmFileMetrics(url: URL) throws -> [String: Any] {
+    guard let format = outputFormat() else { return [:] }
+    let samples = try readInt16Samples(url: url, outFormat: format)
+    guard !samples.isEmpty else {
+      return ["peakLinear": Float(0), "rmsLinear": Float(0), "nearClipCount": 0]
+    }
+    var peak = 0
+    var minS = Int(samples[0])
+    var maxS = Int(samples[0])
+    var sum = 0
+    var sumSquares: Double = 0
+    var nearClip = 0
+    var zeros = 0
+    for s in samples {
+      let v = Int(s)
+      let a = abs(v)
+      if a > peak { peak = a }
+      if v < minS { minS = v }
+      if v > maxS { maxS = v }
+      sum += v
+      let f = Double(v) / 32768.0
+      sumSquares += f * f
+      if a >= 32112 { nearClip += 1 } // ≈ -0.2 dBFS of full scale
+      if v == 0 { zeros += 1 }
+    }
+    let dc = Double(sum) / Double(samples.count) / 32768.0
+    let peakLinear = Float(peak) / 32768.0
+    let rmsLinear = Float(sqrt(sumSquares / Double(samples.count)))
+    let avgDelta = averageAdjacentDelta(samples: samples)
+    let maxDelta: Int = {
+      guard samples.count > 1 else { return 0 }
+      var m = 0
+      for i in 1..<samples.count {
+        m = max(m, abs(Int(samples[i]) - Int(samples[i - 1])))
+      }
+      return m
+    }()
+    let chunkDelta = maxChunkBoundaryDelta(
+      samples: samples,
+      chunkSize: SvaRingtoneAudioConfig.legacyConvertChunkFrames
+    )
+    // Also check resampled-equivalent boundaries (8192 = 4096*2 for 2x upsample).
+    let chunkDelta2x = maxChunkBoundaryDelta(samples: samples, chunkSize: 8192)
+    return [
+      "peakLinear": peakLinear,
+      "rmsLinear": rmsLinear,
+      "nearClipCount": nearClip,
+      "dcOffset": dc,
+      "zeroSampleRatio": Double(zeros) / Double(samples.count),
+      "minSample": minS,
+      "maxSample": maxS,
+      "avgAdjacentDelta": avgDelta,
+      "maxAdjacentDelta": maxDelta,
+      "maxChunkBoundaryDelta": max(chunkDelta, chunkDelta2x),
+      "chunkBoundaryDelta4096": chunkDelta,
+      "chunkBoundaryDelta8192": chunkDelta2x,
+      "frameCount": samples.count,
+    ]
   }
 
   private static func writeInt16Mono(

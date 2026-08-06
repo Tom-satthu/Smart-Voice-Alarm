@@ -648,6 +648,7 @@ final class RunnerTests: XCTestCase {
     )
     XCTAssertEqual(result["usedSpeechNormalize"] as? Bool, false)
     XCTAssertEqual(result["audioRole"] as? String, "ringtone")
+    XCTAssertEqual(result["ringtoneNonlinearLimiter"] as? Bool, false)
     let contentMs = result["contentDurationMs"] as? Int ?? 0
     let trailMs = result["trailingSilenceMs"] as? Int ?? 0
     let finalMs = result["finalizedFileDurationMs"] as? Int ?? 0
@@ -658,10 +659,145 @@ final class RunnerTests: XCTestCase {
     XCTAssertLessThanOrEqual(peak, 0.95)
     let gain = result["ringtoneGain"] as? Float ?? 99
     XCTAssertEqual(gain, 1.0, accuracy: 0.001, "quiet ringtone must not be boosted")
+    let chunkDelta = result["maxChunkBoundaryDelta"] as? Int ?? 99999
+    XCTAssertLessThan(chunkDelta, 5000, "clean convert should not spike at 4096 boundaries")
     let dest = SvaAudioRenderer.soundsDirectory.appendingPathComponent(outName)
     XCTAssertTrue(SvaAudioFileValidator.canPlayWithAVAudioPlayer(url: dest))
     try? FileManager.default.removeItem(at: source)
     try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testOfflineConvertHasLowerChunkBoundaryDeltaThanLegacy() async throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    guard let srcFormat = AVAudioFormat(
+      commonFormat: .pcmFormatInt16,
+      sampleRate: 22050,
+      channels: 1,
+      interleaved: true
+    ) else { return XCTFail("src format") }
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_chunk_src_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(22050 * 2)
+    let file = try AVAudioFile(
+      forWriting: source,
+      settings: srcFormat.settings,
+      commonFormat: srcFormat.commonFormat,
+      interleaved: true
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: srcFormat, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 17.0) * 20000)
+      }
+    }
+    try file.write(from: buffer)
+
+    let legacy = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_chunk_legacy_\(UUID().uuidString).caf")
+    try SvaAudioRenderer.convertAudioLegacyChunked(from: source, to: legacy, maxSeconds: 10)
+
+    let outName = "sva_chunk_pass_\(UUID().uuidString).caf"
+    _ = try await SvaAudioRenderer.render(
+      sourcePath: source.path,
+      assetKey: nil,
+      ttsText: nil,
+      ttsLocale: nil,
+      fileName: outName,
+      maxSeconds: 10,
+      targetDurationSeconds: nil,
+      trailingSilenceSeconds: 0,
+      audioRole: "ringtone",
+      ringtoneProcessingMode: "passthrough"
+    )
+    let modernURL = SvaAudioRenderer.soundsDirectory.appendingPathComponent(outName)
+
+    let legacySamples = try SvaAudioRenderer.readInt16Samples(url: legacy, outFormat: format)
+    let modernSamples = try SvaAudioRenderer.readInt16Samples(url: modernURL, outFormat: format)
+    let legacyDelta = SvaAudioRenderer.maxChunkBoundaryDelta(
+      samples: legacySamples,
+      chunkSize: 8192
+    )
+    let modernDelta = SvaAudioRenderer.maxChunkBoundaryDelta(
+      samples: modernSamples,
+      chunkSize: 8192
+    )
+    let modernAvg = SvaAudioRenderer.averageAdjacentDelta(samples: modernSamples)
+    XCTAssertLessThan(
+      Double(modernDelta),
+      max(modernAvg * 20, 2500),
+      "modern convert chunk boundary delta=\(modernDelta) avgAdj=\(modernAvg)"
+    )
+    if legacyDelta > Int(modernAvg * 15) {
+      XCTAssertLessThan(modernDelta, legacyDelta)
+    }
+    try? FileManager.default.removeItem(at: source)
+    try? FileManager.default.removeItem(at: legacy)
+    try? FileManager.default.removeItem(at: modernURL)
+  }
+
+  func testFinalPreservesPassthroughOutsideTransitionZones() async throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_eq_src_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 2)
+    let file = try AVAudioFile(
+      forWriting: source,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 40.0) * 12000)
+      }
+    }
+    try file.write(from: buffer)
+
+    let passName = "sva_eq_pass_\(UUID().uuidString).caf"
+    _ = try await SvaAudioRenderer.render(
+      sourcePath: source.path,
+      assetKey: nil,
+      ttsText: nil,
+      ttsLocale: nil,
+      fileName: passName,
+      maxSeconds: 10,
+      trailingSilenceSeconds: 0,
+      audioRole: "ringtone",
+      ringtoneProcessingMode: "passthrough"
+    )
+    let passURL = SvaAudioRenderer.soundsDirectory.appendingPathComponent(passName)
+    let pass = try SvaAudioRenderer.readInt16Samples(url: passURL, outFormat: format)
+    let xfade = SvaRingtoneAudioConfig.crossfadeFrames
+    let looped = SvaAudioRenderer.loopRingtoneWithCrossfade(
+      source: pass,
+      targetFrames: SvaRingtoneAudioConfig.contentFrames,
+      crossfadeFrames: xfade
+    )
+    XCTAssertEqual(looped.count, SvaRingtoneAudioConfig.contentFrames)
+    // Crossfade rewrites the last `xfade` samples of each period; the head must stay identical.
+    let intact = max(0, pass.count - xfade)
+    XCTAssertEqual(
+      Array(looped.prefix(intact)),
+      Array(pass.prefix(intact)),
+      "samples outside crossfade must match passthrough"
+    )
+    let gainDiag = try SvaAudioRenderer.processRingtoneAudio(at: passURL)
+    XCTAssertEqual(Double(gainDiag["ringtoneGain"] as? Float ?? -1), 1.0, accuracy: 0.000001)
+    let afterGain = try SvaAudioRenderer.readInt16Samples(url: passURL, outFormat: format)
+    XCTAssertEqual(afterGain, pass, "static gain=1 must not rewrite CAF")
+    try? FileManager.default.removeItem(at: source)
+    try? FileManager.default.removeItem(at: passURL)
   }
 
   func testRingtoneLoudSourceNotBoosted() throws {

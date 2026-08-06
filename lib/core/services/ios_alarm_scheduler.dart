@@ -356,6 +356,7 @@ class IosAlarmScheduler {
     double? targetDurationSeconds,
     double trailingSilenceSeconds = 1.25,
     String audioRole = 'speech',
+    String ringtoneProcessingMode = 'final',
   }) async {
     final raw = await _channel.invokeMethod<Map>('renderSound', {
       'fileName': fileName,
@@ -368,6 +369,7 @@ class IosAlarmScheduler {
         'targetDurationSeconds': targetDurationSeconds,
       'trailingSilenceSeconds': trailingSilenceSeconds,
       'audioRole': audioRole,
+      'ringtoneProcessingMode': ringtoneProcessingMode,
     });
     if (raw == null) {
       throw StateError('renderSound returned null');

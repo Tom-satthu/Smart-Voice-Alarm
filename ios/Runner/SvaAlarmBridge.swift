@@ -147,9 +147,10 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
         if targetDuration != nil { return "ringtone" }
         return "speech"
       }()
+      let ringtoneProcessingMode = (args["ringtoneProcessingMode"] as? String) ?? "final"
       let sourceType: String = {
         if ttsText?.isEmpty == false { return "tts" }
-        if (args["audioRole"] as? String) == "ringtone" { return "ringtone" }
+        if audioRole == "ringtone" { return "ringtone" }
         if sourcePath?.isEmpty == false { return "recording" }
         if assetKey?.isEmpty == false { return "asset" }
         return "unknown"
@@ -166,7 +167,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
               maxSeconds: maxSeconds,
               targetDurationSeconds: targetDuration,
               trailingSilenceSeconds: trailingSilenceSeconds,
-              audioRole: audioRole
+              audioRole: audioRole,
+              ringtoneProcessingMode: ringtoneProcessingMode
             )
             self.reply(result, out)
           } catch {
