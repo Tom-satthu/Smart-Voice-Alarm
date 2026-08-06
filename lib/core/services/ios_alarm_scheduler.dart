@@ -163,6 +163,7 @@ class IosAlarmSegment {
     this.label = '',
     this.role = IosSegmentRole.voice,
     this.cycleIndex = 0,
+    this.recoveryGeneration = 0,
   });
 
   final String parentAlarmId;
@@ -175,6 +176,7 @@ class IosAlarmSegment {
   final String label;
   final IosSegmentRole role;
   final int cycleIndex;
+  final int recoveryGeneration;
 
   Map<String, dynamic> toNativeMap() => {
     'parentAlarmId': parentAlarmId,
@@ -187,6 +189,7 @@ class IosAlarmSegment {
     'label': label,
     'role': role.name,
     'cycleIndex': cycleIndex,
+    'recoveryGeneration': recoveryGeneration,
   };
 }
 

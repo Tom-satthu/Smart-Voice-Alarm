@@ -79,6 +79,35 @@ struct SvaSegmentSpec: Equatable {
   let soundFileName: String
   let label: String
   let durationMs: Int
+  let role: String
+  let cycleIndex: Int
+  let recoveryGeneration: Int
+
+  init(
+    parentAlarmId: String,
+    occurrenceId: String,
+    segmentIndex: Int,
+    childId: String,
+    startAtMillis: Int64,
+    soundFileName: String,
+    label: String,
+    durationMs: Int,
+    role: String = "voice",
+    cycleIndex: Int = 0,
+    recoveryGeneration: Int = 0
+  ) {
+    self.parentAlarmId = parentAlarmId
+    self.occurrenceId = occurrenceId
+    self.segmentIndex = segmentIndex
+    self.childId = childId
+    self.startAtMillis = startAtMillis
+    self.soundFileName = soundFileName
+    self.label = label
+    self.durationMs = durationMs
+    self.role = role
+    self.cycleIndex = cycleIndex
+    self.recoveryGeneration = recoveryGeneration
+  }
 }
 
 enum SvaPendingStore {

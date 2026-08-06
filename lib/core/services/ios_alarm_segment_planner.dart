@@ -1,4 +1,5 @@
 import '../../shared/models/ui_models.dart';
+import 'alarm_kit_timeline_config.dart';
 import 'ios_alarm_scheduler.dart';
 
 class PreparedAlarmClip {
@@ -37,6 +38,7 @@ class IosAlarmPlan {
     required this.audibleChildCount,
     required this.silentChildCount,
     required this.childrenPerCycle,
+    required this.transitionPadding,
   });
 
   final List<IosAlarmSegment> segments;
@@ -46,6 +48,7 @@ class IosAlarmPlan {
   final int audibleChildCount;
   final int silentChildCount;
   final int childrenPerCycle;
+  final Duration transitionPadding;
 
   int get childCount => segments.length;
   DateTime? get lastScheduledEnd {
@@ -57,21 +60,22 @@ class IosAlarmPlan {
 
 /// Pure planner for iOS AlarmKit / notification fan-out.
 ///
-/// iOS ignores [AlarmUiModel.repeatCount] (always one voice pass per cycle).
-/// Each audible child is followed by a silent gap child so the previous
-/// AlarmKit alert is replaced during the 5s rest (prevents voice looping).
+/// Timeline (mixed):
+/// voice → [transition padding] → silence 5s → … → ringtone 10s →
+/// [transition padding] → silence 5s → next cycle
 ///
-/// Cycle template (mixed):
-/// voice… → silence 5s → … → ringtone 10s → silence 5s → next cycle
+/// Padding protects the audible tail; gap is the product rest. Silence CAF
+/// stays exactly [AlarmKitTimelineConfig.silenceGap].
 class IosAlarmSegmentPlanner {
   IosAlarmSegmentPlanner({
     this.maxVoiceSegments = 5,
     this.maxRingtoneSegments = 1,
-    this.gap = const Duration(seconds: 5),
-    this.maxVoiceDuration = const Duration(seconds: 20),
-    this.ringtoneDuration = const Duration(seconds: 10),
-    this.maxChildren = 64,
-    this.targetHorizon = const Duration(minutes: 30),
+    this.gap = AlarmKitTimelineConfig.silenceGap,
+    this.transitionPadding = AlarmKitTimelineConfig.transitionPadding,
+    this.maxVoiceDuration = AlarmKitTimelineConfig.maxVoiceDuration,
+    this.ringtoneDuration = AlarmKitTimelineConfig.ringtoneDuration,
+    this.maxChildren = AlarmKitTimelineConfig.maxChildren,
+    this.targetHorizon = AlarmKitTimelineConfig.targetHorizon,
     this.silenceFileName = kSvaSilenceFileName,
   });
 
@@ -80,13 +84,13 @@ class IosAlarmSegmentPlanner {
   final int maxVoiceSegments;
   final int maxRingtoneSegments;
   final Duration gap;
+  final Duration transitionPadding;
   final Duration maxVoiceDuration;
   final Duration ringtoneDuration;
   final int maxChildren;
   final Duration targetHorizon;
   final String silenceFileName;
 
-  /// Kept for older call sites; iOS planning no longer multiplies by repeatCount.
   @Deprecated('Use maxChildren / childrenPerCycle instead')
   int get maxNotifications => maxChildren;
 
@@ -116,14 +120,15 @@ class IosAlarmSegmentPlanner {
     required int cycleIndex,
     required int segmentIndex,
     required String role,
+    int recoveryGeneration = 0,
   }) {
-    final seed = '$parentId|$occurrenceId|$cycleIndex|$segmentIndex|$role';
+    final seed =
+        '$parentId|$occurrenceId|$cycleIndex|$segmentIndex|$role|g$recoveryGeneration';
     final hash = seed.hashCode.toUnsigned(32).toRadixString(16);
-    return 'sva_c_${hash}_$cycleIndex'
+    return 'sva_c_${hash}_g${recoveryGeneration}_$cycleIndex'
         '_$segmentIndex';
   }
 
-  /// Children in one cycle (voices + silences + optional ringtone + trailing silence).
   int childrenPerCycle({
     required AlarmType type,
     required int voiceClipCount,
@@ -136,14 +141,11 @@ class IosAlarmSegmentPlanner {
         ? 0
         : ringtoneClipCount.clamp(0, maxRingtoneSegments);
     if (type == AlarmType.ringtone) {
-      // ringtone + trailing silence
       return tones.clamp(1, maxRingtoneSegments) + 1;
     }
     if (type == AlarmType.voice) {
-      // each voice + silence
       return voices * 2;
     }
-    // mixed: each voice + silence, then ringtone + silence
     return voices * 2 + tones + 1;
   }
 
@@ -169,18 +171,57 @@ class IosAlarmSegmentPlanner {
     var total = Duration.zero;
     if (type != AlarmType.ringtone) {
       for (final clip in voiceClips.take(maxVoiceSegments)) {
-        total += _clampVoice(clip.duration) + gap;
+        total += _clampVoice(clip.duration) + transitionPadding + gap;
       }
     }
     if (type != AlarmType.voice && ringtoneClips.isNotEmpty) {
-      total += ringtoneDuration + gap;
+      total += ringtoneDuration + transitionPadding + gap;
     }
     return total;
   }
 
-  /// Builds timed segments for a bounded rolling horizon.
-  ///
-  /// [AlarmUiModel.repeatCount] is ignored on iOS (always one voice pass / cycle).
+  /// One-cycle template clips for native stop-recovery (audible + silence only).
+  List<Map<String, dynamic>> cycleTemplateMaps({
+    required AlarmType type,
+    required List<PreparedAlarmClip> voiceClips,
+    required List<PreparedAlarmClip> ringtoneClips,
+  }) {
+    final out = <Map<String, dynamic>>[];
+    if (type != AlarmType.ringtone) {
+      for (final clip in voiceClips.take(maxVoiceSegments)) {
+        final duration = _clampVoice(clip.duration);
+        out.add({
+          'role': IosSegmentRole.voice.name,
+          'soundFileName': clip.fileName,
+          'durationMs': duration.inMilliseconds,
+          'label': clip.label.isEmpty ? 'voice' : clip.label,
+        });
+        out.add({
+          'role': IosSegmentRole.silence.name,
+          'soundFileName': silenceFileName,
+          'durationMs': gap.inMilliseconds,
+          'label': 'silence',
+        });
+      }
+    }
+    if (type != AlarmType.voice && ringtoneClips.isNotEmpty) {
+      final clip = ringtoneClips.first;
+      out.add({
+        'role': IosSegmentRole.ringtone.name,
+        'soundFileName': clip.fileName,
+        'durationMs': ringtoneDuration.inMilliseconds,
+        'label': clip.label.isEmpty ? 'ringtone' : clip.label,
+      });
+      out.add({
+        'role': IosSegmentRole.silence.name,
+        'soundFileName': silenceFileName,
+        'durationMs': gap.inMilliseconds,
+        'label': 'silence',
+      });
+    }
+    return out;
+  }
+
   IosAlarmPlan plan({
     required AlarmUiModel alarm,
     required String occurrenceId,
@@ -188,6 +229,7 @@ class IosAlarmSegmentPlanner {
     required List<PreparedAlarmClip> voiceClips,
     required List<PreparedAlarmClip> ringtoneClips,
     int? maxCyclesOverride,
+    int recoveryGeneration = 0,
   }) {
     final includeVoice =
         alarm.type != AlarmType.ringtone && voiceClips.isNotEmpty;
@@ -266,10 +308,12 @@ class IosAlarmSegmentPlanner {
               fileName: clip.fileName,
               role: IosSegmentRole.voice,
               label: clip.label.isEmpty ? 'voice' : clip.label,
+              recoveryGeneration: recoveryGeneration,
             ),
           );
           audible += 1;
-          cursor = cursor.add(duration);
+          // Protect audible tail before silence replaces the alert.
+          cursor = cursor.add(duration).add(transitionPadding);
           index += 1;
 
           out.add(
@@ -283,6 +327,7 @@ class IosAlarmSegmentPlanner {
               fileName: silenceFileName,
               role: IosSegmentRole.silence,
               label: 'silence',
+              recoveryGeneration: recoveryGeneration,
             ),
           );
           silent += 1;
@@ -304,10 +349,11 @@ class IosAlarmSegmentPlanner {
             fileName: clip.fileName,
             role: IosSegmentRole.ringtone,
             label: clip.label.isEmpty ? 'ringtone' : clip.label,
+            recoveryGeneration: recoveryGeneration,
           ),
         );
         audible += 1;
-        cursor = cursor.add(ringtoneDuration);
+        cursor = cursor.add(ringtoneDuration).add(transitionPadding);
         index += 1;
 
         out.add(
@@ -321,6 +367,7 @@ class IosAlarmSegmentPlanner {
             fileName: silenceFileName,
             role: IosSegmentRole.silence,
             label: 'silence',
+            recoveryGeneration: recoveryGeneration,
           ),
         );
         silent += 1;
@@ -337,6 +384,7 @@ class IosAlarmSegmentPlanner {
       audibleChildCount: audible,
       silentChildCount: silent,
       childrenPerCycle: perCycle,
+      transitionPadding: transitionPadding,
     );
   }
 
@@ -350,6 +398,7 @@ class IosAlarmSegmentPlanner {
     required String fileName,
     required IosSegmentRole role,
     required String label,
+    required int recoveryGeneration,
   }) {
     return IosAlarmSegment(
       parentAlarmId: alarm.id,
@@ -361,6 +410,7 @@ class IosAlarmSegmentPlanner {
         cycleIndex: cycleIndex,
         segmentIndex: index,
         role: role.name,
+        recoveryGeneration: recoveryGeneration,
       ),
       startAt: startAt,
       soundFileName: fileName,
@@ -368,6 +418,7 @@ class IosAlarmSegmentPlanner {
       label: label,
       role: role,
       cycleIndex: cycleIndex,
+      recoveryGeneration: recoveryGeneration,
     );
   }
 

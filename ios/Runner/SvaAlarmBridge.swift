@@ -468,28 +468,61 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     meta: [String: Any]?,
     solved: Bool
   ) {
-    let audible = segments.filter { ($0.label) != "silence" }.count
+    let audible = segments.filter { $0.role != "silence" && $0.label != "silence" }.count
     let silent = segments.count - audible
     let lastEnd: Double = {
       guard let last = segments.max(by: { $0.startAtMillis < $1.startAtMillis }) else { return 0 }
       return Double(last.startAtMillis) / 1000.0 + Double(last.durationMs) / 1000.0
     }()
+    let existing = SvaOccurrenceStore.get(parent: parent, occurrence: occurrence)
+    var template: [SvaCycleClip] = []
+    if let rawTemplate = meta?["cycleTemplate"] as? [[String: Any]] {
+      template = rawTemplate.compactMap(SvaCycleClip.from(dictionary:))
+    } else if let existing, !existing.cycleTemplate.isEmpty {
+      template = existing.cycleTemplate
+    }
     let state = SvaOccurrenceState(
       parentAlarmId: parent,
       occurrenceId: occurrence,
       solved: solved,
-      revision: (meta?["revision"] as? String) ?? "",
-      rollingHorizonEnd: (meta?["rollingHorizonEnd"] as? Double) ?? lastEnd,
+      revision: (meta?["revision"] as? String) ?? existing?.revision ?? "",
+      rollingHorizonEnd: (meta?["rollingHorizonEnd"] as? Double)
+        ?? (meta?["rollingHorizonEnd"] as? NSNumber)?.doubleValue
+        ?? lastEnd,
       cyclesScheduled: (meta?["cyclesScheduled"] as? Int)
         ?? (meta?["cyclesScheduled"] as? NSNumber)?.intValue
+        ?? existing?.cyclesScheduled
         ?? 1,
-      childCount: (meta?["childCount"] as? Int) ?? segments.count,
-      audibleChildCount: (meta?["audibleChildCount"] as? Int) ?? audible,
-      silentChildCount: (meta?["silentChildCount"] as? Int) ?? silent,
+      childCount: (meta?["childCount"] as? Int)
+        ?? (meta?["childCount"] as? NSNumber)?.intValue
+        ?? segments.count,
+      audibleChildCount: (meta?["audibleChildCount"] as? Int)
+        ?? (meta?["audibleChildCount"] as? NSNumber)?.intValue
+        ?? audible,
+      silentChildCount: (meta?["silentChildCount"] as? Int)
+        ?? (meta?["silentChildCount"] as? NSNumber)?.intValue
+        ?? silent,
       cycleDurationMs: (meta?["cycleDurationMs"] as? Int)
         ?? (meta?["cycleDurationMs"] as? NSNumber)?.intValue
+        ?? existing?.cycleDurationMs
         ?? 0,
-      updatedAt: Date().timeIntervalSince1970
+      updatedAt: Date().timeIntervalSince1970,
+      recoveryGeneration: existing?.recoveryGeneration ?? 0,
+      cancellationGeneration: existing?.cancellationGeneration ?? 0,
+      lastStoppedAlarmKitId: existing?.lastStoppedAlarmKitId ?? "",
+      recoveryScheduledAt: existing?.recoveryScheduledAt ?? 0,
+      recoveryAlarmKitId: existing?.recoveryAlarmKitId ?? "",
+      recoveryReason: existing?.recoveryReason ?? "",
+      transitionPaddingMs: (meta?["transitionPaddingMs"] as? Int)
+        ?? (meta?["transitionPaddingMs"] as? NSNumber)?.intValue
+        ?? 1250,
+      gapMs: (meta?["gapMs"] as? Int)
+        ?? (meta?["gapMs"] as? NSNumber)?.intValue
+        ?? 5000,
+      alarmTitle: (meta?["alarmTitle"] as? String)
+        ?? existing?.alarmTitle
+        ?? "Smart Voice Alarm",
+      cycleTemplate: template
     )
     SvaOccurrenceStore.upsert(state)
   }
@@ -553,7 +586,14 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       startAtMillis: start,
       soundFileName: (raw["soundFileName"] as? String) ?? "",
       label: (raw["label"] as? String) ?? "",
-      durationMs: duration
+      durationMs: duration,
+      role: (raw["role"] as? String) ?? "voice",
+      cycleIndex: (raw["cycleIndex"] as? NSNumber)?.intValue
+        ?? (raw["cycleIndex"] as? Int)
+        ?? 0,
+      recoveryGeneration: (raw["recoveryGeneration"] as? NSNumber)?.intValue
+        ?? (raw["recoveryGeneration"] as? Int)
+        ?? 0
     )
   }
 

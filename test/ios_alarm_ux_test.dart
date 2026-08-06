@@ -48,10 +48,22 @@ void main() {
       expect(segments.length, 6);
       expect(segments[0].startAt, start);
       expect(segments[1].role, IosSegmentRole.silence);
-      expect(segments[2].startAt, start.add(const Duration(seconds: 10 + 5)));
+      expect(
+        segments[2].startAt,
+        start
+            .add(const Duration(seconds: 10))
+            .add(const Duration(milliseconds: 1250))
+            .add(const Duration(seconds: 5)),
+      );
       expect(
         segments[4].startAt,
-        start.add(const Duration(seconds: 10 + 5 + 8 + 5)),
+        start
+            .add(const Duration(seconds: 10))
+            .add(const Duration(milliseconds: 1250))
+            .add(const Duration(seconds: 5))
+            .add(const Duration(seconds: 8))
+            .add(const Duration(milliseconds: 1250))
+            .add(const Duration(seconds: 5)),
       );
       expect(segments[4].duration, const Duration(seconds: 10));
     });

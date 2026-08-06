@@ -34,6 +34,7 @@
 		A11SILENCE01BUILD /* SvaSilenceAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11SILENCE01FILE /* SvaSilenceAudio.swift */; };
 		A11OCCSTORE01BUILD /* SvaOccurrenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11OCCSTORE01FILE /* SvaOccurrenceStore.swift */; };
 		A11AKUPDATE01BUILD /* SvaAlarmKitUpdateObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AKUPDATE01FILE /* SvaAlarmKitUpdateObserver.swift */; };
+		A11AKRECOV01BUILD /* SvaAlarmKitRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AKRECOV01FILE /* SvaAlarmKitRecovery.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +99,7 @@
 		A11SILENCE01FILE /* SvaSilenceAudio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaSilenceAudio.swift; sourceTree = "<group>"; };
 		A11OCCSTORE01FILE /* SvaOccurrenceStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaOccurrenceStore.swift; sourceTree = "<group>"; };
 		A11AKUPDATE01FILE /* SvaAlarmKitUpdateObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitUpdateObserver.swift; sourceTree = "<group>"; };
+		A11AKRECOV01FILE /* SvaAlarmKitRecovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitRecovery.swift; sourceTree = "<group>"; };
 		A11LAUNCHAUD01FILE /* SvaLaunchAudit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaLaunchAudit.swift; sourceTree = "<group>"; };
 		A11BUILDSTMP01FILE /* SvaBuildStamp.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaBuildStamp.generated.swift; sourceTree = "<group>"; };
 		A11ARMKITENT01FILE /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
@@ -199,6 +201,7 @@
 				A11SILENCE01FILE /* SvaSilenceAudio.swift */,
 				A11OCCSTORE01FILE /* SvaOccurrenceStore.swift */,
 				A11AKUPDATE01FILE /* SvaAlarmKitUpdateObserver.swift */,
+				A11AKRECOV01FILE /* SvaAlarmKitRecovery.swift */,
 				A11LAUNCHAUD01FILE /* SvaLaunchAudit.swift */,
 				A11BUILDSTMP01FILE /* SvaBuildStamp.generated.swift */,
 				A11ARMKITENT01FILE /* Runner.entitlements */,
@@ -435,6 +438,7 @@
 				A11SILENCE01BUILD /* SvaSilenceAudio.swift in Sources */,
 				A11OCCSTORE01BUILD /* SvaOccurrenceStore.swift in Sources */,
 				A11AKUPDATE01BUILD /* SvaAlarmKitUpdateObserver.swift in Sources */,
+				A11AKRECOV01BUILD /* SvaAlarmKitRecovery.swift in Sources */,
 				A11LAUNCHAUD01BUILD /* SvaLaunchAudit.swift in Sources */,
 				A11BUILDSTMP01BUILD /* SvaBuildStamp.generated.swift in Sources */,
 				F48C50F4EF924EF4B1CECE49 /* SvaNotificationFanout.swift in Sources */,

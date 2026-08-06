@@ -69,7 +69,11 @@ void main() {
       expect(plan.segments[0].duration, const Duration(seconds: 7));
       expect(plan.segments[1].duration, gap);
       expect(plan.segments[1].soundFileName, kSvaSilenceFileName);
-      expect(plan.segments[1].startAt, start.add(const Duration(seconds: 7)));
+      expect(
+        plan.segments[1].startAt,
+        start.add(const Duration(seconds: 7)).add(planner.transitionPadding),
+      );
+      expect(plan.transitionPadding, const Duration(milliseconds: 1250));
     });
 
     test('3-4. two voices with silence gaps, no voice overlap', () {
@@ -105,11 +109,21 @@ void main() {
         IosSegmentRole.voice,
         IosSegmentRole.silence,
       ]);
-      expect(plan.segments[2].startAt, start.add(const Duration(seconds: 9)));
-      // No overlapping windows.
+      expect(
+        plan.segments[2].startAt,
+        start
+            .add(const Duration(seconds: 4))
+            .add(planner.transitionPadding)
+            .add(gap),
+      );
+      // No overlapping windows (silence may start after padding, not at audible end).
       for (var i = 0; i < plan.segments.length - 1; i++) {
         final end = plan.segments[i].startAt.add(plan.segments[i].duration);
-        expect(plan.segments[i + 1].startAt, end);
+        expect(
+          !plan.segments[i + 1].startAt.isBefore(end),
+          isTrue,
+          reason: 'segment ${i + 1} must not start before $i ends',
+        );
       }
     });
 
@@ -197,13 +211,37 @@ void main() {
       );
       for (var i = 0; i < plan.segments.length - 1; i++) {
         final end = plan.segments[i].startAt.add(plan.segments[i].duration);
-        expect(
-          end.isBefore(plan.segments[i + 1].startAt) ||
-              end == plan.segments[i + 1].startAt,
-          isTrue,
-        );
-        expect(end, plan.segments[i + 1].startAt);
+        expect(!plan.segments[i + 1].startAt.isBefore(end), isTrue);
       }
+    });
+
+    test('padding then gap are distinct', () {
+      const alarm = AlarmUiModel(
+        id: 'pad',
+        time: TimeOfDay(hour: 7, minute: 0),
+        repeatDays: {},
+        isEnabled: true,
+        type: AlarmType.voice,
+        label: 'Pad',
+        repeatCount: 1,
+      );
+      final plan = planner.plan(
+        alarm: alarm,
+        occurrenceId: 'occ',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 7),
+          ),
+        ],
+        ringtoneClips: const [],
+        maxCyclesOverride: 1,
+      );
+      final voiceEnd = start.add(const Duration(seconds: 7));
+      final silenceStart = plan.segments[1].startAt;
+      expect(silenceStart.difference(voiceEnd), planner.transitionPadding);
+      expect(plan.segments[1].duration, gap);
     });
 
     test('9. silent child uses silence CAF name', () {

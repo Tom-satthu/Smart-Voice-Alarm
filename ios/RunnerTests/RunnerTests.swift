@@ -511,24 +511,74 @@ final class RunnerTests: XCTestCase {
     let parent = "p_\(UUID().uuidString)"
     let occ = "o_\(UUID().uuidString)"
     XCTAssertFalse(SvaOccurrenceStore.isSolved(parent: parent, occurrence: occ))
-    SvaOccurrenceStore.upsert(
-      SvaOccurrenceState(
-        parentAlarmId: parent,
-        occurrenceId: occ,
-        solved: false,
-        revision: "r1",
-        rollingHorizonEnd: Date().timeIntervalSince1970 + 1800,
-        cyclesScheduled: 2,
-        childCount: 8,
-        audibleChildCount: 4,
-        silentChildCount: 4,
-        cycleDurationMs: 30000,
-        updatedAt: Date().timeIntervalSince1970
-      )
-    )
+    SvaOccurrenceStore.upsert({
+      var s = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+      s.revision = "r1"
+      s.rollingHorizonEnd = Date().timeIntervalSince1970 + 1800
+      s.cyclesScheduled = 2
+      s.childCount = 8
+      s.audibleChildCount = 4
+      s.silentChildCount = 4
+      s.cycleDurationMs = 30000
+      return s
+    }())
     XCTAssertFalse(SvaOccurrenceStore.isSolved(parent: parent, occurrence: occ))
     SvaOccurrenceStore.markSolved(parent: parent, occurrence: occ)
     XCTAssertTrue(SvaOccurrenceStore.isSolved(parent: parent, occurrence: occ))
+    let solved = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(solved?.cancellationGeneration, 1)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testRecoverySuppressedWhenSolved() async {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: "v.caf", durationMs: 2000, label: "voice"),
+      SvaCycleClip(role: "silence", soundFileName: "sva_silence_5s.caf", durationMs: 5000, label: "silence"),
+    ]
+    state.solved = true
+    SvaOccurrenceStore.upsert(state)
+    await SvaAlarmKitRecovery.handleChildStopped(
+      parent: parent,
+      occurrence: occ,
+      stoppedAlarmKitId: "ak1",
+      childId: "c1",
+      role: "voice",
+      scheduledStart: Date().timeIntervalSince1970 - 1,
+      expectedDurationMs: 7000,
+      reason: "test_solved"
+    )
+    let after = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(after?.recoveryGeneration, 0)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testRecoveryDuplicateSuppressed() async {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: "v.caf", durationMs: 2000, label: "voice"),
+      SvaCycleClip(role: "silence", soundFileName: "sva_silence_5s.caf", durationMs: 5000, label: "silence"),
+    ]
+    state.lastStoppedAlarmKitId = "ak-dup"
+    state.recoveryScheduledAt = Date().timeIntervalSince1970
+    state.recoveryGeneration = 2
+    SvaOccurrenceStore.upsert(state)
+    await SvaAlarmKitRecovery.handleChildStopped(
+      parent: parent,
+      occurrence: occ,
+      stoppedAlarmKitId: "ak-dup",
+      childId: "c1",
+      role: "voice",
+      scheduledStart: Date().timeIntervalSince1970 - 1,
+      expectedDurationMs: 7000,
+      reason: "test_dup"
+    )
+    let after = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(after?.recoveryGeneration, 2)
     SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
   }
 

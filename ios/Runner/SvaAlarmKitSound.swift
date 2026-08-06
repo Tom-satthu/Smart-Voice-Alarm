@@ -261,11 +261,24 @@ enum SvaAudioFileValidator {
         )
       }
 
+      // Prefer the safer (larger) of frame-accurate and AVAudioPlayer durations.
+      let playerDurationMs = avPlayerDurationMs(url: url) ?? durationMs
+      let safeDurationMs = max(durationMs, playerDurationMs)
+      if abs(durationMs - playerDurationMs) > 250 {
+        NSLog(
+          "[SVA-Sound] durationMismatch framesMs=%d playerMs=%d usingMs=%d file=%@",
+          durationMs,
+          playerDurationMs,
+          safeDurationMs,
+          url.lastPathComponent
+        )
+      }
+
       return Result(
         ok: true,
         exists: true,
         fileSize: size,
-        durationMs: durationMs,
+        durationMs: safeDurationMs,
         sampleRate: rate,
         channels: channels,
         formatDescription: fmt,
@@ -296,6 +309,16 @@ enum SvaAudioFileValidator {
     } catch {
       NSLog("[SVA-Sound] AVAudioPlayer failed: %@", error.localizedDescription)
       return false
+    }
+  }
+
+  static func avPlayerDurationMs(url: URL) -> Int? {
+    do {
+      let player = try AVAudioPlayer(contentsOf: url)
+      guard player.duration.isFinite, player.duration > 0 else { return nil }
+      return Int((player.duration * 1000).rounded())
+    } catch {
+      return nil
     }
   }
 

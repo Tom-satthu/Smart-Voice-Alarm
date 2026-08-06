@@ -71,6 +71,26 @@ struct SvaStopAlarmIntent: LiveActivityIntent {
       scheduledTimestamp: scheduledTimestamp,
       source: "stop"
     )
+    // Native-first recovery — do not wait for Flutter.
+    let mapping = SvaAlarmKitStore.load().first {
+      $0.alarmId == alarmKitId || $0.childId == childId
+    }
+    let start: Double? = {
+      if let mapping, mapping.scheduledStartMs > 0 {
+        return Double(mapping.scheduledStartMs) / 1000.0
+      }
+      return scheduledTimestamp > 0 ? scheduledTimestamp : nil
+    }()
+    await SvaAlarmKitRecovery.handleChildStopped(
+      parent: parentAlarmId,
+      occurrence: occurrenceId,
+      stoppedAlarmKitId: alarmKitId.isEmpty ? (mapping?.alarmId ?? childId) : alarmKitId,
+      childId: childId,
+      role: mapping?.role,
+      scheduledStart: start,
+      expectedDurationMs: mapping?.expectedDurationMs,
+      reason: "stop_intent"
+    )
     return .result()
   }
 }

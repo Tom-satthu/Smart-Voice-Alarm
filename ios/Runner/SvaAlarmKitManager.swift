@@ -23,6 +23,66 @@ struct SvaAlarmKitMapping: Codable, Equatable {
   var childId: String
   var alarmId: String
   var soundFileName: String
+  var role: String
+  var cycleIndex: Int
+  var scheduledStartMs: Int64
+  var expectedDurationMs: Int
+  var recoveryGeneration: Int
+  var alertingAt: Double
+  var stoppedAt: Double
+
+  init(
+    parentAlarmId: String,
+    occurrenceId: String,
+    segmentIndex: Int,
+    childId: String,
+    alarmId: String,
+    soundFileName: String,
+    role: String = "voice",
+    cycleIndex: Int = 0,
+    scheduledStartMs: Int64 = 0,
+    expectedDurationMs: Int = 0,
+    recoveryGeneration: Int = 0,
+    alertingAt: Double = 0,
+    stoppedAt: Double = 0
+  ) {
+    self.parentAlarmId = parentAlarmId
+    self.occurrenceId = occurrenceId
+    self.segmentIndex = segmentIndex
+    self.childId = childId
+    self.alarmId = alarmId
+    self.soundFileName = soundFileName
+    self.role = role
+    self.cycleIndex = cycleIndex
+    self.scheduledStartMs = scheduledStartMs
+    self.expectedDurationMs = expectedDurationMs
+    self.recoveryGeneration = recoveryGeneration
+    self.alertingAt = alertingAt
+    self.stoppedAt = stoppedAt
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case parentAlarmId, occurrenceId, segmentIndex, childId, alarmId, soundFileName
+    case role, cycleIndex, scheduledStartMs, expectedDurationMs, recoveryGeneration
+    case alertingAt, stoppedAt
+  }
+
+  init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    parentAlarmId = try c.decode(String.self, forKey: .parentAlarmId)
+    occurrenceId = try c.decode(String.self, forKey: .occurrenceId)
+    segmentIndex = try c.decode(Int.self, forKey: .segmentIndex)
+    childId = try c.decode(String.self, forKey: .childId)
+    alarmId = try c.decode(String.self, forKey: .alarmId)
+    soundFileName = try c.decode(String.self, forKey: .soundFileName)
+    role = try c.decodeIfPresent(String.self, forKey: .role) ?? "voice"
+    cycleIndex = try c.decodeIfPresent(Int.self, forKey: .cycleIndex) ?? 0
+    scheduledStartMs = try c.decodeIfPresent(Int64.self, forKey: .scheduledStartMs) ?? 0
+    expectedDurationMs = try c.decodeIfPresent(Int.self, forKey: .expectedDurationMs) ?? 0
+    recoveryGeneration = try c.decodeIfPresent(Int.self, forKey: .recoveryGeneration) ?? 0
+    alertingAt = try c.decodeIfPresent(Double.self, forKey: .alertingAt) ?? 0
+    stoppedAt = try c.decodeIfPresent(Double.self, forKey: .stoppedAt) ?? 0
+  }
 }
 
 enum SvaAlarmKitStore {
@@ -186,7 +246,12 @@ final class FakeSvaAlarmManager: SvaAlarmManaging {
         segmentIndex: segment.segmentIndex,
         childId: segment.childId,
         alarmId: id,
-        soundFileName: sound
+        soundFileName: sound,
+        role: segment.role,
+        cycleIndex: segment.cycleIndex,
+        scheduledStartMs: segment.startAtMillis,
+        expectedDurationMs: segment.durationMs,
+        recoveryGeneration: segment.recoveryGeneration
       )
       scheduled[id] = mapping
       created.append(id)
@@ -510,7 +575,12 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
             segmentIndex: segment.segmentIndex,
             childId: segment.childId,
             alarmId: alarmId.uuidString,
-            soundFileName: segment.soundFileName
+            soundFileName: segment.soundFileName,
+            role: segment.role,
+            cycleIndex: segment.cycleIndex,
+            scheduledStartMs: segment.startAtMillis,
+            expectedDurationMs: segment.durationMs,
+            recoveryGeneration: segment.recoveryGeneration
           )
         )
       }

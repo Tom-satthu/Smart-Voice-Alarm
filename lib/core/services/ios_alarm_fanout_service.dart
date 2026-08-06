@@ -411,6 +411,14 @@ class IosAlarmFanoutService {
           'silentChildCount': planMeta.silentChildCount,
           'rollingHorizonEnd':
               planMeta.lastScheduledEnd?.millisecondsSinceEpoch.toDouble() ?? 0,
+          'transitionPaddingMs': planMeta.transitionPadding.inMilliseconds,
+          'gapMs': _planner.gap.inMilliseconds,
+          'alarmTitle': alarm.label.isEmpty ? 'Smart Voice Alarm' : alarm.label,
+          'cycleTemplate': _planner.cycleTemplateMaps(
+            type: alarm.type,
+            voiceClips: voiceClips,
+            ringtoneClips: ringtoneClips,
+          ),
         },
       );
       final ok = native['ok'] != false;

@@ -5,29 +5,29 @@ import 'package:smart_voice_alarm/core/services/tts_text_limits.dart';
 void main() {
   group('recording limits', () {
     test('17. timer label reaches 20/20', () {
-      expect(
-        recordingTimerLabel(const Duration(seconds: 20)),
-        '20/20',
-      );
-      expect(
-        recordingTimerLabel(const Duration(seconds: 25)),
-        '20/20',
-      );
+      expect(recordingTimerLabel(const Duration(seconds: 20)), '20/20');
+      expect(recordingTimerLabel(const Duration(seconds: 25)), '20/20');
     });
 
     test('18. early stop keeps actual duration label', () {
-      expect(
-        recordingTimerLabel(const Duration(seconds: 7)),
-        '7/20',
-      );
+      expect(recordingTimerLabel(const Duration(seconds: 7)), '7/20');
     });
   });
 
   group('tts text limits', () {
     test('19. character counter by locale', () {
-      expect(TtsTextLimits.maxCharsForLocale('vi-VN'), TtsTextLimits.viVnMaxChars);
-      expect(TtsTextLimits.maxCharsForLocale('en-US'), TtsTextLimits.enUsMaxChars);
-      expect(TtsTextLimits.maxCharsForLocale('fr-FR'), TtsTextLimits.fallbackMaxChars);
+      expect(
+        TtsTextLimits.maxCharsForLocale('vi-VN'),
+        TtsTextLimits.viVnMaxChars,
+      );
+      expect(
+        TtsTextLimits.maxCharsForLocale('en-US'),
+        TtsTextLimits.enUsMaxChars,
+      );
+      expect(
+        TtsTextLimits.maxCharsForLocale('fr-FR'),
+        TtsTextLimits.fallbackMaxChars,
+      );
     });
 
     test('20. typing beyond max is capped', () {

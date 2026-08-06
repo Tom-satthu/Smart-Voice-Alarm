@@ -1,5 +1,42 @@
 import Foundation
 
+/// One audible/silence clip in the repeating cycle template (no TTS/recording text).
+struct SvaCycleClip: Codable, Equatable {
+  var role: String
+  var soundFileName: String
+  var durationMs: Int
+  var label: String
+
+  var asDictionary: [String: Any] {
+    [
+      "role": role,
+      "soundFileName": soundFileName,
+      "durationMs": durationMs,
+      "label": label,
+    ]
+  }
+
+  static func from(dictionary: [String: Any]) -> SvaCycleClip? {
+    guard let role = dictionary["role"] as? String,
+          let file = dictionary["soundFileName"] as? String
+    else { return nil }
+    let duration: Int
+    if let n = dictionary["durationMs"] as? NSNumber {
+      duration = n.intValue
+    } else if let i = dictionary["durationMs"] as? Int {
+      duration = i
+    } else {
+      duration = 0
+    }
+    return SvaCycleClip(
+      role: role,
+      soundFileName: file,
+      durationMs: duration,
+      label: (dictionary["label"] as? String) ?? role
+    )
+  }
+}
+
 /// Persisted AlarmKit occurrence lifecycle (solved vs rolling unsolved).
 struct SvaOccurrenceState: Codable, Equatable {
   var parentAlarmId: String
@@ -13,12 +50,69 @@ struct SvaOccurrenceState: Codable, Equatable {
   var silentChildCount: Int
   var cycleDurationMs: Int
   var updatedAt: Double
+  var recoveryGeneration: Int
+  var cancellationGeneration: Int
+  var lastStoppedAlarmKitId: String
+  var recoveryScheduledAt: Double
+  var recoveryAlarmKitId: String
+  var recoveryReason: String
+  var transitionPaddingMs: Int
+  var gapMs: Int
+  var alarmTitle: String
+  var cycleTemplate: [SvaCycleClip]
+
+  init(
+    parentAlarmId: String,
+    occurrenceId: String,
+    solved: Bool,
+    revision: String,
+    rollingHorizonEnd: Double,
+    cyclesScheduled: Int,
+    childCount: Int,
+    audibleChildCount: Int,
+    silentChildCount: Int,
+    cycleDurationMs: Int,
+    updatedAt: Double,
+    recoveryGeneration: Int = 0,
+    cancellationGeneration: Int = 0,
+    lastStoppedAlarmKitId: String = "",
+    recoveryScheduledAt: Double = 0,
+    recoveryAlarmKitId: String = "",
+    recoveryReason: String = "",
+    transitionPaddingMs: Int = 1250,
+    gapMs: Int = 5000,
+    alarmTitle: String = "Smart Voice Alarm",
+    cycleTemplate: [SvaCycleClip] = []
+  ) {
+    self.parentAlarmId = parentAlarmId
+    self.occurrenceId = occurrenceId
+    self.solved = solved
+    self.revision = revision
+    self.rollingHorizonEnd = rollingHorizonEnd
+    self.cyclesScheduled = cyclesScheduled
+    self.childCount = childCount
+    self.audibleChildCount = audibleChildCount
+    self.silentChildCount = silentChildCount
+    self.cycleDurationMs = cycleDurationMs
+    self.updatedAt = updatedAt
+    self.recoveryGeneration = recoveryGeneration
+    self.cancellationGeneration = cancellationGeneration
+    self.lastStoppedAlarmKitId = lastStoppedAlarmKitId
+    self.recoveryScheduledAt = recoveryScheduledAt
+    self.recoveryAlarmKitId = recoveryAlarmKitId
+    self.recoveryReason = recoveryReason
+    self.transitionPaddingMs = transitionPaddingMs
+    self.gapMs = gapMs
+    self.alarmTitle = alarmTitle
+    self.cycleTemplate = cycleTemplate
+  }
 
   var asDictionary: [String: Any] {
     [
       "parentAlarmId": parentAlarmId,
       "occurrenceId": occurrenceId,
       "solved": solved,
+      "occurrenceSolved": solved,
       "revision": revision,
       "rollingHorizonEnd": rollingHorizonEnd,
       "cyclesScheduled": cyclesScheduled,
@@ -27,8 +121,76 @@ struct SvaOccurrenceState: Codable, Equatable {
       "silentChildCount": silentChildCount,
       "cycleDurationMs": cycleDurationMs,
       "updatedAt": updatedAt,
-      "occurrenceSolved": solved,
+      "recoveryGeneration": recoveryGeneration,
+      "cancellationGeneration": cancellationGeneration,
+      "lastStoppedAlarmKitId": lastStoppedAlarmKitId,
+      "recoveryScheduledAt": recoveryScheduledAt,
+      "recoveryAlarmKitId": recoveryAlarmKitId,
+      "recoveryReason": recoveryReason,
+      "transitionPaddingMs": transitionPaddingMs,
+      "gapMs": gapMs,
+      "alarmTitle": alarmTitle,
+      "cycleTemplateCount": cycleTemplate.count,
     ]
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case parentAlarmId, occurrenceId, solved, revision, rollingHorizonEnd
+    case cyclesScheduled, childCount, audibleChildCount, silentChildCount
+    case cycleDurationMs, updatedAt, recoveryGeneration, cancellationGeneration
+    case lastStoppedAlarmKitId, recoveryScheduledAt, recoveryAlarmKitId
+    case recoveryReason, transitionPaddingMs, gapMs, alarmTitle, cycleTemplate
+  }
+
+  init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    parentAlarmId = try c.decode(String.self, forKey: .parentAlarmId)
+    occurrenceId = try c.decode(String.self, forKey: .occurrenceId)
+    solved = try c.decode(Bool.self, forKey: .solved)
+    revision = try c.decodeIfPresent(String.self, forKey: .revision) ?? ""
+    rollingHorizonEnd = try c.decodeIfPresent(Double.self, forKey: .rollingHorizonEnd) ?? 0
+    cyclesScheduled = try c.decodeIfPresent(Int.self, forKey: .cyclesScheduled) ?? 0
+    childCount = try c.decodeIfPresent(Int.self, forKey: .childCount) ?? 0
+    audibleChildCount = try c.decodeIfPresent(Int.self, forKey: .audibleChildCount) ?? 0
+    silentChildCount = try c.decodeIfPresent(Int.self, forKey: .silentChildCount) ?? 0
+    cycleDurationMs = try c.decodeIfPresent(Int.self, forKey: .cycleDurationMs) ?? 0
+    updatedAt = try c.decodeIfPresent(Double.self, forKey: .updatedAt) ?? 0
+    recoveryGeneration = try c.decodeIfPresent(Int.self, forKey: .recoveryGeneration) ?? 0
+    cancellationGeneration = try c.decodeIfPresent(Int.self, forKey: .cancellationGeneration) ?? 0
+    lastStoppedAlarmKitId = try c.decodeIfPresent(String.self, forKey: .lastStoppedAlarmKitId) ?? ""
+    recoveryScheduledAt = try c.decodeIfPresent(Double.self, forKey: .recoveryScheduledAt) ?? 0
+    recoveryAlarmKitId = try c.decodeIfPresent(String.self, forKey: .recoveryAlarmKitId) ?? ""
+    recoveryReason = try c.decodeIfPresent(String.self, forKey: .recoveryReason) ?? ""
+    transitionPaddingMs = try c.decodeIfPresent(Int.self, forKey: .transitionPaddingMs) ?? 1250
+    gapMs = try c.decodeIfPresent(Int.self, forKey: .gapMs) ?? 5000
+    alarmTitle = try c.decodeIfPresent(String.self, forKey: .alarmTitle) ?? "Smart Voice Alarm"
+    cycleTemplate = try c.decodeIfPresent([SvaCycleClip].self, forKey: .cycleTemplate) ?? []
+  }
+
+  static func empty(parent: String, occurrence: String) -> SvaOccurrenceState {
+    SvaOccurrenceState(
+      parentAlarmId: parent,
+      occurrenceId: occurrence,
+      solved: false,
+      revision: "",
+      rollingHorizonEnd: 0,
+      cyclesScheduled: 0,
+      childCount: 0,
+      audibleChildCount: 0,
+      silentChildCount: 0,
+      cycleDurationMs: 0,
+      updatedAt: Date().timeIntervalSince1970,
+      recoveryGeneration: 0,
+      cancellationGeneration: 0,
+      lastStoppedAlarmKitId: "",
+      recoveryScheduledAt: 0,
+      recoveryAlarmKitId: "",
+      recoveryReason: "",
+      transitionPaddingMs: 1250,
+      gapMs: 5000,
+      alarmTitle: "Smart Voice Alarm",
+      cycleTemplate: []
+    )
   }
 }
 
@@ -70,26 +232,17 @@ enum SvaOccurrenceStore {
   }
 
   static func markSolved(parent: String, occurrence: String) {
-    var state = get(parent: parent, occurrence: occurrence) ?? SvaOccurrenceState(
-      parentAlarmId: parent,
-      occurrenceId: occurrence,
-      solved: true,
-      revision: "",
-      rollingHorizonEnd: 0,
-      cyclesScheduled: 0,
-      childCount: 0,
-      audibleChildCount: 0,
-      silentChildCount: 0,
-      cycleDurationMs: 0,
-      updatedAt: Date().timeIntervalSince1970
-    )
+    var state = get(parent: parent, occurrence: occurrence)
+      ?? SvaOccurrenceState.empty(parent: parent, occurrence: occurrence)
     state.solved = true
+    state.cancellationGeneration += 1
     state.updatedAt = Date().timeIntervalSince1970
     upsert(state)
     NSLog(
-      "[SVA-AlarmKit] occurrence solved parent=%@ occurrence=%@",
+      "[SVA-AlarmKit] occurrence solved parent=%@ occurrence=%@ cancelGen=%d",
       parent,
-      occurrence
+      occurrence,
+      state.cancellationGeneration
     )
   }
 
