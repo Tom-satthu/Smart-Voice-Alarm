@@ -37,10 +37,13 @@ enum SvaAudioRenderer {
     fileName: String,
     maxSeconds: Double,
     targetDurationSeconds: Double? = nil,
-    trailingSilenceSeconds: Double = 1.25
+    trailingSilenceSeconds: Double = 1.25,
+    audioRole: String = "speech"
   ) async throws -> [String: Any] {
-    NSLog("[SVA-Audio] render begin file=%@ tts=%d path=%d asset=%d trail=%.2f",
+    let role = SvaAudioRenderRole.parse(audioRole)
+    NSLog("[SVA-Audio] render begin file=%@ role=%@ tts=%d path=%d asset=%d trail=%.2f",
           fileName,
+          role.rawValue,
           (ttsText?.isEmpty == false) ? 1 : 0,
           (sourcePath?.isEmpty == false) ? 1 : 0,
           (assetKey?.isEmpty == false) ? 1 : 0,
@@ -87,12 +90,26 @@ enum SvaAudioRenderer {
         throw svaError(400, "No audio source provided")
       }
 
-      try normalizeLoudness(at: temp)
-      try validateRenderedFile(temp)
-      if let target = targetDurationSeconds, target > 0 {
-        // Fit *content* to exact length (e.g. ringtone 10s) before trailing silence.
-        try fitToExactDuration(at: temp, targetSeconds: min(target, maxSeconds))
+      var ringtoneDiag: [String: Any] = [:]
+      switch role {
+      case .ringtone:
+        // Ringtone: preserve gain — no speech RMS make-up / compressor.
+        ringtoneDiag = try processRingtoneAudio(at: temp)
+        let target = targetDurationSeconds ?? SvaRingtoneAudioConfig.contentSeconds
+        let fitDiag = try fitRingtoneToExactDuration(
+          at: temp,
+          targetSeconds: min(target, maxSeconds)
+        )
+        for (k, v) in fitDiag { ringtoneDiag[k] = v }
+      case .speech, .silence:
+        try normalizeLoudness(at: temp)
+        try validateRenderedFile(temp)
+        if let target = targetDurationSeconds, target > 0 {
+          // Legacy modulo fit — speech should not use this; kept for non-ringtone callers.
+          try fitToExactDuration(at: temp, targetSeconds: min(target, maxSeconds))
+        }
       }
+
       let contentValidation = SvaAudioFileValidator.validate(
         url: temp,
         maxDurationSeconds: maxSeconds + 0.25
@@ -129,22 +146,26 @@ enum SvaAudioRenderer {
         url: dest,
         maxDurationSeconds: maxSeconds + trailingSilenceSeconds + 0.5
       )
-      let duration = Double(validation.durationMs) / 1000.0
       let size = validation.fileSize
       let hash = (try? debugFileHash(dest)) ?? "na"
+      let loud = try measureFileLoudness(url: dest)
       NSLog(
-        "[SVA-Audio] render ok file=%@ path=%@ size=%d contentMs=%d trailMs=%d finalMs=%d hash=%@ fmt=%@ playable=%d",
+        "[SVA-Audio] render ok file=%@ role=%@ path=%@ size=%d contentMs=%d trailMs=%d finalMs=%d hash=%@ peak=%.4f rms=%.4f nearClip=%d fmt=%@ playable=%d",
         fileName,
+        role.rawValue,
         dest.path,
         size,
         contentDurationMs,
         trailingMs,
         validation.durationMs,
         hash,
+        loud.peak,
+        loud.rms,
+        loud.nearClipCount,
         validation.formatDescription,
         validation.avPlayerPlayable ? 1 : 0
       )
-      return [
+      var out: [String: Any] = [
         "fileName": fileName,
         "path": dest.path,
         "durationMs": validation.durationMs,
@@ -158,7 +179,14 @@ enum SvaAudioRenderer {
         "formatDescription": validation.formatDescription,
         "avPlayerPlayable": validation.avPlayerPlayable,
         "renderedExists": validation.exists,
+        "audioRole": role.rawValue,
+        "peakLinear": loud.peak,
+        "rmsLinear": loud.rms,
+        "nearClipCount": loud.nearClipCount,
+        "usedSpeechNormalize": role == .speech,
       ]
+      for (k, v) in ringtoneDiag { out[k] = v }
+      return out
     } catch {
       try? FileManager.default.removeItem(at: temp)
       NSLog("[SVA-Audio] render failed file=%@ err=%@", fileName, String(describing: error))
@@ -620,7 +648,419 @@ enum SvaAudioRenderer {
     return LoudnessStats(peak: peak, rms: rms, windowRms: bestWindow, nearClipCount: nearClip)
   }
 
+  /// Transparent peak limiter for ringtone — never applies speech RMS make-up.
+  static func processRingtoneAudio(at url: URL) throws -> [String: Any] {
+    guard let outFormat = outputFormat() else {
+      throw svaError(500, "Unable to create output format")
+    }
+    let pcm = try readAsInt16Mono(url: url, outFormat: outFormat)
+    guard let samples = pcm.int16ChannelData?[0] else {
+      throw svaError(422, "Ringtone missing Int16 channel")
+    }
+    let frames = Int(pcm.frameLength)
+    var floats = [Float](repeating: 0, count: frames)
+    for i in 0..<frames {
+      floats[i] = Float(samples[i]) / 32768.0
+    }
+    let before = measureLoudness(floats)
+    if before.peak <= 0.0001 && before.rms <= 0.0001 {
+      throw svaError(422, "Ringtone audio is silent")
+    }
+
+    var gain: Float = 1.0
+    var limited = 0
+    if before.peak > SvaRingtoneAudioConfig.peakLimitLinear {
+      gain = SvaRingtoneAudioConfig.peakLimitLinear / before.peak
+      for i in 0..<frames {
+        floats[i] *= gain
+      }
+      limited = frames
+    }
+    // Soft ceiling only — no make-up.
+    for i in 0..<frames {
+      var x = floats[i]
+      if abs(x) > SvaRingtoneAudioConfig.peakLimitLinear {
+        let sign: Float = x >= 0 ? 1 : -1
+        x = sign * SvaRingtoneAudioConfig.peakLimitLinear
+        limited += 1
+      }
+      floats[i] = max(-0.999, min(0.999, x))
+    }
+    let after = measureLoudness(floats)
+    try writeInt16Mono(floats: floats, to: url, format: outFormat)
+    NSLog(
+      "[SVA-Audio] ringtonePeakOnly peakBefore=%.4f peakAfter=%.4f rmsBefore=%.4f rmsAfter=%.4f gain=%.3f limited=%d",
+      before.peak,
+      after.peak,
+      before.rms,
+      after.rms,
+      gain,
+      limited
+    )
+    return [
+      "ringtonePeakBefore": before.peak,
+      "ringtonePeakAfter": after.peak,
+      "ringtoneRmsBefore": before.rms,
+      "ringtoneRmsAfter": after.rms,
+      "ringtoneGain": gain,
+      "ringtoneSpeechNormalize": false,
+    ]
+  }
+
+  /// Fit ringtone content to exact duration with seamless crossfade loops (not modulo).
+  @discardableResult
+  static func fitRingtoneToExactDuration(
+    at url: URL,
+    targetSeconds: Double
+  ) throws -> [String: Any] {
+    guard targetSeconds > 0 else { return [:] }
+    guard let outFormat = outputFormat() else {
+      throw svaError(500, "Unable to create output format")
+    }
+    let targetFrames = Int((targetSeconds * outFormat.sampleRate).rounded())
+    guard targetFrames > 0 else { throw svaError(422, "Target duration invalid") }
+
+    let pcm = try readAsInt16Mono(url: url, outFormat: outFormat)
+    guard let srcPtr = pcm.int16ChannelData?[0] else {
+      throw svaError(422, "Ringtone fit missing channel")
+    }
+    let srcFrames = Int(pcm.frameLength)
+    guard srcFrames > 0 else { throw svaError(422, "Source empty for ringtone fit") }
+
+    var src = [Int16](repeating: 0, count: srcFrames)
+    for i in 0..<srcFrames { src[i] = srcPtr[i] }
+
+    let crossfade = min(
+      SvaRingtoneAudioConfig.crossfadeFrames,
+      max(1, srcFrames / 4)
+    )
+    let fadeIn = min(SvaRingtoneAudioConfig.fadeInFrames, srcFrames / 8)
+    let fadeOut = min(SvaRingtoneAudioConfig.fadeOutFrames, targetFrames / 8)
+
+    let moduloDelta = Self.moduloLoopMaxBoundaryDelta(
+      source: src,
+      targetFrames: targetFrames
+    )
+
+    let built: [Int16]
+    let loopCount: Int
+    if srcFrames >= targetFrames {
+      built = trimRingtoneNearZeroCrossing(source: src, targetFrames: targetFrames)
+      loopCount = 1
+    } else {
+      built = loopRingtoneWithCrossfade(
+        source: src,
+        targetFrames: targetFrames,
+        crossfadeFrames: crossfade
+      )
+      loopCount = max(1, Int(ceil(Double(targetFrames) / Double(max(srcFrames - crossfade, 1)))))
+    }
+
+    var out = built
+    applyFadeInIfNeeded(&out, fadeFrames: fadeIn)
+    applyFadeOut(&out, fadeFrames: fadeOut)
+
+    let crossDelta = Self.crossfadeLoopMaxBoundaryDelta(
+      output: out,
+      sourceFrames: srcFrames,
+      crossfadeFrames: crossfade
+    )
+
+    // Ensure no Int16 overflow / hard clip.
+    var clipCount = 0
+    var peak: Int = 0
+    for i in 0..<out.count {
+      let a = abs(Int(out[i]))
+      if a > peak { peak = a }
+      if a >= 32767 { clipCount += 1 }
+    }
+
+    try writeInt16Samples(out, to: url, format: outFormat)
+    let duration = Double(out.count) / outFormat.sampleRate
+    NSLog(
+      "[SVA-Audio] fitRingtone target=%.2fs frames=%d src=%d loops≈%d xfade=%d moduloDelta=%d crossDelta=%d peak=%d clip=%d",
+      targetSeconds,
+      out.count,
+      srcFrames,
+      loopCount,
+      crossfade,
+      moduloDelta,
+      crossDelta,
+      peak,
+      clipCount
+    )
+    guard abs(duration - targetSeconds) <= (2.0 / outFormat.sampleRate) + 0.001 else {
+      throw svaError(422, "Ringtone fit duration mismatch")
+    }
+    return [
+      "loopCount": loopCount,
+      "crossfadeFrames": crossfade,
+      "fadeInFrames": fadeIn,
+      "fadeOutFrames": fadeOut,
+      "moduloBoundaryDelta": moduloDelta,
+      "maxBoundaryDiscontinuity": crossDelta,
+      "ringtoneClipCount": clipCount,
+      "ringtonePeakInt16": peak,
+      "contentFrames": out.count,
+    ]
+  }
+
+  /// Legacy modulo discontinuity metric (for regression tests).
+  static func moduloLoopMaxBoundaryDelta(source: [Int16], targetFrames: Int) -> Int {
+    let n = source.count
+    guard n > 1, targetFrames > n else {
+      return n > 0 ? abs(Int(source[n - 1]) - Int(source[0])) : 0
+    }
+    var maxDelta = 0
+    var i = n
+    while i < targetFrames {
+      let delta = abs(Int(source[n - 1]) - Int(source[0]))
+      if delta > maxDelta { maxDelta = delta }
+      // Also compare adjacent modulo samples around the wrap.
+      let prev = source[(i - 1) % n]
+      let next = source[i % n]
+      let jump = abs(Int(next) - Int(prev))
+      if jump > maxDelta { maxDelta = jump }
+      i += n
+    }
+    return maxDelta
+  }
+
+  /// Approx discontinuity at loop junctions after seamless build (samples near period edges).
+  static func crossfadeLoopMaxBoundaryDelta(
+    output: [Int16],
+    sourceFrames: Int,
+    crossfadeFrames: Int
+  ) -> Int {
+    let n = sourceFrames
+    let x = max(1, crossfadeFrames)
+    guard output.count > n, n > x * 2 else { return 0 }
+    var maxDelta = 0
+    var boundary = n
+    // After first period, each net advance is (n - x).
+    let strideLen = max(1, n - x)
+    while boundary < output.count {
+      let idx = boundary - 1
+      if idx + 1 < output.count {
+        let jump = abs(Int(output[idx + 1]) - Int(output[idx]))
+        if jump > maxDelta { maxDelta = jump }
+      }
+      // Mid-crossfade region should be smooth — sample step at center of blend window.
+      let mid = boundary - x / 2
+      if mid > 0, mid + 1 < output.count {
+        let jump = abs(Int(output[mid + 1]) - Int(output[mid]))
+        if jump > maxDelta { maxDelta = jump }
+      }
+      boundary += strideLen
+    }
+    return maxDelta
+  }
+
+  static func loopRingtoneWithCrossfade(
+    source: [Int16],
+    targetFrames: Int,
+    crossfadeFrames: Int
+  ) -> [Int16] {
+    let n = source.count
+    guard n > 0, targetFrames > 0 else { return [] }
+    var out = [Int16](repeating: 0, count: targetFrames)
+    let x = min(crossfadeFrames, max(1, n / 4))
+
+    let first = min(n, targetFrames)
+    for i in 0..<first { out[i] = source[i] }
+    var filled = first
+
+    while filled < targetFrames {
+      let remaining = targetFrames - filled
+      let blend = min(x, filled, remaining, n)
+      for i in 0..<blend {
+        let t = Float(i + 1) / Float(blend + 1)
+        // Equal-power crossfade.
+        let gOut = cosf(t * Float.pi / 2)
+        let gIn = sinf(t * Float.pi / 2)
+        let a = Float(out[filled - blend + i]) / 32768.0
+        let b = Float(source[i]) / 32768.0
+        let mixed = a * gOut + b * gIn
+        let clamped = max(-0.999, min(0.999, mixed))
+        out[filled - blend + i] = Int16((clamped * 32767.0).rounded())
+      }
+      let copyStart = blend
+      let copyLen = min(n - copyStart, remaining)
+      guard copyLen > 0 else { break }
+      for i in 0..<copyLen {
+        out[filled + i] = source[copyStart + i]
+      }
+      filled += copyLen
+    }
+    return out
+  }
+
+  private static func trimRingtoneNearZeroCrossing(
+    source: [Int16],
+    targetFrames: Int
+  ) -> [Int16] {
+    let n = source.count
+    guard targetFrames > 0 else { return [] }
+    if n <= targetFrames {
+      return Array(source.prefix(targetFrames))
+    }
+    // Search last ~5ms window before target for a near-zero sample.
+    let window = min(220, targetFrames / 4, n)
+    var cut = targetFrames
+    var bestAbs = Int.max
+    let startSearch = max(0, targetFrames - window)
+    for i in startSearch..<targetFrames {
+      let a = abs(Int(source[i]))
+      if a < bestAbs {
+        bestAbs = a
+        cut = i + 1
+      }
+    }
+    cut = min(max(cut, 1), targetFrames)
+    var out = Array(source.prefix(cut))
+    if out.count < targetFrames {
+      out.append(contentsOf: repeatElement(Int16(0), count: targetFrames - out.count))
+    } else if out.count > targetFrames {
+      out = Array(out.prefix(targetFrames))
+    }
+    return out
+  }
+
+  private static func applyFadeInIfNeeded(_ samples: inout [Int16], fadeFrames: Int) {
+    guard !samples.isEmpty, fadeFrames > 0 else { return }
+    if abs(Int(samples[0])) < 200 { return }
+    let n = min(fadeFrames, samples.count)
+    for i in 0..<n {
+      let g = Float(i) / Float(n)
+      let v = Float(samples[i]) / 32768.0 * g
+      samples[i] = Int16((max(-0.999, min(0.999, v)) * 32767.0).rounded())
+    }
+  }
+
+  private static func applyFadeOut(_ samples: inout [Int16], fadeFrames: Int) {
+    guard !samples.isEmpty, fadeFrames > 0 else { return }
+    let n = min(fadeFrames, samples.count)
+    let start = samples.count - n
+    for i in 0..<n {
+      let g = 1.0 - Float(i + 1) / Float(n)
+      let v = Float(samples[start + i]) / 32768.0 * g
+      samples[start + i] = Int16((max(-0.999, min(0.999, v)) * 32767.0).rounded())
+    }
+  }
+
+  private static func readAsInt16Mono(
+    url: URL,
+    outFormat: AVAudioFormat
+  ) throws -> AVAudioPCMBuffer {
+    let input = try AVAudioFile(forReading: url)
+    let srcFormat = input.processingFormat
+    let srcLength = AVAudioFrameCount(input.length)
+    guard srcLength > 0 else { throw svaError(422, "Source empty") }
+    guard let srcBuffer = AVAudioPCMBuffer(pcmFormat: srcFormat, frameCapacity: srcLength)
+    else { throw svaError(500, "read buffer alloc failed") }
+    try input.read(into: srcBuffer)
+    if formatsCompatible(srcBuffer.format, outFormat) {
+      return srcBuffer
+    }
+    guard let converter = AVAudioConverter(from: srcBuffer.format, to: outFormat) else {
+      throw svaError(501, "converter unavailable")
+    }
+    let ratio = outFormat.sampleRate / max(srcBuffer.format.sampleRate, 1)
+    let capacity = AVAudioFrameCount(Double(srcBuffer.frameLength) * ratio) + 32
+    guard let converted = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: capacity)
+    else { throw svaError(500, "convert buffer failed") }
+    var gotInput = false
+    var convertError: NSError?
+    let status = converter.convert(to: converted, error: &convertError) { _, outStatus in
+      if gotInput {
+        outStatus.pointee = .noDataNow
+        return nil
+      }
+      gotInput = true
+      outStatus.pointee = .haveData
+      return srcBuffer
+    }
+    if let convertError { throw convertError }
+    if status == .error || converted.frameLength == 0 {
+      throw svaError(422, "convert produced no audio")
+    }
+    return converted
+  }
+
+  private static func writeInt16Mono(
+    floats: [Float],
+    to url: URL,
+    format: AVAudioFormat
+  ) throws {
+    let frames = floats.count
+    guard let outBuffer = AVAudioPCMBuffer(
+      pcmFormat: format,
+      frameCapacity: AVAudioFrameCount(frames)
+    ),
+      let dst = outBuffer.int16ChannelData?[0]
+    else { throw svaError(500, "write buffer failed") }
+    outBuffer.frameLength = AVAudioFrameCount(frames)
+    for i in 0..<frames {
+      dst[i] = Int16((floats[i] * 32767.0).rounded())
+    }
+    try writeBuffer(outBuffer, to: url, format: format)
+  }
+
+  private static func writeInt16Samples(
+    _ samples: [Int16],
+    to url: URL,
+    format: AVAudioFormat
+  ) throws {
+    let frames = samples.count
+    guard let outBuffer = AVAudioPCMBuffer(
+      pcmFormat: format,
+      frameCapacity: AVAudioFrameCount(frames)
+    ),
+      let dst = outBuffer.int16ChannelData?[0]
+    else { throw svaError(500, "write samples failed") }
+    outBuffer.frameLength = AVAudioFrameCount(frames)
+    for i in 0..<frames { dst[i] = samples[i] }
+    try writeBuffer(outBuffer, to: url, format: format)
+  }
+
+  private static func writeBuffer(
+    _ buffer: AVAudioPCMBuffer,
+    to url: URL,
+    format: AVAudioFormat
+  ) throws {
+    let temp = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_write_\(UUID().uuidString).caf")
+    let outputFile = try AVAudioFile(
+      forWriting: temp,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    try outputFile.write(from: buffer)
+    if FileManager.default.fileExists(atPath: url.path) {
+      try FileManager.default.removeItem(at: url)
+    }
+    try FileManager.default.moveItem(at: temp, to: url)
+  }
+
+  private static func measureFileLoudness(url: URL) throws -> LoudnessStats {
+    guard let format = outputFormat() else {
+      return LoudnessStats(peak: 0, rms: 0, windowRms: 0, nearClipCount: 0)
+    }
+    let pcm = try readAsInt16Mono(url: url, outFormat: format)
+    guard let samples = pcm.int16ChannelData?[0] else {
+      return LoudnessStats(peak: 0, rms: 0, windowRms: 0, nearClipCount: 0)
+    }
+    let frames = Int(pcm.frameLength)
+    var floats = [Float](repeating: 0, count: frames)
+    for i in 0..<frames {
+      floats[i] = Float(samples[i]) / 32768.0
+    }
+    return measureLoudness(floats)
+  }
+
   /// Trim or loop PCM CAF so duration equals [targetSeconds] (±1 frame).
+  /// Legacy modulo loop — kept for speech callers / regression comparison only.
   static func fitToExactDuration(at url: URL, targetSeconds: Double) throws {
     guard targetSeconds > 0 else { return }
     guard let outFormat = outputFormat() else {

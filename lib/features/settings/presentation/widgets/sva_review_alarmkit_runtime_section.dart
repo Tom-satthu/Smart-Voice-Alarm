@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/alarm_kit_timeline_config.dart';
 import '../../../../core/services/ios_alarm_scheduler.dart';
+import '../../../../core/services/storage_paths.dart';
 import '../../../../shared/data/local_store.dart';
 import '../../../../shared/models/ui_models.dart';
 import '../../../../shared/providers/prototype_providers.dart';
@@ -276,12 +278,83 @@ class _SvaReviewAlarmKitRuntimeSectionState
             _actionChip('Mode .caf', () => _setMode('withExtension')),
             _actionChip('Mode bare', () => _setMode('withoutExtension')),
             _actionChip('Test recorded voice 60s', _testRecordedVoice),
+            _actionChip(
+              'Preview rendered ringtone CAF',
+              _previewRenderedRingtone,
+            ),
             _actionChip('Cancel test', _cancelTest),
             _actionChip('Copy', _copyDiagnostics),
           ],
         ),
       ],
     );
+  }
+
+  /// Review-only: render Soft Chime through AlarmKit ringtone pipeline and play CAF.
+  Future<void> _previewRenderedRingtone() async {
+    final audio = ref.read(audioPlayerServiceProvider);
+    final fileName =
+        'sva_diag_ringtone_${const Uuid().v4().substring(0, 8)}.caf';
+    try {
+      final rendered = await _scheduler.renderSound(
+        fileName: fileName,
+        assetKey: 'soft_chime',
+        maxSeconds: 10,
+        targetDurationSeconds: 10,
+        trailingSilenceSeconds:
+            AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
+        audioRole: 'ringtone',
+      );
+      final diag = await _scheduler.diagnoseSoundFile(
+        fileName: rendered.fileName,
+        sourceType: 'ringtone',
+      );
+      debugPrint(
+        '[SVA-Review] ringtone CAF hash=${rendered.debugHash} '
+        'contentMs=${rendered.contentDurationMs} '
+        'finalMs=${rendered.effectiveFinalizedMs} path=${rendered.path} diag=$diag',
+      );
+      if (rendered.path.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Rendered ringtone path empty')),
+        );
+        return;
+      }
+      await audio.playFilePreview(rendered.path);
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Rendered ringtone CAF'),
+          content: SelectableText(
+            'Playing AlarmKit-bound CAF (not asset WAV).\n'
+            'file=${rendered.fileName}\n'
+            'hash=${rendered.debugHash}\n'
+            'contentMs=${rendered.effectiveContentDurationMs}\n'
+            'trailMs=${rendered.trailingSilenceMs}\n'
+            'finalMs=${rendered.effectiveFinalizedMs}\n'
+            'asset=${RingtoneAssets.softChime}',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await audio.stop();
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      await audio.stop();
+    } catch (e) {
+      debugPrint('[SVA-Review] ringtone preview failed: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ringtone CAF preview failed: $e')),
+      );
+    }
   }
 
   Widget _actionChip(String label, VoidCallback onTap) {

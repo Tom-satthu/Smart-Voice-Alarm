@@ -290,6 +290,7 @@ class IosAlarmFanoutService {
             targetDurationSeconds: 10,
             trailingSilenceSeconds:
                 AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
+            audioRole: 'ringtone',
           );
         } else {
           rendered = await _scheduler.renderSound(
@@ -299,6 +300,7 @@ class IosAlarmFanoutService {
             targetDurationSeconds: 10,
             trailingSilenceSeconds:
                 AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
+            audioRole: 'ringtone',
           );
         }
         renderedNames.add(rendered.fileName);

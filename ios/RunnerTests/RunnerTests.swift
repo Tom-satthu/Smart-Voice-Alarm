@@ -507,6 +507,211 @@ final class RunnerTests: XCTestCase {
     try? FileManager.default.removeItem(at: dest)
   }
 
+  // MARK: - Ringtone seamless loop (R8)
+
+  func testRingtoneCrossfadeReducesModuloBoundaryJump() {
+    // Synthetic source with hard end→start discontinuity.
+    var src = [Int16](repeating: 0, count: 4410) // 100ms @ 44.1k
+    for i in 0..<src.count {
+      src[i] = Int16(sin(Double(i) / 20.0) * 12000)
+    }
+    src[0] = -28000
+    src[src.count - 1] = 28000
+    let target = SvaRingtoneAudioConfig.contentFrames
+    let modulo = SvaAudioRenderer.moduloLoopMaxBoundaryDelta(
+      source: src,
+      targetFrames: target
+    )
+    let xfade = SvaRingtoneAudioConfig.crossfadeFrames
+    let looped = SvaAudioRenderer.loopRingtoneWithCrossfade(
+      source: src,
+      targetFrames: target,
+      crossfadeFrames: xfade
+    )
+    XCTAssertEqual(looped.count, target)
+    let cross = SvaAudioRenderer.crossfadeLoopMaxBoundaryDelta(
+      output: looped,
+      sourceFrames: src.count,
+      crossfadeFrames: xfade
+    )
+    XCTAssertGreaterThan(modulo, 1000, "fixture must have large modulo jump")
+    XCTAssertLessThan(cross, modulo / 4, "crossfade must cut discontinuity substantially")
+    XCTAssertLessThan(cross, 800, "loop junction should be smooth")
+  }
+
+  func testRingtoneFitShortSourceToTenSecondsNoClip() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_ring_short_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 2)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        // End and start far apart → modulo would click.
+        ch[i] = Int16(sin(Double(i) / 35.0) * 20000)
+      }
+      ch[0] = -25000
+      ch[Int(frames) - 1] = 25000
+    }
+    try file.write(from: buffer)
+    let peakBefore = try peakInt16(url: dest)
+    let diag = try SvaAudioRenderer.fitRingtoneToExactDuration(at: dest, targetSeconds: 10)
+    let audio = try AVAudioFile(forReading: dest)
+    let duration = Double(audio.length) / audio.processingFormat.sampleRate
+    XCTAssertEqual(duration, 10, accuracy: 0.002)
+    let peakAfter = try peakInt16(url: dest)
+    XCTAssertLessThanOrEqual(peakAfter, 32767)
+    let cross = diag["maxBoundaryDiscontinuity"] as? Int ?? Int.max
+    let modulo = diag["moduloBoundaryDelta"] as? Int ?? 0
+    XCTAssertLessThan(cross, modulo)
+    XCTAssertEqual(diag["crossfadeFrames"] as? Int, SvaRingtoneAudioConfig.crossfadeFrames)
+    _ = peakBefore
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testRingtoneFitLongSourceTrimsToTenSeconds() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_ring_long_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 14)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 50.0) * 10000)
+      }
+    }
+    try file.write(from: buffer)
+    _ = try SvaAudioRenderer.fitRingtoneToExactDuration(at: dest, targetSeconds: 10)
+    let audio = try AVAudioFile(forReading: dest)
+    let duration = Double(audio.length) / audio.processingFormat.sampleRate
+    XCTAssertEqual(duration, 10, accuracy: 0.002)
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testRingtoneRenderSkipsSpeechNormalizeAndHasTrailingSilence() async throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_ring_src_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 2)
+    let file = try AVAudioFile(
+      forWriting: source,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    // Quiet source — speech normalize would boost; ringtone must not.
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 40.0) * 4000)
+      }
+    }
+    try file.write(from: buffer)
+    let outName = "sva_ring_render_\(UUID().uuidString).caf"
+    let result = try await SvaAudioRenderer.render(
+      sourcePath: source.path,
+      assetKey: nil,
+      ttsText: nil,
+      ttsLocale: nil,
+      fileName: outName,
+      maxSeconds: 10,
+      targetDurationSeconds: 10,
+      trailingSilenceSeconds: SvaRingtoneAudioConfig.trailingSilenceSeconds,
+      audioRole: "ringtone"
+    )
+    XCTAssertEqual(result["usedSpeechNormalize"] as? Bool, false)
+    XCTAssertEqual(result["audioRole"] as? String, "ringtone")
+    let contentMs = result["contentDurationMs"] as? Int ?? 0
+    let trailMs = result["trailingSilenceMs"] as? Int ?? 0
+    let finalMs = result["finalizedFileDurationMs"] as? Int ?? 0
+    XCTAssertEqual(Double(contentMs), 10_000, accuracy: 50)
+    XCTAssertEqual(Double(trailMs), 1_250, accuracy: 50)
+    XCTAssertEqual(Double(finalMs), 11_250, accuracy: 80)
+    let peak = result["peakLinear"] as? Float ?? 1
+    XCTAssertLessThanOrEqual(peak, 0.95)
+    let gain = result["ringtoneGain"] as? Float ?? 99
+    XCTAssertEqual(gain, 1.0, accuracy: 0.001, "quiet ringtone must not be boosted")
+    let dest = SvaAudioRenderer.soundsDirectory.appendingPathComponent(outName)
+    XCTAssertTrue(SvaAudioFileValidator.canPlayWithAVAudioPlayer(url: dest))
+    try? FileManager.default.removeItem(at: source)
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testRingtoneLoudSourceNotBoosted() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_ring_loud_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 1)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 30.0) * 28000)
+      }
+    }
+    try file.write(from: buffer)
+    let peakBefore = try peakInt16(url: dest)
+    let diag = try SvaAudioRenderer.processRingtoneAudio(at: dest)
+    let peakAfter = try peakInt16(url: dest)
+    XCTAssertEqual(diag["ringtoneSpeechNormalize"] as? Bool, false)
+    // Must not increase peak.
+    XCTAssertLessThanOrEqual(peakAfter, peakBefore + 1)
+    let gain = diag["ringtoneGain"] as? Float ?? 99
+    XCTAssertLessThanOrEqual(gain, 1.0001)
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  private func peakInt16(url: URL) throws -> Int {
+    let audio = try AVAudioFile(forReading: url)
+    let frames = AVAudioFrameCount(audio.length)
+    guard let buf = AVAudioPCMBuffer(pcmFormat: audio.processingFormat, frameCapacity: frames)
+    else { throw NSError(domain: "test", code: 1) }
+    try audio.read(into: buf)
+    guard let ch = buf.int16ChannelData?[0] else { return 0 }
+    var peak = 0
+    for i in 0..<Int(buf.frameLength) {
+      peak = max(peak, abs(Int(ch[i])))
+    }
+    return peak
+  }
+
   func testAppendTrailingSilenceExtendsFinalizedDuration() throws {
     guard let format = SvaAudioRenderer.outputFormat() else {
       return XCTFail("format")

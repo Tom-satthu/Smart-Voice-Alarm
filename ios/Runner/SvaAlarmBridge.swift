@@ -142,8 +142,14 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       let maxSeconds = (args["maxSeconds"] as? Double) ?? 20
       let targetDuration = args["targetDurationSeconds"] as? Double
       let trailingSilenceSeconds = (args["trailingSilenceSeconds"] as? Double) ?? 1.25
+      let audioRole = (args["audioRole"] as? String) ?? {
+        if ttsText?.isEmpty == false { return "speech" }
+        if targetDuration != nil { return "ringtone" }
+        return "speech"
+      }()
       let sourceType: String = {
         if ttsText?.isEmpty == false { return "tts" }
+        if (args["audioRole"] as? String) == "ringtone" { return "ringtone" }
         if sourcePath?.isEmpty == false { return "recording" }
         if assetKey?.isEmpty == false { return "asset" }
         return "unknown"
@@ -159,7 +165,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
               fileName: fileName,
               maxSeconds: maxSeconds,
               targetDurationSeconds: targetDuration,
-              trailingSilenceSeconds: trailingSilenceSeconds
+              trailingSilenceSeconds: trailingSilenceSeconds,
+              audioRole: audioRole
             )
             self.reply(result, out)
           } catch {
