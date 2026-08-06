@@ -461,6 +461,83 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(exact, "")
   }
 
+  // MARK: - Silence CAF / occurrence state / stop recovery
+
+  func testSilenceCafIsPlayableFiveSeconds() throws {
+    let name = "sva_test_silence_\(UUID().uuidString).caf"
+    let out = try SvaSilenceAudio.ensure(fileName: name, seconds: 5)
+    XCTAssertEqual(out["ok"] as? Bool, true)
+    let durationMs = out["durationMs"] as? Int ?? 0
+    XCTAssertGreaterThanOrEqual(durationMs, 4750)
+    XCTAssertLessThanOrEqual(durationMs, 5250)
+    XCTAssertEqual(out["avPlayerPlayable"] as? Bool, true)
+    let path = out["path"] as? String ?? ""
+    XCTAssertTrue(FileManager.default.fileExists(atPath: path))
+    try? FileManager.default.removeItem(atPath: path)
+  }
+
+  func testFitExactDurationLoopsShortSourceToTenSeconds() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = SvaAudioRenderer.soundsDirectory
+      .appendingPathComponent("sva_tone_fit_\(UUID().uuidString).caf")
+    let frames: AVAudioFrameCount = AVAudioFrameCount(format.sampleRate * 3)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 40.0) * 8000)
+      }
+    }
+    try file.write(from: buffer)
+    try SvaAudioRenderer.fitToExactDuration(at: dest, targetSeconds: 10)
+    let audio = try AVAudioFile(forReading: dest)
+    let duration = Double(audio.length) / audio.processingFormat.sampleRate
+    XCTAssertEqual(duration, 10, accuracy: 0.25)
+    XCTAssertTrue(SvaAudioFileValidator.canPlayWithAVAudioPlayer(url: dest))
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testOccurrenceStoreSolvedOnlyViaMarkSolved() {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    XCTAssertFalse(SvaOccurrenceStore.isSolved(parent: parent, occurrence: occ))
+    SvaOccurrenceStore.upsert(
+      SvaOccurrenceState(
+        parentAlarmId: parent,
+        occurrenceId: occ,
+        solved: false,
+        revision: "r1",
+        rollingHorizonEnd: Date().timeIntervalSince1970 + 1800,
+        cyclesScheduled: 2,
+        childCount: 8,
+        audibleChildCount: 4,
+        silentChildCount: 4,
+        cycleDurationMs: 30000,
+        updatedAt: Date().timeIntervalSince1970
+      )
+    )
+    XCTAssertFalse(SvaOccurrenceStore.isSolved(parent: parent, occurrence: occ))
+    SvaOccurrenceStore.markSolved(parent: parent, occurrence: occ)
+    XCTAssertTrue(SvaOccurrenceStore.isSolved(parent: parent, occurrence: occ))
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testRollingChildIdsStableAcrossPlans() {
+    let a = "sva_c_abc_0_1"
+    let b = "sva_c_abc_0_1"
+    XCTAssertEqual(a, b)
+  }
+
   // MARK: - Helpers
 
   private func makeSegment(

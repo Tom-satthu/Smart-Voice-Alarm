@@ -254,7 +254,45 @@ class AppLocalizationsVi extends AppLocalizations {
   String get ttsSaved => 'Đã lưu đoạn giọng nói';
 
   @override
+  String ttsCharCounter(int used, int max) {
+    return '$used/$max ký tự';
+  }
+
+  @override
+  String get ttsCharLimitReached => 'Đã đạt giới hạn ký tự cho ngôn ngữ này.';
+
+  @override
+  String get ttsPasteTooLongTitle => 'Dán vượt giới hạn';
+
+  @override
+  String ttsPasteTooLongBody(int max) {
+    return 'Nội dung dán dài hơn $max ký tự. Chỉ chèn $max ký tự đầu?';
+  }
+
+  @override
+  String get ttsPasteInsertPartial => 'Chèn phần hợp lệ';
+
+  @override
+  String get ttsTooLongDuration =>
+      'Âm thanh đọc dài hơn 20 giây. Hãy rút ngắn văn bản và thử lại.';
+
+  @override
+  String get ttsDurationChecking => 'Đang kiểm tra độ dài đọc…';
+
+  @override
   String get recordTitle => 'Ghi giọng nói';
+
+  @override
+  String recordTimerLabel(int used, int max) {
+    return '$used/$max giây';
+  }
+
+  @override
+  String get recordAutoStopped => 'Đã tự dừng ghi ở 20 giây.';
+
+  @override
+  String get recordLongClipWarning =>
+      'Bản ghi dài hơn 20 giây. Báo thức chỉ dùng 20 giây đầu.';
 
   @override
   String get recordStart => 'Ghi';

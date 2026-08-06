@@ -96,11 +96,15 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
     await notifications.native.stopForegroundAlarm();
 
     if (_isIos && occurrenceId != null && occurrenceId.isNotEmpty) {
-      await notifications.iosFanout.cancelOccurrence(
+      await ChallengeLaunchCoordinator.instance.clearAfterSolved(
         parentAlarmId: widget.alarmId,
         occurrenceId: occurrenceId,
       );
-      await ChallengeLaunchCoordinator.instance.clearAfterSolved(
+      await notifications.iosFanout.scheduler.markOccurrenceSolved(
+        parentAlarmId: widget.alarmId,
+        occurrenceId: occurrenceId,
+      );
+      await notifications.iosFanout.cancelOccurrence(
         parentAlarmId: widget.alarmId,
         occurrenceId: occurrenceId,
       );

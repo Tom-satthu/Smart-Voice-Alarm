@@ -145,6 +145,12 @@ class IosRenderedSound {
   final String debugHash;
 }
 
+/// Role of a scheduled child in the AlarmKit / fan-out timeline.
+enum IosSegmentRole { voice, silence, ringtone }
+
+/// Shared silence CAF used between audible AlarmKit children.
+const String kSvaSilenceFileName = 'sva_silence_5s.caf';
+
 class IosAlarmSegment {
   const IosAlarmSegment({
     required this.parentAlarmId,
@@ -155,6 +161,8 @@ class IosAlarmSegment {
     required this.soundFileName,
     required this.duration,
     this.label = '',
+    this.role = IosSegmentRole.voice,
+    this.cycleIndex = 0,
   });
 
   final String parentAlarmId;
@@ -165,6 +173,8 @@ class IosAlarmSegment {
   final String soundFileName;
   final Duration duration;
   final String label;
+  final IosSegmentRole role;
+  final int cycleIndex;
 
   Map<String, dynamic> toNativeMap() => {
     'parentAlarmId': parentAlarmId,
@@ -175,6 +185,8 @@ class IosAlarmSegment {
     'soundFileName': soundFileName,
     'durationMs': duration.inMilliseconds,
     'label': label,
+    'role': role.name,
+    'cycleIndex': cycleIndex,
   };
 }
 
@@ -324,6 +336,7 @@ class IosAlarmScheduler {
     String? ttsText,
     String? ttsLocale,
     double maxSeconds = 20,
+    double? targetDurationSeconds,
   }) async {
     final raw = await _channel.invokeMethod<Map>('renderSound', {
       'fileName': fileName,
@@ -332,6 +345,8 @@ class IosAlarmScheduler {
       'ttsText': ttsText,
       'ttsLocale': ttsLocale,
       'maxSeconds': maxSeconds,
+      if (targetDurationSeconds != null)
+        'targetDurationSeconds': targetDurationSeconds,
     });
     if (raw == null) {
       throw StateError('renderSound returned null');
@@ -345,6 +360,67 @@ class IosAlarmScheduler {
     );
   }
 
+  Future<Map<String, dynamic>> ensureSilenceSound({double seconds = 5}) async {
+    if (!isSupported) {
+      return {'ok': true, 'fileName': kSvaSilenceFileName};
+    }
+    try {
+      final raw = await _channel.invokeMethod<Map>('ensureSilenceSound', {
+        'seconds': seconds,
+        'fileName': kSvaSilenceFileName,
+      });
+      return Map<String, dynamic>.from(raw ?? const {'ok': true});
+    } catch (e) {
+      debugPrint('[SVA-Audio] ensureSilenceSound failed: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> measureTtsDuration({
+    required String text,
+    String? locale,
+    double maxSeconds = 20,
+  }) async {
+    if (!isSupported) return const {'ok': false};
+    try {
+      final raw = await _channel.invokeMethod<Map>('measureTtsDuration', {
+        'text': text,
+        'locale': locale,
+        'maxSeconds': maxSeconds,
+      });
+      return Map<String, dynamic>.from(raw ?? const {'ok': false});
+    } catch (e) {
+      return {'ok': false, 'error': '$e'};
+    }
+  }
+
+  Future<void> markOccurrenceSolved({
+    required String parentAlarmId,
+    required String occurrenceId,
+  }) async {
+    if (!isSupported) return;
+    await _channel.invokeMethod<void>('markOccurrenceSolved', {
+      'parentAlarmId': parentAlarmId,
+      'occurrenceId': occurrenceId,
+    });
+  }
+
+  Future<Map<String, dynamic>> occurrenceDiagnostics({
+    required String parentAlarmId,
+    required String occurrenceId,
+  }) async {
+    if (!isSupported) return const {};
+    try {
+      final raw = await _channel.invokeMethod<Map>('occurrenceDiagnostics', {
+        'parentAlarmId': parentAlarmId,
+        'occurrenceId': occurrenceId,
+      });
+      return Map<String, dynamic>.from(raw ?? const {});
+    } catch (_) {
+      return const {};
+    }
+  }
+
   /// Schedules segments on exactly one backend.
   ///
   /// [backend] must be `alarmKit` or `notificationFanout`. Never schedules both.
@@ -355,6 +431,7 @@ class IosAlarmScheduler {
     required String body,
     required String backend,
     String? soundNameMode,
+    Map<String, dynamic>? occurrenceMeta,
   }) async {
     if (!isSupported || segments.isEmpty) {
       return {
@@ -372,6 +449,9 @@ class IosAlarmScheduler {
     };
     if (soundNameMode != null && soundNameMode.isNotEmpty) {
       args['soundNameMode'] = soundNameMode;
+    }
+    if (occurrenceMeta != null) {
+      args['occurrenceMeta'] = occurrenceMeta;
     }
     final raw = await _channel.invokeMethod<Map>('scheduleSegments', args);
     return Map<String, dynamic>.from(raw ?? {'ok': true, 'backend': backend});

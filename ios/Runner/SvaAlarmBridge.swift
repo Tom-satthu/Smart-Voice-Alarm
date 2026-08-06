@@ -140,6 +140,7 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       let ttsText = args["ttsText"] as? String
       let ttsLocale = args["ttsLocale"] as? String
       let maxSeconds = (args["maxSeconds"] as? Double) ?? 20
+      let targetDuration = args["targetDurationSeconds"] as? Double
       let sourceType: String = {
         if ttsText?.isEmpty == false { return "tts" }
         if sourcePath?.isEmpty == false { return "recording" }
@@ -155,7 +156,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
               ttsText: ttsText,
               ttsLocale: ttsLocale,
               fileName: fileName,
-              maxSeconds: maxSeconds
+              maxSeconds: maxSeconds,
+              targetDurationSeconds: targetDuration
             )
             self.reply(result, out)
           } catch {
@@ -169,6 +171,82 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
             )
           }
         }
+      }
+    case "ensureSilenceSound":
+      let seconds = (call.arguments as? [String: Any])?["seconds"] as? Double ?? 5
+      let fileName = (call.arguments as? [String: Any])?["fileName"] as? String
+        ?? SvaSilenceAudio.defaultFileName
+      do {
+        let out = try SvaSilenceAudio.ensure(fileName: fileName, seconds: seconds)
+        reply(result, out)
+      } catch {
+        replyError(
+          result,
+          code: "silence",
+          message: error.localizedDescription,
+          stage: "ensureSilenceSound"
+        )
+      }
+    case "measureTtsDuration":
+      guard let args = call.arguments as? [String: Any],
+            let text = args["text"] as? String,
+            !text.isEmpty
+      else {
+        replyError(result, code: "args", message: "text required", stage: "measureTtsDuration")
+        return
+      }
+      let locale = args["locale"] as? String
+      let maxSeconds = (args["maxSeconds"] as? Double) ?? 20
+      let fileName = "sva_tts_measure_\(UUID().uuidString).caf"
+      audioQueue.async {
+        Task {
+          do {
+            let out = try await SvaAudioRenderer.render(
+              sourcePath: nil,
+              assetKey: nil,
+              ttsText: text,
+              ttsLocale: locale,
+              fileName: fileName,
+              maxSeconds: maxSeconds + 5
+            )
+            SvaAudioRenderer.deleteSoundFile(fileName)
+            let durationMs = (out["durationMs"] as? Int) ?? 0
+            self.reply(result, [
+              "ok": true,
+              "durationMs": durationMs,
+              "withinLimit": Double(durationMs) <= maxSeconds * 1000 + 250,
+              "maxSeconds": maxSeconds,
+            ])
+          } catch {
+            self.replyError(
+              result,
+              code: "tts_measure",
+              message: error.localizedDescription,
+              stage: "measureTtsDuration"
+            )
+          }
+        }
+      }
+    case "markOccurrenceSolved":
+      let args = call.arguments as? [String: Any]
+      let parent = args?["parentAlarmId"] as? String ?? ""
+      let occurrence = args?["occurrenceId"] as? String ?? ""
+      SvaOccurrenceStore.markSolved(parent: parent, occurrence: occurrence)
+      SvaPendingStore.clearAfterSolve(parent: parent, occurrence: occurrence)
+      reply(result, true)
+    case "occurrenceDiagnostics":
+      let args = call.arguments as? [String: Any]
+      let parent = args?["parentAlarmId"] as? String ?? ""
+      let occurrence = args?["occurrenceId"] as? String ?? ""
+      if let state = SvaOccurrenceStore.get(parent: parent, occurrence: occurrence) {
+        reply(result, state.asDictionary)
+      } else {
+        reply(result, [
+          "parentAlarmId": parent,
+          "occurrenceId": occurrence,
+          "solved": false,
+          "occurrenceSolved": false,
+        ])
       }
     case "scheduleSegments":
       guard let args = call.arguments as? [String: Any],
@@ -185,6 +263,7 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       {
         SvaAlarmKitSoundNameMode.setPreferred(mode)
       }
+      let occurrenceMeta = args["occurrenceMeta"] as? [String: Any]
       let segments = rawSegments.compactMap(Self.parseSegment)
       Task {
         do {
@@ -192,7 +271,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
             segments: segments,
             title: title,
             body: body,
-            backend: backend
+            backend: backend,
+            occurrenceMeta: occurrenceMeta
           )
           var dict = outcome
           if let last = SvaAlarmKitSoundStore.last() {
@@ -343,23 +423,75 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     segments: [SvaSegmentSpec],
     title: String,
     body: String,
-    backend: String
+    backend: String,
+    occurrenceMeta: [String: Any]? = nil
   ) async throws -> [String: Any] {
     if backend == "alarmKit" {
       NSLog("[SVA-AlarmKit] backend=alarmKit")
       let outcome = try await SvaAlarmKitScheduler.schedule(segments: segments, title: title)
-      // Never silently fall back to notification fan-out after a partial AlarmKit attempt.
+      if outcome.ok, let first = segments.first {
+        Self.persistOccurrenceState(
+          parent: first.parentAlarmId,
+          occurrence: first.occurrenceId,
+          segments: segments,
+          meta: occurrenceMeta,
+          solved: false
+        )
+        SvaAlarmKitUpdateObserver.shared.startIfNeeded()
+      }
       return outcome.asDictionary
     }
 
     NSLog("[SVA-AlarmKit] backend=notificationFanout")
     try await SvaNotificationFanout.schedule(segments: segments, title: title, body: body)
+    if let first = segments.first {
+      Self.persistOccurrenceState(
+        parent: first.parentAlarmId,
+        occurrence: first.occurrenceId,
+        segments: segments,
+        meta: occurrenceMeta,
+        solved: false
+      )
+    }
     return [
       "ok": true,
       "backend": "notificationFanout",
       "scheduledIds": segments.map(\.childId),
       "stage": "notification_schedule",
     ]
+  }
+
+  private static func persistOccurrenceState(
+    parent: String,
+    occurrence: String,
+    segments: [SvaSegmentSpec],
+    meta: [String: Any]?,
+    solved: Bool
+  ) {
+    let audible = segments.filter { ($0.label) != "silence" }.count
+    let silent = segments.count - audible
+    let lastEnd: Double = {
+      guard let last = segments.max(by: { $0.startAtMillis < $1.startAtMillis }) else { return 0 }
+      return Double(last.startAtMillis) / 1000.0 + Double(last.durationMs) / 1000.0
+    }()
+    let state = SvaOccurrenceState(
+      parentAlarmId: parent,
+      occurrenceId: occurrence,
+      solved: solved,
+      revision: (meta?["revision"] as? String) ?? "",
+      rollingHorizonEnd: (meta?["rollingHorizonEnd"] as? Double) ?? lastEnd,
+      cyclesScheduled: (meta?["cyclesScheduled"] as? Int)
+        ?? (meta?["cyclesScheduled"] as? NSNumber)?.intValue
+        ?? 1,
+      childCount: (meta?["childCount"] as? Int) ?? segments.count,
+      audibleChildCount: (meta?["audibleChildCount"] as? Int) ?? audible,
+      silentChildCount: (meta?["silentChildCount"] as? Int) ?? silent,
+      cycleDurationMs: (meta?["cycleDurationMs"] as? Int)
+        ?? (meta?["cycleDurationMs"] as? NSNumber)?.intValue
+        ?? 0,
+      updatedAt: Date().timeIntervalSince1970
+    )
+    SvaOccurrenceStore.upsert(state)
   }
 
   private func cancelParent(_ parent: String) {

@@ -159,6 +159,9 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     );
     final seq = ref.read(voiceSequenceProvider(sequenceId));
     final repeats = _repeatCount.clamp(1, 20);
+    // iOS planner ignores repeatCount (effective 1). Keep stored value for Android.
+    final effectiveRepeats =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS ? 1 : repeats;
 
     // Validate in memory — never persist draft before schedule succeeds.
     if (_type == AlarmType.mixed) {
@@ -184,7 +187,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     if (_type != AlarmType.ringtone && seq.segments.isNotEmpty) {
       final voiceCount = seq.segments.length.clamp(0, 5);
       final toneCount = _type == AlarmType.voice ? 0 : 1;
-      final planned = voiceCount * repeats + toneCount;
+      final planned = voiceCount * effectiveRepeats + toneCount;
       if (planned > 64) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.alarmNotificationLimitExceeded)),
@@ -540,39 +543,44 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                       ),
                     ),
                     const SizedBox(height: AppConstants.spaceXl),
-                    SectionHeader(title: l10n.alarmRepeatCount),
-                    SurfacePanel(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.timesLabel(_repeatCount),
-                              style: context.textTheme.titleMedium,
+                    if (kIsWeb ||
+                        defaultTargetPlatform != TargetPlatform.iOS) ...[
+                      SectionHeader(title: l10n.alarmRepeatCount),
+                      SurfacePanel(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                l10n.timesLabel(_repeatCount),
+                                style: context.textTheme.titleMedium,
+                              ),
                             ),
-                          ),
-                          IconButton.filledTonal(
-                            onPressed: _repeatCount > 1
-                                ? () => setState(() => _repeatCount--)
-                                : null,
-                            icon: const Icon(Icons.remove_rounded),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              '$_repeatCount',
-                              style: context.textTheme.headlineSmall,
+                            IconButton.filledTonal(
+                              onPressed: _repeatCount > 1
+                                  ? () => setState(() => _repeatCount--)
+                                  : null,
+                              icon: const Icon(Icons.remove_rounded),
                             ),
-                          ),
-                          IconButton.filledTonal(
-                            onPressed: _repeatCount < 10
-                                ? () => setState(() => _repeatCount++)
-                                : null,
-                            icon: const Icon(Icons.add_rounded),
-                          ),
-                        ],
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: Text(
+                                '$_repeatCount',
+                                style: context.textTheme.headlineSmall,
+                              ),
+                            ),
+                            IconButton.filledTonal(
+                              onPressed: _repeatCount < 10
+                                  ? () => setState(() => _repeatCount++)
+                                  : null,
+                              icon: const Icon(Icons.add_rounded),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppConstants.spaceXl),
+                      const SizedBox(height: AppConstants.spaceXl),
+                    ],
                     SectionHeader(title: l10n.alarmRingtone),
                     SurfacePanel(
                       onTap: _pickRingtone,

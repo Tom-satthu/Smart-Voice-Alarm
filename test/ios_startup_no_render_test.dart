@@ -47,7 +47,7 @@ void main() {
         label: 'Test',
         repeatCount: 1,
       );
-      final segments = planner.plan(
+      final plan = planner.plan(
         alarm: alarm,
         occurrenceId: 'occ',
         occurrenceStart: DateTime(2026, 8, 5, 7),
@@ -58,10 +58,12 @@ void main() {
           ),
         ],
         ringtoneClips: const [],
+        maxCyclesOverride: 1,
       );
-      expect(segments, hasLength(1));
-      expect(segments.single.soundFileName, 'revA_0.caf');
-      expect(segments.single.childId, isNotEmpty);
+      expect(plan.segments, hasLength(2)); // voice + silence
+      expect(plan.segments.first.soundFileName, 'revA_0.caf');
+      expect(plan.segments.first.childId, isNotEmpty);
+      expect(plan.segments.last.role.name, 'silence');
     });
 
     test('failed empty render reports needsAudioRepair', () async {

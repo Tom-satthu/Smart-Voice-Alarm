@@ -275,23 +275,22 @@ class IosAlarmFanoutService {
           rendered = await _scheduler.renderSound(
             fileName: fileName,
             sourcePath: materialized,
-            maxSeconds: 30,
+            maxSeconds: 10,
+            targetDurationSeconds: 10,
           );
         } else {
           rendered = await _scheduler.renderSound(
             fileName: fileName,
             assetKey: key,
-            maxSeconds: 30,
+            maxSeconds: 10,
+            targetDurationSeconds: 10,
           );
         }
         renderedNames.add(rendered.fileName);
-        final full = Duration(milliseconds: rendered.durationMs);
         ringtoneClips.add(
           preparedClip(
             fileName: rendered.fileName,
-            duration: full <= Duration.zero
-                ? const Duration(seconds: 5)
-                : (full.inSeconds > 20 ? const Duration(seconds: 15) : full),
+            duration: const Duration(seconds: 10),
             label: 'ringtone',
           ),
         );
@@ -332,18 +331,31 @@ class IosAlarmFanoutService {
     }
 
     List<IosAlarmSegment> planned;
+    IosAlarmPlan? planMeta;
     try {
       log(
         'plan',
         'voice=${voiceClips.length} ringtone=${ringtoneClips.length}',
       );
-      planned = _planner.plan(
+      // Ensure shared silence CAF exists before planning/scheduling.
+      try {
+        await _scheduler.ensureSilenceSound(seconds: 5);
+      } catch (e) {
+        debugPrint('[SVA-Audio] ensureSilence failed: $e');
+        return fail(
+          code: 'silence_render_failed',
+          message: 'Could not prepare silence gap sound',
+          stage: 'plan',
+        );
+      }
+      planMeta = _planner.plan(
         alarm: alarm,
         occurrenceId: occurrenceId,
         occurrenceStart: occurrence,
         voiceClips: voiceClips,
         ringtoneClips: ringtoneClips,
       );
+      planned = planMeta.segments;
     } on IosPlanValidationException catch (e) {
       for (final name in renderedNames) {
         try {
@@ -355,13 +367,17 @@ class IosAlarmFanoutService {
 
     debugPrint(
       '[SVA-Plan] type=${alarm.type.name} voiceCount=${voiceClips.length} '
-      'ringtoneCount=${ringtoneClips.length} repeatCount=${alarm.repeatCount} '
-      'planned=${planned.length}',
+      'ringtoneCount=${ringtoneClips.length} iosRepeatIgnored=1 '
+      'cycles=${planMeta.cyclesScheduled} horizonMs=${planMeta.rollingHorizon.inMilliseconds} '
+      'planned=${planned.length} audible=${planMeta.audibleChildCount} '
+      'silent=${planMeta.silentChildCount}',
     );
     for (final segment in planned) {
       debugPrint(
         '[SVA-Plan] child index=${segment.segmentIndex} '
+        'cycle=${segment.cycleIndex} role=${segment.role.name} '
         'start=${segment.startAt.toIso8601String()} '
+        'durMs=${segment.duration.inMilliseconds} '
         'file=${segment.soundFileName}',
       );
     }
@@ -386,6 +402,16 @@ class IosAlarmFanoutService {
         title: alarm.label.isEmpty ? 'Smart Voice Alarm' : alarm.label,
         body: 'Solve to stop',
         backend: backend,
+        occurrenceMeta: {
+          'revision': revision,
+          'cyclesScheduled': planMeta.cyclesScheduled,
+          'cycleDurationMs': planMeta.cycleDuration.inMilliseconds,
+          'childCount': planMeta.childCount,
+          'audibleChildCount': planMeta.audibleChildCount,
+          'silentChildCount': planMeta.silentChildCount,
+          'rollingHorizonEnd':
+              planMeta.lastScheduledEnd?.millisecondsSinceEpoch.toDouble() ?? 0,
+        },
       );
       final ok = native['ok'] != false;
       if (!ok) {
@@ -683,6 +709,11 @@ class IosAlarmFanoutService {
     final path = segment.filePath;
     if (path == null || path.isEmpty) {
       throw StateError('Recording segment missing file path');
+    }
+    if (segment.duration > const Duration(seconds: 20)) {
+      debugPrint(
+        '[SVA-Audio] recording source longer than 20s; alarm uses first 20s only',
+      );
     }
     return _scheduler.renderSound(
       fileName: fileName,

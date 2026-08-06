@@ -91,7 +91,35 @@
   "ttsPreviewing": "Playing preview…",
   "ttsSave": "Save",
   "ttsSaved": "Voice segment saved",
+  "ttsCharCounter": "{used}/{max} characters",
+  "@ttsCharCounter": {
+    "placeholders": {
+      "used": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "ttsCharLimitReached": "Character limit reached for this language.",
+  "ttsPasteTooLongTitle": "Paste exceeds limit",
+  "ttsPasteTooLongBody": "The paste is longer than {max} characters. Insert only the first {max} characters?",
+  "@ttsPasteTooLongBody": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "ttsPasteInsertPartial": "Insert partial",
+  "ttsTooLongDuration": "Spoken audio is longer than 20 seconds. Shorten the text and try again.",
+  "ttsDurationChecking": "Checking spoken length…",
   "recordTitle": "Record Voice",
+  "recordTimerLabel": "{used}/{max} seconds",
+  "@recordTimerLabel": {
+    "placeholders": {
+      "used": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "recordAutoStopped": "Recording stopped at 20 seconds.",
+  "recordLongClipWarning": "This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.",
+
   "recordStart": "Record",
   "recordStop": "Stop",
   "recordPlay": "Play",

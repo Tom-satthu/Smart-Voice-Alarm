@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
+import 'recording_limits.dart';
 import 'storage_paths.dart';
 import 'io_dir_stub.dart' if (dart.library.io) 'io_dir_io.dart' as io_file;
 
@@ -12,20 +13,31 @@ enum RecordingStatus { idle, recording, stopped }
 enum MicrophoneAccess { granted, denied, permanentlyDenied, restricted }
 
 class RecordingService {
-  RecordingService() : _recorder = AudioRecorder();
+  RecordingService({
+    this.maxDuration = kMaxRecordingDuration,
+    AudioRecorder? recorder,
+  }) : _recorder = recorder ?? AudioRecorder();
 
+  final Duration maxDuration;
   final AudioRecorder _recorder;
   String? _currentPath;
   DateTime? _startedAt;
   RecordingStatus status = RecordingStatus.idle;
   bool _starting = false;
   bool _retained = false;
+  bool _stopping = false;
+  Timer? _autoStopTimer;
+  Completer<String?>? _stopCompleter;
 
   String? get currentPath => _currentPath;
   Duration get elapsed {
     if (_startedAt == null) return Duration.zero;
-    return DateTime.now().difference(_startedAt!);
+    final raw = DateTime.now().difference(_startedAt!);
+    if (raw > maxDuration) return maxDuration;
+    return raw;
   }
+
+  bool get isStopping => _stopping;
 
   Future<MicrophoneAccess> microphoneAccess({bool request = false}) async {
     if (kIsWeb) return MicrophoneAccess.restricted;
@@ -70,24 +82,52 @@ class RecordingService {
       );
       _startedAt = DateTime.now();
       status = RecordingStatus.recording;
+      _armAutoStop();
     } finally {
       _starting = false;
     }
   }
 
+  void _armAutoStop() {
+    _autoStopTimer?.cancel();
+    _autoStopTimer = Timer(maxDuration, () {
+      unawaited(stop());
+    });
+  }
+
+  /// Stops the recorder. Safe to call concurrently (auto-stop + manual).
+  /// Second callers await the same in-flight stop.
   Future<String?> stop() async {
-    if (status != RecordingStatus.recording) return _currentPath;
-    final path = await _recorder.stop();
-    status = RecordingStatus.stopped;
-    _currentPath = path ?? _currentPath;
-    final finalized = _currentPath;
-    if (finalized == null || await io_file.fileLength(finalized) == 0) {
-      if (finalized != null) await io_file.deleteFileIfExists(finalized);
-      _currentPath = null;
-      status = RecordingStatus.idle;
-      throw StateError('Recording could not be finalized.');
+    if (_stopCompleter != null) {
+      return _stopCompleter!.future;
     }
-    return _currentPath;
+    if (status != RecordingStatus.recording) return _currentPath;
+
+    _stopping = true;
+    _autoStopTimer?.cancel();
+    _autoStopTimer = null;
+    final completer = Completer<String?>();
+    _stopCompleter = completer;
+    try {
+      final path = await _recorder.stop();
+      status = RecordingStatus.stopped;
+      _currentPath = path ?? _currentPath;
+      final finalized = _currentPath;
+      if (finalized == null || await io_file.fileLength(finalized) == 0) {
+        if (finalized != null) await io_file.deleteFileIfExists(finalized);
+        _currentPath = null;
+        status = RecordingStatus.idle;
+        throw StateError('Recording could not be finalized.');
+      }
+      completer.complete(_currentPath);
+      return _currentPath;
+    } catch (e, st) {
+      if (!completer.isCompleted) completer.completeError(e, st);
+      rethrow;
+    } finally {
+      _stopping = false;
+      _stopCompleter = null;
+    }
   }
 
   void retainCurrentFile() {
@@ -97,6 +137,13 @@ class RecordingService {
   }
 
   Future<void> cancel() async {
+    _autoStopTimer?.cancel();
+    _autoStopTimer = null;
+    if (_stopCompleter != null) {
+      try {
+        await _stopCompleter!.future;
+      } catch (_) {}
+    }
     if (await _recorder.isRecording()) {
       await _recorder.stop();
     }
@@ -108,6 +155,7 @@ class RecordingService {
     _currentPath = null;
     _startedAt = null;
     _retained = false;
+    _stopping = false;
   }
 
   Future<void> dispose() async {

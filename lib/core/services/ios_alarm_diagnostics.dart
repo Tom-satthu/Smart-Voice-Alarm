@@ -159,14 +159,17 @@ class IosAlarmDiagnostics {
       ringtoneClips: [
         preparedClip(fileName: 'r.caf', duration: const Duration(seconds: 5)),
       ],
+      maxCyclesOverride: 1,
     );
-    final hasTone = plan.any((s) => s.soundFileName == 'r.caf');
+    final hasTone = plan.segments.any((s) => s.soundFileName == 'r.caf');
+    final hasSilence = plan.segments.any((s) => s.role.name == 'silence');
     return DiagCase(
       name: name,
-      passed: plan.length == 2 && hasTone,
+      passed: plan.segments.length == 4 && hasTone && hasSilence,
       stage: 'plan',
-      detail: 'children=${plan.length} ringtoneChild=$hasTone',
-      plannedChildCount: plan.length,
+      detail:
+          'children=${plan.segments.length} ringtoneChild=$hasTone silence=$hasSilence',
+      plannedChildCount: plan.segments.length,
     );
   }
 
@@ -198,14 +201,21 @@ class IosAlarmDiagnostics {
           duration: const Duration(seconds: 8),
         ),
       ],
+      maxCyclesOverride: 1,
     );
-    final ok = plan.length == 7 && plan.last.soundFileName == 'tone.caf';
+    // repeatCount ignored: 2 voices + 2 silences + ringtone + silence = 6
+    final ok =
+        plan.segments.length == 6 &&
+        plan.segments.last.role.name == 'silence' &&
+        plan.segments.any((s) => s.soundFileName == 'tone.caf');
     return DiagCase(
       name: name,
       passed: ok,
       stage: 'plan',
-      detail: 'children=${plan.length} last=${plan.last.soundFileName}',
-      plannedChildCount: plan.length,
+      detail:
+          'children=${plan.segments.length} last=${plan.segments.last.soundFileName} '
+          'cycles=${plan.cyclesScheduled} horizonMs=${plan.rollingHorizon.inMilliseconds}',
+      plannedChildCount: plan.segments.length,
     );
   }
 

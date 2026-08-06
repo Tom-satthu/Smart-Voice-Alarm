@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:smart_voice_alarm/core/services/ios_alarm_scheduler.dart';
 import 'package:smart_voice_alarm/core/services/ios_alarm_segment_planner.dart';
 import 'package:smart_voice_alarm/shared/models/ui_models.dart';
 
 void main() {
-  group('IosAlarmSegmentPlanner repeatCount + mixed', () {
+  group('IosAlarmSegmentPlanner silence timeline', () {
     const gap = Duration(seconds: 5);
-    final planner = IosAlarmSegmentPlanner(gap: gap, maxNotifications: 64);
+    final planner = IosAlarmSegmentPlanner(
+      gap: gap,
+      maxChildren: 64,
+      targetHorizon: const Duration(minutes: 30),
+    );
     final start = DateTime(2026, 8, 6, 7, 0);
 
-    test('1 voice × repeat 1', () {
+    test('1. repeatCount > 1 does not multiply voices on iOS', () {
       const alarm = AlarmUiModel(
         id: 'a1',
         time: TimeOfDay(hour: 7, minute: 0),
@@ -17,6 +22,198 @@ void main() {
         isEnabled: true,
         type: AlarmType.voice,
         label: 'One',
+        repeatCount: 5,
+      );
+      final plan = planner.plan(
+        alarm: alarm,
+        occurrenceId: 'occ',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 2),
+          ),
+        ],
+        ringtoneClips: const [],
+        maxCyclesOverride: 1,
+      );
+      // One cycle: voice + silence (repeatCount ignored).
+      expect(plan.segments, hasLength(2));
+      expect(plan.segments.first.role, IosSegmentRole.voice);
+      expect(plan.segments.last.role, IosSegmentRole.silence);
+    });
+
+    test('2. voice 7s → silence 5s', () {
+      const alarm = AlarmUiModel(
+        id: 'a2',
+        time: TimeOfDay(hour: 7, minute: 0),
+        repeatDays: {},
+        isEnabled: true,
+        type: AlarmType.voice,
+        label: 'V7',
+        repeatCount: 3,
+      );
+      final plan = planner.plan(
+        alarm: alarm,
+        occurrenceId: 'occ',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 7),
+          ),
+        ],
+        ringtoneClips: const [],
+        maxCyclesOverride: 1,
+      );
+      expect(plan.segments[0].duration, const Duration(seconds: 7));
+      expect(plan.segments[1].duration, gap);
+      expect(plan.segments[1].soundFileName, kSvaSilenceFileName);
+      expect(plan.segments[1].startAt, start.add(const Duration(seconds: 7)));
+    });
+
+    test('3-4. two voices with silence gaps, no voice overlap', () {
+      const alarm = AlarmUiModel(
+        id: 'a3',
+        time: TimeOfDay(hour: 7, minute: 0),
+        repeatDays: {},
+        isEnabled: true,
+        type: AlarmType.voice,
+        label: 'Two',
+        repeatCount: 9,
+      );
+      final plan = planner.plan(
+        alarm: alarm,
+        occurrenceId: 'occ',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 4),
+          ),
+          preparedClip(
+            fileName: 'v1.caf',
+            duration: const Duration(seconds: 6),
+          ),
+        ],
+        ringtoneClips: const [],
+        maxCyclesOverride: 1,
+      );
+      expect(plan.segments.map((s) => s.role).toList(), [
+        IosSegmentRole.voice,
+        IosSegmentRole.silence,
+        IosSegmentRole.voice,
+        IosSegmentRole.silence,
+      ]);
+      expect(plan.segments[2].startAt, start.add(const Duration(seconds: 9)));
+      // No overlapping windows.
+      for (var i = 0; i < plan.segments.length - 1; i++) {
+        final end = plan.segments[i].startAt.add(plan.segments[i].duration);
+        expect(plan.segments[i + 1].startAt, end);
+      }
+    });
+
+    test('5-7. mixed: ringtone 10s, trailing silence, next cycle voice1', () {
+      const alarm = AlarmUiModel(
+        id: 'a4',
+        time: TimeOfDay(hour: 7, minute: 0),
+        repeatDays: {},
+        isEnabled: true,
+        type: AlarmType.mixed,
+        label: 'Mixed',
+        repeatCount: 3,
+        ringtoneName: 'Soft Chime',
+      );
+      final plan = planner.plan(
+        alarm: alarm,
+        occurrenceId: 'occ',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 3),
+          ),
+        ],
+        ringtoneClips: [
+          preparedClip(
+            fileName: 'tone.caf',
+            duration: const Duration(seconds: 30),
+          ),
+        ],
+        maxCyclesOverride: 2,
+      );
+      // cycle: voice, silence, ringtone, silence
+      expect(plan.childrenPerCycle, 4);
+      expect(plan.cyclesScheduled, 2);
+      final ringtone = plan.segments.where(
+        (s) => s.role == IosSegmentRole.ringtone,
+      );
+      expect(
+        ringtone.every((s) => s.duration == const Duration(seconds: 10)),
+        isTrue,
+      );
+      final firstCycleEnd = plan.segments[3].startAt.add(
+        plan.segments[3].duration,
+      );
+      expect(plan.segments[4].role, IosSegmentRole.voice);
+      expect(plan.segments[4].soundFileName, 'v0.caf');
+      expect(plan.segments[4].startAt, firstCycleEnd);
+      expect(plan.segments[3].role, IosSegmentRole.silence);
+      expect(plan.segments[3].soundFileName, kSvaSilenceFileName);
+    });
+
+    test('8. segments do not overlap', () {
+      const alarm = AlarmUiModel(
+        id: 'a5',
+        time: TimeOfDay(hour: 7, minute: 0),
+        repeatDays: {},
+        isEnabled: true,
+        type: AlarmType.mixed,
+        label: 'NoOverlap',
+        repeatCount: 2,
+        ringtoneName: 'Soft Chime',
+      );
+      final plan = planner.plan(
+        alarm: alarm,
+        occurrenceId: 'occ',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 5),
+          ),
+          preparedClip(
+            fileName: 'v1.caf',
+            duration: const Duration(seconds: 5),
+          ),
+        ],
+        ringtoneClips: [
+          preparedClip(
+            fileName: 'tone.caf',
+            duration: const Duration(seconds: 10),
+          ),
+        ],
+        maxCyclesOverride: 1,
+      );
+      for (var i = 0; i < plan.segments.length - 1; i++) {
+        final end = plan.segments[i].startAt.add(plan.segments[i].duration);
+        expect(
+          end.isBefore(plan.segments[i + 1].startAt) ||
+              end == plan.segments[i + 1].startAt,
+          isTrue,
+        );
+        expect(end, plan.segments[i + 1].startAt);
+      }
+    });
+
+    test('9. silent child uses silence CAF name', () {
+      const alarm = AlarmUiModel(
+        id: 'a6',
+        time: TimeOfDay(hour: 7, minute: 0),
+        repeatDays: {},
+        isEnabled: true,
+        type: AlarmType.voice,
+        label: 'Sil',
         repeatCount: 1,
       );
       final plan = planner.plan(
@@ -30,86 +227,160 @@ void main() {
           ),
         ],
         ringtoneClips: const [],
+        maxCyclesOverride: 1,
       );
-      expect(plan, hasLength(1));
-      expect(plan.single.startAt, start);
-      expect(plan.single.soundFileName, 'v0.caf');
+      final silences = plan.segments.where(
+        (s) => s.role == IosSegmentRole.silence,
+      );
+      expect(silences, isNotEmpty);
+      expect(
+        silences.every((s) => s.soundFileName == kSvaSilenceFileName),
+        isTrue,
+      );
+      expect(silences.every((s) => s.soundFileName != '.default'), isTrue);
     });
 
-    test('2 voices × repeat 3 exact timestamps', () {
+    test('10. rolling cycles dedupe child ids', () {
       const alarm = AlarmUiModel(
-        id: 'a2',
+        id: 'a7',
         time: TimeOfDay(hour: 7, minute: 0),
         repeatDays: {},
         isEnabled: true,
         type: AlarmType.voice,
-        label: 'Two',
-        repeatCount: 3,
+        label: 'Dedup',
+        repeatCount: 1,
       );
-      final voices = [
-        preparedClip(fileName: 'v0.caf', duration: const Duration(seconds: 2)),
-        preparedClip(fileName: 'v1.caf', duration: const Duration(seconds: 3)),
-      ];
       final plan = planner.plan(
         alarm: alarm,
         occurrenceId: 'occ',
         occurrenceStart: start,
-        voiceClips: voices,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 2),
+          ),
+        ],
         ringtoneClips: const [],
+        maxCyclesOverride: 3,
       );
-      expect(plan, hasLength(6));
-      var cursor = start;
-      var i = 0;
-      for (var r = 0; r < 3; r++) {
-        for (final clip in voices) {
-          expect(plan[i].startAt, cursor);
-          expect(plan[i].soundFileName, clip.fileName);
-          expect(plan[i].occurrenceId, 'occ');
-          expect(plan[i].segmentIndex, i);
-          cursor = cursor.add(clip.duration).add(gap);
-          i += 1;
-        }
-      }
-      expect(plan.map((s) => s.childId).toSet(), hasLength(6));
+      final ids = plan.segments.map((s) => s.childId).toSet();
+      expect(ids.length, plan.segments.length);
+
+      final again = planner.plan(
+        alarm: alarm,
+        occurrenceId: 'occ',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 2),
+          ),
+        ],
+        ringtoneClips: const [],
+        maxCyclesOverride: 3,
+      );
+      expect(
+        again.segments.map((s) => s.childId).toList(),
+        plan.segments.map((s) => s.childId).toList(),
+      );
     });
 
-    test('mixed 2 voices × repeat 3 + ringtone after last voice', () {
+    test('11. rolling horizon respects maxChildren', () {
+      final tiny = IosAlarmSegmentPlanner(maxChildren: 4, gap: gap);
       const alarm = AlarmUiModel(
-        id: 'a3',
+        id: 'a8',
+        time: TimeOfDay(hour: 7, minute: 0),
+        repeatDays: {},
+        isEnabled: true,
+        type: AlarmType.voice,
+        label: 'Horizon',
+        repeatCount: 99,
+      );
+      final plan = tiny.plan(
+        alarm: alarm,
+        occurrenceId: 'occ',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 2),
+          ),
+        ],
+        ringtoneClips: const [],
+      );
+      // childrenPerCycle=2 → max 2 cycles
+      expect(plan.childCount, lessThanOrEqualTo(4));
+      expect(plan.cyclesScheduled, 2);
+    });
+
+    test('16. old repeatCount migration ignored', () {
+      const alarm = AlarmUiModel(
+        id: 'a9',
         time: TimeOfDay(hour: 7, minute: 0),
         repeatDays: {},
         isEnabled: true,
         type: AlarmType.mixed,
-        label: 'Mixed',
-        repeatCount: 3,
+        label: 'Legacy',
+        repeatCount: 7,
         ringtoneName: 'Soft Chime',
       );
-      final voices = [
-        preparedClip(fileName: 'v0.caf', duration: const Duration(seconds: 2)),
-        preparedClip(fileName: 'v1.caf', duration: const Duration(seconds: 3)),
-      ];
-      final tones = [
-        preparedClip(
-          fileName: 'tone.caf',
-          duration: const Duration(seconds: 8),
-        ),
-      ];
       final plan = planner.plan(
         alarm: alarm,
         occurrenceId: 'occ',
         occurrenceStart: start,
-        voiceClips: voices,
-        ringtoneClips: tones,
+        voiceClips: [
+          preparedClip(
+            fileName: 'v0.caf',
+            duration: const Duration(seconds: 2),
+          ),
+          preparedClip(
+            fileName: 'v1.caf',
+            duration: const Duration(seconds: 2),
+          ),
+        ],
+        ringtoneClips: [
+          preparedClip(
+            fileName: 'tone.caf',
+            duration: const Duration(seconds: 8),
+          ),
+        ],
+        maxCyclesOverride: 1,
       );
-      expect(plan, hasLength(7));
-      expect(plan.last.soundFileName, 'tone.caf');
-      // 3 repeats × (2+5 + 3+5) = 3 × 15 = 45s after start
-      expect(plan.last.startAt, start.add(const Duration(seconds: 45)));
+      // 2 voices + 2 silences + ringtone + silence = 6, not 7*voices
+      expect(plan.segments.length, 6);
+      expect(plan.audibleChildCount, 3);
+      expect(plan.silentChildCount, 3);
+    });
+
+    test('voice clamp 20s', () {
+      const alarm = AlarmUiModel(
+        id: 'a10',
+        time: TimeOfDay(hour: 7, minute: 0),
+        repeatDays: {},
+        isEnabled: true,
+        type: AlarmType.voice,
+        label: 'Clamp',
+        repeatCount: 1,
+      );
+      final plan = planner.plan(
+        alarm: alarm,
+        occurrenceId: 'occ',
+        occurrenceStart: start,
+        voiceClips: [
+          preparedClip(
+            fileName: 'long.caf',
+            duration: const Duration(seconds: 45),
+          ),
+        ],
+        ringtoneClips: const [],
+        maxCyclesOverride: 1,
+      );
+      expect(plan.segments.first.duration, const Duration(seconds: 20));
     });
 
     test('mixed without ringtone throws', () {
       const alarm = AlarmUiModel(
-        id: 'a4',
+        id: 'a11',
         time: TimeOfDay(hour: 7, minute: 0),
         repeatDays: {},
         isEnabled: true,
@@ -131,75 +402,6 @@ void main() {
           ringtoneClips: const [],
         ),
         throwsA(isA<IosPlanValidationException>()),
-      );
-    });
-
-    test('ringtone-only ignores voice repeatCount multiplication', () {
-      const alarm = AlarmUiModel(
-        id: 'a5',
-        time: TimeOfDay(hour: 7, minute: 0),
-        repeatDays: {},
-        isEnabled: true,
-        type: AlarmType.ringtone,
-        label: 'Tone',
-        repeatCount: 5,
-      );
-      final plan = planner.plan(
-        alarm: alarm,
-        occurrenceId: 'occ',
-        occurrenceStart: start,
-        voiceClips: [
-          preparedClip(
-            fileName: 'v0.caf',
-            duration: const Duration(seconds: 2),
-          ),
-        ],
-        ringtoneClips: [
-          preparedClip(
-            fileName: 'tone.caf',
-            duration: const Duration(seconds: 8),
-          ),
-        ],
-      );
-      expect(plan, hasLength(1));
-      expect(plan.single.soundFileName, 'tone.caf');
-    });
-
-    test('overflow does not truncate — throws', () {
-      final tiny = IosAlarmSegmentPlanner(maxNotifications: 4);
-      const alarm = AlarmUiModel(
-        id: 'a6',
-        time: TimeOfDay(hour: 7, minute: 0),
-        repeatDays: {},
-        isEnabled: true,
-        type: AlarmType.voice,
-        label: 'Overflow',
-        repeatCount: 3,
-      );
-      expect(
-        () => tiny.plan(
-          alarm: alarm,
-          occurrenceId: 'occ',
-          occurrenceStart: start,
-          voiceClips: [
-            preparedClip(
-              fileName: 'v0.caf',
-              duration: const Duration(seconds: 1),
-            ),
-            preparedClip(
-              fileName: 'v1.caf',
-              duration: const Duration(seconds: 1),
-            ),
-          ],
-          ringtoneClips: const [],
-        ),
-        throwsA(
-          isA<IosPlanValidationException>().having(
-            (e) => e.code,
-            'code',
-            'notification_limit',
-          ),
-        ),
       );
     });
   });

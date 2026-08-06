@@ -35,7 +35,8 @@ enum SvaAudioRenderer {
     ttsText: String?,
     ttsLocale: String?,
     fileName: String,
-    maxSeconds: Double
+    maxSeconds: Double,
+    targetDurationSeconds: Double? = nil
   ) async throws -> [String: Any] {
     NSLog("[SVA-Audio] render begin file=%@ tts=%d path=%d asset=%d",
           fileName,
@@ -86,6 +87,9 @@ enum SvaAudioRenderer {
 
       try normalizeLoudness(at: temp)
       try validateRenderedFile(temp)
+      if let target = targetDurationSeconds, target > 0 {
+        try fitToExactDuration(at: temp, targetSeconds: min(target, maxSeconds))
+      }
       let preValidation = SvaAudioFileValidator.validate(url: temp)
       guard preValidation.ok else {
         throw svaError(
@@ -572,6 +576,80 @@ enum SvaAudioRenderer {
       i += window
     }
     return LoudnessStats(peak: peak, rms: rms, windowRms: bestWindow, nearClipCount: nearClip)
+  }
+
+  /// Trim or loop PCM CAF so duration equals [targetSeconds] (±1 frame).
+  static func fitToExactDuration(at url: URL, targetSeconds: Double) throws {
+    guard targetSeconds > 0 else { return }
+    guard let outFormat = outputFormat() else {
+      throw svaError(500, "Unable to create output format")
+    }
+    let input = try AVAudioFile(forReading: url)
+    let targetFrames = AVAudioFrameCount(targetSeconds * outFormat.sampleRate)
+    guard targetFrames > 0 else { throw svaError(422, "Target duration invalid") }
+
+    let srcFormat = input.processingFormat
+    let srcLength = AVAudioFrameCount(input.length)
+    guard srcLength > 0 else { throw svaError(422, "Source empty for fit") }
+
+    guard let srcBuffer = AVAudioPCMBuffer(pcmFormat: srcFormat, frameCapacity: srcLength)
+    else { throw svaError(500, "fit buffer alloc failed") }
+    try input.read(into: srcBuffer)
+
+    let pcm: AVAudioPCMBuffer
+    if formatsCompatible(srcBuffer.format, outFormat) {
+      pcm = srcBuffer
+    } else {
+      guard let converter = AVAudioConverter(from: srcBuffer.format, to: outFormat) else {
+        throw svaError(501, "fit converter unavailable")
+      }
+      let ratio = outFormat.sampleRate / max(srcBuffer.format.sampleRate, 1)
+      let capacity = AVAudioFrameCount(Double(srcBuffer.frameLength) * ratio) + 32
+      guard let converted = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: capacity)
+      else { throw svaError(500, "fit convert buffer failed") }
+      var gotInput = false
+      var convertError: NSError?
+      let status = converter.convert(to: converted, error: &convertError) { _, outStatus in
+        if gotInput {
+          outStatus.pointee = .noDataNow
+          return nil
+        }
+        gotInput = true
+        outStatus.pointee = .haveData
+        return srcBuffer
+      }
+      if let convertError { throw convertError }
+      if status == .error || converted.frameLength == 0 {
+        throw svaError(422, "fit convert produced no audio")
+      }
+      pcm = converted
+    }
+
+    guard let outBuffer = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: targetFrames),
+          let src = pcm.int16ChannelData?[0],
+          let dst = outBuffer.int16ChannelData?[0]
+    else { throw svaError(500, "fit output channel missing") }
+    outBuffer.frameLength = targetFrames
+    let srcFrames = Int(pcm.frameLength)
+    let dstFrames = Int(targetFrames)
+    for i in 0..<dstFrames {
+      dst[i] = src[i % srcFrames]
+    }
+
+    let temp = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_fit_\(UUID().uuidString).caf")
+    let outputFile = try AVAudioFile(
+      forWriting: temp,
+      settings: outFormat.settings,
+      commonFormat: outFormat.commonFormat,
+      interleaved: outFormat.isInterleaved
+    )
+    try outputFile.write(from: outBuffer)
+    if FileManager.default.fileExists(atPath: url.path) {
+      try FileManager.default.removeItem(at: url)
+    }
+    try FileManager.default.moveItem(at: temp, to: url)
+    NSLog("[SVA-Audio] fitToExactDuration target=%.2fs frames=%d", targetSeconds, dstFrames)
   }
 
   private static func formatsCompatible(_ a: AVAudioFormat, _ b: AVAudioFormat) -> Bool {

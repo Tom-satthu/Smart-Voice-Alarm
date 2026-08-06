@@ -251,7 +251,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ttsSaved => '语音片段已保存';
 
   @override
+  String ttsCharCounter(int used, int max) {
+    return '$used/$max characters';
+  }
+
+  @override
+  String get ttsCharLimitReached =>
+      'Character limit reached for this language.';
+
+  @override
+  String get ttsPasteTooLongTitle => 'Paste exceeds limit';
+
+  @override
+  String ttsPasteTooLongBody(int max) {
+    return 'The paste is longer than $max characters. Insert only the first $max characters?';
+  }
+
+  @override
+  String get ttsPasteInsertPartial => 'Insert partial';
+
+  @override
+  String get ttsTooLongDuration =>
+      'Spoken audio is longer than 20 seconds. Shorten the text and try again.';
+
+  @override
+  String get ttsDurationChecking => 'Checking spoken length…';
+
+  @override
   String get recordTitle => '录制语音';
+
+  @override
+  String recordTimerLabel(int used, int max) {
+    return '$used/$max seconds';
+  }
+
+  @override
+  String get recordAutoStopped => 'Recording stopped at 20 seconds.';
+
+  @override
+  String get recordLongClipWarning =>
+      'This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.';
 
   @override
   String get recordStart => '录制';
@@ -1490,7 +1529,46 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get ttsSaved => '語音片段已儲存';
 
   @override
+  String ttsCharCounter(int used, int max) {
+    return '$used/$max characters';
+  }
+
+  @override
+  String get ttsCharLimitReached =>
+      'Character limit reached for this language.';
+
+  @override
+  String get ttsPasteTooLongTitle => 'Paste exceeds limit';
+
+  @override
+  String ttsPasteTooLongBody(int max) {
+    return 'The paste is longer than $max characters. Insert only the first $max characters?';
+  }
+
+  @override
+  String get ttsPasteInsertPartial => 'Insert partial';
+
+  @override
+  String get ttsTooLongDuration =>
+      'Spoken audio is longer than 20 seconds. Shorten the text and try again.';
+
+  @override
+  String get ttsDurationChecking => 'Checking spoken length…';
+
+  @override
   String get recordTitle => '錄製語音';
+
+  @override
+  String recordTimerLabel(int used, int max) {
+    return '$used/$max seconds';
+  }
+
+  @override
+  String get recordAutoStopped => 'Recording stopped at 20 seconds.';
+
+  @override
+  String get recordLongClipWarning =>
+      'This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.';
 
   @override
   String get recordStart => '錄製';
