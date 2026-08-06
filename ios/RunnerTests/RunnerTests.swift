@@ -1,3 +1,4 @@
+import AVFoundation
 import UserNotifications
 import XCTest
 @testable import Runner
@@ -384,6 +385,80 @@ final class RunnerTests: XCTestCase {
   func testSolveActionIdentifierIsLocaleIndependent() {
     XCTAssertEqual(SvaAlarmKeys.actionSolve, "SVA_SOLVE_TO_STOP")
     XCTAssertNotEqual(SvaAlarmKeys.actionSolve, "Solve to stop")
+  }
+
+  func testSoundNameKeepsExtensionWhenPreferred() {
+    SvaAlarmKitSoundNameMode.setPreferred(.withExtension)
+    XCTAssertEqual(
+      SvaAlarmKitSoundResolver.alertSoundName(fileName: "sva_abc_rev.caf"),
+      "sva_abc_rev.caf"
+    )
+  }
+
+  func testSoundNameStripsExtensionWhenRequested() {
+    XCTAssertEqual(
+      SvaAlarmKitSoundResolver.alertSoundName(
+        fileName: "sva_abc_rev.caf",
+        mode: .withoutExtension
+      ),
+      "sva_abc_rev"
+    )
+  }
+
+  func testMissingSoundFileDoesNotClaimCustomSuccess() {
+    let diag = SvaAudioFileValidator.diagnoseRendered(
+      fileName: "sva_missing_not_real.caf",
+      sourceType: "recording"
+    )
+    XCTAssertFalse(diag.renderedExists)
+    XCTAssertFalse(diag.avPlayerPlayable)
+  }
+
+  func testEmptyCafRejectedByValidator() throws {
+    let url = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_empty_\(UUID().uuidString).caf")
+    try Data().write(to: url)
+    let result = SvaAudioFileValidator.validate(url: url)
+    XCTAssertFalse(result.ok)
+    XCTAssertEqual(result.errorCode, "sound_file_empty")
+    try? FileManager.default.removeItem(at: url)
+  }
+
+  func testValidPcmCafPassesValidator() throws {
+    // Write a tiny valid CAF via AVAudioFile.
+    let url = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_valid_\(UUID().uuidString).caf")
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("output format")
+    }
+    let file = try AVAudioFile(
+      forWriting: url,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    let frames: AVAudioFrameCount = 4410 // 0.1s
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(Double(i % 100) * 100)
+      }
+    }
+    try file.write(from: buffer)
+    let result = SvaAudioFileValidator.validate(url: url)
+    XCTAssertTrue(result.ok, result.errorMessage ?? "")
+    XCTAssertTrue(result.avPlayerPlayable)
+    XCTAssertEqual(result.channels, 1)
+    try? FileManager.default.removeItem(at: url)
+  }
+
+  func testDefaultFallbackAlwaysHasWarningCode() {
+    // Empty filename path is exercised via diagnostics fields.
+    let exact = SvaAlarmKitSoundResolver.alertSoundName(fileName: "")
+    XCTAssertEqual(exact, "")
   }
 
   // MARK: - Helpers

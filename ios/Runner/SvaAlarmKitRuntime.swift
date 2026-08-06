@@ -233,6 +233,8 @@ enum SvaAlarmKitRuntime {
       },
       "pendingChallenge": pending?.asDictionary as Any,
       "authorization": cachedAuthorization,
+      "soundNameMode": SvaAlarmKitSoundNameMode.preferred.rawValue,
+      "lastSoundDiagnostics": SvaAlarmKitSoundStore.last() as Any,
     ]
   }
 

@@ -86,28 +86,42 @@ enum SvaAudioRenderer {
 
       try normalizeLoudness(at: temp)
       try validateRenderedFile(temp)
+      let preValidation = SvaAudioFileValidator.validate(url: temp)
+      guard preValidation.ok else {
+        throw svaError(
+          422,
+          preValidation.errorMessage ?? "Rendered audio failed validation"
+        )
+      }
       if FileManager.default.fileExists(atPath: dest.path) {
         try FileManager.default.removeItem(at: dest)
       }
       try FileManager.default.moveItem(at: temp, to: dest)
-      let duration = try measureDuration(url: dest)
-      let attrs = try? FileManager.default.attributesOfItem(atPath: dest.path)
-      let size = (attrs?[.size] as? NSNumber)?.intValue ?? 0
+      let validation = SvaAudioFileValidator.validate(url: dest)
+      let duration = Double(validation.durationMs) / 1000.0
+      let size = validation.fileSize
       let hash = (try? debugFileHash(dest)) ?? "na"
       NSLog(
-        "[SVA-Audio] render ok file=%@ path=%@ size=%d durationMs=%d hash=%@",
+        "[SVA-Audio] render ok file=%@ path=%@ size=%d durationMs=%d hash=%@ fmt=%@ playable=%d",
         fileName,
         dest.path,
         size,
-        Int(duration * 1000),
-        hash
+        validation.durationMs,
+        hash,
+        validation.formatDescription,
+        validation.avPlayerPlayable ? 1 : 0
       )
       return [
         "fileName": fileName,
         "path": dest.path,
-        "durationMs": Int((duration * 1000).rounded()),
+        "durationMs": validation.durationMs,
         "byteSize": size,
         "debugHash": hash,
+        "sampleRate": validation.sampleRate,
+        "channels": validation.channels,
+        "formatDescription": validation.formatDescription,
+        "avPlayerPlayable": validation.avPlayerPlayable,
+        "renderedExists": validation.exists,
       ]
     } catch {
       try? FileManager.default.removeItem(at: temp)

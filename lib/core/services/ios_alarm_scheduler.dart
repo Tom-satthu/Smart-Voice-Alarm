@@ -348,11 +348,13 @@ class IosAlarmScheduler {
   /// Schedules segments on exactly one backend.
   ///
   /// [backend] must be `alarmKit` or `notificationFanout`. Never schedules both.
+  /// [soundNameMode] is AlarmKit-only: `withExtension` or `withoutExtension`.
   Future<Map<String, dynamic>> scheduleSegments({
     required List<IosAlarmSegment> segments,
     required String title,
     required String body,
     required String backend,
+    String? soundNameMode,
   }) async {
     if (!isSupported || segments.isEmpty) {
       return {
@@ -362,13 +364,61 @@ class IosAlarmScheduler {
         'stage': 'notification_schedule',
       };
     }
-    final raw = await _channel.invokeMethod<Map>('scheduleSegments', {
+    final args = <String, dynamic>{
       'title': title,
       'body': body,
       'backend': backend,
       'segments': segments.map((s) => s.toNativeMap()).toList(),
-    });
+    };
+    if (soundNameMode != null && soundNameMode.isNotEmpty) {
+      args['soundNameMode'] = soundNameMode;
+    }
+    final raw = await _channel.invokeMethod<Map>('scheduleSegments', args);
     return Map<String, dynamic>.from(raw ?? {'ok': true, 'backend': backend});
+  }
+
+  Future<Map<String, dynamic>> diagnoseSoundFile({
+    required String fileName,
+    String sourceType = 'unknown',
+  }) async {
+    if (!isSupported) return const {};
+    try {
+      final raw = await _channel.invokeMethod<Map>('diagnoseSoundFile', {
+        'fileName': fileName,
+        'sourceType': sourceType,
+      });
+      return Map<String, dynamic>.from(raw ?? const {});
+    } catch (e) {
+      debugPrint('[SVA-Sound] diagnose failed: $e');
+      return {'ok': false, 'error': '$e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> lastSoundDiagnostics() async {
+    if (!isSupported) return const {};
+    try {
+      final raw = await _channel.invokeMethod<Map>('lastSoundDiagnostics');
+      return Map<String, dynamic>.from(raw ?? const {});
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  Future<void> setAlarmKitSoundNameMode(String mode) async {
+    if (!isSupported) return;
+    await _channel.invokeMethod<void>('setAlarmKitSoundNameMode', {
+      'mode': mode,
+    });
+  }
+
+  Future<String> getAlarmKitSoundNameMode() async {
+    if (!isSupported) return 'withExtension';
+    try {
+      final raw = await _channel.invokeMethod<Map>('getAlarmKitSoundNameMode');
+      return raw?['mode']?.toString() ?? 'withExtension';
+    } catch (_) {
+      return 'withExtension';
+    }
   }
 
   Future<Map<String, dynamic>> alarmKitDiagnostics() async {

@@ -25,6 +25,8 @@
 		DE3F11F3439279382792B821 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5511B1A833AE406F54880D90 /* Pods_Runner.framework */; };
 		A11ARMKITMGR01BUILD /* SvaAlarmKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ARMKITMGR01FILE /* SvaAlarmKitManager.swift */; };
 		A11ARMKITINT01BUILD /* SvaAlarmKitIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ARMKITINT01FILE /* SvaAlarmKitIntents.swift */; };
+		A11ARMSOUNDEXPBUILD /* SvaAlarmKitSoundExperiment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ARMSOUNDEXPFILE /* SvaAlarmKitSoundExperiment.swift */; };
+		A11ARMSOUND01BUILD /* SvaAlarmKitSound.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ARMSOUND01FILE /* SvaAlarmKitSound.swift */; };
 		A11ARMKTRUN01BUILD /* SvaAlarmKitRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ARMKTRUN01FILE /* SvaAlarmKitRuntime.swift */; };
 		A11LAUNCHAUD01BUILD /* SvaLaunchAudit.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11LAUNCHAUD01FILE /* SvaLaunchAudit.swift */; };
 		A11BUILDSTMP01BUILD /* SvaBuildStamp.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11BUILDSTMP01FILE /* SvaBuildStamp.generated.swift */; };
@@ -87,6 +89,8 @@
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A11ARMKITMGR01FILE /* SvaAlarmKitManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitManager.swift; sourceTree = "<group>"; };
 		A11ARMKITINT01FILE /* SvaAlarmKitIntents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitIntents.swift; sourceTree = "<group>"; };
+		A11ARMSOUNDEXPFILE /* SvaAlarmKitSoundExperiment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitSoundExperiment.swift; sourceTree = "<group>"; };
+		A11ARMSOUND01FILE /* SvaAlarmKitSound.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitSound.swift; sourceTree = "<group>"; };
 		A11ARMKTRUN01FILE /* SvaAlarmKitRuntime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitRuntime.swift; sourceTree = "<group>"; };
 		A11LAUNCHAUD01FILE /* SvaLaunchAudit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaLaunchAudit.swift; sourceTree = "<group>"; };
 		A11BUILDSTMP01FILE /* SvaBuildStamp.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaBuildStamp.generated.swift; sourceTree = "<group>"; };
@@ -183,6 +187,8 @@
 				3DB4BE6B480E4CE48A1041E5 /* SvaAlarmKitScheduler.swift */,
 				A11ARMKITMGR01FILE /* SvaAlarmKitManager.swift */,
 				A11ARMKITINT01FILE /* SvaAlarmKitIntents.swift */,
+				A11ARMSOUNDEXPFILE /* SvaAlarmKitSoundExperiment.swift */,
+				A11ARMSOUND01FILE /* SvaAlarmKitSound.swift */,
 				A11ARMKTRUN01FILE /* SvaAlarmKitRuntime.swift */,
 				A11LAUNCHAUD01FILE /* SvaLaunchAudit.swift */,
 				A11BUILDSTMP01FILE /* SvaBuildStamp.generated.swift */,
@@ -414,6 +420,8 @@
 				05B84C68C4FD43B79016B231 /* SvaAlarmKitScheduler.swift in Sources */,
 				A11ARMKITMGR01BUILD /* SvaAlarmKitManager.swift in Sources */,
 				A11ARMKITINT01BUILD /* SvaAlarmKitIntents.swift in Sources */,
+				A11ARMSOUNDEXPBUILD /* SvaAlarmKitSoundExperiment.swift in Sources */,
+				A11ARMSOUND01BUILD /* SvaAlarmKitSound.swift in Sources */,
 				A11ARMKTRUN01BUILD /* SvaAlarmKitRuntime.swift in Sources */,
 				A11LAUNCHAUD01BUILD /* SvaLaunchAudit.swift in Sources */,
 				A11BUILDSTMP01BUILD /* SvaBuildStamp.generated.swift in Sources */,

@@ -411,17 +411,28 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
     var warningMessage: String?
 
     do {
+      let soundMode = SvaAlarmKitSoundNameMode.preferred
       for segment in segments {
         let alarmId = SvaAlarmKitManager.deterministicAlarmId(for: segment.childId)
-        let soundResult = Self.resolveSound(fileName: segment.soundFileName)
-        if let w = soundResult.warningCode {
+        let sourceType = Self.inferSourceType(fileName: segment.soundFileName, label: segment.label)
+        let soundResult = SvaAlarmKitSoundResolver.resolve(
+          fileName: segment.soundFileName,
+          mode: soundMode,
+          sourceType: sourceType,
+          childId: segment.childId,
+          segmentIndex: segment.segmentIndex,
+          alarmKitId: alarmId.uuidString
+        )
+        if let w = soundResult.diagnostics.warningCode {
           warningCode = w
-          warningMessage = soundResult.warningMessage
+          warningMessage = soundResult.diagnostics.warningMessage
         }
         NSLog(
-          "[SVA-AlarmKit] sound file=%@ resolved=%@",
+          "[SVA-AlarmKit] sound file=%@ named=%@ mode=%@ resolved=%@",
           segment.soundFileName,
-          soundResult.usedDefault ? "default" : "custom"
+          soundResult.diagnostics.alertSoundNameExact,
+          soundMode.rawValue,
+          soundResult.diagnostics.usedDefault ? "default" : "custom"
         )
         NSLog(
           "[SVA-AlarmKit] schedule child=%@ index=%d id=%@",
@@ -488,8 +499,10 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
           secondaryIntent: secondaryIntent,
           sound: soundResult.sound
         )
-
         _ = try await AlarmManager.shared.schedule(id: alarmId, configuration: configuration)
+        var scheduledDiag = soundResult.diagnostics
+        scheduledDiag.scheduleOk = true
+        SvaAlarmKitSoundStore.saveLast(scheduledDiag)
         created.append(
           SvaAlarmKitMapping(
             parentAlarmId: segment.parentAlarmId,
@@ -558,30 +571,16 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
     }
   }
 
-  @available(iOS 26.0, *)
-  private static func resolveSound(fileName: String) -> (
-    sound: AlertConfiguration.AlertSound,
-    usedDefault: Bool,
-    warningCode: String?,
-    warningMessage: String?
-  ) {
-    let trimmed = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
-    if trimmed.isEmpty {
-      return (.default, true, "custom_sound_fallback", "Missing sound file — using default AlarmKit sound")
+  private static func inferSourceType(fileName: String, label: String) -> String {
+    let lower = label.lowercased()
+    if lower.contains("system_default") || fileName.isEmpty { return "default" }
+    if lower.contains("ringtone") || lower.contains("chime") || lower.contains("tone") {
+      return "ringtone"
     }
-    let url = SvaAudioRenderer.soundsDirectory.appendingPathComponent(trimmed)
-    guard FileManager.default.fileExists(atPath: url.path) else {
-      return (
-        .default,
-        true,
-        "custom_sound_fallback",
-        "Custom sound not found — using default AlarmKit sound"
-      )
-    }
-    // Prefer basename without extension (WWDC samples use short names).
-    let name = (trimmed as NSString).deletingPathExtension
-    let candidate = name.isEmpty ? trimmed : name
-    return (.named(candidate), false, nil, nil)
+    if lower.contains("tts") { return "tts" }
+    if lower.contains("record") || lower.contains("voice") { return "recording" }
+    if fileName.hasPrefix("sva_") { return "rendered" }
+    return "unknown"
   }
   #endif
 

@@ -206,13 +206,14 @@ class IosAlarmFanoutService {
             preparedClip(
               fileName: rendered.fileName,
               duration: Duration(milliseconds: rendered.durationMs),
-              label: segment.name,
+              label: segment.type == VoiceSegmentType.tts ? 'tts' : 'recording',
             ),
           );
           debugPrint(
-            '[SVA-Audio] scheduleSound path=${rendered.path} '
-            'file=${rendered.fileName} size=${rendered.byteSize} '
-            'durationMs=${rendered.durationMs} hash=${rendered.debugHash}',
+            '[SVA-Audio] scheduleSound type=${segment.type.name} '
+            'path=${rendered.path} file=${rendered.fileName} '
+            'size=${rendered.byteSize} durationMs=${rendered.durationMs} '
+            'hash=${rendered.debugHash}',
           );
           voiceIndex += 1;
         } catch (e) {
@@ -291,7 +292,7 @@ class IosAlarmFanoutService {
             duration: full <= Duration.zero
                 ? const Duration(seconds: 5)
                 : (full.inSeconds > 20 ? const Duration(seconds: 15) : full),
-            label: alarm.ringtoneName ?? 'Ringtone',
+            label: 'ringtone',
           ),
         );
       } catch (e) {

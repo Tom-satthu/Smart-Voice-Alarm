@@ -180,6 +180,11 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       let title = (args["title"] as? String) ?? "Smart Voice Alarm"
       let body = (args["body"] as? String) ?? "Solve to stop"
       let backend = (args["backend"] as? String) ?? "notificationFanout"
+      if let modeRaw = args["soundNameMode"] as? String,
+         let mode = SvaAlarmKitSoundNameMode(rawValue: modeRaw)
+      {
+        SvaAlarmKitSoundNameMode.setPreferred(mode)
+      }
       let segments = rawSegments.compactMap(Self.parseSegment)
       Task {
         do {
@@ -189,7 +194,11 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
             body: body,
             backend: backend
           )
-          self.reply(result, outcome)
+          var dict = outcome
+          if let last = SvaAlarmKitSoundStore.last() {
+            dict["soundDiagnostics"] = last
+          }
+          self.reply(result, dict)
         } catch {
           self.replyError(
             result,
@@ -199,6 +208,36 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
           )
         }
       }
+    case "diagnoseSoundFile":
+      let fileName = (call.arguments as? [String: Any])?["fileName"] as? String ?? ""
+      let sourceType = (call.arguments as? [String: Any])?["sourceType"] as? String ?? "unknown"
+      var diag = SvaAudioFileValidator.diagnoseRendered(
+        fileName: fileName,
+        sourceType: sourceType
+      )
+      let mode = SvaAlarmKitSoundNameMode.preferred
+      diag.soundNameMode = mode.rawValue
+      diag.alertSoundNameExact = SvaAlarmKitSoundResolver.alertSoundName(
+        fileName: fileName,
+        mode: mode
+      )
+      diag.logLine()
+      SvaAlarmKitSoundStore.saveLast(diag)
+      reply(result, diag.asDictionary)
+    case "lastSoundDiagnostics":
+      reply(result, SvaAlarmKitSoundStore.last() ?? [:])
+    case "setAlarmKitSoundNameMode":
+      let raw = (call.arguments as? [String: Any])?["mode"] as? String ?? ""
+      guard let mode = SvaAlarmKitSoundNameMode(rawValue: raw) else {
+        replyError(result, code: "args", message: "mode required", stage: "setAlarmKitSoundNameMode")
+        return
+      }
+      SvaAlarmKitSoundNameMode.setPreferred(mode)
+      reply(result, ["ok": true, "mode": mode.rawValue])
+    case "getAlarmKitSoundNameMode":
+      reply(result, [
+        "mode": SvaAlarmKitSoundNameMode.preferred.rawValue,
+      ])
     case "cancelParent":
       let parent = (call.arguments as? [String: Any])?["parentAlarmId"] as? String ?? ""
       cancelParent(parent)

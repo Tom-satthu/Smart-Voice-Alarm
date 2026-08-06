@@ -21,6 +21,10 @@ import UserNotifications
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "SvaAlarmBridge") {
       SvaAlarmBridge.register(with: registrar)
     }
+    // Review diagnostics only — production never auto-schedules.
+    if SvaBuildStampGenerated.diagStage.hasPrefix("R") {
+      SvaAlarmKitSoundExperiment.runPendingIfNeeded()
+    }
   }
 
   override func userNotificationCenter(
