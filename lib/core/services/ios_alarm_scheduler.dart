@@ -7,6 +7,9 @@ class IosAlarmCapability {
     required this.usesAlarmKit,
     required this.alarmKitAuthorization,
     required this.iosVersion,
+    this.runtimeVersionEligible = false,
+    this.alarmKitDisabled = false,
+    this.alarmKitRuntimeEnabled = false,
     this.supportsFullVoiceAlarm = false,
     this.maxVoiceSeconds = 20,
     this.maxVoiceSegments = 5,
@@ -17,6 +20,9 @@ class IosAlarmCapability {
   final bool usesAlarmKit;
   final String alarmKitAuthorization;
   final String iosVersion;
+  final bool runtimeVersionEligible;
+  final bool alarmKitDisabled;
+  final bool alarmKitRuntimeEnabled;
   final bool supportsFullVoiceAlarm;
   final int maxVoiceSeconds;
   final int maxVoiceSegments;
@@ -27,10 +33,18 @@ class IosAlarmCapability {
   bool get isAlarmKitAuthorized => alarmKitAuthorization == 'authorized';
   bool get isAlarmKitDenied => alarmKitAuthorization == 'denied';
   bool get isAlarmKitNotDetermined => alarmKitAuthorization == 'notDetermined';
+  bool get isAlarmKitUnknown =>
+      alarmKitAuthorization == 'unknown' ||
+      alarmKitAuthorization == 'unsupported';
 
-  /// Prefer AlarmKit when the OS supports it and the user authorized it.
+  /// Prefer AlarmKit only after user-initiated probe succeeded and authorized.
   bool get shouldUseAlarmKitBackend =>
-      usesAlarmKit && isAlarmKitAuthorized && supportsFullVoiceAlarm;
+      runtimeVersionEligible &&
+      !alarmKitDisabled &&
+      alarmKitRuntimeEnabled &&
+      usesAlarmKit &&
+      isAlarmKitAuthorized &&
+      supportsFullVoiceAlarm;
 
   factory IosAlarmCapability.unsupported() => const IosAlarmCapability(
     usesAlarmKit: false,
@@ -46,7 +60,10 @@ class IosAlarmCapability {
       alarmKitAuthorization:
           map['alarmKitAuthorization']?.toString() ?? 'unknown',
       iosVersion: map['iosVersion']?.toString() ?? '',
-      supportsFullVoiceAlarm: map['supportsFullVoiceAlarm'] == true || uses,
+      runtimeVersionEligible: map['runtimeVersionEligible'] == true,
+      alarmKitDisabled: map['alarmKitDisabled'] == true,
+      alarmKitRuntimeEnabled: map['alarmKitRuntimeEnabled'] == true,
+      supportsFullVoiceAlarm: map['supportsFullVoiceAlarm'] == true,
       maxVoiceSeconds: (map['maxVoiceSeconds'] as num?)?.toInt() ?? 20,
       maxVoiceSegments: (map['maxVoiceSegments'] as num?)?.toInt() ?? 5,
       maxRingtoneSegments: (map['maxRingtoneSegments'] as num?)?.toInt() ?? 2,
@@ -183,6 +200,51 @@ class IosAlarmScheduler {
       debugPrint('IosAlarmScheduler.requestAuthorization failed: $e');
       return const {};
     }
+  }
+
+  /// User-initiated passive probe (reads authorization only).
+  Future<Map<String, dynamic>> probeAlarmKitPassive() async {
+    if (!isSupported) return const {'ok': false};
+    try {
+      final raw = await _channel.invokeMethod<Map>('probeAlarmKitPassive');
+      return Map<String, dynamic>.from(raw ?? const {'ok': false});
+    } catch (e) {
+      debugPrint('[SVA-AlarmKit] probeAlarmKitPassive failed: $e');
+      return {'ok': false, 'error': '$e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> requestAlarmKitAuthorization() async {
+    if (!isSupported) return const {'ok': false};
+    try {
+      final raw = await _channel.invokeMethod<Map>('requestAlarmKitAuthorization');
+      return Map<String, dynamic>.from(raw ?? const {'ok': false});
+    } catch (e) {
+      debugPrint('[SVA-AlarmKit] requestAlarmKitAuthorization failed: $e');
+      return {'ok': false, 'error': '$e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> alarmKitStartupCounters() async {
+    if (!isSupported) {
+      return const {
+        'authorizationStateReadCount': 0,
+        'requestAuthorizationCount': 0,
+        'scheduleCount': 0,
+        'reconcileCount': 0,
+      };
+    }
+    try {
+      final raw = await _channel.invokeMethod<Map>('alarmKitStartupCounters');
+      return Map<String, dynamic>.from(raw ?? const {});
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  Future<void> debugClearAlarmKitKillSwitch() async {
+    if (!isSupported) return;
+    await _channel.invokeMethod<void>('debugClearAlarmKitKillSwitch');
   }
 
   Future<IosRenderedSound> renderSound({

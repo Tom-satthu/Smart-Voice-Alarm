@@ -6,8 +6,11 @@ import XCTest
 final class RunnerTests: XCTestCase {
   override func setUp() {
     super.setUp()
-    // Isolate mapping store between tests.
+    SvaAlarmKitRuntime.resetCountersForTests()
     SvaAlarmKitStore.save([])
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_disabled")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_probe_success")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_cached_auth")
     UserDefaults.standard.removeObject(forKey: SvaAlarmKeys.pendingChallenge)
   }
 
@@ -63,14 +66,25 @@ final class RunnerTests: XCTestCase {
     }
   }
 
+  func testPassiveCapabilityDoesNotTouchAlarmKitCounters() {
+    _ = SvaAlarmKitRuntime.passiveCapability()
+    _ = SvaAlarmKitRuntime.passiveDiagnostics()
+    XCTAssertEqual(SvaAlarmKitRuntime.authorizationStateReadCount, 0)
+    XCTAssertEqual(SvaAlarmKitRuntime.requestAuthorizationCount, 0)
+    XCTAssertEqual(SvaAlarmKitRuntime.scheduleCount, 0)
+    XCTAssertEqual(SvaAlarmKitRuntime.reconcileCount, 0)
+  }
+
   func testFakeAuthorizationAuthorizedAndDenied() async throws {
     let fake = FakeSvaAlarmManager()
     fake.authorizationState = "notDetermined"
-    let authorized = try await fake.requestAuthorization()
+    let authorized = try await fake.requestAuthorizationSafely()
     XCTAssertEqual(authorized, "authorized")
+    XCTAssertEqual(SvaAlarmKitRuntime.requestAuthorizationCount, 1)
 
+    SvaAlarmKitRuntime.resetCountersForTests()
     fake.authorizationState = "denied"
-    let denied = try await fake.requestAuthorization()
+    let denied = try await fake.requestAuthorizationSafely()
     XCTAssertEqual(denied, "denied")
   }
 
@@ -247,14 +261,22 @@ final class RunnerTests: XCTestCase {
   }
 
   func testOldIOSPathDoesNotClaimAlarmKitWhenUnavailable() {
-    // On hosts below iOS 26, authorization must report unavailable.
     if #available(iOS 26.0, *) {
-      // Still must not crash reading capability helpers.
-      _ = SvaAlarmKitManager.authorizationStateString()
+      let passive = SvaAlarmKitRuntime.passiveCapability()
+      XCTAssertEqual(SvaAlarmKitRuntime.authorizationStateReadCount, 0)
+      XCTAssertNotNil(passive["runtimeVersionEligible"])
     } else {
-      XCTAssertEqual(SvaAlarmKitManager.authorizationStateString(), "unavailable")
+      XCTAssertEqual(SvaAlarmKitManager.authorizationStateString(), "unknown")
       XCTAssertFalse(SvaAlarmKitManager.isRuntimeAvailable)
     }
+  }
+
+  func testKillSwitchBlocksRuntimeEnabled() {
+    SvaAlarmKitRuntime.markDisabled(reason: "test", persistent: true)
+    let cap = SvaAlarmKitRuntime.passiveCapability()
+    XCTAssertEqual(cap["alarmKitDisabled"] as? Bool, true)
+    XCTAssertEqual(cap["usesAlarmKit"] as? Bool, false)
+    SvaAlarmKitRuntime.debugClearKillSwitch()
   }
 
   // MARK: - Helpers

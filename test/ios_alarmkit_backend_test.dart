@@ -5,23 +5,52 @@ import 'package:smart_voice_alarm/core/services/ios_alarm_scheduler.dart';
 
 void main() {
   group('AlarmKit backend selection', () {
-    test('iOS 26 authorized selects AlarmKit', () {
+    test('iOS 26 authorized selects AlarmKit after probe', () {
       const cap = IosAlarmCapability(
         usesAlarmKit: true,
         alarmKitAuthorization: 'authorized',
         iosVersion: '26.5.2',
+        runtimeVersionEligible: true,
+        alarmKitRuntimeEnabled: true,
         supportsFullVoiceAlarm: true,
       );
       expect(cap.shouldUseAlarmKitBackend, isTrue);
       expect(cap.isFullSupport, isTrue);
     });
 
-    test('iOS 26 denied selects fan-out', () {
+    test('iOS 26 passive startup does not select AlarmKit', () {
+      const cap = IosAlarmCapability(
+        usesAlarmKit: false,
+        alarmKitAuthorization: 'unknown',
+        iosVersion: '26.5.2',
+        runtimeVersionEligible: true,
+        alarmKitRuntimeEnabled: false,
+        supportsFullVoiceAlarm: false,
+      );
+      expect(cap.shouldUseAlarmKitBackend, isFalse);
+    });
+
+    test('kill switch blocks AlarmKit backend', () {
       const cap = IosAlarmCapability(
         usesAlarmKit: true,
+        alarmKitAuthorization: 'authorized',
+        iosVersion: '26.5.2',
+        runtimeVersionEligible: true,
+        alarmKitRuntimeEnabled: true,
+        alarmKitDisabled: true,
+        supportsFullVoiceAlarm: true,
+      );
+      expect(cap.shouldUseAlarmKitBackend, isFalse);
+    });
+
+    test('iOS 26 denied selects fan-out', () {
+      const cap = IosAlarmCapability(
+        usesAlarmKit: false,
         alarmKitAuthorization: 'denied',
         iosVersion: '26.5.2',
-        supportsFullVoiceAlarm: true,
+        runtimeVersionEligible: true,
+        alarmKitDisabled: true,
+        supportsFullVoiceAlarm: false,
       );
       expect(cap.shouldUseAlarmKitBackend, isFalse);
     });
@@ -63,11 +92,13 @@ void main() {
       expect(fail.backend, AlarmScheduleBackend.alarmKit);
     });
 
-    test('fromMap supportsFullVoiceAlarm', () {
+    test('fromMap supportsFullVoiceAlarm after probe', () {
       final cap = IosAlarmCapability.fromMap({
         'usesAlarmKit': true,
         'supportsFullVoiceAlarm': true,
         'alarmKitAuthorization': 'authorized',
+        'runtimeVersionEligible': true,
+        'alarmKitRuntimeEnabled': true,
         'iosVersion': '26.0',
       });
       expect(cap.supportsFullVoiceAlarm, isTrue);

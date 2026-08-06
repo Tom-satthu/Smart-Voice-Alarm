@@ -15,6 +15,7 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
 
   static func register(withMessenger messenger: FlutterBinaryMessenger) {
     let instance = SvaAlarmBridge.shared
+    SvaLaunchAudit.noteSvaBridgeRegister()
     let channel = FlutterMethodChannel(
       name: SvaAlarmKeys.channelName,
       binaryMessenger: messenger
@@ -82,11 +83,18 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
   func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "getCapability":
-      reply(result, capability())
+      reply(result, SvaAlarmKitRuntime.passiveCapability())
+    case "getBuildStamp":
+      reply(result, SvaLaunchAudit.buildStampPayload())
+    case "probeAlarmKitPassive":
+      Task {
+        let probe = await SvaAlarmKitRuntime.userInitiatedProbeAuthorization()
+        self.reply(result, probe)
+      }
     case "requestAuthorization":
       Task {
         do {
-          // Called only from Save Alarm — may prompt AlarmKit + notifications.
+          // Save Alarm only — notifications + optional AlarmKit request in guarded flow.
           let status = try await requestAuth(includeAlarmKit: true)
           reply(result, status)
         } catch {
@@ -100,22 +108,12 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       }
     case "requestAlarmKitAuthorization":
       Task {
-        do {
-          let state = try await SvaAlarmKitScheduler.requestAuthorization()
-          NSLog("[SVA-AlarmKit] authorization=%@", state)
-          reply(result, [
-            "alarmKitAuthorization": state,
-            "usesAlarmKit": SvaAlarmKitManager.isRuntimeAvailable,
-          ])
-        } catch {
-          replyError(
-            result,
-            code: "alarmkit_auth",
-            message: error.localizedDescription,
-            stage: "requestAlarmKitAuthorization"
-          )
-        }
+        let probe = await SvaAlarmKitRuntime.userInitiatedRequestAuthorization()
+        reply(result, probe)
       }
+    case "debugClearAlarmKitKillSwitch":
+      SvaAlarmKitRuntime.debugClearKillSwitch()
+      reply(result, true)
     case "renderSound":
       guard let args = call.arguments as? [String: Any],
             let fileName = args["fileName"] as? String
@@ -210,6 +208,13 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       reply(result, true)
     case "alarmKitDiagnostics":
       reply(result, SvaAlarmKitScheduler.diagnostics())
+    case "alarmKitStartupCounters":
+      reply(result, [
+        "authorizationStateReadCount": SvaAlarmKitRuntime.authorizationStateReadCount,
+        "requestAuthorizationCount": SvaAlarmKitRuntime.requestAuthorizationCount,
+        "scheduleCount": SvaAlarmKitRuntime.scheduleCount,
+        "reconcileCount": SvaAlarmKitRuntime.reconcileCount,
+      ])
     case "reconcileAlarmKit":
       SvaAlarmKitScheduler.reconcile()
       reply(result, true)
@@ -255,41 +260,27 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
     }
   }
 
-  private func capability() -> [String: Any] {
-    let uses = SvaAlarmKitManager.isRuntimeAvailable
-    let auth = uses ? SvaAlarmKitScheduler.authorizationState() : "unavailable"
-    NSLog(
-      "[SVA-AlarmKit] capability usesAlarmKit=%@ authorization=%@",
-      uses ? "true" : "false",
-      auth
-    )
-    return [
-      "iosVersion": UIDevice.current.systemVersion,
-      "usesAlarmKit": uses,
-      "alarmKitAuthorization": auth,
-      "supportsFullVoiceAlarm": uses,
-      "maxVoiceSeconds": 20,
-      "maxVoiceSegments": 5,
-      "maxRingtoneSegments": 2,
-      "gapSeconds": 5,
-    ]
-  }
-
   private func requestAuth(includeAlarmKit: Bool) async throws -> [String: Any] {
     let notif = try await UNUserNotificationCenter.current()
       .requestAuthorization(options: [.alert, .sound, .badge])
-    var alarmKitAuth = "unavailable"
-    let uses = SvaAlarmKitManager.isRuntimeAvailable
-    if includeAlarmKit && uses {
-      alarmKitAuth = try await SvaAlarmKitScheduler.requestAuthorization()
-      NSLog("[SVA-AlarmKit] authorization=%@", alarmKitAuth)
-    } else if uses {
-      alarmKitAuth = SvaAlarmKitScheduler.authorizationState()
+    var alarmKitAuth = SvaAlarmKitRuntime.cachedAuthorization
+    var uses = false
+    var supportsFull = false
+    if includeAlarmKit,
+       SvaAlarmKitRuntime.isVersionEligible,
+       !SvaAlarmKitRuntime.isKillSwitchActive
+    {
+      let probe = await SvaAlarmKitRuntime.userInitiatedRequestAuthorization()
+      alarmKitAuth = probe["alarmKitAuthorization"] as? String ?? "unknown"
+      uses = probe["usesAlarmKit"] as? Bool ?? false
+      supportsFull = probe["supportsFullVoiceAlarm"] as? Bool ?? false
     }
     return [
       "notifications": notif,
       "alarmKitAuthorization": alarmKitAuth,
       "usesAlarmKit": uses,
+      "supportsFullVoiceAlarm": supportsFull,
+      "alarmKitDisabled": SvaAlarmKitRuntime.isKillSwitchActive,
     ]
   }
 

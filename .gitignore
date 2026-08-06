@@ -39,6 +39,11 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
+# Temporary diagnostic build stamp (regenerated per review build)
+tool/sva_build_stamp.json
+ios/Flutter/sva_build_stamp.xcconfig
+ios/Runner/SvaBuildStamp.generated.swift
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile

@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/release_config.dart';
+import '../../../../core/debug/sva_build_stamp.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/localization/app_locale_support.dart';
 import '../../../../core/responsive/responsive.dart';
@@ -19,6 +20,7 @@ import '../../../../core/utils/time_formatters.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/providers/prototype_providers.dart';
+import '../widgets/sva_review_build_stamp_section.dart';
 import '../../../../shared/widgets/app_widgets.dart';
 import '../../../../theme/theme_provider.dart';
 
@@ -34,12 +36,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   PermissionStatus? _notificationStatus;
   PermissionStatus? _exactAlarmStatus;
   PermissionStatus? _fullScreenIntentStatus;
+  String? _reviewBuildLabel;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshPermissions());
+    if (SvaBuildStamp.reviewBuild) {
+      _reviewBuildLabel = SvaBuildStamp.formatForSettings();
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshPermissions();
+      _loadReviewBuildStamp();
+    });
+  }
+
+  Future<void> _loadReviewBuildStamp() async {
+    if (!SvaBuildStamp.reviewBuild) return;
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
+    final native = await SvaBuildStamp.fetchNativeStamp();
+    if (!mounted) return;
+    setState(() {
+      _reviewBuildLabel = SvaBuildStamp.formatForSettings(native: native);
+    });
   }
 
   @override
@@ -403,6 +422,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               title: l10n.appVersion,
               subtitle: versionLabel,
             ),
+            SvaReviewBuildStampSection(
+              visible:
+                  SvaBuildStamp.reviewBuild &&
+                  !kIsWeb &&
+                  defaultTargetPlatform == TargetPlatform.iOS,
+              stampText: _reviewBuildLabel ?? SvaBuildStamp.formatForSettings(),
+            ),
             if (kDebugMode &&
                 !kIsWeb &&
                 defaultTargetPlatform == TargetPlatform.iOS) ...[
@@ -415,6 +441,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 onTap: () => _runIosDiagnostics(context),
               ),
             ],
+            if (SvaBuildStamp.reviewBuild &&
+                !kDebugMode &&
+                !kIsWeb &&
+                defaultTargetPlatform == TargetPlatform.iOS) ...[
+              const SizedBox(height: AppConstants.spaceMd),
+              SettingTile(
+                icon: Icons.bug_report_outlined,
+                title: l10n.iosAlarmDiagnosticsTitle,
+                subtitle: 'Staged AlarmKit probe (user-initiated)',
+                onTap: () => _runIosDiagnostics(context),
+              ),
+            ],
           ],
         ),
       ),
@@ -423,14 +461,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   Future<void> _runIosDiagnostics(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.iosAlarmDiagnosticsTitle),
+        content: const Text(
+          'Debug diagnostics run in stages and may touch AlarmKit only if you '
+          'continue past passive checks. Stop if the app becomes unstable.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Run passive checks'),
+          ),
+        ],
+      ),
+    );
+    if (proceed != true || !context.mounted) return;
+
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.iosAlarmDiagnosticsRunning)));
-    final report = await IosAlarmDiagnostics(
+    final diagnostics = IosAlarmDiagnostics(
       notifications: ref.read(notificationServiceProvider),
-    ).runAll();
+    );
+    final report = StringBuffer(await diagnostics.runAll());
+    final staged = await diagnostics.runStagedAlarmKitProbe();
+    report.writeln('');
+    report.writeln(staged.format());
     if (!context.mounted) return;
-    await Clipboard.setData(ClipboardData(text: report));
+    await Clipboard.setData(ClipboardData(text: report.toString()));
     if (!context.mounted) return;
     await showDialog<void>(
       context: context,
@@ -438,7 +502,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         title: Text(l10n.iosAlarmDiagnosticsTitle),
         content: SizedBox(
           width: 420,
-          child: SingleChildScrollView(child: SelectableText(report)),
+          child: SingleChildScrollView(
+            child: SelectableText(report.toString()),
+          ),
         ),
         actions: [
           TextButton(
@@ -447,7 +513,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           ),
           FilledButton(
             onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: report));
+              await Clipboard.setData(ClipboardData(text: report.toString()));
               if (context.mounted) Navigator.pop(context);
             },
             child: Text(l10n.iosAlarmDiagnosticsCopy),

@@ -366,27 +366,15 @@ class IosAlarmFanoutService {
     }
 
     try {
-      // Backend selection: AlarmKit only when iOS 26+ capability is authorized.
-      // Never schedule both backends for the same occurrence.
-      var cap = await _scheduler.getCapability();
-      if (cap.usesAlarmKit &&
-          (cap.isAlarmKitNotDetermined ||
-              cap.alarmKitAuthorization == 'unknown')) {
-        // Save Alarm path already requested auth; refresh capability once.
-        try {
-          await _scheduler.requestAuthorization();
-        } catch (e) {
-          debugPrint('[SVA-AlarmKit] auth refresh: $e');
-        }
-        cap = await _scheduler.getCapability();
-      }
-
+      // Passive capability only — never triggers AlarmKit at startup/Save planning.
+      final cap = await _scheduler.getCapability();
       final useAlarmKit = cap.shouldUseAlarmKitBackend;
       final backend = useAlarmKit
           ? AlarmScheduleBackend.alarmKit
           : AlarmScheduleBackend.notificationFanout;
       debugPrint(
-        '[SVA-AlarmKit] backend=$backend authorization=${cap.alarmKitAuthorization}',
+        '[SVA-AlarmKit] backend=$backend authorization=${cap.alarmKitAuthorization} '
+        'disabled=${cap.alarmKitDisabled} runtime=${cap.alarmKitRuntimeEnabled}',
       );
       log('schedule_backend', 'backend=$backend segments=${planned.length}');
 

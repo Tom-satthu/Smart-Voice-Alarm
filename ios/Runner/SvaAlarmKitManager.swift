@@ -105,8 +105,8 @@ struct SvaAlarmKitScheduleOutcome {
 // MARK: - Protocol + Fake (tests)
 
 protocol SvaAlarmManaging: AnyObject {
-  var authorizationState: String { get }
-  func requestAuthorization() async throws -> String
+  func readAuthorizationStateSafely() async throws -> String
+  func requestAuthorizationSafely() async throws -> String
   func schedule(
     segments: [SvaSegmentSpec],
     title: String
@@ -126,7 +126,13 @@ final class FakeSvaAlarmManager: SvaAlarmManaging {
   var shouldFailSchedule = false
   var failAfterCount: Int?
 
-  func requestAuthorization() async throws -> String {
+  func readAuthorizationStateSafely() async throws -> String {
+    SvaAlarmKitRuntime.authorizationStateReadCount += 1
+    return authorizationState
+  }
+
+  func requestAuthorizationSafely() async throws -> String {
+    SvaAlarmKitRuntime.requestAuthorizationCount += 1
     if authorizationState == "notDetermined" {
       authorizationState = "authorized"
     }
@@ -137,6 +143,7 @@ final class FakeSvaAlarmManager: SvaAlarmManaging {
     segments: [SvaSegmentSpec],
     title: String
   ) async throws -> SvaAlarmKitScheduleOutcome {
+    SvaAlarmKitRuntime.scheduleCount += 1
     if shouldFailSchedule {
       return SvaAlarmKitScheduleOutcome(
         ok: false,
@@ -226,7 +233,7 @@ final class FakeSvaAlarmManager: SvaAlarmManaging {
   }
 
   func reconcile() {
-    // Fake has no stale OS alarms.
+    SvaAlarmKitRuntime.reconcileCount += 1
   }
 }
 
@@ -237,17 +244,12 @@ enum SvaAlarmKitManager {
   static var sharedManaging: SvaAlarmManaging = ProductionAlarmKitCoordinator()
 
   static var isRuntimeAvailable: Bool {
-    if #available(iOS 26.0, *) {
-      return true
-    }
-    return false
+    SvaAlarmKitRuntime.isVersionEligible
   }
 
   static func authorizationStateString() -> String {
-    if #available(iOS 26.0, *) {
-      return sharedManaging.authorizationState
-    }
-    return "unavailable"
+    // Launch-safe: never touch AlarmKit here.
+    SvaAlarmKitRuntime.cachedAuthorization
   }
 
   static func deterministicAlarmId(for childId: String) -> UUID {
@@ -272,9 +274,9 @@ enum SvaAlarmKitManager {
   }
 }
 
-/// Production coordinator — gates all AlarmKit symbol use behind `#available(iOS 26.0, *)`.
+/// Production coordinator — gates all AlarmKit symbol use behind runtime + availability.
 final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
-  var authorizationState: String {
+  func readAuthorizationStateSafely() async throws -> String {
     if #available(iOS 26.0, *) {
       #if canImport(AlarmKit)
       return Self.mapAuth(AlarmManager.shared.authorizationState)
@@ -285,7 +287,7 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
     return "unavailable"
   }
 
-  func requestAuthorization() async throws -> String {
+  func requestAuthorizationSafely() async throws -> String {
     if #available(iOS 26.0, *) {
       #if canImport(AlarmKit)
       let state = try await AlarmManager.shared.requestAuthorization()
@@ -303,6 +305,10 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
     segments: [SvaSegmentSpec],
     title: String
   ) async throws -> SvaAlarmKitScheduleOutcome {
+    guard SvaAlarmKitRuntime.mayCallAlarmKitAPI else {
+      return Self.unavailableOutcome()
+    }
+    SvaAlarmKitRuntime.scheduleCount += 1
     if #available(iOS 26.0, *) {
       #if canImport(AlarmKit)
       return try await scheduleOnAlarmKit(segments: segments, title: title)
@@ -314,7 +320,7 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
   }
 
   func cancel(alarmIds: [String]) {
-    if #available(iOS 26.0, *) {
+    if SvaAlarmKitRuntime.mayCallAlarmKitAPI, #available(iOS 26.0, *) {
       #if canImport(AlarmKit)
       for idString in alarmIds {
         guard let id = UUID(uuidString: idString) else { continue }
@@ -354,6 +360,9 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
   }
 
   func scheduledAlarmIds() -> [String] {
+    guard SvaAlarmKitRuntime.mayCallAlarmKitAPI else {
+      return SvaAlarmKitStore.load().map(\.alarmId)
+    }
     if #available(iOS 26.0, *) {
       #if canImport(AlarmKit)
       do {
@@ -367,6 +376,8 @@ final class ProductionAlarmKitCoordinator: SvaAlarmManaging {
   }
 
   func reconcile() {
+    guard SvaAlarmKitRuntime.mayCallAlarmKitAPI else { return }
+    SvaAlarmKitRuntime.reconcileCount += 1
     if #available(iOS 26.0, *) {
       #if canImport(AlarmKit)
       let live: Set<String>

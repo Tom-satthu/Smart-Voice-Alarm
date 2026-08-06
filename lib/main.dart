@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'app/app.dart';
+import 'core/debug/sva_build_stamp.dart';
 import 'core/navigation/challenge_session.dart';
 import 'core/navigation/root_navigator.dart';
 import 'core/services/ios_alarm_scheduler.dart';
@@ -18,6 +19,7 @@ import 'shared/providers/prototype_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SvaBuildStamp.logStartup();
   debugPrint('[SVA-Startup] begin');
 
   await SystemChrome.setPreferredOrientations([
@@ -115,7 +117,17 @@ Future<void> main() async {
   );
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
+    debugPrint('[SVA-Launch] first frame');
     unawaited(_postUiStartup(container, notifications));
+    if (SvaBuildStamp.reviewBuild || SvaBuildStamp.hasDartStamp) {
+      unawaited(
+        SvaBuildStamp.fetchNativeStamp().then((native) {
+          debugPrint(
+            '[SVA-Build] native ${SvaBuildStamp.formatForSettings(native: native)}',
+          );
+        }),
+      );
+    }
   });
 }
 
@@ -158,6 +170,10 @@ Future<void> _postUiStartup(
     }
   }
   debugPrint('[SVA-Startup] post-frame reconcile done');
+
+  if (SvaBuildStamp.autoProbe && isIos) {
+    unawaited(_runReviewAutoProbe(notifications));
+  }
 }
 
 Future<void> _openIosChallenge(
@@ -227,5 +243,21 @@ Future<void> _openRinging(
         );
       }
     });
+  }
+}
+
+/// Review-only automated staged probe (SVA_DIAG_AUTO_PROBE=1, not production).
+Future<void> _runReviewAutoProbe(NotificationService notifications) async {
+  final scheduler = notifications.iosFanout.scheduler;
+  try {
+    final counters = await scheduler.alarmKitStartupCounters();
+    debugPrint('[SVA-ReviewProbe] startup counters=$counters');
+    final probe = await scheduler.probeAlarmKitPassive();
+    debugPrint('[SVA-ReviewProbe] passive probe=$probe');
+    if (probe['ok'] != true) return;
+    final auth = await scheduler.requestAlarmKitAuthorization();
+    debugPrint('[SVA-ReviewProbe] authorization=$auth');
+  } catch (error, stack) {
+    debugPrint('[SVA-ReviewProbe] failed: $error\n$stack');
   }
 }
