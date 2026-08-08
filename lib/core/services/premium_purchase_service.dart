@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 
 import '../constants/app_constants.dart';
 import 'trial_entitlement_service.dart';
@@ -140,14 +141,13 @@ class InAppPurchaseBillingGateway implements BillingGateway {
     return const BillingQueryResult.failure('product_unavailable');
   }
 
-  /// Marker returned by [queryCurrentPurchases] on iOS/macOS. StoreKit has
-  /// no synchronous "list current purchases" API, so this never claims
-  /// inactive — [PremiumPurchaseService] maps it to
+  /// Marker returned by [queryCurrentPurchases] on iOS/macOS only when the
+  /// on-device transaction read itself throws (plugin/channel error). This
+  /// is a transport failure, not proof of inactivity —
+  /// [PremiumPurchaseService] maps it to
   /// [SubscriptionVerificationResult.unavailable] instead of `failed`, which
-  /// keeps any still-fresh offline-grace cache intact. The real
-  /// verification (if any) arrives asynchronously via [purchaseUpdates]
-  /// once the sync below completes.
-  static const iosSyncDeferredCode = 'ios_storekit_sync_deferred';
+  /// keeps any still-fresh offline-grace cache intact.
+  static const iosEntitlementQueryFailedCode = 'ios_entitlement_query_failed';
 
   @override
   Future<BillingQueryResult<List<BillingPurchase>>>
@@ -170,26 +170,71 @@ class InAppPurchaseBillingGateway implements BillingGateway {
 
     if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
-      // No synchronous current-entitlements API exists in the installed
-      // in_app_purchase_storekit (0.4.4) surface. Trigger StoreKit2's
-      // AppStore.sync() (via InAppPurchaseStoreKitPlatformAddition.sync())
-      // so the App Store re-delivers any active/renewed transaction for
-      // this product through purchaseUpdates — the listener is already
-      // attached by init() before this is ever called. A sync failure
-      // (network, auth) is a transport issue, not proof of inactivity, so
-      // it is swallowed here rather than surfaced as a hard failure.
+      // Non-interactive on-device read: Transaction.all, already filtered
+      // to JWS-verified transactions by the native plugin layer (unverified
+      // ones are silently dropped before ever reaching Dart — see
+      // rawTransactions() in InAppPurchasePlugin+StoreKit2.swift). This
+      // never shows an Apple ID authentication prompt (that is only a risk
+      // for the App Store re-sync call — see restorePurchases() below), so
+      // it is safe to call from normal app startup/resume.
       try {
-        await _purchase
-            .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>()
-            .sync()
-            .timeout(const Duration(seconds: 10));
+        final transactions = await SK2Transaction.transactions();
+        return BillingQueryResult.success(activeIosPurchasesFrom(transactions));
       } catch (_) {
-        // Ignored intentionally — see doc comment on [iosSyncDeferredCode].
+        return const BillingQueryResult.failure(iosEntitlementQueryFailedCode);
       }
-      return const BillingQueryResult.failure(iosSyncDeferredCode);
     }
 
     return const BillingQueryResult.failure('current_query_unavailable');
+  }
+
+  /// Picks the most recent [AppConstants.premiumSubscriptionId] transaction
+  /// (by expiration date) and reports it as an active purchase only if it
+  /// has not expired yet. An empty result is a real, evidence-backed
+  /// "not currently active" — not a transport failure.
+  ///
+  /// Public (not `_`-prefixed) solely so it can be unit tested directly
+  /// with hand-built [SK2Transaction] fixtures, without a real StoreKit
+  /// runtime. Not part of [BillingGateway] — only used internally by
+  /// [queryCurrentPurchases] above.
+  ///
+  /// Known limitation: the installed in_app_purchase_storekit (0.4.4) does
+  /// not surface Transaction.revocationDate/revocationReason through its
+  /// Pigeon message, so a refunded/revoked-but-not-yet-expired transaction
+  /// cannot be distinguished from a normal one with this API surface alone.
+  static List<BillingPurchase> activeIosPurchasesFrom(
+    List<SK2Transaction> transactions,
+  ) {
+    SK2Transaction? latest;
+    DateTime? latestExpiry;
+    for (final transaction in transactions) {
+      if (transaction.productId != AppConstants.premiumSubscriptionId) {
+        continue;
+      }
+      final expiry = expirationOfIosTransaction(transaction);
+      if (expiry == null) continue;
+      if (latestExpiry == null || expiry.isAfter(latestExpiry)) {
+        latest = transaction;
+        latestExpiry = expiry;
+      }
+    }
+    if (latest == null || latestExpiry == null) return const [];
+    if (!latestExpiry.isAfter(DateTime.now())) return const [];
+    return [
+      BillingPurchase(
+        productId: latest.productId,
+        status: BillingPurchaseStatus.purchased,
+        purchaseToken: latest.id,
+        pendingCompletePurchase: false,
+        storeHandle: latest,
+      ),
+    ];
+  }
+
+  static DateTime? expirationOfIosTransaction(SK2Transaction transaction) {
+    final raw = transaction.expirationDate;
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
   }
 
   @override
@@ -208,7 +253,27 @@ class InAppPurchaseBillingGateway implements BillingGateway {
   }
 
   @override
-  Future<void> restorePurchases() => _purchase.restorePurchases();
+  Future<void> restorePurchases() async {
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      // AppStore.sync() may show an Apple ID authentication prompt — per
+      // Apple's guidance that is only acceptable from an explicit user
+      // action, which restorePurchases() only ever is (see the "Restore
+      // Purchases" button in premium_screen.dart). This is the one and
+      // only call site for sync() in this app; it never runs from
+      // startup/resume. A sync failure does not block the restore below —
+      // the plugin's own restorePurchases() already reads
+      // Transaction.currentEntitlements independently.
+      try {
+        await _purchase
+            .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>()
+            .sync();
+      } catch (_) {
+        // Non-fatal — proceed to restorePurchases() regardless.
+      }
+    }
+    await _purchase.restorePurchases();
+  }
 
   @override
   Future<void> acknowledge(BillingPurchase purchase) async {
@@ -426,7 +491,7 @@ class PremiumPurchaseService {
     if (!response.isSuccess || response.value == null) {
       final deferred =
           response.errorMessage ==
-          InAppPurchaseBillingGateway.iosSyncDeferredCode;
+          InAppPurchaseBillingGateway.iosEntitlementQueryFailedCode;
       _emit(
         _state.copyWith(
           // A deferred iOS sync is not a user-facing error: the real
