@@ -58,3 +58,6 @@ android/keystore.properties
 *.mobileprovision
 *.p12
 smart-voice-alarm-screenshots/
+
+# Claude Code personal/local permissions — never shared
+.claude/settings.local.json
