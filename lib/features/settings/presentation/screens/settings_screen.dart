@@ -8,20 +8,15 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/release_config.dart';
-import '../../../../core/debug/sva_build_stamp.dart';
-import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/localization/app_locale_support.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/services/app_version_info.dart';
-import '../../../../core/services/ios_alarm_diagnostics.dart';
 import '../../../../core/services/support_contact.dart';
 import '../../../../core/services/trial_entitlement_service.dart';
 import '../../../../core/utils/time_formatters.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/providers/prototype_providers.dart';
-import '../widgets/sva_review_alarmkit_runtime_section.dart';
-import '../widgets/sva_review_build_stamp_section.dart';
 import '../../../../shared/widgets/app_widgets.dart';
 import '../../../../theme/theme_provider.dart';
 
@@ -37,28 +32,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   PermissionStatus? _notificationStatus;
   PermissionStatus? _exactAlarmStatus;
   PermissionStatus? _fullScreenIntentStatus;
-  String? _reviewBuildLabel;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    if (SvaBuildStamp.reviewBuild) {
-      _reviewBuildLabel = SvaBuildStamp.formatForSettings();
-    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshPermissions();
-      _loadReviewBuildStamp();
-    });
-  }
-
-  Future<void> _loadReviewBuildStamp() async {
-    if (!SvaBuildStamp.reviewBuild) return;
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
-    final native = await SvaBuildStamp.fetchNativeStamp();
-    if (!mounted) return;
-    setState(() {
-      _reviewBuildLabel = SvaBuildStamp.formatForSettings(native: native);
     });
   }
 
@@ -227,6 +207,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       title: l10n.settingsTitle,
       body: ResponsiveCenter(
         child: ListView(
+          key: const ValueKey('settings_list'),
           padding: const EdgeInsets.only(
             top: AppConstants.spaceMd,
             bottom: AppConstants.space2xl,
@@ -350,15 +331,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   },
                 ),
               ],
-              const SizedBox(height: AppConstants.spaceMd),
-              SettingTile(
-                icon: Icons.settings_applications_outlined,
-                title: l10n.openSystemSettings,
-                subtitle: l10n.openSystemSettingsHint,
-                onTap: () async {
-                  await openAppSettings();
-                },
-              ),
             ],
             const SizedBox(height: AppConstants.spaceXl),
             SectionHeader(title: l10n.supportAndFeedback),
@@ -373,7 +345,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               SettingTile(
                 icon: Icons.help_outline_rounded,
                 title: l10n.supportAndFeedback,
-                subtitle: l10n.settingsLegalPlaceholder,
                 onTap: () => _openExternal(AppConstants.supportUrl),
               ),
             ],
@@ -381,7 +352,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             SettingTile(
               icon: Icons.description_outlined,
               title: l10n.openSourceLicenses,
-              subtitle: l10n.settingsLegalPlaceholder,
               onTap: () {
                 showLicensePage(
                   context: context,
@@ -396,7 +366,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               SettingTile(
                 icon: Icons.privacy_tip_outlined,
                 title: l10n.settingsPrivacy,
-                subtitle: l10n.settingsLegalPlaceholder,
                 onTap: () => _openExternal(AppConstants.privacyPolicyUrl),
               ),
             ],
@@ -405,7 +374,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               SettingTile(
                 icon: Icons.gavel_outlined,
                 title: l10n.settingsTerms,
-                subtitle: l10n.settingsLegalPlaceholder,
                 onTap: () => _openExternal(AppConstants.termsOfUseUrl),
               ),
             ],
@@ -423,203 +391,76 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               title: l10n.appVersion,
               subtitle: versionLabel,
             ),
-            SvaReviewBuildStampSection(
-              visible:
-                  SvaBuildStamp.reviewBuild &&
-                  !kIsWeb &&
-                  defaultTargetPlatform == TargetPlatform.iOS,
-              stampText: _reviewBuildLabel ?? SvaBuildStamp.formatForSettings(),
-            ),
-            SvaReviewAlarmKitRuntimeSection(
-              visible:
-                  SvaBuildStamp.reviewBuild &&
-                  !kIsWeb &&
-                  defaultTargetPlatform == TargetPlatform.iOS,
-            ),
-            if (kDebugMode &&
-                !kIsWeb &&
-                defaultTargetPlatform == TargetPlatform.iOS) ...[
-              const SizedBox(height: AppConstants.spaceXl),
-              SectionHeader(title: 'Debug'),
-              SettingTile(
-                icon: Icons.bug_report_outlined,
-                title: l10n.iosAlarmDiagnosticsTitle,
-                subtitle: 'Automated iOS alarm fixture checks',
-                onTap: () => _runIosDiagnostics(context),
-              ),
-            ],
-            if (SvaBuildStamp.reviewBuild &&
-                !kDebugMode &&
-                !kIsWeb &&
-                defaultTargetPlatform == TargetPlatform.iOS) ...[
-              const SizedBox(height: AppConstants.spaceMd),
-              SettingTile(
-                icon: Icons.bug_report_outlined,
-                title: l10n.iosAlarmDiagnosticsTitle,
-                subtitle: 'Staged AlarmKit probe (user-initiated)',
-                onTap: () => _runIosDiagnostics(context),
-              ),
-            ],
           ],
         ),
       ),
     );
   }
 
-  Future<void> _runIosDiagnostics(BuildContext context) async {
+  Future<void> _showThemePicker(BuildContext context, ThemeMode current) async {
     final l10n = AppLocalizations.of(context);
-    final proceed = await showDialog<bool>(
+    final selected = await showModalBottomSheet<ThemeMode>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.iosAlarmDiagnosticsTitle),
-        content: const Text(
-          'Debug diagnostics run in stages and may touch AlarmKit only if you '
-          'continue past passive checks. Stop if the app becomes unstable.',
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(l10n.settingsThemeSystem),
+              trailing: current == ThemeMode.system
+                  ? const Icon(Icons.check_rounded)
+                  : null,
+              onTap: () => Navigator.pop(context, ThemeMode.system),
+            ),
+            ListTile(
+              title: Text(l10n.settingsThemeLight),
+              trailing: current == ThemeMode.light
+                  ? const Icon(Icons.check_rounded)
+                  : null,
+              onTap: () => Navigator.pop(context, ThemeMode.light),
+            ),
+            ListTile(
+              title: Text(l10n.settingsThemeDark),
+              trailing: current == ThemeMode.dark
+                  ? const Icon(Icons.check_rounded)
+                  : null,
+              onTap: () => Navigator.pop(context, ThemeMode.dark),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Run passive checks'),
-          ),
-        ],
       ),
     );
-    if (proceed != true || !context.mounted) return;
+    if (selected != null) {
+      await ref.read(themeModeProvider.notifier).setThemeMode(selected);
+    }
+  }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.iosAlarmDiagnosticsRunning)));
-    final diagnostics = IosAlarmDiagnostics(
-      notifications: ref.read(notificationServiceProvider),
-    );
-    final report = StringBuffer(await diagnostics.runAll());
-    final staged = await diagnostics.runStagedAlarmKitProbe();
-    report.writeln('');
-    report.writeln(staged.format());
-    if (!context.mounted) return;
-    await Clipboard.setData(ClipboardData(text: report.toString()));
-    if (!context.mounted) return;
-    await showDialog<void>(
+  Future<void> _showLanguagePicker(BuildContext context, Locale current) async {
+    final l10n = AppLocalizations.of(context);
+    final selected = await showModalBottomSheet<Locale>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.iosAlarmDiagnosticsTitle),
-        content: SizedBox(
-          width: 420,
-          child: SingleChildScrollView(
-            child: SelectableText(report.toString()),
-          ),
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            for (final option in AppLocalizations.supportedLocales)
+              ListTile(
+                title: Text(AppLocaleSupport.displayName(l10n, option)),
+                trailing:
+                    AppLocaleSupport.localeStorageCode(option) ==
+                        AppLocaleSupport.localeStorageCode(current)
+                    ? const Icon(Icons.check_rounded)
+                    : null,
+                onTap: () => Navigator.pop(context, option),
+              ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.commonClose),
-          ),
-          FilledButton(
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: report.toString()));
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: Text(l10n.iosAlarmDiagnosticsCopy),
-          ),
-        ],
       ),
     );
-  }
-
-  void _showThemePicker(BuildContext context, ThemeMode current) {
-    final l10n = AppLocalizations.of(context);
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppConstants.spaceLg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.settingsTheme, style: context.textTheme.titleLarge),
-                const SizedBox(height: AppConstants.spaceMd),
-                for (final mode in ThemeMode.values)
-                  ListTile(
-                    title: Text(switch (mode) {
-                      ThemeMode.system => l10n.settingsThemeSystem,
-                      ThemeMode.light => l10n.settingsThemeLight,
-                      ThemeMode.dark => l10n.settingsThemeDark,
-                    }),
-                    trailing: current == mode
-                        ? Icon(
-                            Icons.check_rounded,
-                            color: context.colors.primary,
-                          )
-                        : null,
-                    onTap: () {
-                      ref.read(themeModeProvider.notifier).setThemeMode(mode);
-                      Navigator.pop(context);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showLanguagePicker(BuildContext context, Locale locale) {
-    final l10n = AppLocalizations.of(context);
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppConstants.spaceLg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.settingsLanguage,
-                  style: context.textTheme.titleLarge,
-                ),
-                const SizedBox(height: AppConstants.spaceMd),
-                SizedBox(
-                  height: MediaQuery.sizeOf(context).height * 0.55,
-                  child: ListView(
-                    children: [
-                      for (final option in AppLocaleSupport.supported)
-                        ListTile(
-                          title: Text(
-                            AppLocaleSupport.displayName(l10n, option),
-                          ),
-                          trailing:
-                              AppLocaleSupport.localeStorageCode(option) ==
-                                  AppLocaleSupport.localeStorageCode(locale)
-                              ? Icon(
-                                  Icons.check_rounded,
-                                  color: context.colors.primary,
-                                )
-                              : null,
-                          onTap: () async {
-                            await ref
-                                .read(localeProvider.notifier)
-                                .setLocale(option);
-                            if (context.mounted) Navigator.pop(context);
-                          },
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    if (selected != null) {
+      await ref.read(localeProvider.notifier).setLocale(selected);
+    }
   }
 }
