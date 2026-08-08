@@ -884,6 +884,19 @@ class ReminderSettingsController extends StateNotifier<ReminderSettings> {
     _reminderBody = body;
     await ensureScheduled();
   }
+
+  /// iOS-only first-launch flow: requests notification permission if the OS
+  /// has not yet recorded a decision, then reschedules the reminder exactly
+  /// once if permission was granted (any earlier startup schedule attempt
+  /// may have happened before permission existed). No-ops otherwise — see
+  /// [NotificationService.requestPermissionIfNotDetermined].
+  Future<bool> requestPermissionForFirstLaunch() async {
+    final granted = await _notifications.requestPermissionIfNotDetermined();
+    if (granted) {
+      await ensureScheduled();
+    }
+    return granted;
+  }
 }
 
 final reminderSettingsProvider =

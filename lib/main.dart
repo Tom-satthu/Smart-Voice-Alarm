@@ -154,7 +154,18 @@ Future<void> _postUiStartup(
   } catch (error, stack) {
     debugPrint('[SVA-Startup] reminder schedule failed: $error\n$stack');
   }
-
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+    try {
+      await container
+          .read(reminderSettingsProvider.notifier)
+          .requestPermissionForFirstLaunch();
+    } catch (error, stack) {
+      debugPrint(
+        '[SVA-Startup] first-launch notification permission failed: '
+        '$error\n$stack',
+      );
+    }
+  }
   final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
   if (isIos) {
     try {

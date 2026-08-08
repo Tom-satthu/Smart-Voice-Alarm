@@ -182,6 +182,38 @@ class NotificationService {
     return Permission.notification.isGranted;
   }
 
+  /// iOS-only: requests notification permission exactly once — the first
+  /// time the OS has not yet recorded an authorization decision. No-ops on
+  /// every other platform, and no-ops once any decision already exists
+  /// (granted, denied, or provisional); it never re-prompts.
+  ///
+  /// iOS only ever lets an app show the system prompt once: after that the
+  /// OS moves the app to a permanent authorized/denied/provisional state.
+  /// permission_handler's iOS bridge (permission_handler_apple) maps that
+  /// permanent `denied` to [PermissionStatus.permanentlyDenied] and maps
+  /// the pre-prompt `notDetermined` state to [PermissionStatus.denied] —
+  /// so on iOS, [PermissionStatus.denied] can only mean "never asked".
+  /// Returns true only when a prompt was shown and the result was granted.
+  Future<bool> requestPermissionIfNotDetermined() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return false;
+    try {
+      final status = await Permission.notification.status;
+      if (!isNotDetermined(status)) return false;
+      return await requestNotificationPermission();
+    } catch (error) {
+      debugPrint('requestPermissionIfNotDetermined failed: $error');
+      return false;
+    }
+  }
+
+  /// Pure decision extracted for testability — see
+  /// [requestPermissionIfNotDetermined] for why `denied` means "never
+  /// asked" specifically on iOS with this project's permission_handler
+  /// version.
+  static bool isNotDetermined(PermissionStatus status) {
+    return status == PermissionStatus.denied;
+  }
+
   Future<void> cancelAlarm(String alarmId) async {
     if (kIsWeb) return;
     try {
