@@ -1004,6 +1004,71 @@ final class RunnerTests: XCTestCase {
     XCTAssertEqual(a, b)
   }
 
+  func testParentBarrierBlocksRecovery() async {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: "v.caf", durationMs: 2000, label: "voice"),
+    ]
+    state.mathChallengeEnabled = true
+    SvaOccurrenceStore.upsert(state)
+    let barrier = SvaParentLifecycleStore.activateCancellation(
+      parent: parent,
+      enabled: false,
+      deleted: false,
+      reason: "test_toggle_off"
+    )
+    XCTAssertTrue(SvaParentLifecycleStore.isBlocked(parent: parent))
+    XCTAssertEqual(barrier.cancellationGeneration, 1)
+    await SvaAlarmKitRecovery.handleChildStopped(
+      parent: parent,
+      occurrence: occ,
+      stoppedAlarmKitId: "ak_off",
+      childId: "c_off",
+      role: "voice",
+      scheduledStart: Date().timeIntervalSince1970 - 1,
+      expectedDurationMs: 7000,
+      reason: "test_parent_barrier"
+    )
+    let after = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(after?.recoveryGeneration ?? 0, 0)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testRecoverySuppressedWhenChallengeDisabled() async {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: "v.caf", durationMs: 2000, label: "voice"),
+    ]
+    state.mathChallengeEnabled = false
+    SvaOccurrenceStore.upsert(state)
+    await SvaAlarmKitRecovery.handleChildStopped(
+      parent: parent,
+      occurrence: occ,
+      stoppedAlarmKitId: "ak_ch_off",
+      childId: "c_ch_off",
+      role: "voice",
+      scheduledStart: Date().timeIntervalSince1970 - 1,
+      expectedDurationMs: 7000,
+      reason: "test_challenge_off"
+    )
+    let after = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(after?.recoveryGeneration ?? 0, 0)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testOccurrenceMetaDefaultsChallengeOn() {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    let empty = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    XCTAssertTrue(empty.mathChallengeEnabled)
+    XCTAssertFalse(empty.isOneShot)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
   // MARK: - Helpers
 
   private func makeSegment(

@@ -73,6 +73,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get alarmTypeLabel => 'Alarmtyp';
 
   @override
+  String get mathChallengeTitle => 'Matheaufgabe zum Ausschalten';
+
+  @override
+  String get mathChallengeDescription =>
+      'Wenn aktiv, müssen Sie eine Matheaufgabe richtig lösen, um den Alarm zu stoppen.';
+
+  @override
   String get createAlarmTitle => 'Neuer Alarm';
 
   @override

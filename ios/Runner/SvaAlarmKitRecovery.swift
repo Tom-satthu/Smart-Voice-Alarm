@@ -44,6 +44,17 @@ enum SvaAlarmKitRecovery {
       NSLog("[SVA-AlarmKit] stopRecovery suppressed solved=true")
       return
     }
+    if SvaParentLifecycleStore.isBlocked(parent: parent) {
+      NSLog("[SVA-AlarmKit] stopRecovery suppressed parentBarrier parent=%@", parent)
+      return
+    }
+    if let occ = SvaOccurrenceStore.get(parent: parent, occurrence: occurrence),
+       occ.mathChallengeEnabled == false
+    {
+      NSLog("[SVA-AlarmKit] stopRecovery suppressed challengeOff")
+      return
+    }
+    let parentCancelGenAtStart = SvaParentLifecycleStore.cancellationGeneration(parent: parent)
 
     // Ignore natural silence transitions / late removals.
     if role == "silence" {
@@ -150,9 +161,18 @@ enum SvaAlarmKitRecovery {
       return
     }
 
-    // Solve wins: if solved/cancelGen changed, cancel what we just made.
+    // Solve wins: if solved/cancelGen/parent barrier changed, cancel what we just made.
     if SvaOccurrenceStore.isSolved(parent: parent, occurrence: occurrence) {
       NSLog("[SVA-AlarmKit] stopRecovery aborted solve-won after schedule")
+      if outcome.ok {
+        SvaAlarmKitScheduler.cancel(childIds: outcome.scheduledIds)
+      }
+      return
+    }
+    if SvaParentLifecycleStore.isBlocked(parent: parent)
+      || SvaParentLifecycleStore.cancellationGeneration(parent: parent) != parentCancelGenAtStart
+    {
+      NSLog("[SVA-AlarmKit] stopRecovery aborted parentBarrier after schedule")
       if outcome.ok {
         SvaAlarmKitScheduler.cancel(childIds: outcome.scheduledIds)
       }

@@ -73,6 +73,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmTypeLabel => 'Alarm type';
 
   @override
+  String get mathChallengeTitle => 'Solve math to stop alarm';
+
+  @override
+  String get mathChallengeDescription =>
+      'When on, you must solve a math problem correctly to stop the alarm.';
+
+  @override
   String get createAlarmTitle => 'New Alarm';
 
   @override

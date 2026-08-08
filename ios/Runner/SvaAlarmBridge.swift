@@ -245,6 +245,27 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       SvaOccurrenceStore.markSolved(parent: parent, occurrence: occurrence)
       SvaPendingStore.clearAfterSolve(parent: parent, occurrence: occurrence)
       reply(result, true)
+    case "activateParentCancellation":
+      let args = call.arguments as? [String: Any]
+      let parent = args?["parentAlarmId"] as? String ?? ""
+      let reason = args?["reason"] as? String ?? "cancel"
+      let deleted = args?["deleted"] as? Bool ?? false
+      let enabled = args?["enabled"] as? Bool ?? false
+      let state = SvaParentLifecycleStore.activateCancellation(
+        parent: parent,
+        enabled: enabled,
+        deleted: deleted,
+        reason: reason
+      )
+      // Always cancel live AlarmKit/notification children for this parent.
+      cancelParent(parent)
+      reply(result, state.asDictionary)
+    case "clearParentDisabledBarrier":
+      let parent = (call.arguments as? [String: Any])?["parentAlarmId"] as? String ?? ""
+      SvaParentLifecycleStore.clearDisabledBarrier(parent: parent)
+      reply(result, true)
+    case "listParentLifecycleStates":
+      reply(result, SvaParentLifecycleStore.allAsDictionary())
     case "occurrenceDiagnostics":
       let args = call.arguments as? [String: Any]
       let parent = args?["parentAlarmId"] as? String ?? ""
@@ -331,6 +352,8 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       ])
     case "cancelParent":
       let parent = (call.arguments as? [String: Any])?["parentAlarmId"] as? String ?? ""
+      // Soft cancel without necessarily marking deleted — callers that need a
+      // durable barrier should call activateParentCancellation first.
       cancelParent(parent)
       reply(result, true)
     case "cancelParentExcept":
@@ -535,9 +558,19 @@ final class SvaAlarmBridge: NSObject, FlutterPlugin {
       alarmTitle: (meta?["alarmTitle"] as? String)
         ?? existing?.alarmTitle
         ?? "Smart Voice Alarm",
-      cycleTemplate: template
+      cycleTemplate: template,
+      mathChallengeEnabled: (meta?["mathChallengeEnabled"] as? Bool)
+        ?? (meta?["mathChallengeEnabled"] as? NSNumber)?.boolValue
+        ?? existing?.mathChallengeEnabled
+        ?? true,
+      isOneShot: (meta?["isOneShot"] as? Bool)
+        ?? (meta?["isOneShot"] as? NSNumber)?.boolValue
+        ?? existing?.isOneShot
+        ?? false
     )
     SvaOccurrenceStore.upsert(state)
+    // Successful schedule implies parent is live again.
+    SvaParentLifecycleStore.clearDisabledBarrier(parent: parent)
   }
 
   private func cancelParent(_ parent: String) {

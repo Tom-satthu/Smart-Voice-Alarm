@@ -72,6 +72,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get alarmTypeLabel => '闹钟类型';
 
   @override
+  String get mathChallengeTitle => '解题后关闭闹钟';
+
+  @override
+  String get mathChallengeDescription => '开启后，需正确解答一道数学题才能关闭闹钟。';
+
+  @override
   String get createAlarmTitle => '新建闹钟';
 
   @override
@@ -1348,6 +1354,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get alarmTypeLabel => '鬧鐘類型';
+
+  @override
+  String get mathChallengeTitle => '解題後關閉鬧鐘';
+
+  @override
+  String get mathChallengeDescription => '開啟後，需正確解答一道數學題才能關閉鬧鐘。';
 
   @override
   String get createAlarmTitle => '新增鬧鐘';

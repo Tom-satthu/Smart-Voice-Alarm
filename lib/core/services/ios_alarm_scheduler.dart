@@ -432,6 +432,71 @@ class IosAlarmScheduler {
     });
   }
 
+  /// Parent-level cancellation barrier. Blocks late recovery / Stop recreate.
+  Future<void> activateParentCancellation({
+    required String parentAlarmId,
+    String reason = 'cancel',
+    bool deleted = false,
+    bool enabled = false,
+  }) async {
+    if (!isSupported) return;
+    try {
+      await _channel.invokeMethod<void>('activateParentCancellation', {
+        'parentAlarmId': parentAlarmId,
+        'reason': reason,
+        'deleted': deleted,
+        'enabled': enabled,
+      });
+    } catch (e) {
+      debugPrint('[SVA-AlarmKit] activateParentCancellation failed: $e');
+    }
+  }
+
+  Future<void> clearParentDisabledBarrier({
+    required String parentAlarmId,
+  }) async {
+    if (!isSupported) return;
+    try {
+      await _channel.invokeMethod<void>('clearParentDisabledBarrier', {
+        'parentAlarmId': parentAlarmId,
+      });
+    } catch (e) {
+      debugPrint('[SVA-AlarmKit] clearParentDisabledBarrier failed: $e');
+    }
+  }
+
+  Future<Map<String, Map<String, dynamic>>> listParentLifecycleStates() async {
+    if (!isSupported) return const {};
+    try {
+      final raw = await _channel.invokeMethod<Map>('listParentLifecycleStates');
+      if (raw == null) return const {};
+      final out = <String, Map<String, dynamic>>{};
+      raw.forEach((key, value) {
+        if (value is Map) {
+          out[key.toString()] = Map<String, dynamic>.from(value);
+        }
+      });
+      return out;
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  Future<void> clearPendingChallenge({
+    required String parentAlarmId,
+    required String occurrenceId,
+  }) async {
+    if (!isSupported) return;
+    try {
+      await _channel.invokeMethod<void>('clearPendingChallengeAfterSolve', {
+        'parentAlarmId': parentAlarmId,
+        'occurrenceId': occurrenceId,
+      });
+    } catch (e) {
+      debugPrint('[SVA-AlarmKit] clearPendingChallenge failed: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> occurrenceDiagnostics({
     required String parentAlarmId,
     required String occurrenceId,

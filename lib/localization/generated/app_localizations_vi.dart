@@ -73,6 +73,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get alarmTypeLabel => 'Loại báo thức';
 
   @override
+  String get mathChallengeTitle => 'Giải toán để tắt báo thức';
+
+  @override
+  String get mathChallengeDescription =>
+      'Khi bật, bạn phải giải đúng phép toán để tắt báo thức.';
+
+  @override
   String get createAlarmTitle => 'Báo thức mới';
 
   @override

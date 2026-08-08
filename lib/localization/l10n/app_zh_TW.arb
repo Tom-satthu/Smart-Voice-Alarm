@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "鈴聲",
   "alarmTypeMixed": "混合",
   "alarmTypeLabel": "鬧鐘類型",
+  "mathChallengeTitle": "解題後關閉鬧鐘",
+  "mathChallengeDescription": "開啟後，需正確解答一道數學題才能關閉鬧鐘。",
   "createAlarmTitle": "新增鬧鐘",
   "editAlarmTitle": "編輯鬧鐘",
   "alarmTime": "時間",

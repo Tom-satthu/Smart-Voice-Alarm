@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "Klingelton",
   "alarmTypeMixed": "Gemischt",
   "alarmTypeLabel": "Alarmtyp",
+  "mathChallengeTitle": "Matheaufgabe zum Ausschalten",
+  "mathChallengeDescription": "Wenn aktiv, müssen Sie eine Matheaufgabe richtig lösen, um den Alarm zu stoppen.",
   "createAlarmTitle": "Neuer Alarm",
   "editAlarmTitle": "Alarm bearbeiten",
   "alarmTime": "Uhrzeit",

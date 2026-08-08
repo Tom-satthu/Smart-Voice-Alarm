@@ -10,6 +10,7 @@ import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/navigation/challenge_launch_coordinator.dart';
 import '../../../../core/navigation/challenge_session.dart';
 import '../../../../core/services/alarm_engine.dart';
+import '../../../../core/services/alarm_lifecycle_service.dart';
 import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
 import '../../../../shared/providers/prototype_providers.dart';
@@ -60,6 +61,15 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
       setState(() => _activeId = id ?? _activeId);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final alarm = ref
+          .read(alarmListProvider.notifier)
+          .findById(widget.alarmId);
+      if (widget.openDismissChallenge &&
+          alarm != null &&
+          !alarm.mathChallengeEnabled) {
+        unawaited(_onSolved());
+        return;
+      }
       // Android / in-app playback only. iOS fan-out plays via system sounds.
       if (!_isIos && !_showChallenge) {
         _engine.enqueue(widget.alarmId);
@@ -71,6 +81,13 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
   void didUpdateWidget(covariant AlarmRingingScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.openDismissChallenge && !oldWidget.openDismissChallenge) {
+      final alarm = ref
+          .read(alarmListProvider.notifier)
+          .findById(widget.alarmId);
+      if (alarm != null && !alarm.mathChallengeEnabled) {
+        unawaited(_onSolved());
+        return;
+      }
       setState(() => _showChallenge = true);
     }
   }
@@ -83,39 +100,36 @@ class _AlarmRingingScreenState extends ConsumerState<AlarmRingingScreen> {
   }
 
   void _requestStop() {
+    final alarm = ref.read(alarmListProvider.notifier).findById(widget.alarmId);
+    if (alarm != null && !alarm.mathChallengeEnabled) {
+      unawaited(_onSolved());
+      return;
+    }
     setState(() => _showChallenge = true);
   }
 
   Future<void> _onSolved() async {
     if (_dismissing) return;
     _dismissing = true;
-    final occurrenceId = widget.occurrenceId;
     final notifications = ref.read(notificationServiceProvider);
+    final lifecycle = AlarmLifecycleService(
+      alarms: ref.read(alarmListProvider.notifier),
+      notifications: notifications,
+    );
 
     await _engine.stopAll();
     await notifications.native.stopForegroundAlarm();
 
-    if (_isIos && occurrenceId != null && occurrenceId.isNotEmpty) {
+    await lifecycle.completeAlarmOccurrence(
+      alarmId: widget.alarmId,
+      occurrenceId: widget.occurrenceId,
+    );
+    final occurrenceId = widget.occurrenceId;
+    if (occurrenceId != null && occurrenceId.isNotEmpty) {
       await ChallengeLaunchCoordinator.instance.clearAfterSolved(
         parentAlarmId: widget.alarmId,
         occurrenceId: occurrenceId,
       );
-      await notifications.iosFanout.scheduler.markOccurrenceSolved(
-        parentAlarmId: widget.alarmId,
-        occurrenceId: occurrenceId,
-      );
-      await notifications.iosFanout.cancelOccurrence(
-        parentAlarmId: widget.alarmId,
-        occurrenceId: occurrenceId,
-      );
-    } else if (_isIos) {
-      await notifications.iosFanout.cancelAlarm(widget.alarmId);
-    }
-
-    // Reschedule next occurrence after successful dismiss.
-    final alarm = ref.read(alarmListProvider.notifier).findById(widget.alarmId);
-    if (alarm != null && alarm.isEnabled) {
-      await notifications.scheduleAlarm(alarm);
     }
 
     if (!mounted) return;

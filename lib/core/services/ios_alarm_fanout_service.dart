@@ -447,6 +447,8 @@ class IosAlarmFanoutService {
             voiceClips: voiceClips,
             ringtoneClips: ringtoneClips,
           ),
+          'mathChallengeEnabled': alarm.mathChallengeEnabled,
+          'isOneShot': alarm.repeatDays.isEmpty,
         },
       );
       final ok = native['ok'] != false;

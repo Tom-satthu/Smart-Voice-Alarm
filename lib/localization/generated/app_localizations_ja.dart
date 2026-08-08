@@ -72,6 +72,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get alarmTypeLabel => 'アラームの種類';
 
   @override
+  String get mathChallengeTitle => '計算を解いてアラームを止める';
+
+  @override
+  String get mathChallengeDescription => 'オンの場合、アラームを止めるには計算問題に正解する必要があります。';
+
+  @override
   String get createAlarmTitle => '新しいアラーム';
 
   @override

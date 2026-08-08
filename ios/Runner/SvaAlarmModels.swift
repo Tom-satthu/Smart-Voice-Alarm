@@ -145,12 +145,15 @@ enum SvaPendingStore {
   }
 
   static func clearAfterSolve(parent: String, occurrence: String) {
-    if let pending = peek(),
-       pending.parentAlarmId == parent,
-       pending.occurrenceId == occurrence
-    {
+    guard let pending = peek(), pending.parentAlarmId == parent else { return }
+    // Empty occurrence clears any pending for this parent (edit → challenge off).
+    if occurrence.isEmpty || pending.occurrenceId == occurrence {
       defaults.removeObject(forKey: SvaAlarmKeys.pendingChallenge)
-      NSLog("[SVA-Challenge] cleared after solve parent=%@ occurrence=%@", parent, occurrence)
+      NSLog(
+        "[SVA-Challenge] cleared after solve parent=%@ occurrence=%@",
+        parent,
+        occurrence
+      )
     }
   }
 

@@ -227,6 +227,18 @@ abstract class AppLocalizations {
   /// **'Alarm type'**
   String get alarmTypeLabel;
 
+  /// No description provided for @mathChallengeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Solve math to stop alarm'**
+  String get mathChallengeTitle;
+
+  /// No description provided for @mathChallengeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'When on, you must solve a math problem correctly to stop the alarm.'**
+  String get mathChallengeDescription;
+
   /// No description provided for @createAlarmTitle.
   ///
   /// In en, this message translates to:

@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "Suoneria",
   "alarmTypeMixed": "Mista",
   "alarmTypeLabel": "Tipo di sveglia",
+  "mathChallengeTitle": "Risolvi un calcolo per spegnere",
+  "mathChallengeDescription": "Se attivo, devi risolvere correttamente un problema di matematica per spegnere la sveglia.",
   "createAlarmTitle": "Nuova sveglia",
   "editAlarmTitle": "Modifica sveglia",
   "alarmTime": "Ora",

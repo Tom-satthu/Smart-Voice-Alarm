@@ -73,6 +73,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get alarmTypeLabel => 'Alarmtype';
 
   @override
+  String get mathChallengeTitle => 'Reken som om alarm te stoppen';
+
+  @override
+  String get mathChallengeDescription =>
+      'Als dit aan staat, moet je een rekenopgave goed oplossen om het alarm te stoppen.';
+
+  @override
   String get createAlarmTitle => 'Nieuw alarm';
 
   @override

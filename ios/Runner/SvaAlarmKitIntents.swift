@@ -63,6 +63,52 @@ struct SvaStopAlarmIntent: LiveActivityIntent {
   }
 
   func perform() async throws -> some IntentResult {
+    // Parent tombstone / OFF barrier wins over any Stop action.
+    if SvaParentLifecycleStore.isBlocked(parent: parentAlarmId) {
+      NSLog(
+        "[SVA-AlarmKit] stopIntent ignored parentBarrier parent=%@",
+        parentAlarmId
+      )
+      SvaPendingStore.clearAfterSolve(parent: parentAlarmId, occurrence: occurrenceId)
+      SvaAlarmKitScheduler.cancelParent(parentAlarmId: parentAlarmId)
+      return .result()
+    }
+
+    let occurrenceState = SvaOccurrenceStore.get(
+      parent: parentAlarmId,
+      occurrence: occurrenceId
+    )
+    let challengeEnabled = occurrenceState?.mathChallengeEnabled ?? true
+
+    if !challengeEnabled {
+      // Valid dismiss: terminalize occurrence, no pending challenge, no recovery.
+      NSLog(
+        "[SVA-AlarmKit] stopIntent challengeOff terminal parent=%@ occurrence=%@",
+        parentAlarmId,
+        occurrenceId
+      )
+      SvaOccurrenceStore.markSolved(parent: parentAlarmId, occurrence: occurrenceId)
+      SvaPendingStore.clearAfterSolve(parent: parentAlarmId, occurrence: occurrenceId)
+      SvaAlarmKitScheduler.cancelOccurrence(
+        parentAlarmId: parentAlarmId,
+        occurrenceId: occurrenceId
+      )
+      SvaNotificationFanout.cancelOccurrence(
+        parentAlarmId: parentAlarmId,
+        occurrenceId: occurrenceId
+      )
+      if occurrenceState?.isOneShot == true {
+        SvaParentLifecycleStore.activateCancellation(
+          parent: parentAlarmId,
+          enabled: false,
+          deleted: false,
+          reason: "stop_challenge_off_oneshot"
+        )
+        SvaAlarmKitScheduler.cancelParent(parentAlarmId: parentAlarmId)
+      }
+      return .result()
+    }
+
     SvaAlarmChallengeRouter.recordPendingChallenge(
       parentAlarmId: parentAlarmId,
       occurrenceId: occurrenceId,
@@ -149,6 +195,24 @@ struct SvaSolveToStopIntent: LiveActivityIntent {
   }
 
   func perform() async throws -> some IntentResult {
+    if SvaParentLifecycleStore.isBlocked(parent: parentAlarmId) {
+      SvaPendingStore.clearAfterSolve(parent: parentAlarmId, occurrence: occurrenceId)
+      return .result()
+    }
+    let challengeEnabled = SvaOccurrenceStore.get(
+      parent: parentAlarmId,
+      occurrence: occurrenceId
+    )?.mathChallengeEnabled ?? true
+    if !challengeEnabled {
+      // Same safe semantics as Stop when challenge is disabled.
+      SvaOccurrenceStore.markSolved(parent: parentAlarmId, occurrence: occurrenceId)
+      SvaPendingStore.clearAfterSolve(parent: parentAlarmId, occurrence: occurrenceId)
+      SvaAlarmKitScheduler.cancelOccurrence(
+        parentAlarmId: parentAlarmId,
+        occurrenceId: occurrenceId
+      )
+      return .result()
+    }
     SvaAlarmChallengeRouter.recordPendingChallenge(
       parentAlarmId: parentAlarmId,
       occurrenceId: occurrenceId,

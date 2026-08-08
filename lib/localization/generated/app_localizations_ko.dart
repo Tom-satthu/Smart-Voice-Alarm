@@ -72,6 +72,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get alarmTypeLabel => '알람 유형';
 
   @override
+  String get mathChallengeTitle => '수학 문제를 풀어 알람 끄기';
+
+  @override
+  String get mathChallengeDescription => '켜져 있으면 알람을 끄려면 수학 문제를 맞춰야 합니다.';
+
+  @override
   String get createAlarmTitle => '새 알람';
 
   @override

@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "Toque",
   "alarmTypeMixed": "Misto",
   "alarmTypeLabel": "Tipo de alarme",
+  "mathChallengeTitle": "Resolver cálculo para desligar",
+  "mathChallengeDescription": "Quando ativado, você precisa acertar um cálculo para desligar o alarme.",
   "createAlarmTitle": "Novo alarme",
   "editAlarmTitle": "Editar alarme",
   "alarmTime": "Hora",

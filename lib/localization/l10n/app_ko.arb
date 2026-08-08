@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "벨소리",
   "alarmTypeMixed": "혼합",
   "alarmTypeLabel": "알람 유형",
+  "mathChallengeTitle": "수학 문제를 풀어 알람 끄기",
+  "mathChallengeDescription": "켜져 있으면 알람을 끄려면 수학 문제를 맞춰야 합니다.",
   "createAlarmTitle": "새 알람",
   "editAlarmTitle": "알람 편집",
   "alarmTime": "시간",

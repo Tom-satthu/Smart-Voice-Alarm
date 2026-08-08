@@ -1,14 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/debug/sva_startup_timing.dart';
 import '../../../../core/extensions/context_extensions.dart';
-import '../../../../localization/generated/app_localizations.dart';
 import '../../../../core/navigation/challenge_launch_coordinator.dart';
+import '../../../../localization/generated/app_localizations.dart';
 import '../../../../router/routes.dart';
-import '../../../../shared/widgets/visual_widgets.dart';
 import '../../../../shared/providers/prototype_providers.dart';
+import '../../../../shared/widgets/visual_widgets.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -42,16 +45,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _initializeAndContinue() async {
-    final minimumSplash = Future<void>.delayed(AppConstants.splashDuration);
+    SvaStartupTiming.mark('splash_init_begin');
+    // Local entitlement only — billing refreshes after Home.
     await ref
         .read(trialEntitlementProvider.notifier)
         .initializeSuccessfulLaunch();
-    await minimumSplash;
+    SvaStartupTiming.mark('local_entitlement_ready');
     if (!mounted) return;
     final location = GoRouter.of(context).state.uri.toString();
     // Never overwrite an in-flight Math Challenge / ringing route.
     if (location.contains('/alarm/ringing/')) {
       debugPrint('[SVA-Challenge] splash skip home overwrite loc=$location');
+      unawaited(
+        ref
+            .read(trialEntitlementProvider.notifier)
+            .refreshBillingInBackground(),
+      );
       return;
     }
     final pending = await ref
@@ -61,10 +70,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     if (pending != null && pending.parentAlarmId.isNotEmpty) {
       ChallengeLaunchCoordinator.instance.enqueue(pending);
       debugPrint('[SVA-Challenge] splash → coordinator pending challenge');
+      unawaited(
+        ref
+            .read(trialEntitlementProvider.notifier)
+            .refreshBillingInBackground(),
+      );
       return;
     }
     if (!mounted) return;
+    SvaStartupTiming.mark('home_navigation');
     context.go(AppRoutes.home);
+    unawaited(
+      ref.read(trialEntitlementProvider.notifier).refreshBillingInBackground(),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SvaStartupTiming.mark('home_first_frame');
+    });
   }
 
   @override

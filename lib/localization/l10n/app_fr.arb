@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "Sonnerie",
   "alarmTypeMixed": "Mixte",
   "alarmTypeLabel": "Type d’alarme",
+  "mathChallengeTitle": "Résoudre un calcul pour arrêter",
+  "mathChallengeDescription": "Lorsque c'est activé, vous devez résoudre correctement un calcul pour arrêter l'alarme.",
   "createAlarmTitle": "Nouvelle alarme",
   "editAlarmTitle": "Modifier l’alarme",
   "alarmTime": "Heure",

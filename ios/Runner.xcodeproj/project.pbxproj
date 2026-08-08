@@ -33,6 +33,7 @@
 		A11ARMKITFRM01BUILD /* AlarmKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11ARMKITFRM01FILE /* AlarmKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		A11SILENCE01BUILD /* SvaSilenceAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11SILENCE01FILE /* SvaSilenceAudio.swift */; };
 		A11OCCSTORE01BUILD /* SvaOccurrenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11OCCSTORE01FILE /* SvaOccurrenceStore.swift */; };
+		A11PARENTLC01BUILD /* SvaParentLifecycleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11PARENTLC01FILE /* SvaParentLifecycleStore.swift */; };
 		A11AKUPDATE01BUILD /* SvaAlarmKitUpdateObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AKUPDATE01FILE /* SvaAlarmKitUpdateObserver.swift */; };
 		A11AKRECOV01BUILD /* SvaAlarmKitRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AKRECOV01FILE /* SvaAlarmKitRecovery.swift */; };
 		A11ACTSOUND01BUILD /* SvaActiveSoundRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ACTSOUND01FILE /* SvaActiveSoundRegistry.swift */; };
@@ -100,6 +101,7 @@
 		A11ARMKTRUN01FILE /* SvaAlarmKitRuntime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitRuntime.swift; sourceTree = "<group>"; };
 		A11SILENCE01FILE /* SvaSilenceAudio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaSilenceAudio.swift; sourceTree = "<group>"; };
 		A11OCCSTORE01FILE /* SvaOccurrenceStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaOccurrenceStore.swift; sourceTree = "<group>"; };
+		A11PARENTLC01FILE /* SvaParentLifecycleStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaParentLifecycleStore.swift; sourceTree = "<group>"; };
 		A11AKUPDATE01FILE /* SvaAlarmKitUpdateObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitUpdateObserver.swift; sourceTree = "<group>"; };
 		A11AKRECOV01FILE /* SvaAlarmKitRecovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitRecovery.swift; sourceTree = "<group>"; };
 		A11ACTSOUND01FILE /* SvaActiveSoundRegistry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaActiveSoundRegistry.swift; sourceTree = "<group>"; };
@@ -204,6 +206,7 @@
 				A11ARMKTRUN01FILE /* SvaAlarmKitRuntime.swift */,
 				A11SILENCE01FILE /* SvaSilenceAudio.swift */,
 				A11OCCSTORE01FILE /* SvaOccurrenceStore.swift */,
+				A11PARENTLC01FILE /* SvaParentLifecycleStore.swift */,
 				A11AKUPDATE01FILE /* SvaAlarmKitUpdateObserver.swift */,
 				A11AKRECOV01FILE /* SvaAlarmKitRecovery.swift */,
 				A11ACTSOUND01FILE /* SvaActiveSoundRegistry.swift */,
@@ -443,6 +446,7 @@
 				A11ARMKTRUN01BUILD /* SvaAlarmKitRuntime.swift in Sources */,
 				A11SILENCE01BUILD /* SvaSilenceAudio.swift in Sources */,
 				A11OCCSTORE01BUILD /* SvaOccurrenceStore.swift in Sources */,
+				A11PARENTLC01BUILD /* SvaParentLifecycleStore.swift in Sources */,
 				A11AKUPDATE01BUILD /* SvaAlarmKitUpdateObserver.swift in Sources */,
 				A11AKRECOV01BUILD /* SvaAlarmKitRecovery.swift in Sources */,
 				A11ACTSOUND01BUILD /* SvaActiveSoundRegistry.swift in Sources */,

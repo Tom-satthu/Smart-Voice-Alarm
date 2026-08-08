@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import 'app/app.dart';
 import 'core/debug/sva_build_stamp.dart';
+import 'core/debug/sva_startup_timing.dart';
 import 'core/navigation/challenge_launch_coordinator.dart';
 import 'core/navigation/root_navigator.dart';
 import 'core/services/ios_alarm_scheduler.dart';
@@ -19,6 +20,7 @@ import 'shared/providers/prototype_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SvaStartupTiming.begin();
   SvaBuildStamp.logStartup();
   debugPrint('[SVA-Startup] begin');
 
@@ -33,10 +35,14 @@ Future<void> main() async {
   );
 
   await LocalDatabase.initFlutter();
+  SvaStartupTiming.mark('database_ready');
   await seedPrototypeDataIfNeeded();
+  SvaStartupTiming.mark('seed_ready');
 
   final notifications = NotificationService();
+  SvaStartupTiming.mark('notification_init_begin');
   await notifications.init();
+  SvaStartupTiming.mark('notification_init_end');
   debugPrint('[SVA-Startup] store+notifications ready');
 
   final coordinator = ChallengeLaunchCoordinator.instance;
@@ -104,6 +110,7 @@ Future<void> main() async {
   };
 
   debugPrint('[SVA-Startup] runApp');
+  SvaStartupTiming.mark('runApp');
   runApp(
     UncontrolledProviderScope(
       container: container,
@@ -113,6 +120,7 @@ Future<void> main() async {
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
     debugPrint('[SVA-Launch] first frame');
+    SvaStartupTiming.mark('first_frame');
     coordinator.markRouterReady();
     unawaited(_postUiStartup(container, notifications));
     if (SvaBuildStamp.reviewBuild || SvaBuildStamp.hasDartStamp) {
@@ -133,6 +141,15 @@ Future<void> _postUiStartup(
 ) async {
   debugPrint('[SVA-Startup] post-frame reconcile begin');
   try {
+    await container
+        .read(alarmListProvider.notifier)
+        .reconcileNativeParentLifecycle();
+  } catch (error, stack) {
+    debugPrint(
+      '[SVA-Startup] parent lifecycle reconcile failed: $error\n$stack',
+    );
+  }
+  try {
     await container.read(reminderSettingsProvider.notifier).ensureScheduled();
   } catch (error, stack) {
     debugPrint('[SVA-Startup] reminder schedule failed: $error\n$stack');
@@ -147,14 +164,19 @@ Future<void> _postUiStartup(
     } catch (error, stack) {
       debugPrint('[SVA-Startup] iOS light reconcile failed: $error\n$stack');
     }
-    try {
-      final linked = await SavedVoiceUsageService().migrateSourceLinks();
-      debugPrint('[SVA-Startup] saved-voice links migrated=$linked');
-      final orphans = await SavedVoiceUsageService().migrateOrphanSequences();
-      debugPrint('[SVA-Startup] orphan sequences noted=$orphans');
-    } catch (error, stack) {
-      debugPrint('[SVA-Startup] saved-voice migration failed: $error\n$stack');
-    }
+    // Non-critical migrations — after first frame.
+    unawaited(() async {
+      try {
+        final linked = await SavedVoiceUsageService().migrateSourceLinks();
+        debugPrint('[SVA-Startup] saved-voice links migrated=$linked');
+        final orphans = await SavedVoiceUsageService().migrateOrphanSequences();
+        debugPrint('[SVA-Startup] orphan sequences noted=$orphans');
+      } catch (error, stack) {
+        debugPrint(
+          '[SVA-Startup] saved-voice migration failed: $error\n$stack',
+        );
+      }
+    }());
   } else {
     try {
       await notifications.rescheduleAll(container.read(alarmListProvider));

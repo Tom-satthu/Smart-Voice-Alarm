@@ -73,6 +73,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get alarmTypeLabel => 'Tipo de alarme';
 
   @override
+  String get mathChallengeTitle => 'Resolver cálculo para desligar';
+
+  @override
+  String get mathChallengeDescription =>
+      'Quando ativado, você precisa acertar um cálculo para desligar o alarme.';
+
+  @override
   String get createAlarmTitle => 'Novo alarme';
 
   @override

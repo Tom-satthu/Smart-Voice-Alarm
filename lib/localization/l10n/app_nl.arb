@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "Beltoon",
   "alarmTypeMixed": "Gemengd",
   "alarmTypeLabel": "Alarmtype",
+  "mathChallengeTitle": "Reken som om alarm te stoppen",
+  "mathChallengeDescription": "Als dit aan staat, moet je een rekenopgave goed oplossen om het alarm te stoppen.",
   "createAlarmTitle": "Nieuw alarm",
   "editAlarmTitle": "Alarm bewerken",
   "alarmTime": "Tijd",

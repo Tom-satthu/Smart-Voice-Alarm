@@ -73,6 +73,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get alarmTypeLabel => 'Tipo di sveglia';
 
   @override
+  String get mathChallengeTitle => 'Risolvi un calcolo per spegnere';
+
+  @override
+  String get mathChallengeDescription =>
+      'Se attivo, devi risolvere correttamente un problema di matematica per spegnere la sveglia.';
+
+  @override
   String get createAlarmTitle => 'Nuova sveglia';
 
   @override

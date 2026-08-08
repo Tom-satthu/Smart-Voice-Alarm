@@ -33,6 +33,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   Set<Weekday> _repeatDays = {};
   int _repeatCount = 3;
   AlarmType _type = AlarmType.mixed;
+  bool _mathChallengeEnabled = true;
   String _ringtoneName = 'Soft Chime';
   String _label = '';
   String? _voiceSequenceId;
@@ -68,6 +69,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     _repeatDays = Set<Weekday>.from(existing.repeatDays);
     _repeatCount = existing.repeatCount;
     _type = existing.type;
+    _mathChallengeEnabled = existing.mathChallengeEnabled;
     _ringtoneName = existing.ringtoneName ?? 'Soft Chime';
     _label = existing.label;
     _voiceSequenceId = existing.voiceSequenceId ?? const Uuid().v4();
@@ -97,6 +99,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       _repeatDays = Set<Weekday>.from(source.repeatDays);
       _repeatCount = source.repeatCount;
       _type = source.type;
+      _mathChallengeEnabled = source.mathChallengeEnabled;
       _ringtoneName = source.ringtoneName ?? 'Soft Chime';
       _label = source.label;
       _voiceSequenceId = source.voiceSequenceId ?? const Uuid().v4();
@@ -207,7 +210,17 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       ringtoneName: _ringtoneName,
       repeatCount: repeats,
       audioNeedsRegeneration: false,
+      mathChallengeEnabled: _mathChallengeEnabled,
     );
+
+    // Turning challenge off must clear any stale pending Math Challenge.
+    if (!_mathChallengeEnabled) {
+      await ref
+          .read(notificationServiceProvider)
+          .iosFanout
+          .scheduler
+          .clearPendingChallenge(parentAlarmId: model.id, occurrenceId: '');
+    }
 
     final controller = ref.read(alarmListProvider.notifier);
     // Schedule with in-memory draft; persist only on success.
@@ -580,6 +593,24 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                             onTap: () => setState(() => _type = type),
                           );
                         }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.spaceXl),
+                    SectionHeader(title: l10n.mathChallengeTitle),
+                    SurfacePanel(
+                      child: Semantics(
+                        label: l10n.mathChallengeTitle,
+                        toggled: _mathChallengeEnabled,
+                        child: SwitchListTile.adaptive(
+                          key: const ValueKey('math_challenge_toggle'),
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(l10n.mathChallengeTitle),
+                          subtitle: Text(l10n.mathChallengeDescription),
+                          value: _mathChallengeEnabled,
+                          onChanged: (value) {
+                            setState(() => _mathChallengeEnabled = value);
+                          },
+                        ),
                       ),
                     ),
                     if (alarms.isNotEmpty) ...[

@@ -18,6 +18,7 @@ class AlarmUiModel {
     this.ringtoneName,
     this.repeatCount = 3,
     this.audioNeedsRegeneration = false,
+    this.mathChallengeEnabled = true,
   });
 
   final String id;
@@ -34,6 +35,10 @@ class AlarmUiModel {
   /// re-save the alarm to regenerate. Never auto-render at launch.
   final bool audioNeedsRegeneration;
 
+  /// When true, Stop opens Math Challenge and only a correct answer ends the
+  /// occurrence. When false, Stop is a valid dismiss.
+  final bool mathChallengeEnabled;
+
   AlarmUiModel copyWith({
     String? id,
     TimeOfDay? time,
@@ -45,6 +50,7 @@ class AlarmUiModel {
     String? ringtoneName,
     int? repeatCount,
     bool? audioNeedsRegeneration,
+    bool? mathChallengeEnabled,
   }) {
     return AlarmUiModel(
       id: id ?? this.id,
@@ -58,6 +64,7 @@ class AlarmUiModel {
       repeatCount: repeatCount ?? this.repeatCount,
       audioNeedsRegeneration:
           audioNeedsRegeneration ?? this.audioNeedsRegeneration,
+      mathChallengeEnabled: mathChallengeEnabled ?? this.mathChallengeEnabled,
     );
   }
 
@@ -73,6 +80,7 @@ class AlarmUiModel {
     'ringtoneName': ringtoneName,
     'repeatCount': repeatCount,
     'audioNeedsRegeneration': audioNeedsRegeneration,
+    'mathChallengeEnabled': mathChallengeEnabled,
   };
 
   factory AlarmUiModel.fromJson(Map<String, dynamic> json) {
@@ -91,6 +99,8 @@ class AlarmUiModel {
       ringtoneName: json['ringtoneName'] as String?,
       repeatCount: json['repeatCount'] as int? ?? 3,
       audioNeedsRegeneration: json['audioNeedsRegeneration'] as bool? ?? false,
+      // Legacy JSON without the field stays challenge-on (current product default).
+      mathChallengeEnabled: json['mathChallengeEnabled'] as bool? ?? true,
     );
   }
 }

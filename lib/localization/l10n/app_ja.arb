@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "着信音",
   "alarmTypeMixed": "混合",
   "alarmTypeLabel": "アラームの種類",
+  "mathChallengeTitle": "計算を解いてアラームを止める",
+  "mathChallengeDescription": "オンの場合、アラームを止めるには計算問題に正解する必要があります。",
   "createAlarmTitle": "新しいアラーム",
   "editAlarmTitle": "アラームを編集",
   "alarmTime": "時刻",

@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "铃声",
   "alarmTypeMixed": "混合",
   "alarmTypeLabel": "闹钟类型",
+  "mathChallengeTitle": "解题后关闭闹钟",
+  "mathChallengeDescription": "开启后，需正确解答一道数学题才能关闭闹钟。",
   "createAlarmTitle": "新建闹钟",
   "editAlarmTitle": "编辑闹钟",
   "alarmTime": "时间",

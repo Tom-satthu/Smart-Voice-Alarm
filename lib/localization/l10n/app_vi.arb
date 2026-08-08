@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "Nhạc chuông",
   "alarmTypeMixed": "Kết hợp",
   "alarmTypeLabel": "Loại báo thức",
+  "mathChallengeTitle": "Giải toán để tắt báo thức",
+  "mathChallengeDescription": "Khi bật, bạn phải giải đúng phép toán để tắt báo thức.",
   "createAlarmTitle": "Báo thức mới",
   "editAlarmTitle": "Chỉnh sửa báo thức",
   "alarmTime": "Thời gian",

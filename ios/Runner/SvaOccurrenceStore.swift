@@ -61,6 +61,10 @@ struct SvaOccurrenceState: Codable, Equatable {
   var gapMs: Int
   var alarmTitle: String
   var cycleTemplate: [SvaCycleClip]
+  /// When false, Stop is a valid dismiss (no Math Challenge / recovery).
+  var mathChallengeEnabled: Bool
+  /// Empty repeatDays at schedule time — parent should disable after complete.
+  var isOneShot: Bool
 
   init(
     parentAlarmId: String,
@@ -83,7 +87,9 @@ struct SvaOccurrenceState: Codable, Equatable {
     trailingSilenceMs: Int = 1250,
     gapMs: Int = 5000,
     alarmTitle: String = "Smart Voice Alarm",
-    cycleTemplate: [SvaCycleClip] = []
+    cycleTemplate: [SvaCycleClip] = [],
+    mathChallengeEnabled: Bool = true,
+    isOneShot: Bool = false
   ) {
     self.parentAlarmId = parentAlarmId
     self.occurrenceId = occurrenceId
@@ -106,6 +112,8 @@ struct SvaOccurrenceState: Codable, Equatable {
     self.gapMs = gapMs
     self.alarmTitle = alarmTitle
     self.cycleTemplate = cycleTemplate
+    self.mathChallengeEnabled = mathChallengeEnabled
+    self.isOneShot = isOneShot
   }
 
   var asDictionary: [String: Any] {
@@ -132,6 +140,8 @@ struct SvaOccurrenceState: Codable, Equatable {
       "gapMs": gapMs,
       "alarmTitle": alarmTitle,
       "cycleTemplateCount": cycleTemplate.count,
+      "mathChallengeEnabled": mathChallengeEnabled,
+      "isOneShot": isOneShot,
     ]
   }
 
@@ -141,6 +151,7 @@ struct SvaOccurrenceState: Codable, Equatable {
     case cycleDurationMs, updatedAt, recoveryGeneration, cancellationGeneration
     case lastStoppedAlarmKitId, recoveryScheduledAt, recoveryAlarmKitId
     case recoveryReason, trailingSilenceMs, transitionPaddingMs, gapMs, alarmTitle, cycleTemplate
+    case mathChallengeEnabled, isOneShot
   }
 
   init(from decoder: Decoder) throws {
@@ -171,6 +182,8 @@ struct SvaOccurrenceState: Codable, Equatable {
     gapMs = try c.decodeIfPresent(Int.self, forKey: .gapMs) ?? 5000
     alarmTitle = try c.decodeIfPresent(String.self, forKey: .alarmTitle) ?? "Smart Voice Alarm"
     cycleTemplate = try c.decodeIfPresent([SvaCycleClip].self, forKey: .cycleTemplate) ?? []
+    mathChallengeEnabled = try c.decodeIfPresent(Bool.self, forKey: .mathChallengeEnabled) ?? true
+    isOneShot = try c.decodeIfPresent(Bool.self, forKey: .isOneShot) ?? false
   }
 
   func encode(to encoder: Encoder) throws {
@@ -196,6 +209,8 @@ struct SvaOccurrenceState: Codable, Equatable {
     try c.encode(gapMs, forKey: .gapMs)
     try c.encode(alarmTitle, forKey: .alarmTitle)
     try c.encode(cycleTemplate, forKey: .cycleTemplate)
+    try c.encode(mathChallengeEnabled, forKey: .mathChallengeEnabled)
+    try c.encode(isOneShot, forKey: .isOneShot)
   }
 
   static func empty(parent: String, occurrence: String) -> SvaOccurrenceState {
@@ -220,7 +235,9 @@ struct SvaOccurrenceState: Codable, Equatable {
       trailingSilenceMs: 1250,
       gapMs: 5000,
       alarmTitle: "Smart Voice Alarm",
-      cycleTemplate: []
+      cycleTemplate: [],
+      mathChallengeEnabled: true,
+      isOneShot: false
     )
   }
 }

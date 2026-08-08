@@ -132,9 +132,21 @@ class TrialEntitlementController extends StateNotifier<TrialEntitlementState> {
     if (_initialized) return;
     _initialized = true;
     state = const TrialEntitlementState.initializing();
+    // Local entitlement only — do not block Home on billing network.
     await _trial.initializeSuccessfulLaunch();
-    final purchase = await _initializeBilling();
-    state = await _trial.applySubscriptionVerification(purchase.verification);
+    state = _trial.state;
+  }
+
+  /// Billing / remote subscription refresh after first frame.
+  Future<void> refreshBillingInBackground() async {
+    if (!_initialized) return;
+    try {
+      final purchase = await _initializeBilling();
+      if (!mounted) return;
+      state = await _trial.applySubscriptionVerification(purchase.verification);
+    } catch (_) {
+      // Keep local cached entitlement; resume refresh can retry.
+    }
   }
 
   Future<void> refreshOnResume() async {
@@ -224,23 +236,61 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
   }
 
   Future<void> toggle(String id) async {
+    final current = state.firstWhere((a) => a.id == id);
+    final turningOn = !current.isEnabled;
+    if (!turningOn) {
+      // OFF: native barrier first so late recovery cannot recreate children.
+      await _notifications.iosFanout.scheduler.activateParentCancellation(
+        parentAlarmId: id,
+        reason: 'toggle_off',
+        deleted: false,
+        enabled: false,
+      );
+      await _notifications.cancelAlarm(id);
+      final disabled = current.copyWith(isEnabled: false);
+      state = [
+        for (final alarm in state)
+          if (alarm.id == id) disabled else alarm,
+      ];
+      await _repo.upsert(disabled);
+      return;
+    }
+
+    // ON: schedule first; only persist ON after schedule succeeds.
+    final enabled = current.copyWith(isEnabled: true);
+    await _notifications.iosFanout.scheduler.clearParentDisabledBarrier(
+      parentAlarmId: id,
+    );
+    final result = await _notifications.scheduleAlarm(enabled);
+    if (!result.ok) {
+      // Keep OFF if schedule failed.
+      final disabled = current.copyWith(isEnabled: false);
+      state = [
+        for (final alarm in state)
+          if (alarm.id == id) disabled else alarm,
+      ];
+      await _repo.upsert(disabled);
+      return;
+    }
     state = [
       for (final alarm in state)
-        if (alarm.id == id)
-          alarm.copyWith(isEnabled: !alarm.isEnabled)
-        else
-          alarm,
+        if (alarm.id == id) enabled else alarm,
     ];
-    final updated = state.firstWhere((a) => a.id == id);
-    await _repo.upsert(updated);
-    await _notifications.scheduleAlarm(updated);
+    await _repo.upsert(enabled);
   }
 
   Future<void> remove(String id) async {
     final removed = state.where((alarm) => alarm.id == id).firstOrNull;
+    // Tombstone before deleting so late AlarmKit Stop/recovery is ignored.
+    await _notifications.iosFanout.scheduler.activateParentCancellation(
+      parentAlarmId: id,
+      reason: 'delete',
+      deleted: true,
+      enabled: false,
+    );
+    await _notifications.cancelAlarm(id);
     state = state.where((alarm) => alarm.id != id).toList();
     await _repo.delete(id);
-    await _notifications.cancelAlarm(id);
     final sequenceId = removed?.voiceSequenceId;
     if (sequenceId != null &&
         !state.any((alarm) => alarm.voiceSequenceId == sequenceId)) {
@@ -349,6 +399,68 @@ class AlarmListController extends StateNotifier<List<AlarmUiModel>> {
       if (alarm.id == id) return alarm;
     }
     return _repo.findById(id);
+  }
+
+  /// Persist enabled/disabled without going through schedule-on-disabled path.
+  Future<void> persistEnabledState(
+    AlarmUiModel alarm, {
+    bool activateNativeBarrier = false,
+    bool scheduleAfter = false,
+  }) async {
+    state = [
+      for (final item in state)
+        if (item.id == alarm.id) alarm else item,
+    ]..sort(_byTime);
+    if (!state.any((a) => a.id == alarm.id)) {
+      state = [...state, alarm]..sort(_byTime);
+    }
+    await _repo.upsert(alarm);
+    if (activateNativeBarrier && !alarm.isEnabled) {
+      await _notifications.iosFanout.scheduler.activateParentCancellation(
+        parentAlarmId: alarm.id,
+        reason: 'persist_disabled',
+        deleted: false,
+        enabled: false,
+      );
+    }
+    if (scheduleAfter) {
+      await _notifications.scheduleAlarm(alarm);
+    } else if (!alarm.isEnabled) {
+      await _notifications.cancelAlarm(alarm.id);
+    }
+  }
+
+  /// Sync Flutter repo with native parent barriers (one-shot Stop with
+  /// challenge off may disable parent while Flutter was suspended).
+  Future<void> reconcileNativeParentLifecycle() async {
+    if (!_notifications.iosFanout.isSupported) return;
+    final barriers = await _notifications.iosFanout.scheduler
+        .listParentLifecycleStates();
+    if (barriers.isEmpty) return;
+    var changed = false;
+    final next = <AlarmUiModel>[];
+    for (final alarm in state) {
+      final barrier = barriers[alarm.id];
+      if (barrier == null) {
+        next.add(alarm);
+        continue;
+      }
+      final deleted = barrier['deleted'] == true;
+      if (deleted) {
+        changed = true;
+        continue;
+      }
+      final enabled = barrier['enabled'] != false;
+      if (!enabled && alarm.isEnabled) {
+        next.add(alarm.copyWith(isEnabled: false));
+        changed = true;
+      } else {
+        next.add(alarm);
+      }
+    }
+    if (!changed) return;
+    state = next;
+    await _repo.saveAll(next);
   }
 
   static int _byTime(AlarmUiModel a, AlarmUiModel b) {

@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "Ringtone",
   "alarmTypeMixed": "Mixed",
   "alarmTypeLabel": "Alarm type",
+  "mathChallengeTitle": "Solve math to stop alarm",
+  "mathChallengeDescription": "When on, you must solve a math problem correctly to stop the alarm.",
   "createAlarmTitle": "New Alarm",
   "editAlarmTitle": "Edit Alarm",
   "alarmTime": "Time",
