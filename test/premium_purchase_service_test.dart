@@ -154,6 +154,73 @@ void main() {
         expect(service.state.status, PurchaseFlowStatus.restored);
       },
     );
+
+    test('purchase error status never grants access', () async {
+      await service.init();
+      gateway.emit([_purchase(BillingPurchaseStatus.error)]);
+      await _eventLoop();
+      expect(service.state.verification, SubscriptionVerificationResult.failed);
+      expect(service.state.isSubscriptionActive, isFalse);
+    });
+
+    test('purchase listener is attached before the first sync query', () async {
+      await service.init();
+      expect(gateway.callOrder.first, 'listen');
+      expect(gateway.callOrder, contains('queryCurrentPurchases'));
+      expect(
+        gateway.callOrder.indexOf('listen'),
+        lessThan(gateway.callOrder.indexOf('queryCurrentPurchases')),
+      );
+    });
+
+    test(
+      'iOS deferred-sync marker is unavailable, not a hard failure, and does '
+      'not clear an active purchase state that is still valid',
+      () async {
+        // Prime an active purchase via the stream first, as a real
+        // purchase or restore event would.
+        await service.init();
+        gateway.emit([
+          _purchase(BillingPurchaseStatus.purchased, pendingComplete: false),
+        ]);
+        await _eventLoop();
+        expect(
+          service.state.verification,
+          SubscriptionVerificationResult.active,
+        );
+
+        // Simulate the real iOS gateway: no synchronous answer, only a
+        // deferred-sync marker (see
+        // InAppPurchaseBillingGateway.iosSyncDeferredCode).
+        gateway.queryCurrentPurchasesOverride =
+            const BillingQueryResult.failure(
+              InAppPurchaseBillingGateway.iosSyncDeferredCode,
+            );
+        await service.syncEntitlementsFromStore();
+
+        expect(
+          service.state.verification,
+          SubscriptionVerificationResult.unavailable,
+        );
+        expect(service.state.status, isNot(PurchaseFlowStatus.error));
+        expect(service.state.errorMessage, isNull);
+      },
+    );
+
+    test(
+      'a genuine query failure (non-iOS-deferred) still reports failed',
+      () async {
+        await service.init();
+        gateway.queryCurrentPurchasesOverride =
+            const BillingQueryResult.failure('current_query_failed');
+        await service.syncEntitlementsFromStore();
+        expect(
+          service.state.verification,
+          SubscriptionVerificationResult.failed,
+        );
+        expect(service.state.status, PurchaseFlowStatus.error);
+      },
+    );
   });
 }
 
@@ -175,7 +242,10 @@ BillingPurchase _purchase(
 class _FakeBillingGateway implements BillingGateway {
   _FakeBillingGateway() {
     updates = StreamController<List<BillingPurchase>>.broadcast(
-      onListen: () => listenCount++,
+      onListen: () {
+        listenCount++;
+        callOrder.add('listen');
+      },
     );
   }
 
@@ -188,7 +258,14 @@ class _FakeBillingGateway implements BillingGateway {
   int consumeCount = 0;
   List<BillingPurchase> currentPurchases = [];
   final List<BillingPurchase> acknowledged = [];
+  final List<String> callOrder = [];
   BillingQueryResult<AnnualSubscriptionProduct>? productResult;
+
+  /// When set, [queryCurrentPurchases] returns this instead of the default
+  /// success-with-[currentPurchases] behavior — used to simulate the real
+  /// iOS gateway's deferred-sync marker (see
+  /// [InAppPurchaseBillingGateway.iosSyncDeferredCode]).
+  BillingQueryResult<List<BillingPurchase>>? queryCurrentPurchasesOverride;
 
   @override
   Stream<List<BillingPurchase>> get purchaseUpdates => updates.stream;
@@ -214,7 +291,11 @@ class _FakeBillingGateway implements BillingGateway {
 
   @override
   Future<BillingQueryResult<List<BillingPurchase>>>
-  queryCurrentPurchases() async => BillingQueryResult.success(currentPurchases);
+  queryCurrentPurchases() async {
+    callOrder.add('queryCurrentPurchases');
+    return queryCurrentPurchasesOverride ??
+        BillingQueryResult.success(currentPurchases);
+  }
 
   @override
   Future<bool> launchPurchase(AnnualSubscriptionProduct product) async {

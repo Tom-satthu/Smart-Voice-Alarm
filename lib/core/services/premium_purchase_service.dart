@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 
 import '../constants/app_constants.dart';
 import 'trial_entitlement_service.dart';
@@ -139,25 +140,56 @@ class InAppPurchaseBillingGateway implements BillingGateway {
     return const BillingQueryResult.failure('product_unavailable');
   }
 
+  /// Marker returned by [queryCurrentPurchases] on iOS/macOS. StoreKit has
+  /// no synchronous "list current purchases" API, so this never claims
+  /// inactive — [PremiumPurchaseService] maps it to
+  /// [SubscriptionVerificationResult.unavailable] instead of `failed`, which
+  /// keeps any still-fresh offline-grace cache intact. The real
+  /// verification (if any) arrives asynchronously via [purchaseUpdates]
+  /// once the sync below completes.
+  static const iosSyncDeferredCode = 'ios_storekit_sync_deferred';
+
   @override
   Future<BillingQueryResult<List<BillingPurchase>>>
   queryCurrentPurchases() async {
-    if (defaultTargetPlatform != TargetPlatform.android) {
-      // StoreKit restore results arrive on purchaseUpdates. Do not claim an
-      // inactive entitlement synchronously when the platform cannot prove it.
-      return const BillingQueryResult.failure('current_query_unavailable');
-    }
-    try {
-      final addition = _purchase
-          .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
-      final response = await addition.queryPastPurchases();
-      if (response.error != null) {
-        return BillingQueryResult.failure(response.error!.message);
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        final addition = _purchase
+            .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
+        final response = await addition.queryPastPurchases();
+        if (response.error != null) {
+          return BillingQueryResult.failure(response.error!.message);
+        }
+        return BillingQueryResult.success(
+          _mapPurchases(response.pastPurchases),
+        );
+      } catch (_) {
+        return const BillingQueryResult.failure('current_query_failed');
       }
-      return BillingQueryResult.success(_mapPurchases(response.pastPurchases));
-    } catch (_) {
-      return const BillingQueryResult.failure('current_query_failed');
     }
+
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      // No synchronous current-entitlements API exists in the installed
+      // in_app_purchase_storekit (0.4.4) surface. Trigger StoreKit2's
+      // AppStore.sync() (via InAppPurchaseStoreKitPlatformAddition.sync())
+      // so the App Store re-delivers any active/renewed transaction for
+      // this product through purchaseUpdates — the listener is already
+      // attached by init() before this is ever called. A sync failure
+      // (network, auth) is a transport issue, not proof of inactivity, so
+      // it is swallowed here rather than surfaced as a hard failure.
+      try {
+        await _purchase
+            .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>()
+            .sync()
+            .timeout(const Duration(seconds: 10));
+      } catch (_) {
+        // Ignored intentionally — see doc comment on [iosSyncDeferredCode].
+      }
+      return const BillingQueryResult.failure(iosSyncDeferredCode);
+    }
+
+    return const BillingQueryResult.failure('current_query_unavailable');
   }
 
   @override
@@ -392,11 +424,21 @@ class PremiumPurchaseService {
     }
     final response = await _gateway.queryCurrentPurchases();
     if (!response.isSuccess || response.value == null) {
+      final deferred =
+          response.errorMessage ==
+          InAppPurchaseBillingGateway.iosSyncDeferredCode;
       _emit(
         _state.copyWith(
-          status: PurchaseFlowStatus.error,
-          verification: SubscriptionVerificationResult.failed,
-          errorMessage: response.errorMessage ?? 'entitlement_query_failed',
+          // A deferred iOS sync is not a user-facing error: the real
+          // verification (if any) is still on its way via purchaseUpdates.
+          status: deferred ? _state.status : PurchaseFlowStatus.error,
+          verification: deferred
+              ? SubscriptionVerificationResult.unavailable
+              : SubscriptionVerificationResult.failed,
+          errorMessage: deferred
+              ? null
+              : (response.errorMessage ?? 'entitlement_query_failed'),
+          clearError: deferred,
         ),
       );
       return;
