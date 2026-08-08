@@ -73,6 +73,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get alarmTypeLabel => 'Alarmtyp';
 
   @override
+  String get mathChallengeTitle => 'Matheaufgabe zum Ausschalten';
+
+  @override
+  String get mathChallengeDescription =>
+      'Wenn aktiv, müssen Sie eine Matheaufgabe richtig lösen, um den Alarm zu stoppen.';
+
+  @override
   String get createAlarmTitle => 'Neuer Alarm';
 
   @override
@@ -256,7 +263,46 @@ class AppLocalizationsDe extends AppLocalizations {
   String get ttsSaved => 'Sprachsegment gespeichert';
 
   @override
+  String ttsCharCounter(int used, int max) {
+    return '$used/$max characters';
+  }
+
+  @override
+  String get ttsCharLimitReached =>
+      'Character limit reached for this language.';
+
+  @override
+  String get ttsPasteTooLongTitle => 'Paste exceeds limit';
+
+  @override
+  String ttsPasteTooLongBody(int max) {
+    return 'The paste is longer than $max characters. Insert only the first $max characters?';
+  }
+
+  @override
+  String get ttsPasteInsertPartial => 'Insert partial';
+
+  @override
+  String get ttsTooLongDuration =>
+      'Spoken audio is longer than 20 seconds. Shorten the text and try again.';
+
+  @override
+  String get ttsDurationChecking => 'Checking spoken length…';
+
+  @override
   String get recordTitle => 'Stimme aufnehmen';
+
+  @override
+  String recordTimerLabel(int used, int max) {
+    return '$used/$max seconds';
+  }
+
+  @override
+  String get recordAutoStopped => 'Recording stopped at 20 seconds.';
+
+  @override
+  String get recordLongClipWarning =>
+      'This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.';
 
   @override
   String get recordStart => 'Aufnehmen';
@@ -1040,6 +1086,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verwaltung oder Kündigung über Google Play.';
 
   @override
+  String get premiumAnnualCancelInAppStore =>
+      'Verwaltung oder Kündigung über den App Store.';
+
+  @override
   String get premiumAnnualAccess =>
       'Voller Zugriff, solange das Abonnement aktiv ist.';
 
@@ -1060,8 +1110,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das Jahresabo ist bei Google Play noch nicht verfügbar.';
 
   @override
+  String get premiumProductUnavailableAppStore =>
+      'Das Jahresabo ist im App Store noch nicht verfügbar.';
+
+  @override
   String get premiumBillingUnavailable =>
       'Google Play Billing ist derzeit nicht verfügbar.';
+
+  @override
+  String get premiumBillingUnavailableAppStore =>
+      'App Store-Abrechnung ist derzeit nicht verfügbar.';
 
   @override
   String get premiumPurchaseActive => 'Premium ist aktiv';

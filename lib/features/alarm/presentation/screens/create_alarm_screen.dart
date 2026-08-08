@@ -27,17 +27,13 @@ class CreateAlarmScreen extends ConsumerStatefulWidget {
 
 class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   TimeOfDay _time = const TimeOfDay(hour: 7, minute: 0);
-  Set<Weekday> _repeatDays = {
-    Weekday.monday,
-    Weekday.tuesday,
-    Weekday.wednesday,
-    Weekday.thursday,
-    Weekday.friday,
-    Weekday.saturday,
-    Weekday.sunday,
-  };
+
+  /// Weekday repeat is no longer editable in UI. New alarms default to
+  /// one-shot (empty). Existing alarms keep persisted values for compatibility.
+  Set<Weekday> _repeatDays = {};
   int _repeatCount = 3;
   AlarmType _type = AlarmType.mixed;
+  bool _mathChallengeEnabled = true;
   String _ringtoneName = 'Soft Chime';
   String _label = '';
   String? _voiceSequenceId;
@@ -73,6 +69,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     _repeatDays = Set<Weekday>.from(existing.repeatDays);
     _repeatCount = existing.repeatCount;
     _type = existing.type;
+    _mathChallengeEnabled = existing.mathChallengeEnabled;
     _ringtoneName = existing.ringtoneName ?? 'Soft Chime';
     _label = existing.label;
     _voiceSequenceId = existing.voiceSequenceId ?? const Uuid().v4();
@@ -102,6 +99,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       _repeatDays = Set<Weekday>.from(source.repeatDays);
       _repeatCount = source.repeatCount;
       _type = source.type;
+      _mathChallengeEnabled = source.mathChallengeEnabled;
       _ringtoneName = source.ringtoneName ?? 'Soft Chime';
       _label = source.label;
       _voiceSequenceId = source.voiceSequenceId ?? const Uuid().v4();
@@ -159,6 +157,9 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     );
     final seq = ref.read(voiceSequenceProvider(sequenceId));
     final repeats = _repeatCount.clamp(1, 20);
+    // iOS planner ignores repeatCount (effective 1). Keep stored value for Android.
+    final effectiveRepeats =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS ? 1 : repeats;
 
     // Validate in memory — never persist draft before schedule succeeds.
     if (_type == AlarmType.mixed) {
@@ -176,15 +177,15 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       }
     }
     if (_type == AlarmType.voice && seq.segments.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.alarmSelectSequence)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.alarmSelectSequence)));
       return;
     }
     if (_type != AlarmType.ringtone && seq.segments.isNotEmpty) {
       final voiceCount = seq.segments.length.clamp(0, 5);
       final toneCount = _type == AlarmType.voice ? 0 : 1;
-      final planned = voiceCount * repeats + toneCount;
+      final planned = voiceCount * effectiveRepeats + toneCount;
       if (planned > 64) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.alarmNotificationLimitExceeded)),
@@ -209,7 +210,17 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       ringtoneName: _ringtoneName,
       repeatCount: repeats,
       audioNeedsRegeneration: false,
+      mathChallengeEnabled: _mathChallengeEnabled,
     );
+
+    // Turning challenge off must clear any stale pending Math Challenge.
+    if (!_mathChallengeEnabled) {
+      await ref
+          .read(notificationServiceProvider)
+          .iosFanout
+          .scheduler
+          .clearPendingChallenge(parentAlarmId: model.id, occurrenceId: '');
+    }
 
     final controller = ref.read(alarmListProvider.notifier);
     // Schedule with in-memory draft; persist only on success.
@@ -465,47 +476,6 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                       ),
                     ),
                     const SizedBox(height: AppConstants.spaceXl),
-                    SectionHeader(title: l10n.alarmRepeat),
-                    SurfacePanel(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 10,
-                      ),
-                      child: Row(
-                        children: [
-                          for (final day in Weekday.values)
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 2,
-                                ),
-                                child: _DayToggle(
-                                  label: switch (day) {
-                                    Weekday.monday => l10n.dayMon,
-                                    Weekday.tuesday => l10n.dayTue,
-                                    Weekday.wednesday => l10n.dayWed,
-                                    Weekday.thursday => l10n.dayThu,
-                                    Weekday.friday => l10n.dayFri,
-                                    Weekday.saturday => l10n.daySat,
-                                    Weekday.sunday => l10n.daySun,
-                                  },
-                                  selected: _repeatDays.contains(day),
-                                  onTap: () {
-                                    setState(() {
-                                      if (_repeatDays.contains(day)) {
-                                        _repeatDays.remove(day);
-                                      } else {
-                                        _repeatDays.add(day);
-                                      }
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppConstants.spaceXl),
                     SectionHeader(title: l10n.alarmVoiceSequence),
                     SurfacePanel(
                       onTap: () =>
@@ -540,39 +510,44 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                       ),
                     ),
                     const SizedBox(height: AppConstants.spaceXl),
-                    SectionHeader(title: l10n.alarmRepeatCount),
-                    SurfacePanel(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.timesLabel(_repeatCount),
-                              style: context.textTheme.titleMedium,
+                    if (kIsWeb ||
+                        defaultTargetPlatform != TargetPlatform.iOS) ...[
+                      SectionHeader(title: l10n.alarmRepeatCount),
+                      SurfacePanel(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                l10n.timesLabel(_repeatCount),
+                                style: context.textTheme.titleMedium,
+                              ),
                             ),
-                          ),
-                          IconButton.filledTonal(
-                            onPressed: _repeatCount > 1
-                                ? () => setState(() => _repeatCount--)
-                                : null,
-                            icon: const Icon(Icons.remove_rounded),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              '$_repeatCount',
-                              style: context.textTheme.headlineSmall,
+                            IconButton.filledTonal(
+                              onPressed: _repeatCount > 1
+                                  ? () => setState(() => _repeatCount--)
+                                  : null,
+                              icon: const Icon(Icons.remove_rounded),
                             ),
-                          ),
-                          IconButton.filledTonal(
-                            onPressed: _repeatCount < 10
-                                ? () => setState(() => _repeatCount++)
-                                : null,
-                            icon: const Icon(Icons.add_rounded),
-                          ),
-                        ],
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: Text(
+                                '$_repeatCount',
+                                style: context.textTheme.headlineSmall,
+                              ),
+                            ),
+                            IconButton.filledTonal(
+                              onPressed: _repeatCount < 10
+                                  ? () => setState(() => _repeatCount++)
+                                  : null,
+                              icon: const Icon(Icons.add_rounded),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppConstants.spaceXl),
+                      const SizedBox(height: AppConstants.spaceXl),
+                    ],
                     SectionHeader(title: l10n.alarmRingtone),
                     SurfacePanel(
                       onTap: _pickRingtone,
@@ -620,6 +595,24 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                         }).toList(),
                       ),
                     ),
+                    const SizedBox(height: AppConstants.spaceXl),
+                    SectionHeader(title: l10n.mathChallengeTitle),
+                    SurfacePanel(
+                      child: Semantics(
+                        label: l10n.mathChallengeTitle,
+                        toggled: _mathChallengeEnabled,
+                        child: SwitchListTile.adaptive(
+                          key: const ValueKey('math_challenge_toggle'),
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(l10n.mathChallengeTitle),
+                          subtitle: Text(l10n.mathChallengeDescription),
+                          value: _mathChallengeEnabled,
+                          onChanged: (value) {
+                            setState(() => _mathChallengeEnabled = value);
+                          },
+                        ),
+                      ),
+                    ),
                     if (alarms.isNotEmpty) ...[
                       const SizedBox(height: AppConstants.spaceXl),
                       SectionHeader(title: l10n.alarmCopyFrom),
@@ -657,50 +650,6 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DayToggle extends StatelessWidget {
-  const _DayToggle({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Material(
-      color: selected ? colors.primary : colors.surface,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: SizedBox(
-          height: 40,
-          child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  style: context.textTheme.labelSmall?.copyWith(
-                    color: selected ? colors.onPrimary : colors.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
           ),
         ),
       ),

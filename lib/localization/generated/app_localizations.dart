@@ -227,6 +227,18 @@ abstract class AppLocalizations {
   /// **'Alarm type'**
   String get alarmTypeLabel;
 
+  /// No description provided for @mathChallengeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Solve math to stop alarm'**
+  String get mathChallengeTitle;
+
+  /// No description provided for @mathChallengeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'When on, you must solve a math problem correctly to stop the alarm.'**
+  String get mathChallengeDescription;
+
   /// No description provided for @createAlarmTitle.
   ///
   /// In en, this message translates to:
@@ -581,11 +593,71 @@ abstract class AppLocalizations {
   /// **'Voice segment saved'**
   String get ttsSaved;
 
+  /// No description provided for @ttsCharCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'{used}/{max} characters'**
+  String ttsCharCounter(int used, int max);
+
+  /// No description provided for @ttsCharLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Character limit reached for this language.'**
+  String get ttsCharLimitReached;
+
+  /// No description provided for @ttsPasteTooLongTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste exceeds limit'**
+  String get ttsPasteTooLongTitle;
+
+  /// No description provided for @ttsPasteTooLongBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The paste is longer than {max} characters. Insert only the first {max} characters?'**
+  String ttsPasteTooLongBody(int max);
+
+  /// No description provided for @ttsPasteInsertPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert partial'**
+  String get ttsPasteInsertPartial;
+
+  /// No description provided for @ttsTooLongDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Spoken audio is longer than 20 seconds. Shorten the text and try again.'**
+  String get ttsTooLongDuration;
+
+  /// No description provided for @ttsDurationChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking spoken length…'**
+  String get ttsDurationChecking;
+
   /// No description provided for @recordTitle.
   ///
   /// In en, this message translates to:
   /// **'Record Voice'**
   String get recordTitle;
+
+  /// No description provided for @recordTimerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{used}/{max} seconds'**
+  String recordTimerLabel(int used, int max);
+
+  /// No description provided for @recordAutoStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording stopped at 20 seconds.'**
+  String get recordAutoStopped;
+
+  /// No description provided for @recordLongClipWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.'**
+  String get recordLongClipWarning;
 
   /// No description provided for @recordStart.
   ///
@@ -1937,6 +2009,12 @@ abstract class AppLocalizations {
   /// **'Manage or cancel through Google Play.'**
   String get premiumAnnualCancelInPlay;
 
+  /// No description provided for @premiumAnnualCancelInAppStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage or cancel through the App Store.'**
+  String get premiumAnnualCancelInAppStore;
+
   /// No description provided for @premiumAnnualAccess.
   ///
   /// In en, this message translates to:
@@ -1973,11 +2051,23 @@ abstract class AppLocalizations {
   /// **'The annual subscription is not available from Google Play yet.'**
   String get premiumProductUnavailable;
 
+  /// No description provided for @premiumProductUnavailableAppStore.
+  ///
+  /// In en, this message translates to:
+  /// **'The annual subscription is not available from the App Store yet.'**
+  String get premiumProductUnavailableAppStore;
+
   /// No description provided for @premiumBillingUnavailable.
   ///
   /// In en, this message translates to:
   /// **'Google Play Billing is currently unavailable.'**
   String get premiumBillingUnavailable;
+
+  /// No description provided for @premiumBillingUnavailableAppStore.
+  ///
+  /// In en, this message translates to:
+  /// **'App Store billing is currently unavailable.'**
+  String get premiumBillingUnavailableAppStore;
 
   /// No description provided for @premiumPurchaseActive.
   ///

@@ -9,6 +9,7 @@ import '../../shared/data/local_store.dart';
 import '../../shared/models/ui_models.dart';
 import '../../shared/providers/prototype_providers.dart';
 import 'alarm_schedule_result.dart';
+import '../debug/sva_build_stamp.dart';
 import 'io_dir_stub.dart' if (dart.library.io) 'io_dir_io.dart' as io_file;
 import 'ios_alarm_segment_planner.dart';
 import 'notification_service.dart';
@@ -23,7 +24,9 @@ class IosAlarmDiagnostics {
   final _uuid = const Uuid();
 
   static bool get isAvailable =>
-      kDebugMode && !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+      !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.iOS &&
+      (kDebugMode || SvaBuildStamp.reviewBuild);
 
   Future<String> runAll() async {
     if (!isAvailable) {
@@ -44,6 +47,8 @@ class IosAlarmDiagnostics {
       _caseChallengePayload,
       _caseRingtoneAssetResolution,
       _casePendingQuery,
+      _caseAlarmKitCapabilityRouting,
+      _caseAlarmKitDiagnosticsShape,
     ];
 
     for (final run in cases) {
@@ -154,14 +159,17 @@ class IosAlarmDiagnostics {
       ringtoneClips: [
         preparedClip(fileName: 'r.caf', duration: const Duration(seconds: 5)),
       ],
+      maxCyclesOverride: 1,
     );
-    final hasTone = plan.any((s) => s.soundFileName == 'r.caf');
+    final hasTone = plan.segments.any((s) => s.soundFileName == 'r.caf');
+    final hasSilence = plan.segments.any((s) => s.role.name == 'silence');
     return DiagCase(
       name: name,
-      passed: plan.length == 2 && hasTone,
+      passed: plan.segments.length == 4 && hasTone && hasSilence,
       stage: 'plan',
-      detail: 'children=${plan.length} ringtoneChild=$hasTone',
-      plannedChildCount: plan.length,
+      detail:
+          'children=${plan.segments.length} ringtoneChild=$hasTone silence=$hasSilence',
+      plannedChildCount: plan.segments.length,
     );
   }
 
@@ -193,14 +201,21 @@ class IosAlarmDiagnostics {
           duration: const Duration(seconds: 8),
         ),
       ],
+      maxCyclesOverride: 1,
     );
-    final ok = plan.length == 7 && plan.last.soundFileName == 'tone.caf';
+    // repeatCount ignored: 2 voices + 2 silences + ringtone + silence = 6
+    final ok =
+        plan.segments.length == 6 &&
+        plan.segments.last.role.name == 'silence' &&
+        plan.segments.any((s) => s.soundFileName == 'tone.caf');
     return DiagCase(
       name: name,
       passed: ok,
       stage: 'plan',
-      detail: 'children=${plan.length} last=${plan.last.soundFileName}',
-      plannedChildCount: plan.length,
+      detail:
+          'children=${plan.segments.length} last=${plan.segments.last.soundFileName} '
+          'cycles=${plan.cyclesScheduled} horizonMs=${plan.rollingHorizon.inMilliseconds}',
+      plannedChildCount: plan.segments.length,
     );
   }
 
@@ -345,6 +360,116 @@ class IosAlarmDiagnostics {
         name,
         code: 'pending_query_failed',
         stage: 'notification_schedule',
+        detail: '$e',
+      );
+    }
+  }
+
+  Future<DiagCase> _caseAlarmKitCapabilityRouting() async {
+    const name = 'diag_alarmkit_routing';
+    try {
+      final cap = await _notifications.iosFanout.capability();
+      final backend = cap.shouldUseAlarmKitBackend
+          ? AlarmScheduleBackend.alarmKit
+          : AlarmScheduleBackend.notificationFanout;
+      final exclusive =
+          backend == AlarmScheduleBackend.alarmKit ||
+          backend == AlarmScheduleBackend.notificationFanout;
+      return DiagCase(
+        name: name,
+        passed: exclusive,
+        stage: 'validation',
+        detail:
+            'backend=$backend eligible=${cap.runtimeVersionEligible} '
+            'auth=${cap.alarmKitAuthorization} runtime=${cap.alarmKitRuntimeEnabled} '
+            'disabled=${cap.alarmKitDisabled}',
+      );
+    } catch (e) {
+      return DiagCase.fail(
+        name,
+        code: 'capability_failed',
+        stage: 'validation',
+        detail: '$e',
+      );
+    }
+  }
+
+  Future<DiagCase> _caseAlarmKitDiagnosticsShape() async {
+    const name = 'diag_alarmkit_native_passive';
+    try {
+      final raw = await _notifications.iosFanout.scheduler
+          .alarmKitDiagnostics();
+      final counters = await _notifications.iosFanout.scheduler
+          .alarmKitStartupCounters();
+      final hasAuth = raw.containsKey('authorization');
+      final passive = raw['passiveOnly'] == true;
+      final readCount =
+          (counters['authorizationStateReadCount'] as num?)?.toInt() ?? -1;
+      return DiagCase(
+        name: name,
+        passed: hasAuth && passive && readCount == 0,
+        stage: 'validation',
+        detail:
+            'passive=$passive auth=${raw['authorization']} '
+            'readCount=$readCount requestCount=${counters['requestAuthorizationCount']} '
+            'scheduleCount=${counters['scheduleCount']}',
+      );
+    } catch (e) {
+      return DiagCase.fail(
+        name,
+        code: 'alarmkit_diag_failed',
+        stage: 'validation',
+        detail: '$e',
+      );
+    }
+  }
+
+  /// Staged user-initiated probe — stops on first failure.
+  Future<DiagCase> runStagedAlarmKitProbe() async {
+    const name = 'diag_alarmkit_staged_probe';
+    try {
+      final counters = await _notifications.iosFanout.scheduler
+          .alarmKitStartupCounters();
+      if (((counters['authorizationStateReadCount'] as num?)?.toInt() ?? 0) >
+          0) {
+        return DiagCase.fail(
+          name,
+          code: 'startup_alarmkit_touched',
+          stage: 'passive_environment',
+          detail: 'AlarmKit read before staged probe',
+        );
+      }
+      final env = await _notifications.iosFanout.capability();
+      if (!env.runtimeVersionEligible || env.alarmKitDisabled) {
+        return DiagCase(
+          name: name,
+          passed: true,
+          stage: 'passive_environment',
+          detail:
+              'skipped probe eligible=${env.runtimeVersionEligible} disabled=${env.alarmKitDisabled}',
+        );
+      }
+      final probe = await _notifications.iosFanout.scheduler
+          .probeAlarmKitPassive();
+      if (probe['ok'] != true) {
+        return DiagCase.fail(
+          name,
+          code: 'probe_failed',
+          stage: 'authorization_check',
+          detail: '${probe['error'] ?? probe['alarmKitAuthorization']}',
+        );
+      }
+      return DiagCase(
+        name: name,
+        passed: true,
+        stage: 'authorization_check',
+        detail: 'auth=${probe['alarmKitAuthorization']}',
+      );
+    } catch (e) {
+      return DiagCase.fail(
+        name,
+        code: 'staged_probe_exception',
+        stage: 'authorization_check',
         detail: '$e',
       );
     }

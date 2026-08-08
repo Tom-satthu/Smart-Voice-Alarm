@@ -169,46 +169,69 @@ class EmptyStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.spaceXl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: context.colors.primary.withValues(alpha: 0.10),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final content = Padding(
+          padding: const EdgeInsets.all(AppConstants.spaceXl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: context.colors.primary.withValues(alpha: 0.10),
+                ),
+                child: Icon(icon, size: 42, color: context.colors.primary),
               ),
-              child: Icon(icon, size: 42, color: context.colors.primary),
-            ),
-            const SizedBox(height: AppConstants.spaceLg),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: context.textTheme.headlineSmall,
-            ),
-            const SizedBox(height: AppConstants.spaceSm),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 320),
-              child: Text(
-                subtitle,
+              const SizedBox(height: AppConstants.spaceLg),
+              Text(
+                title,
                 textAlign: TextAlign.center,
-                style: context.textTheme.bodyMedium?.copyWith(
-                  color: context.colors.onSurfaceVariant,
-                  height: 1.45,
+                style: context.textTheme.headlineSmall,
+              ),
+              const SizedBox(height: AppConstants.spaceSm),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                    height: 1.45,
+                  ),
                 ),
               ),
-            ),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: AppConstants.spaceLg),
-              FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: AppConstants.spaceLg),
+                FilledButton(
+                  key: const ValueKey('empty_state_action'),
+                  onPressed: onAction,
+                  child: Text(actionLabel!),
+                ),
+              ],
             ],
-          ],
-        ),
-      ),
+          ),
+        );
+
+        if (!constraints.hasBoundedHeight) {
+          return Center(child: content);
+        }
+
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.center,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: constraints.maxWidth,
+              minHeight: constraints.maxHeight,
+            ),
+            child: content,
+          ),
+        );
+      },
     );
   }
 }

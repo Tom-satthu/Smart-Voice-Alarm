@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../shared/data/local_store.dart';
 import '../../shared/models/ui_models.dart';
+import 'alarm_kit_timeline_config.dart';
 import 'alarm_schedule_result.dart';
 import 'io_dir_stub.dart' if (dart.library.io) 'io_dir_io.dart' as io_file;
 import 'ios_alarm_scheduler.dart';
@@ -205,14 +206,25 @@ class IosAlarmFanoutService {
           voiceClips.add(
             preparedClip(
               fileName: rendered.fileName,
-              duration: Duration(milliseconds: rendered.durationMs),
-              label: segment.name,
+              duration: Duration(milliseconds: rendered.effectiveFinalizedMs),
+              label: segment.type == VoiceSegmentType.tts ? 'tts' : 'recording',
+              contentDuration: Duration(
+                milliseconds: rendered.effectiveContentDurationMs,
+              ),
+              trailingSilence: Duration(
+                milliseconds: rendered.trailingSilenceMs > 0
+                    ? rendered.trailingSilenceMs
+                    : AlarmKitTimelineConfig.trailingSilence.inMilliseconds,
+              ),
             ),
           );
           debugPrint(
-            '[SVA-Audio] scheduleSound path=${rendered.path} '
-            'file=${rendered.fileName} size=${rendered.byteSize} '
-            'durationMs=${rendered.durationMs} hash=${rendered.debugHash}',
+            '[SVA-Audio] scheduleSound type=${segment.type.name} '
+            'path=${rendered.path} file=${rendered.fileName} '
+            'size=${rendered.byteSize} contentMs=${rendered.effectiveContentDurationMs} '
+            'trailMs=${rendered.trailingSilenceMs} '
+            'finalMs=${rendered.effectiveFinalizedMs} '
+            'hash=${rendered.debugHash}',
           );
           voiceIndex += 1;
         } catch (e) {
@@ -274,24 +286,39 @@ class IosAlarmFanoutService {
           rendered = await _scheduler.renderSound(
             fileName: fileName,
             sourcePath: materialized,
-            maxSeconds: 30,
+            maxSeconds: 10,
+            targetDurationSeconds: 10,
+            trailingSilenceSeconds:
+                AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
+            audioRole: 'ringtone',
           );
         } else {
           rendered = await _scheduler.renderSound(
             fileName: fileName,
             assetKey: key,
-            maxSeconds: 30,
+            maxSeconds: 10,
+            targetDurationSeconds: 10,
+            trailingSilenceSeconds:
+                AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
+            audioRole: 'ringtone',
           );
         }
         renderedNames.add(rendered.fileName);
-        final full = Duration(milliseconds: rendered.durationMs);
         ringtoneClips.add(
           preparedClip(
             fileName: rendered.fileName,
-            duration: full <= Duration.zero
-                ? const Duration(seconds: 5)
-                : (full.inSeconds > 20 ? const Duration(seconds: 15) : full),
-            label: alarm.ringtoneName ?? 'Ringtone',
+            duration: Duration(milliseconds: rendered.effectiveFinalizedMs),
+            label: 'ringtone',
+            contentDuration: Duration(
+              milliseconds: rendered.effectiveContentDurationMs > 0
+                  ? rendered.effectiveContentDurationMs
+                  : AlarmKitTimelineConfig.ringtoneDuration.inMilliseconds,
+            ),
+            trailingSilence: Duration(
+              milliseconds: rendered.trailingSilenceMs > 0
+                  ? rendered.trailingSilenceMs
+                  : AlarmKitTimelineConfig.trailingSilence.inMilliseconds,
+            ),
           ),
         );
       } catch (e) {
@@ -331,18 +358,31 @@ class IosAlarmFanoutService {
     }
 
     List<IosAlarmSegment> planned;
+    IosAlarmPlan? planMeta;
     try {
       log(
         'plan',
         'voice=${voiceClips.length} ringtone=${ringtoneClips.length}',
       );
-      planned = _planner.plan(
+      // Ensure shared silence CAF exists before planning/scheduling.
+      try {
+        await _scheduler.ensureSilenceSound(seconds: 5);
+      } catch (e) {
+        debugPrint('[SVA-Audio] ensureSilence failed: $e');
+        return fail(
+          code: 'silence_render_failed',
+          message: 'Could not prepare silence gap sound',
+          stage: 'plan',
+        );
+      }
+      planMeta = _planner.plan(
         alarm: alarm,
         occurrenceId: occurrenceId,
         occurrenceStart: occurrence,
         voiceClips: voiceClips,
         ringtoneClips: ringtoneClips,
       );
+      planned = planMeta.segments;
     } on IosPlanValidationException catch (e) {
       for (final name in renderedNames) {
         try {
@@ -354,23 +394,120 @@ class IosAlarmFanoutService {
 
     debugPrint(
       '[SVA-Plan] type=${alarm.type.name} voiceCount=${voiceClips.length} '
-      'ringtoneCount=${ringtoneClips.length} repeatCount=${alarm.repeatCount} '
-      'planned=${planned.length}',
+      'ringtoneCount=${ringtoneClips.length} iosRepeatIgnored=1 '
+      'cycles=${planMeta.cyclesScheduled} horizonMs=${planMeta.rollingHorizon.inMilliseconds} '
+      'planned=${planned.length} audible=${planMeta.audibleChildCount} '
+      'silent=${planMeta.silentChildCount}',
     );
     for (final segment in planned) {
       debugPrint(
         '[SVA-Plan] child index=${segment.segmentIndex} '
+        'cycle=${segment.cycleIndex} role=${segment.role.name} '
         'start=${segment.startAt.toIso8601String()} '
+        'durMs=${segment.duration.inMilliseconds} '
         'file=${segment.soundFileName}',
       );
     }
 
     try {
-      log('notification_schedule', 'segments=${planned.length}');
-      await _scheduler.scheduleSegments(
+      final resolved = await _resolveBackendOnSave();
+      final backend = resolved.backend;
+      final backendReason = resolved.backendReason;
+      var resolvedWarningCode = resolved.warningCode ?? warningCode;
+      var resolvedWarningMessage = resolved.warningMessage ?? warningMessage;
+      debugPrint(
+        '[SVA-AlarmKit] backend=$backend reason=$backendReason '
+        'authorization=${resolved.capability.alarmKitAuthorization}',
+      );
+      log(
+        'schedule_backend',
+        'backend=$backend reason=$backendReason segments=${planned.length}',
+      );
+
+      final native = await _scheduler.scheduleSegments(
         segments: planned,
         title: alarm.label.isEmpty ? 'Smart Voice Alarm' : alarm.label,
         body: 'Solve to stop',
+        backend: backend,
+        occurrenceMeta: {
+          'revision': revision,
+          'cyclesScheduled': planMeta.cyclesScheduled,
+          'cycleDurationMs': planMeta.cycleDuration.inMilliseconds,
+          'childCount': planMeta.childCount,
+          'audibleChildCount': planMeta.audibleChildCount,
+          'silentChildCount': planMeta.silentChildCount,
+          'rollingHorizonEnd':
+              planMeta.lastScheduledEnd?.millisecondsSinceEpoch.toDouble() ?? 0,
+          'trailingSilenceMs':
+              AlarmKitTimelineConfig.trailingSilence.inMilliseconds,
+          'gapMs': _planner.gap.inMilliseconds,
+          'alarmTitle': alarm.label.isEmpty ? 'Smart Voice Alarm' : alarm.label,
+          'cycleTemplate': _planner.cycleTemplateMaps(
+            type: alarm.type,
+            voiceClips: voiceClips,
+            ringtoneClips: ringtoneClips,
+          ),
+          'mathChallengeEnabled': alarm.mathChallengeEnabled,
+          'isOneShot': alarm.repeatDays.isEmpty,
+        },
+      );
+      final ok = native['ok'] != false;
+      if (!ok) {
+        for (final name in renderedNames) {
+          try {
+            await _scheduler.deleteSoundFile(name);
+          } catch (_) {}
+        }
+        return AlarmScheduleResult.fail(
+          errorCode: native['errorCode']?.toString() ?? 'schedule_failed',
+          errorMessage: native['errorMessage']?.toString() ?? 'Schedule failed',
+          stage: native['stage']?.toString() ?? 'notification_schedule',
+          transactionId: tx,
+          backend: native['backend']?.toString() ?? backend,
+          backendReason: backendReason,
+        );
+      }
+
+      final useAlarmKit = backend == AlarmScheduleBackend.alarmKit;
+      final scheduledIds =
+          (native['scheduledIds'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          planned.map((s) => s.childId).toList();
+      final keepIds = useAlarmKit
+          ? scheduledIds.toSet()
+          : planned.map((s) => s.childId).toSet();
+
+      try {
+        log('selective_cancel', 'keep=${keepIds.length}');
+        await _scheduler.cancelParentExcept(
+          parentAlarmId: alarm.id,
+          keepChildIds: keepIds,
+        );
+      } catch (e) {
+        debugPrint('[SVA-Schedule] selective cancel failed: $e');
+      }
+
+      final mergedWarning =
+          native['warningCode']?.toString() ?? resolvedWarningCode;
+      final mergedWarningMsg =
+          native['warningMessage']?.toString() ?? resolvedWarningMessage;
+
+      log(
+        'result',
+        'code=${mergedWarning ?? 'ok'} stage=${native['stage']} '
+            'backend=$backend reason=$backendReason ok=true',
+      );
+      return AlarmScheduleResult.ok(
+        stage:
+            native['stage']?.toString() ??
+            (useAlarmKit ? 'alarmkit_schedule' : 'notification_schedule'),
+        warningCode: mergedWarning,
+        warningMessage: mergedWarningMsg,
+        transactionId: tx,
+        backend: backend,
+        backendReason: backendReason,
+        scheduledIds: scheduledIds,
       );
     } catch (e) {
       for (final name in renderedNames) {
@@ -384,26 +521,121 @@ class IosAlarmFanoutService {
         stage: 'notification_schedule',
       );
     }
+  }
 
-    try {
-      log('selective_cancel', 'keep=${planned.length}');
-      await _scheduler.cancelParentExcept(
-        parentAlarmId: alarm.id,
-        keepChildIds: planned.map((s) => s.childId).toSet(),
+  Future<_BackendResolution> _resolveBackendOnSave() async {
+    var cap = await _scheduler.getCapability();
+    if (cap.shouldUseAlarmKitBackend) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.alarmKit,
+        backendReason: cap.backendSelectionReason.isNotEmpty
+            ? cap.backendSelectionReason
+            : 'authorized',
+        capability: cap,
       );
-    } catch (e) {
-      debugPrint('[SVA-Schedule] selective cancel failed: $e');
+    }
+    if (!cap.runtimeVersionEligible) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'version_ineligible',
+        capability: cap,
+      );
+    }
+    if (cap.diagnosticForceOff) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'diagnostic_force_off',
+        capability: cap,
+        warningCode: 'alarmkit_diagnostic_off',
+        warningMessage: 'AlarmKit disabled in this review build.',
+      );
+    }
+    if (cap.userDisabled) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'user_disabled',
+        capability: cap,
+        warningCode: 'alarmkit_user_disabled',
+        warningMessage: 'AlarmKit turned off — using notification fallback.',
+      );
+    }
+    if (cap.isAlarmKitDenied) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'denied',
+        capability: cap,
+        warningCode: 'alarmkit_denied_fallback',
+        warningMessage:
+            'Alarm permission denied — notifications will ring instead.',
+      );
     }
 
-    log(
-      'result',
-      'code=${warningCode ?? 'ok'} stage=notification_schedule ok=true',
-    );
-    return AlarmScheduleResult.ok(
-      stage: 'notification_schedule',
-      warningCode: warningCode,
-      warningMessage: warningMessage,
-      transactionId: tx,
+    final probe = await _scheduler.probeAlarmKitPassive();
+    cap = await _scheduler.getCapability();
+    final probeAuth =
+        probe['alarmKitAuthorization']?.toString() ?? cap.alarmKitAuthorization;
+
+    if (probe['ok'] != true) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.notificationFanout,
+        backendReason: 'session_probe_failed',
+        capability: cap,
+        warningCode: 'alarmkit_probe_failed',
+        warningMessage: 'AlarmKit unavailable this time — using notifications.',
+      );
+    }
+
+    if (probeAuth == 'notDetermined' || probeAuth == 'unknown') {
+      final auth = await _scheduler.requestAlarmKitAuthorization();
+      cap = await _scheduler.getCapability();
+      final authState =
+          auth['alarmKitAuthorization']?.toString() ??
+          cap.alarmKitAuthorization;
+      if (authState == 'authorized' &&
+          (auth['ok'] == true || cap.shouldUseAlarmKitBackend)) {
+        return _BackendResolution(
+          backend: AlarmScheduleBackend.alarmKit,
+          backendReason: 'authorized',
+          capability: cap,
+        );
+      }
+      if (authState == 'denied') {
+        return _BackendResolution(
+          backend: AlarmScheduleBackend.notificationFanout,
+          backendReason: 'denied',
+          capability: cap,
+          warningCode: 'alarmkit_denied_fallback',
+          warningMessage:
+              'Alarm permission denied — notifications will ring instead.',
+        );
+      }
+      if (auth['ok'] != true) {
+        return _BackendResolution(
+          backend: AlarmScheduleBackend.notificationFanout,
+          backendReason: 'session_request_failed',
+          capability: cap,
+          warningCode: 'alarmkit_request_failed',
+          warningMessage: 'Could not enable AlarmKit — using notifications.',
+        );
+      }
+    }
+
+    if (probeAuth == 'authorized' && cap.shouldUseAlarmKitBackend) {
+      return _BackendResolution(
+        backend: AlarmScheduleBackend.alarmKit,
+        backendReason: 'authorized',
+        capability: cap,
+      );
+    }
+
+    return _BackendResolution(
+      backend: AlarmScheduleBackend.notificationFanout,
+      backendReason: cap.backendSelectionReason.isNotEmpty
+          ? cap.backendSelectionReason
+          : 'needs_user_probe_or_authorization',
+      capability: cap,
+      warningCode: 'alarmkit_fallback',
+      warningMessage: 'Using notification fallback for this alarm.',
     );
   }
 
@@ -510,16 +742,25 @@ class IosAlarmFanoutService {
         ttsText: segment.text ?? segment.name,
         ttsLocale: segment.localeId,
         maxSeconds: 20,
+        trailingSilenceSeconds:
+            AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
       );
     }
     final path = segment.filePath;
     if (path == null || path.isEmpty) {
       throw StateError('Recording segment missing file path');
     }
+    if (segment.duration > const Duration(seconds: 20)) {
+      debugPrint(
+        '[SVA-Audio] recording source longer than 20s; alarm uses first 20s only',
+      );
+    }
     return _scheduler.renderSound(
       fileName: fileName,
       sourcePath: path,
       maxSeconds: 20,
+      trailingSilenceSeconds:
+          AlarmKitTimelineConfig.trailingSilence.inMilliseconds / 1000.0,
     );
   }
 
@@ -562,6 +803,22 @@ class IosAlarmFanoutService {
     }
     return null;
   }
+}
+
+class _BackendResolution {
+  const _BackendResolution({
+    required this.backend,
+    required this.backendReason,
+    required this.capability,
+    this.warningCode,
+    this.warningMessage,
+  });
+
+  final String backend;
+  final String backendReason;
+  final IosAlarmCapability capability;
+  final String? warningCode;
+  final String? warningMessage;
 }
 
 /// Tiny IO helper so fanout can write materialized assets without importing

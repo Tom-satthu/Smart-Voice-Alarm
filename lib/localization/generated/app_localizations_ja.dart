@@ -72,6 +72,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get alarmTypeLabel => 'アラームの種類';
 
   @override
+  String get mathChallengeTitle => '計算を解いてアラームを止める';
+
+  @override
+  String get mathChallengeDescription => 'オンの場合、アラームを止めるには計算問題に正解する必要があります。';
+
+  @override
   String get createAlarmTitle => '新しいアラーム';
 
   @override
@@ -251,7 +257,46 @@ class AppLocalizationsJa extends AppLocalizations {
   String get ttsSaved => '音声セグメントを保存しました';
 
   @override
+  String ttsCharCounter(int used, int max) {
+    return '$used/$max characters';
+  }
+
+  @override
+  String get ttsCharLimitReached =>
+      'Character limit reached for this language.';
+
+  @override
+  String get ttsPasteTooLongTitle => 'Paste exceeds limit';
+
+  @override
+  String ttsPasteTooLongBody(int max) {
+    return 'The paste is longer than $max characters. Insert only the first $max characters?';
+  }
+
+  @override
+  String get ttsPasteInsertPartial => 'Insert partial';
+
+  @override
+  String get ttsTooLongDuration =>
+      'Spoken audio is longer than 20 seconds. Shorten the text and try again.';
+
+  @override
+  String get ttsDurationChecking => 'Checking spoken length…';
+
+  @override
   String get recordTitle => '音声を録音';
+
+  @override
+  String recordTimerLabel(int used, int max) {
+    return '$used/$max seconds';
+  }
+
+  @override
+  String get recordAutoStopped => 'Recording stopped at 20 seconds.';
+
+  @override
+  String get recordLongClipWarning =>
+      'This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.';
 
   @override
   String get recordStart => '録音';
@@ -1002,6 +1047,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get premiumAnnualCancelInPlay => 'Google Playで管理またはキャンセルできます。';
 
   @override
+  String get premiumAnnualCancelInAppStore => 'App Storeで管理またはキャンセルできます。';
+
+  @override
   String get premiumAnnualAccess => 'サブスクリプションが有効な間は全機能を利用できます。';
 
   @override
@@ -1020,7 +1068,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get premiumProductUnavailable => '年間サブスクリプションはまだGoogle Playで利用できません。';
 
   @override
+  String get premiumProductUnavailableAppStore =>
+      '年間サブスクリプションはまだApp Storeで利用できません。';
+
+  @override
   String get premiumBillingUnavailable => 'Google Play Billingを現在利用できません。';
+
+  @override
+  String get premiumBillingUnavailableAppStore => 'App Storeでのお支払いは現在利用できません。';
 
   @override
   String get premiumPurchaseActive => 'Premiumは有効です';

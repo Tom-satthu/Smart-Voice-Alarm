@@ -8,14 +8,23 @@ import UserNotifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    SvaLaunchAudit.noteAppDelegateDidFinish()
+    SvaLaunchAudit.logBuildStampLine()
     SvaNotificationFanout.configureCategories()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    SvaLaunchAudit.noteFlutterEngineInit()
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    SvaLaunchAudit.notePluginRegister()
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "SvaAlarmBridge") {
       SvaAlarmBridge.register(with: registrar)
+    }
+    SvaAlarmKitUpdateObserver.shared.startIfNeeded()
+    // Review diagnostics only — production never auto-schedules.
+    if SvaBuildStampGenerated.diagStage.hasPrefix("R") {
+      SvaAlarmKitSoundExperiment.runPendingIfNeeded()
     }
   }
 

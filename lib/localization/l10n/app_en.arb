@@ -25,6 +25,8 @@
   "alarmTypeRingtone": "Ringtone",
   "alarmTypeMixed": "Mixed",
   "alarmTypeLabel": "Alarm type",
+  "mathChallengeTitle": "Solve math to stop alarm",
+  "mathChallengeDescription": "When on, you must solve a math problem correctly to stop the alarm.",
   "createAlarmTitle": "New Alarm",
   "editAlarmTitle": "Edit Alarm",
   "alarmTime": "Time",
@@ -91,7 +93,35 @@
   "ttsPreviewing": "Playing preview…",
   "ttsSave": "Save",
   "ttsSaved": "Voice segment saved",
+  "ttsCharCounter": "{used}/{max} characters",
+  "@ttsCharCounter": {
+    "placeholders": {
+      "used": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "ttsCharLimitReached": "Character limit reached for this language.",
+  "ttsPasteTooLongTitle": "Paste exceeds limit",
+  "ttsPasteTooLongBody": "The paste is longer than {max} characters. Insert only the first {max} characters?",
+  "@ttsPasteTooLongBody": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "ttsPasteInsertPartial": "Insert partial",
+  "ttsTooLongDuration": "Spoken audio is longer than 20 seconds. Shorten the text and try again.",
+  "ttsDurationChecking": "Checking spoken length…",
   "recordTitle": "Record Voice",
+  "recordTimerLabel": "{used}/{max} seconds",
+  "@recordTimerLabel": {
+    "placeholders": {
+      "used": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "recordAutoStopped": "Recording stopped at 20 seconds.",
+  "recordLongClipWarning": "This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.",
+
   "recordStart": "Record",
   "recordStop": "Stop",
   "recordPlay": "Play",
@@ -422,13 +452,16 @@
   "premiumAnnualPlan": "Premium annual plan",
   "premiumAnnualAutoRenew": "Automatically renews every year until cancelled.",
   "premiumAnnualCancelInPlay": "Manage or cancel through Google Play.",
+  "premiumAnnualCancelInAppStore": "Manage or cancel through the App Store.",
   "premiumAnnualAccess": "Full access continues while the subscription is active.",
   "premiumSubscribeAnnual": "Subscribe to Premium for one year",
   "premiumDefer": "Maybe later",
   "premiumRestoreTransactions": "Restore transactions",
   "premiumManageSubscription": "Manage subscription",
   "premiumProductUnavailable": "The annual subscription is not available from Google Play yet.",
+  "premiumProductUnavailableAppStore": "The annual subscription is not available from the App Store yet.",
   "premiumBillingUnavailable": "Google Play Billing is currently unavailable.",
+  "premiumBillingUnavailableAppStore": "App Store billing is currently unavailable.",
   "premiumPurchaseActive": "Premium is active",
   "premiumTrialExpiredTitle": "Your trial has ended",
   "premiumTrialExpiredBody": "Subscribe to continue using the main features. Existing alarms can still ring and can be disabled or deleted.",

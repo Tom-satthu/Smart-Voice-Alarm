@@ -38,8 +38,11 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    // Loaded synchronously from the repository in AlarmListController —
+    // empty means truly empty after load (no async loading flicker).
     final alarms = ref.watch(alarmListProvider);
     final canUseMainFeatures = ref.watch(canUseMainFeaturesProvider);
+    final hasAlarms = alarms.isNotEmpty;
 
     return AppScaffold(
       title: l10n.homeTitle,
@@ -50,14 +53,18 @@ class HomeScreen extends ConsumerWidget {
           icon: const Icon(Icons.settings_outlined),
         ),
       ],
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openCreate(context, ref),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(l10n.homeCreateAlarm),
-      ),
+      floatingActionButton: hasAlarms
+          ? FloatingActionButton.extended(
+              key: const ValueKey('home_create_alarm_fab'),
+              onPressed: () => _openCreate(context, ref),
+              icon: const Icon(Icons.add_rounded),
+              label: Text(l10n.homeCreateAlarm),
+            )
+          : null,
       body: ResponsiveCenter(
-        child: alarms.isEmpty
+        child: !hasAlarms
             ? EmptyStateView(
+                key: const ValueKey('home_empty_create_alarm'),
                 icon: Icons.alarm_add_rounded,
                 title: l10n.homeEmptyTitle,
                 subtitle: l10n.homeEmptySubtitle,

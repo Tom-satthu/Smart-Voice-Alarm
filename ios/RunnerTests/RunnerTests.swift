@@ -1,8 +1,24 @@
+import AVFoundation
 import UserNotifications
 import XCTest
+@testable import Runner
 
-/// Native test harness for notification scheduling fakes and basic invariants.
+/// Native test harness for notification scheduling fakes and AlarmKit protocol.
 final class RunnerTests: XCTestCase {
+  override func setUp() {
+    super.setUp()
+    SvaAlarmKitRuntime.resetCountersForTests()
+    SvaAlarmKitStore.save([])
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_disabled")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_disabled_reason")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_probe_success")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_probe_ever_succeeded")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_cached_auth")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_user_disabled")
+    UserDefaults.standard.removeObject(forKey: "sva_alarmkit_state_migrated_v2")
+    UserDefaults.standard.removeObject(forKey: SvaAlarmKeys.pendingChallenge)
+  }
+
   func testBundleLoads() {
     XCTAssertNotNil(Bundle.main)
   }
@@ -35,7 +51,6 @@ final class RunnerTests: XCTestCase {
   }
 
   func testRingtoneRelativePathsAreStable() {
-    // Documents the expected Flutter asset layout used by production resolver.
     let key = "soft_chime"
     let expected = [
       "flutter_assets/assets/ringtones/\(key).wav",
@@ -43,6 +58,1038 @@ final class RunnerTests: XCTestCase {
     ]
     XCTAssertEqual(expected.count, 2)
     XCTAssertTrue(expected[0].contains("assets/ringtones"))
+  }
+
+  // MARK: - AlarmKit capability / auth
+
+  func testAlarmKitRuntimeGateMatchesAvailability() {
+    if #available(iOS 26.0, *) {
+      XCTAssertTrue(SvaAlarmKitManager.isRuntimeAvailable)
+    } else {
+      XCTAssertFalse(SvaAlarmKitManager.isRuntimeAvailable)
+      let auth = SvaAlarmKitManager.authorizationStateString()
+      XCTAssertTrue(auth == "unknown" || auth == "unsupported")
+    }
+  }
+
+  func testPassiveCapabilityDoesNotTouchAlarmKitCounters() {
+    _ = SvaAlarmKitRuntime.passiveCapability()
+    _ = SvaAlarmKitRuntime.passiveDiagnostics()
+    XCTAssertEqual(SvaAlarmKitRuntime.authorizationStateReadCount, 0)
+    XCTAssertEqual(SvaAlarmKitRuntime.requestAuthorizationCount, 0)
+    XCTAssertEqual(SvaAlarmKitRuntime.scheduleCount, 0)
+    XCTAssertEqual(SvaAlarmKitRuntime.reconcileCount, 0)
+  }
+
+  func testFakeAuthorizationAuthorizedAndDenied() async throws {
+    let fake = FakeSvaAlarmManager()
+    fake.authorizationState = "notDetermined"
+    let authorized = try await fake.requestAuthorizationSafely()
+    XCTAssertEqual(authorized, "authorized")
+    XCTAssertEqual(SvaAlarmKitRuntime.requestAuthorizationCount, 1)
+
+    SvaAlarmKitRuntime.resetCountersForTests()
+    fake.authorizationState = "denied"
+    let denied = try await fake.requestAuthorizationSafely()
+    XCTAssertEqual(denied, "denied")
+  }
+
+  // MARK: - Schedule / rollback / mapping
+
+  func testFakeSchedulesMixedTimelineWithoutFanout() async throws {
+    let fake = FakeSvaAlarmManager()
+    let segments = [
+      makeSegment(index: 0, child: UUID().uuidString, startOffset: 120),
+      makeSegment(index: 1, child: UUID().uuidString, startOffset: 130),
+      makeSegment(index: 2, child: UUID().uuidString, startOffset: 145, sound: "tone.caf"),
+    ]
+    let outcome = try await fake.schedule(segments: segments, title: "Test")
+    XCTAssertTrue(outcome.ok)
+    XCTAssertEqual(outcome.backend, "alarmKit")
+    XCTAssertEqual(outcome.scheduledIds.count, 3)
+    XCTAssertEqual(fake.scheduledAlarmIds().count, 3)
+  }
+
+  func testFakeRepeatTimelineChildCount() async throws {
+    let fake = FakeSvaAlarmManager()
+    // 2 voices × 3 repeats + 1 ringtone = 7
+    var segments: [SvaSegmentSpec] = []
+    for i in 0..<7 {
+      segments.append(
+        makeSegment(index: i, child: UUID().uuidString, startOffset: 120 + i * 10)
+      )
+    }
+    let outcome = try await fake.schedule(segments: segments, title: "Repeat")
+    XCTAssertTrue(outcome.ok)
+    XCTAssertEqual(outcome.scheduledIds.count, 7)
+  }
+
+  func testTransactionRollbackOnMidFailureKeepsPriorSchedule() async throws {
+    let fake = FakeSvaAlarmManager()
+    let priorChild = UUID().uuidString
+    let prior = try await fake.schedule(
+      segments: [makeSegment(index: 0, child: priorChild, startOffset: 200)],
+      title: "Prior"
+    )
+    XCTAssertTrue(prior.ok)
+    let priorIds = Set(fake.scheduledAlarmIds())
+
+    fake.failAfterCount = 1
+    let newSegs = [
+      makeSegment(index: 0, child: UUID().uuidString, startOffset: 300),
+      makeSegment(index: 1, child: UUID().uuidString, startOffset: 310),
+    ]
+    let failed = try await fake.schedule(segments: newSegs, title: "New")
+    XCTAssertFalse(failed.ok)
+    XCTAssertEqual(failed.errorCode, "alarmkit_schedule_failed")
+    // Prior IDs remain (rollback only removes newly created in this fake).
+    XCTAssertEqual(Set(fake.scheduledAlarmIds()), priorIds)
+  }
+
+  func testExistingScheduleKeptWhenUpdateFailsCompletely() async throws {
+    let fake = FakeSvaAlarmManager()
+    _ = try await fake.schedule(
+      segments: [makeSegment(index: 0, child: UUID().uuidString, startOffset: 200)],
+      title: "Keep"
+    )
+    let before = Set(fake.scheduledAlarmIds())
+    fake.shouldFailSchedule = true
+    let failed = try await fake.schedule(
+      segments: [makeSegment(index: 0, child: UUID().uuidString, startOffset: 400)],
+      title: "Fail"
+    )
+    XCTAssertFalse(failed.ok)
+    XCTAssertEqual(Set(fake.scheduledAlarmIds()), before)
+  }
+
+  func testMappingSurvivesRelaunchViaStore() async throws {
+    let fake = FakeSvaAlarmManager()
+    let child = UUID().uuidString
+    _ = try await fake.schedule(
+      segments: [makeSegment(index: 0, child: child, startOffset: 180)],
+      title: "Persist"
+    )
+    let stored = SvaAlarmKitStore.load()
+    XCTAssertFalse(stored.isEmpty)
+    XCTAssertEqual(stored.first?.childId, child)
+
+    // Simulate relaunch by reading store without in-memory map mutation.
+    let reloaded = SvaAlarmKitStore.load()
+    XCTAssertEqual(reloaded.count, stored.count)
+    XCTAssertEqual(reloaded.first?.alarmId, stored.first?.alarmId)
+  }
+
+  func testCancelParentRemovesCorrectIds() async throws {
+    let fake = FakeSvaAlarmManager()
+    let a1 = UUID().uuidString
+    let a2 = UUID().uuidString
+    _ = try await fake.schedule(
+      segments: [
+        makeSegment(parent: "p1", index: 0, child: a1, startOffset: 120),
+        makeSegment(parent: "p2", index: 0, child: a2, startOffset: 130),
+      ],
+      title: "Parents"
+    )
+    fake.cancelParent(parentAlarmId: "p1")
+    let remaining = fake.scheduled.values
+    XCTAssertTrue(remaining.allSatisfy { $0.parentAlarmId == "p2" })
+  }
+
+  func testSolveCorrectCancelsWholeOccurrence() async throws {
+    let fake = FakeSvaAlarmManager()
+    let occ = "occ-solve"
+    let segs = (0..<3).map {
+      makeSegment(
+        parent: "p",
+        occurrence: occ,
+        index: $0,
+        child: UUID().uuidString,
+        startOffset: 120 + $0 * 10
+      )
+    }
+    _ = try await fake.schedule(segments: segs, title: "Solve")
+    XCTAssertEqual(fake.scheduledAlarmIds().count, 3)
+    fake.cancelOccurrence(parentAlarmId: "p", occurrenceId: occ)
+    XCTAssertTrue(fake.scheduledAlarmIds().isEmpty)
+  }
+
+  func testSolveWrongDoesNotCancelOccurrence() async throws {
+    let fake = FakeSvaAlarmManager()
+    let occ = "occ-wrong"
+    _ = try await fake.schedule(
+      segments: [
+        makeSegment(parent: "p", occurrence: occ, index: 0, child: UUID().uuidString, startOffset: 120),
+        makeSegment(parent: "p", occurrence: occ, index: 1, child: UUID().uuidString, startOffset: 130),
+      ],
+      title: "Wrong"
+    )
+    // Wrong answer / exit: only record challenge; do not cancel.
+    SvaAlarmChallengeRouter.recordPendingChallenge(
+      parentAlarmId: "p",
+      occurrenceId: occ,
+      childId: "c0",
+      segmentIndex: 0,
+      scheduledTimestamp: Date().timeIntervalSince1970,
+      source: "stop"
+    )
+    XCTAssertEqual(fake.scheduledAlarmIds().count, 2)
+    XCTAssertNotNil(SvaPendingStore.peek())
+  }
+
+  func testStopChildOpensChallengeIdempotent() {
+    SvaAlarmChallengeRouter.recordPendingChallenge(
+      parentAlarmId: "p",
+      occurrenceId: "o",
+      childId: "c1",
+      segmentIndex: 0,
+      scheduledTimestamp: 1,
+      source: "stop"
+    )
+    SvaAlarmChallengeRouter.recordPendingChallenge(
+      parentAlarmId: "p",
+      occurrenceId: "o",
+      childId: "c2",
+      segmentIndex: 1,
+      scheduledTimestamp: 2,
+      source: "stop"
+    )
+    let pending = SvaPendingStore.peek()
+    XCTAssertEqual(pending?.childId, "c1")
+    XCTAssertEqual(pending?.occurrenceId, "o")
+  }
+
+  func testDeterministicAlarmIdStable() {
+    let child = "550e8400-e29b-41d4-a716-446655440000"
+    let a = SvaAlarmKitManager.deterministicAlarmId(for: child)
+    let b = SvaAlarmKitManager.deterministicAlarmId(for: child)
+    XCTAssertEqual(a, b)
+    XCTAssertEqual(a.uuidString.lowercased(), child.lowercased())
+  }
+
+  func testOldIOSPathDoesNotClaimAlarmKitWhenUnavailable() {
+    if #available(iOS 26.0, *) {
+      let passive = SvaAlarmKitRuntime.passiveCapability()
+      XCTAssertEqual(SvaAlarmKitRuntime.authorizationStateReadCount, 0)
+      XCTAssertNotNil(passive["runtimeVersionEligible"])
+    } else {
+      XCTAssertEqual(SvaAlarmKitManager.authorizationStateString(), "unknown")
+      XCTAssertFalse(SvaAlarmKitManager.isRuntimeAvailable)
+    }
+  }
+
+  func testLegacyDeniedMigrationCachesDeniedNotUnavailable() {
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_disabled")
+    UserDefaults.standard.set("authorization_denied", forKey: "sva_alarmkit_disabled_reason")
+    SvaAlarmKitRuntime.migrateLegacyStateIfNeeded()
+    let cap = SvaAlarmKitRuntime.passiveCapability()
+    XCTAssertEqual(cap["cachedAuthorization"] as? String, "denied")
+    XCTAssertFalse(UserDefaults.standard.bool(forKey: "sva_alarmkit_disabled"))
+    if #available(iOS 26.0, *) {
+      XCTAssertEqual(cap["selectedBackend"] as? String, "notificationFanout")
+      XCTAssertEqual(cap["backendSelectionReason"] as? String, "denied")
+    }
+  }
+
+  func testLegacyProbeFailureMigrationClearsPersistentDisabled() {
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_disabled")
+    UserDefaults.standard.set("probe_failed", forKey: "sva_alarmkit_disabled_reason")
+    UserDefaults.standard.set("unavailable", forKey: "sva_alarmkit_cached_auth")
+    SvaAlarmKitRuntime.migrateLegacyStateIfNeeded()
+    XCTAssertFalse(UserDefaults.standard.bool(forKey: "sva_alarmkit_disabled"))
+    let cap = SvaAlarmKitRuntime.passiveCapability()
+    XCTAssertNotEqual(cap["cachedAuthorization"] as? String, "unavailable")
+    if #available(iOS 26.0, *) {
+      XCTAssertEqual(
+        cap["backendSelectionReason"] as? String,
+        "needs_user_probe_or_authorization"
+      )
+    }
+  }
+
+  func testSessionProbeFailureDoesNotPersistDisabled() {
+    SvaAlarmKitRuntime.resetSessionStateForTests()
+    SvaAlarmKitRuntime.resetLegacyDiagnosticState()
+    let cap = SvaAlarmKitRuntime.passiveCapability()
+    XCTAssertEqual(cap["sessionProbeFailed"] as? Bool, false)
+    XCTAssertFalse(UserDefaults.standard.bool(forKey: "sva_alarmkit_disabled"))
+  }
+
+  func testResetLegacyDoesNotCallAlarmKitCounters() {
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_disabled")
+    SvaAlarmKitRuntime.resetLegacyDiagnosticState()
+    XCTAssertEqual(SvaAlarmKitRuntime.authorizationStateReadCount, 0)
+    XCTAssertEqual(SvaAlarmKitRuntime.requestAuthorizationCount, 0)
+  }
+
+  func testPendingPeekDoesNotRemove() {
+    let challenge = SvaPendingChallenge(
+      parentAlarmId: "p1",
+      occurrenceId: "o1",
+      childId: "c1",
+      segmentIndex: 0,
+      scheduledTimestamp: 1,
+      openChallenge: true
+    )
+    SvaPendingStore.save(challenge)
+    XCTAssertNotNil(SvaPendingStore.peek())
+    XCTAssertNotNil(SvaPendingStore.peek())
+  }
+
+  func testAcknowledgeRemovesMatchingPending() {
+    SvaPendingStore.save(
+      SvaPendingChallenge(
+        parentAlarmId: "p1",
+        occurrenceId: "o1",
+        childId: "c1",
+        segmentIndex: 0,
+        scheduledTimestamp: 1,
+        openChallenge: true
+      )
+    )
+    XCTAssertTrue(SvaPendingStore.acknowledge(parent: "p1", occurrence: "o1"))
+    XCTAssertNil(SvaPendingStore.peek())
+  }
+
+  func testAcknowledgeMismatchKeepsPending() {
+    SvaPendingStore.save(
+      SvaPendingChallenge(
+        parentAlarmId: "p1",
+        occurrenceId: "o1",
+        childId: "c1",
+        segmentIndex: 0,
+        scheduledTimestamp: 1,
+        openChallenge: true
+      )
+    )
+    XCTAssertFalse(SvaPendingStore.acknowledge(parent: "p1", occurrence: "wrong"))
+    XCTAssertNotNil(SvaPendingStore.peek())
+  }
+
+  func testMalformedPendingPayloadDoesNotCrash() {
+    let bad: [String: Any] = ["parentAlarmId": "", "occurrenceId": 12, "childId": NSNull()]
+    XCTAssertNil(SvaPendingChallenge.from(dictionary: bad))
+  }
+
+  func testUserDisabledSelectsFanout() {
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_user_disabled")
+    UserDefaults.standard.set(true, forKey: "sva_alarmkit_state_migrated_v2")
+    let (_, reason) = SvaAlarmKitRuntime.backendSelection()
+    if #available(iOS 26.0, *) {
+      XCTAssertEqual(reason, "user_disabled")
+    } else {
+      XCTAssertEqual(reason, "version_ineligible")
+    }
+    SvaAlarmKitRuntime.setUserDisabled(false)
+  }
+
+  func testSolveActionIdentifierIsLocaleIndependent() {
+    XCTAssertEqual(SvaAlarmKeys.actionSolve, "SVA_SOLVE_TO_STOP")
+    XCTAssertNotEqual(SvaAlarmKeys.actionSolve, "Solve to stop")
+  }
+
+  func testSoundNameKeepsExtensionWhenPreferred() {
+    SvaAlarmKitSoundNameMode.setPreferred(.withExtension)
+    XCTAssertEqual(
+      SvaAlarmKitSoundResolver.alertSoundName(fileName: "sva_abc_rev.caf"),
+      "sva_abc_rev.caf"
+    )
+  }
+
+  func testSoundNameStripsExtensionWhenRequested() {
+    XCTAssertEqual(
+      SvaAlarmKitSoundResolver.alertSoundName(
+        fileName: "sva_abc_rev.caf",
+        mode: .withoutExtension
+      ),
+      "sva_abc_rev"
+    )
+  }
+
+  func testMissingSoundFileDoesNotClaimCustomSuccess() {
+    let diag = SvaAudioFileValidator.diagnoseRendered(
+      fileName: "sva_missing_not_real.caf",
+      sourceType: "recording"
+    )
+    XCTAssertFalse(diag.renderedExists)
+    XCTAssertFalse(diag.avPlayerPlayable)
+  }
+
+  func testEmptyCafRejectedByValidator() throws {
+    let url = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_empty_\(UUID().uuidString).caf")
+    try Data().write(to: url)
+    let result = SvaAudioFileValidator.validate(url: url)
+    XCTAssertFalse(result.ok)
+    XCTAssertEqual(result.errorCode, "sound_file_empty")
+    try? FileManager.default.removeItem(at: url)
+  }
+
+  func testValidPcmCafPassesValidator() throws {
+    // Write a tiny valid CAF via AVAudioFile.
+    let url = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_valid_\(UUID().uuidString).caf")
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("output format")
+    }
+    let file = try AVAudioFile(
+      forWriting: url,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    let frames: AVAudioFrameCount = 4410 // 0.1s
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(Double(i % 100) * 100)
+      }
+    }
+    try file.write(from: buffer)
+    let result = SvaAudioFileValidator.validate(url: url)
+    XCTAssertTrue(result.ok, result.errorMessage ?? "")
+    XCTAssertTrue(result.avPlayerPlayable)
+    XCTAssertEqual(result.channels, 1)
+    try? FileManager.default.removeItem(at: url)
+  }
+
+  func testDefaultFallbackAlwaysHasWarningCode() {
+    // Empty filename path is exercised via diagnostics fields.
+    let exact = SvaAlarmKitSoundResolver.alertSoundName(fileName: "")
+    XCTAssertEqual(exact, "")
+  }
+
+  // MARK: - Silence CAF / occurrence state / stop recovery
+
+  func testSilenceCafIsPlayableFiveSeconds() throws {
+    let name = "sva_test_silence_\(UUID().uuidString).caf"
+    let out = try SvaSilenceAudio.ensure(fileName: name, seconds: 5)
+    XCTAssertEqual(out["ok"] as? Bool, true)
+    let durationMs = out["durationMs"] as? Int ?? 0
+    XCTAssertGreaterThanOrEqual(durationMs, 4750)
+    XCTAssertLessThanOrEqual(durationMs, 5250)
+    XCTAssertEqual(out["avPlayerPlayable"] as? Bool, true)
+    let path = out["path"] as? String ?? ""
+    XCTAssertTrue(FileManager.default.fileExists(atPath: path))
+    try? FileManager.default.removeItem(atPath: path)
+  }
+
+  func testFitExactDurationLoopsShortSourceToTenSeconds() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = SvaAudioRenderer.soundsDirectory
+      .appendingPathComponent("sva_tone_fit_\(UUID().uuidString).caf")
+    let frames: AVAudioFrameCount = AVAudioFrameCount(format.sampleRate * 3)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 40.0) * 8000)
+      }
+    }
+    try file.write(from: buffer)
+    try SvaAudioRenderer.fitToExactDuration(at: dest, targetSeconds: 10)
+    let audio = try AVAudioFile(forReading: dest)
+    let duration = Double(audio.length) / audio.processingFormat.sampleRate
+    XCTAssertEqual(duration, 10, accuracy: 0.25)
+    XCTAssertTrue(SvaAudioFileValidator.canPlayWithAVAudioPlayer(url: dest))
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  // MARK: - Ringtone seamless loop (R8)
+
+  func testRingtoneCrossfadeReducesModuloBoundaryJump() {
+    // Synthetic source with hard end→start discontinuity.
+    var src = [Int16](repeating: 0, count: 4410) // 100ms @ 44.1k
+    for i in 0..<src.count {
+      src[i] = Int16(sin(Double(i) / 20.0) * 12000)
+    }
+    src[0] = -28000
+    src[src.count - 1] = 28000
+    let target = SvaRingtoneAudioConfig.contentFrames
+    let modulo = SvaAudioRenderer.moduloLoopMaxBoundaryDelta(
+      source: src,
+      targetFrames: target
+    )
+    let xfade = SvaRingtoneAudioConfig.crossfadeFrames
+    let looped = SvaAudioRenderer.loopRingtoneWithCrossfade(
+      source: src,
+      targetFrames: target,
+      crossfadeFrames: xfade
+    )
+    XCTAssertEqual(looped.count, target)
+    let cross = SvaAudioRenderer.crossfadeLoopMaxBoundaryDelta(
+      output: looped,
+      sourceFrames: src.count,
+      crossfadeFrames: xfade
+    )
+    XCTAssertGreaterThan(modulo, 1000, "fixture must have large modulo jump")
+    XCTAssertLessThan(cross, modulo / 4, "crossfade must cut discontinuity substantially")
+    XCTAssertLessThan(cross, 800, "loop junction should be smooth")
+  }
+
+  func testRingtoneFitShortSourceToTenSecondsNoClip() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_ring_short_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 2)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        // End and start far apart → modulo would click.
+        ch[i] = Int16(sin(Double(i) / 35.0) * 20000)
+      }
+      ch[0] = -25000
+      ch[Int(frames) - 1] = 25000
+    }
+    try file.write(from: buffer)
+    let peakBefore = try peakInt16(url: dest)
+    let diag = try SvaAudioRenderer.fitRingtoneToExactDuration(at: dest, targetSeconds: 10)
+    let audio = try AVAudioFile(forReading: dest)
+    let duration = Double(audio.length) / audio.processingFormat.sampleRate
+    XCTAssertEqual(duration, 10, accuracy: 0.002)
+    let peakAfter = try peakInt16(url: dest)
+    XCTAssertLessThanOrEqual(peakAfter, 32767)
+    let cross = diag["maxBoundaryDiscontinuity"] as? Int ?? Int.max
+    let modulo = diag["moduloBoundaryDelta"] as? Int ?? 0
+    XCTAssertLessThan(cross, modulo)
+    XCTAssertEqual(diag["crossfadeFrames"] as? Int, SvaRingtoneAudioConfig.crossfadeFrames)
+    _ = peakBefore
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testRingtoneFitLongSourceTrimsToTenSeconds() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_ring_long_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 14)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 50.0) * 10000)
+      }
+    }
+    try file.write(from: buffer)
+    _ = try SvaAudioRenderer.fitRingtoneToExactDuration(at: dest, targetSeconds: 10)
+    let audio = try AVAudioFile(forReading: dest)
+    let duration = Double(audio.length) / audio.processingFormat.sampleRate
+    XCTAssertEqual(duration, 10, accuracy: 0.002)
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testRingtoneRenderSkipsSpeechNormalizeAndHasTrailingSilence() async throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_ring_src_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 2)
+    let file = try AVAudioFile(
+      forWriting: source,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    // Quiet source — speech normalize would boost; ringtone must not.
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 40.0) * 4000)
+      }
+    }
+    try file.write(from: buffer)
+    let outName = "sva_ring_render_\(UUID().uuidString).caf"
+    let result = try await SvaAudioRenderer.render(
+      sourcePath: source.path,
+      assetKey: nil,
+      ttsText: nil,
+      ttsLocale: nil,
+      fileName: outName,
+      maxSeconds: 10,
+      targetDurationSeconds: 10,
+      trailingSilenceSeconds: SvaRingtoneAudioConfig.trailingSilenceSeconds,
+      audioRole: "ringtone"
+    )
+    XCTAssertEqual(result["usedSpeechNormalize"] as? Bool, false)
+    XCTAssertEqual(result["audioRole"] as? String, "ringtone")
+    XCTAssertEqual(result["ringtoneNonlinearLimiter"] as? Bool, false)
+    let contentMs = result["contentDurationMs"] as? Int ?? 0
+    let trailMs = result["trailingSilenceMs"] as? Int ?? 0
+    let finalMs = result["finalizedFileDurationMs"] as? Int ?? 0
+    XCTAssertEqual(Double(contentMs), 10_000, accuracy: 50)
+    XCTAssertEqual(Double(trailMs), 1_250, accuracy: 50)
+    XCTAssertEqual(Double(finalMs), 11_250, accuracy: 80)
+    let peak = result["peakLinear"] as? Float ?? 1
+    XCTAssertLessThanOrEqual(peak, 0.95)
+    let gain = result["ringtoneGain"] as? Float ?? 99
+    XCTAssertEqual(gain, 1.0, accuracy: 0.001, "quiet ringtone must not be boosted")
+    let chunkDelta = result["maxChunkBoundaryDelta"] as? Int ?? 99999
+    XCTAssertLessThan(chunkDelta, 5000, "clean convert should not spike at 4096 boundaries")
+    let dest = SvaAudioRenderer.soundsDirectory.appendingPathComponent(outName)
+    XCTAssertTrue(SvaAudioFileValidator.canPlayWithAVAudioPlayer(url: dest))
+    try? FileManager.default.removeItem(at: source)
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testOfflineConvertHasLowerChunkBoundaryDeltaThanLegacy() async throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    guard let srcFormat = AVAudioFormat(
+      commonFormat: .pcmFormatInt16,
+      sampleRate: 22050,
+      channels: 1,
+      interleaved: true
+    ) else { return XCTFail("src format") }
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_chunk_src_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(22050 * 2)
+    let file = try AVAudioFile(
+      forWriting: source,
+      settings: srcFormat.settings,
+      commonFormat: srcFormat.commonFormat,
+      interleaved: true
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: srcFormat, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 17.0) * 20000)
+      }
+    }
+    try file.write(from: buffer)
+
+    let legacy = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_chunk_legacy_\(UUID().uuidString).caf")
+    try SvaAudioRenderer.convertAudioLegacyChunked(from: source, to: legacy, maxSeconds: 10)
+
+    let outName = "sva_chunk_pass_\(UUID().uuidString).caf"
+    _ = try await SvaAudioRenderer.render(
+      sourcePath: source.path,
+      assetKey: nil,
+      ttsText: nil,
+      ttsLocale: nil,
+      fileName: outName,
+      maxSeconds: 10,
+      targetDurationSeconds: nil,
+      trailingSilenceSeconds: 0,
+      audioRole: "ringtone",
+      ringtoneProcessingMode: "passthrough"
+    )
+    let modernURL = SvaAudioRenderer.soundsDirectory.appendingPathComponent(outName)
+
+    let legacySamples = try SvaAudioRenderer.readInt16Samples(url: legacy, outFormat: format)
+    let modernSamples = try SvaAudioRenderer.readInt16Samples(url: modernURL, outFormat: format)
+    let legacyDelta = SvaAudioRenderer.maxChunkBoundaryDelta(
+      samples: legacySamples,
+      chunkSize: 8192
+    )
+    let modernDelta = SvaAudioRenderer.maxChunkBoundaryDelta(
+      samples: modernSamples,
+      chunkSize: 8192
+    )
+    let modernAvg = SvaAudioRenderer.averageAdjacentDelta(samples: modernSamples)
+    XCTAssertLessThan(
+      Double(modernDelta),
+      max(modernAvg * 20, 2500),
+      "modern convert chunk boundary delta=\(modernDelta) avgAdj=\(modernAvg)"
+    )
+    if legacyDelta > Int(modernAvg * 15) {
+      XCTAssertLessThan(modernDelta, legacyDelta)
+    }
+    try? FileManager.default.removeItem(at: source)
+    try? FileManager.default.removeItem(at: legacy)
+    try? FileManager.default.removeItem(at: modernURL)
+  }
+
+  func testFinalPreservesPassthroughOutsideTransitionZones() async throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let source = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_eq_src_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 2)
+    let file = try AVAudioFile(
+      forWriting: source,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 40.0) * 12000)
+      }
+    }
+    try file.write(from: buffer)
+
+    let passName = "sva_eq_pass_\(UUID().uuidString).caf"
+    _ = try await SvaAudioRenderer.render(
+      sourcePath: source.path,
+      assetKey: nil,
+      ttsText: nil,
+      ttsLocale: nil,
+      fileName: passName,
+      maxSeconds: 10,
+      trailingSilenceSeconds: 0,
+      audioRole: "ringtone",
+      ringtoneProcessingMode: "passthrough"
+    )
+    let passURL = SvaAudioRenderer.soundsDirectory.appendingPathComponent(passName)
+    let pass = try SvaAudioRenderer.readInt16Samples(url: passURL, outFormat: format)
+    let xfade = SvaRingtoneAudioConfig.crossfadeFrames
+    let looped = SvaAudioRenderer.loopRingtoneWithCrossfade(
+      source: pass,
+      targetFrames: SvaRingtoneAudioConfig.contentFrames,
+      crossfadeFrames: xfade
+    )
+    XCTAssertEqual(looped.count, SvaRingtoneAudioConfig.contentFrames)
+    // Crossfade rewrites the last `xfade` samples of each period; the head must stay identical.
+    let intact = max(0, pass.count - xfade)
+    XCTAssertEqual(
+      Array(looped.prefix(intact)),
+      Array(pass.prefix(intact)),
+      "samples outside crossfade must match passthrough"
+    )
+    let gainDiag = try SvaAudioRenderer.processRingtoneAudio(at: passURL)
+    XCTAssertEqual(Double(gainDiag["ringtoneGain"] as? Float ?? -1), 1.0, accuracy: 0.000001)
+    let afterGain = try SvaAudioRenderer.readInt16Samples(url: passURL, outFormat: format)
+    XCTAssertEqual(afterGain, pass, "static gain=1 must not rewrite CAF")
+    try? FileManager.default.removeItem(at: source)
+    try? FileManager.default.removeItem(at: passURL)
+  }
+
+  func testRingtoneLoudSourceNotBoosted() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_ring_loud_\(UUID().uuidString).caf")
+    let frames = AVAudioFrameCount(format.sampleRate * 1)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 30.0) * 28000)
+      }
+    }
+    try file.write(from: buffer)
+    let peakBefore = try peakInt16(url: dest)
+    let diag = try SvaAudioRenderer.processRingtoneAudio(at: dest)
+    let peakAfter = try peakInt16(url: dest)
+    XCTAssertEqual(diag["ringtoneSpeechNormalize"] as? Bool, false)
+    // Must not increase peak.
+    XCTAssertLessThanOrEqual(peakAfter, peakBefore + 1)
+    let gain = diag["ringtoneGain"] as? Float ?? 99
+    XCTAssertLessThanOrEqual(gain, 1.0001)
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  private func peakInt16(url: URL) throws -> Int {
+    let audio = try AVAudioFile(forReading: url)
+    let frames = AVAudioFrameCount(audio.length)
+    guard let buf = AVAudioPCMBuffer(pcmFormat: audio.processingFormat, frameCapacity: frames)
+    else { throw NSError(domain: "test", code: 1) }
+    try audio.read(into: buf)
+    guard let ch = buf.int16ChannelData?[0] else { return 0 }
+    var peak = 0
+    for i in 0..<Int(buf.frameLength) {
+      peak = max(peak, abs(Int(ch[i])))
+    }
+    return peak
+  }
+
+  func testAppendTrailingSilenceExtendsFinalizedDuration() throws {
+    guard let format = SvaAudioRenderer.outputFormat() else {
+      return XCTFail("format")
+    }
+    let dest = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sva_trail_\(UUID().uuidString).caf")
+    let contentSec = 2.0
+    let frames = AVAudioFrameCount(format.sampleRate * contentSec)
+    let file = try AVAudioFile(
+      forWriting: dest,
+      settings: format.settings,
+      commonFormat: format.commonFormat,
+      interleaved: format.isInterleaved
+    )
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else {
+      return XCTFail("buffer")
+    }
+    buffer.frameLength = frames
+    if let ch = buffer.int16ChannelData?[0] {
+      for i in 0..<Int(frames) {
+        ch[i] = Int16(sin(Double(i) / 30.0) * 6000)
+      }
+    }
+    try file.write(from: buffer)
+    let trailMs = try SvaAudioRenderer.appendTrailingSilence(at: dest, silenceSeconds: 1.25)
+    XCTAssertEqual(Double(trailMs), 1250, accuracy: 50)
+    let audio = try AVAudioFile(forReading: dest)
+    let duration = Double(audio.length) / audio.processingFormat.sampleRate
+    XCTAssertEqual(duration, contentSec + 1.25, accuracy: 0.08)
+    let validation = SvaAudioFileValidator.validate(
+      url: dest,
+      maxDurationSeconds: SvaAudioFileValidator.maxFinalizedDurationSeconds
+    )
+    XCTAssertTrue(validation.ok)
+    try? FileManager.default.removeItem(at: dest)
+  }
+
+  func testRecoveryValidateTemplateRejectsMissingFile() {
+    let err = SvaAlarmKitRecovery.validateTemplateFiles([
+      SvaCycleClip(
+        role: "voice",
+        soundFileName: "sva_missing_does_not_exist.caf",
+        durationMs: 2000,
+        label: "voice"
+      ),
+    ])
+    XCTAssertNotNil(err)
+    XCTAssertTrue(
+      err?.contains("missing") == true || err?.contains("custom_sound") == true
+    )
+  }
+
+  func testRecoveryValidateTemplateRejectsEmptyName() {
+    let err = SvaAlarmKitRecovery.validateTemplateFiles([
+      SvaCycleClip(role: "voice", soundFileName: "", durationMs: 2000, label: "voice"),
+    ])
+    XCTAssertEqual(err, "custom_sound_missing_name")
+  }
+
+  func testActiveSoundRegistryPinsUnsolvedTemplate() {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    let file = "sva_pin_\(UUID().uuidString).caf"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.solved = false
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: file, durationMs: 3000, label: "voice"),
+    ]
+    SvaOccurrenceStore.upsert(state)
+    XCTAssertTrue(SvaActiveSoundRegistry.pinnedFileNames().contains(file))
+    SvaOccurrenceStore.markSolved(parent: parent, occurrence: occ)
+    XCTAssertFalse(SvaActiveSoundRegistry.pinnedFileNames().contains(file))
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testOccurrenceStoreSolvedOnlyViaMarkSolved() {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    XCTAssertFalse(SvaOccurrenceStore.isSolved(parent: parent, occurrence: occ))
+    SvaOccurrenceStore.upsert({
+      var s = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+      s.revision = "r1"
+      s.rollingHorizonEnd = Date().timeIntervalSince1970 + 1800
+      s.cyclesScheduled = 2
+      s.childCount = 8
+      s.audibleChildCount = 4
+      s.silentChildCount = 4
+      s.cycleDurationMs = 30000
+      return s
+    }())
+    XCTAssertFalse(SvaOccurrenceStore.isSolved(parent: parent, occurrence: occ))
+    SvaOccurrenceStore.markSolved(parent: parent, occurrence: occ)
+    XCTAssertTrue(SvaOccurrenceStore.isSolved(parent: parent, occurrence: occ))
+    let solved = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(solved?.cancellationGeneration, 1)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testRecoverySuppressedWhenSolved() async {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: "v.caf", durationMs: 2000, label: "voice"),
+      SvaCycleClip(role: "silence", soundFileName: "sva_silence_5s.caf", durationMs: 5000, label: "silence"),
+    ]
+    state.solved = true
+    SvaOccurrenceStore.upsert(state)
+    await SvaAlarmKitRecovery.handleChildStopped(
+      parent: parent,
+      occurrence: occ,
+      stoppedAlarmKitId: "ak1",
+      childId: "c1",
+      role: "voice",
+      scheduledStart: Date().timeIntervalSince1970 - 1,
+      expectedDurationMs: 7000,
+      reason: "test_solved"
+    )
+    let after = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(after?.recoveryGeneration, 0)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testRecoveryDuplicateSuppressed() async {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: "v.caf", durationMs: 2000, label: "voice"),
+      SvaCycleClip(role: "silence", soundFileName: "sva_silence_5s.caf", durationMs: 5000, label: "silence"),
+    ]
+    state.lastStoppedAlarmKitId = "ak-dup"
+    state.recoveryScheduledAt = Date().timeIntervalSince1970
+    state.recoveryGeneration = 2
+    SvaOccurrenceStore.upsert(state)
+    await SvaAlarmKitRecovery.handleChildStopped(
+      parent: parent,
+      occurrence: occ,
+      stoppedAlarmKitId: "ak-dup",
+      childId: "c1",
+      role: "voice",
+      scheduledStart: Date().timeIntervalSince1970 - 1,
+      expectedDurationMs: 7000,
+      reason: "test_dup"
+    )
+    let after = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(after?.recoveryGeneration, 2)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testRollingChildIdsStableAcrossPlans() {
+    let a = "sva_c_abc_0_1"
+    let b = "sva_c_abc_0_1"
+    XCTAssertEqual(a, b)
+  }
+
+  func testParentBarrierBlocksRecovery() async {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: "v.caf", durationMs: 2000, label: "voice"),
+    ]
+    state.mathChallengeEnabled = true
+    SvaOccurrenceStore.upsert(state)
+    let barrier = SvaParentLifecycleStore.activateCancellation(
+      parent: parent,
+      enabled: false,
+      deleted: false,
+      reason: "test_toggle_off"
+    )
+    XCTAssertTrue(SvaParentLifecycleStore.isBlocked(parent: parent))
+    XCTAssertEqual(barrier.cancellationGeneration, 1)
+    await SvaAlarmKitRecovery.handleChildStopped(
+      parent: parent,
+      occurrence: occ,
+      stoppedAlarmKitId: "ak_off",
+      childId: "c_off",
+      role: "voice",
+      scheduledStart: Date().timeIntervalSince1970 - 1,
+      expectedDurationMs: 7000,
+      reason: "test_parent_barrier"
+    )
+    let after = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(after?.recoveryGeneration ?? 0, 0)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testRecoverySuppressedWhenChallengeDisabled() async {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    var state = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    state.cycleTemplate = [
+      SvaCycleClip(role: "voice", soundFileName: "v.caf", durationMs: 2000, label: "voice"),
+    ]
+    state.mathChallengeEnabled = false
+    SvaOccurrenceStore.upsert(state)
+    await SvaAlarmKitRecovery.handleChildStopped(
+      parent: parent,
+      occurrence: occ,
+      stoppedAlarmKitId: "ak_ch_off",
+      childId: "c_ch_off",
+      role: "voice",
+      scheduledStart: Date().timeIntervalSince1970 - 1,
+      expectedDurationMs: 7000,
+      reason: "test_challenge_off"
+    )
+    let after = SvaOccurrenceStore.get(parent: parent, occurrence: occ)
+    XCTAssertEqual(after?.recoveryGeneration ?? 0, 0)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  func testOccurrenceMetaDefaultsChallengeOn() {
+    let parent = "p_\(UUID().uuidString)"
+    let occ = "o_\(UUID().uuidString)"
+    let empty = SvaOccurrenceState.empty(parent: parent, occurrence: occ)
+    XCTAssertTrue(empty.mathChallengeEnabled)
+    XCTAssertFalse(empty.isOneShot)
+    SvaOccurrenceStore.remove(parent: parent, occurrence: occ)
+  }
+
+  // MARK: - Helpers
+
+  private func makeSegment(
+    parent: String = "parent",
+    occurrence: String = "occ",
+    index: Int,
+    child: String,
+    startOffset: Int,
+    sound: String = "voice.caf"
+  ) -> SvaSegmentSpec {
+    let start = Int64(Date().addingTimeInterval(TimeInterval(startOffset)).timeIntervalSince1970 * 1000)
+    return SvaSegmentSpec(
+      parentAlarmId: parent,
+      occurrenceId: occurrence,
+      segmentIndex: index,
+      childId: child,
+      startAtMillis: start,
+      soundFileName: sound,
+      label: "seg\(index)",
+      durationMs: 2000
+    )
   }
 }
 

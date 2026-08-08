@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:smart_voice_alarm/core/services/ios_alarm_segment_planner.dart';
+import 'package:smart_voice_alarm/core/services/ios_alarm_scheduler.dart';
 import 'package:smart_voice_alarm/core/services/platform_attribution.dart';
 import 'package:smart_voice_alarm/shared/models/ui_models.dart';
 import 'package:smart_voice_alarm/shared/widgets/app_widgets.dart';
 
 void main() {
   group('IosAlarmSegmentPlanner', () {
-    test('uses actualDuration + 5 seconds between segments', () {
+    test('uses actualDuration + silence between segments', () {
       final planner = IosAlarmSegmentPlanner();
       final alarm = AlarmUiModel(
         id: 'a1',
@@ -20,7 +21,7 @@ void main() {
         repeatCount: 1,
       );
       final start = DateTime(2026, 8, 5, 7, 0);
-      final segments = planner.plan(
+      final plan = planner.plan(
         alarm: alarm,
         occurrenceId: 'occ',
         occurrenceStart: start,
@@ -40,18 +41,32 @@ void main() {
             duration: const Duration(seconds: 12),
           ),
         ],
+        maxCyclesOverride: 1,
       );
 
-      expect(segments.length, 3);
+      final segments = plan.segments;
+      expect(segments.length, 6);
       expect(segments[0].startAt, start);
-      expect(segments[1].startAt, start.add(const Duration(seconds: 10 + 5)));
+      expect(segments[1].role, IosSegmentRole.silence);
       expect(
         segments[2].startAt,
-        start.add(const Duration(seconds: 10 + 5 + 8 + 5)),
+        start.add(const Duration(seconds: 10)).add(const Duration(seconds: 5)),
+      );
+      expect(
+        segments[4].startAt,
+        start
+            .add(const Duration(seconds: 10))
+            .add(const Duration(seconds: 5))
+            .add(const Duration(seconds: 8))
+            .add(const Duration(seconds: 5)),
+      );
+      expect(
+        segments[4].duration,
+        const Duration(seconds: 10) + const Duration(milliseconds: 1250),
       );
     });
 
-    test('clamps voice clips to 20 seconds', () {
+    test('clamps oversized voice clips to content max + trailing', () {
       final planner = IosAlarmSegmentPlanner();
       final alarm = AlarmUiModel(
         id: 'a1',
@@ -62,7 +77,7 @@ void main() {
         label: 'Test',
         repeatCount: 1,
       );
-      final segments = planner.plan(
+      final plan = planner.plan(
         alarm: alarm,
         occurrenceId: 'occ',
         occurrenceStart: DateTime(2026, 8, 5, 7),
@@ -73,25 +88,27 @@ void main() {
           ),
         ],
         ringtoneClips: const [],
+        maxCyclesOverride: 1,
       );
-      expect(segments.single.duration, const Duration(seconds: 20));
+      expect(
+        plan.segments.first.duration,
+        const Duration(seconds: 20) +
+            const Duration(milliseconds: 1250) +
+            const Duration(seconds: 1),
+      );
     });
   });
 
   group('new alarm defaults', () {
-    test('expected defaults are 7 days and Combined', () {
-      final days = {
-        Weekday.monday,
-        Weekday.tuesday,
-        Weekday.wednesday,
-        Weekday.thursday,
-        Weekday.friday,
-        Weekday.saturday,
-        Weekday.sunday,
-      };
-      expect(days.length, 7);
-      expect(AlarmType.mixed, isNot(AlarmType.voice));
-    });
+    test(
+      'new alarms default to empty weekday repeat (one-shot) and Combined',
+      () {
+        // Matches CreateAlarmScreen initial state after weekday UI removal.
+        const days = <Weekday>{};
+        expect(days, isEmpty);
+        expect(AlarmType.mixed, isNot(AlarmType.voice));
+      },
+    );
   });
 
   group('PlatformAttribution', () {

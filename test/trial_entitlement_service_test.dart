@@ -179,6 +179,33 @@ void main() {
       expect(state.usingCachedSubscription, isTrue);
     });
 
+    test('iOS deferred-sync signal within grace keeps subscription active '
+        '(relaunch/resume before the 3-day grace expires)', () async {
+      final verified = epoch.add(const Duration(days: 8));
+      final store = _MemoryTrialStore(
+        startedAt: epoch,
+        expiredPermanently: true,
+        cachedActive: true,
+        lastVerifiedAt: verified,
+      );
+      final service = TrialEntitlementService(
+        store: store,
+        clock: () => verified.add(const Duration(days: 2)),
+      );
+      await service.initializeSuccessfulLaunch();
+
+      // The real iOS gateway can never answer synchronously; it reports
+      // `unavailable` while a StoreKit sync is triggered in the
+      // background. Within the offline grace window this must not lock
+      // out a genuinely active subscriber.
+      final state = await service.applySubscriptionVerification(
+        SubscriptionVerificationResult.unavailable,
+      );
+      expect(state.status, EntitlementStatus.subscriptionActive);
+      expect(state.usingCachedSubscription, isTrue);
+      expect(state.hasFullAccess, isTrue);
+    });
+
     test('expired cache does not grant Premium when Billing fails', () async {
       final verified = epoch.add(const Duration(days: 8));
       final store = _MemoryTrialStore(

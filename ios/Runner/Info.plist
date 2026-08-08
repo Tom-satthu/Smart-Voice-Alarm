@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>Smart Voice Alarm schedules system alarms so your voice segments and ringtones can ring on the Lock Screen.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Smart Voice Alarm needs the microphone to record voice segments for your alarms.</string>
 	<key>UIApplicationSceneManifest</key>

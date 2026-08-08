@@ -208,21 +208,30 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
     }
   }
 
+  Future<void> _openAddVoice() async {
+    if (!mounted) return;
+    await context.push(AppRoutes.addVoicePath(_sequenceId));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final sequence = ref.watch(voiceSequenceProvider(_sequenceId));
     final segments = sequence.segments;
     final entitlement = ref.watch(trialEntitlementProvider);
+    final hasSegments = segments.isNotEmpty;
 
     return AppScaffold(
       showBack: true,
       title: l10n.voiceSequenceTitle,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addVoicePath(_sequenceId)),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(l10n.voiceSequenceAdd),
-      ),
+      floatingActionButton: hasSegments
+          ? FloatingActionButton.extended(
+              key: const ValueKey('voice_sequence_add_fab'),
+              onPressed: _openAddVoice,
+              icon: const Icon(Icons.add_rounded),
+              label: Text(l10n.voiceSequenceAdd),
+            )
+          : null,
       body: ResponsiveCenter(
         child: Column(
           children: [
@@ -232,14 +241,14 @@ class _VoiceSequenceScreenState extends ConsumerState<VoiceSequenceScreen> {
                 child: _TrialStatusCard(entitlement: entitlement),
               ),
             Expanded(
-              child: segments.isEmpty
+              child: !hasSegments
                   ? EmptyStateView(
+                      key: const ValueKey('voice_sequence_empty'),
                       icon: Icons.mic_none_rounded,
                       title: l10n.voiceSequenceEmptyTitle,
                       subtitle: l10n.voiceSequenceEmptySubtitle,
                       actionLabel: l10n.voiceSequenceAdd,
-                      onAction: () =>
-                          context.push(AppRoutes.addVoicePath(_sequenceId)),
+                      onAction: _openAddVoice,
                     )
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

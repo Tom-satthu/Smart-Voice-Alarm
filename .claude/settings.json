@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dart format)",
+      "Bash(dart format *)",
+      "Bash(flutter analyze)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter test)",
+      "Bash(flutter test *)",
+      "Bash(flutter devices)",
+      "Bash(flutter devices *)",
+      "Bash(flutter doctor)",
+      "Bash(flutter doctor *)",
+      "Bash(flutter pub get)",
+      "Bash(flutter build ios --release --no-codesign)",
+      "Bash(pod install)",
+      "Bash(pod install *)",
+      "Bash(xcodebuild test *)"
+    ],
+    "ask": [
+      "Bash(git merge *)",
+      "Bash(git rebase *)",
+      "Bash(git reset *)",
+      "Bash(git reset --hard*)",
+      "Bash(git push --force*)",
+      "Bash(git push *--force*)",
+      "Bash(git push *-f *)",
+      "Bash(git clean *)",
+      "Bash(git checkout -- *)",
+      "Bash(git restore *)",
+      "Bash(git branch -D *)",
+      "Bash(git branch -d *)",
+      "Bash(gh pr merge *)",
+      "Bash(sudo *)",
+      "Edit(ios/Runner.xcodeproj/**)",
+      "Edit(ios/**/*.entitlements)",
+      "Edit(ios/**/*.mobileprovision)",
+      "Edit(ios/**/ExportOptions.plist)",
+      "Edit(ios/Runner/Info.plist)",
+      "Edit(pubspec.yaml)",
+      "Edit(lib/core/constants/app_constants.dart)",
+      "Edit(android/app/build.gradle)",
+      "Edit(android/app/build.gradle.kts)"
+    ]
+  }
+}

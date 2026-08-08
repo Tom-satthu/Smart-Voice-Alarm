@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 import 'package:smart_voice_alarm/core/constants/app_constants.dart';
 import 'package:smart_voice_alarm/core/services/premium_purchase_service.dart';
 import 'package:smart_voice_alarm/core/services/trial_entitlement_service.dart';
@@ -154,6 +156,200 @@ void main() {
         expect(service.state.status, PurchaseFlowStatus.restored);
       },
     );
+
+    test('purchase error status never grants access', () async {
+      await service.init();
+      gateway.emit([_purchase(BillingPurchaseStatus.error)]);
+      await _eventLoop();
+      expect(service.state.verification, SubscriptionVerificationResult.failed);
+      expect(service.state.isSubscriptionActive, isFalse);
+    });
+
+    test(
+      'purchase listener is attached before the first entitlement query',
+      () async {
+        await service.init();
+        expect(gateway.callOrder.first, 'listen');
+        expect(gateway.callOrder, contains('queryCurrentPurchases'));
+        expect(
+          gateway.callOrder.indexOf('listen'),
+          lessThan(gateway.callOrder.indexOf('queryCurrentPurchases')),
+        );
+      },
+    );
+
+    test('iOS transaction-query transport failure is unavailable, not a hard '
+        'failure, and does not clear an active purchase state that is still '
+        'valid', () async {
+      // Prime an active purchase via the stream first, as a real
+      // purchase or restore event would.
+      await service.init();
+      gateway.emit([
+        _purchase(BillingPurchaseStatus.purchased, pendingComplete: false),
+      ]);
+      await _eventLoop();
+      expect(service.state.verification, SubscriptionVerificationResult.active);
+
+      // Simulate the real iOS gateway when SK2Transaction.transactions()
+      // itself throws (channel/plugin error) — see
+      // InAppPurchaseBillingGateway.iosEntitlementQueryFailedCode. This
+      // is a transport failure, never a claim that the subscription is
+      // inactive.
+      gateway.queryCurrentPurchasesOverride = const BillingQueryResult.failure(
+        InAppPurchaseBillingGateway.iosEntitlementQueryFailedCode,
+      );
+      await service.syncEntitlementsFromStore();
+
+      expect(
+        service.state.verification,
+        SubscriptionVerificationResult.unavailable,
+      );
+      expect(service.state.status, isNot(PurchaseFlowStatus.error));
+      expect(service.state.errorMessage, isNull);
+    });
+
+    test('a genuine query failure (not the iOS transport marker) still reports '
+        'failed', () async {
+      await service.init();
+      gateway.queryCurrentPurchasesOverride = const BillingQueryResult.failure(
+        'current_query_failed',
+      );
+      await service.syncEntitlementsFromStore();
+      expect(service.state.verification, SubscriptionVerificationResult.failed);
+      expect(service.state.status, PurchaseFlowStatus.error);
+    });
+  });
+
+  group('AppStore.sync() call-site invariant', () {
+    // No real StoreKit runtime is available in unit tests, so this checks
+    // the invariant structurally against the actual source instead of
+    // behaviorally — see the final report for why this still needs a real
+    // device/TestFlight pass to fully confirm.
+    test('sync() is only reachable from restorePurchases(), never from '
+        'queryCurrentPurchases (the startup/resume path)', () {
+      final source = File(
+        'lib/core/services/premium_purchase_service.dart',
+      ).readAsStringSync();
+
+      final queryStart = source.indexOf('queryCurrentPurchases() async {');
+      final queryEnd = source.indexOf(
+        '\n  /// Picks the most recent',
+        queryStart,
+      );
+      expect(queryStart, greaterThan(-1));
+      expect(queryEnd, greaterThan(queryStart));
+      expect(
+        source.substring(queryStart, queryEnd).contains('.sync()'),
+        isFalse,
+      );
+
+      final restoreStart = source.indexOf(
+        'Future<void> restorePurchases() async {',
+      );
+      final restoreEnd = source.indexOf('\n  }', restoreStart);
+      expect(restoreStart, greaterThan(-1));
+      expect(restoreEnd, greaterThan(restoreStart));
+      expect(
+        source.substring(restoreStart, restoreEnd).contains('.sync()'),
+        isTrue,
+      );
+
+      // Exactly one call site in the whole file — count only executable
+      // lines, ignoring `//` comments (which mention "sync()" in prose).
+      final codeOnly = source
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => !line.startsWith('//'))
+          .join('\n');
+      expect('.sync()'.allMatches(codeOnly).length, 1);
+    });
+  });
+
+  group('InAppPurchaseBillingGateway.activeIosPurchasesFrom', () {
+    SK2Transaction transaction({
+      String productId = AppConstants.premiumSubscriptionId,
+      String id = 'txn-1',
+      String? expirationDate,
+    }) => SK2Transaction(
+      id: id,
+      originalId: id,
+      productId: productId,
+      purchaseDate: '2026-01-01 00:00:00',
+      expirationDate: expirationDate,
+      appAccountToken: null,
+    );
+
+    String isoIn(Duration delta) =>
+        DateTime.now().add(delta).toString().substring(0, 19);
+
+    test('active transaction with a future expiration is active', () {
+      final result = InAppPurchaseBillingGateway.activeIosPurchasesFrom([
+        transaction(expirationDate: isoIn(const Duration(days: 200))),
+      ]);
+      expect(result, hasLength(1));
+      expect(result.single.status, BillingPurchaseStatus.purchased);
+      expect(result.single.purchaseToken, isNotEmpty);
+    });
+
+    test('a transaction past its expirationDate is not active', () {
+      final result = InAppPurchaseBillingGateway.activeIosPurchasesFrom([
+        transaction(expirationDate: isoIn(const Duration(days: -1))),
+      ]);
+      expect(result, isEmpty);
+    });
+
+    test('a cancelled-but-still-paid transaction stays active until '
+        'expiration (no separate "auto-renew off" handling needed)', () {
+      final result = InAppPurchaseBillingGateway.activeIosPurchasesFrom([
+        transaction(expirationDate: isoIn(const Duration(days: 30))),
+      ]);
+      expect(result, hasLength(1));
+    });
+
+    test('wrong product id is never active', () {
+      final result = InAppPurchaseBillingGateway.activeIosPurchasesFrom([
+        transaction(
+          productId: 'premium_monthly',
+          expirationDate: isoIn(const Duration(days: 30)),
+        ),
+      ]);
+      expect(result, isEmpty);
+    });
+
+    test('missing or unparseable expirationDate never grants access', () {
+      expect(
+        InAppPurchaseBillingGateway.activeIosPurchasesFrom([
+          transaction(expirationDate: null),
+        ]),
+        isEmpty,
+      );
+      expect(
+        InAppPurchaseBillingGateway.activeIosPurchasesFrom([
+          transaction(expirationDate: 'not-a-date'),
+        ]),
+        isEmpty,
+      );
+    });
+
+    test('multiple transactions for the product: the latest expiration wins '
+        '(renewal case)', () {
+      final result = InAppPurchaseBillingGateway.activeIosPurchasesFrom([
+        transaction(
+          id: 'old',
+          expirationDate: isoIn(const Duration(days: -400)),
+        ),
+        transaction(
+          id: 'current',
+          expirationDate: isoIn(const Duration(days: 300)),
+        ),
+      ]);
+      expect(result, hasLength(1));
+      expect(result.single.purchaseToken, 'current');
+    });
+
+    test('empty transaction list is not active', () {
+      expect(InAppPurchaseBillingGateway.activeIosPurchasesFrom([]), isEmpty);
+    });
   });
 }
 
@@ -175,7 +371,10 @@ BillingPurchase _purchase(
 class _FakeBillingGateway implements BillingGateway {
   _FakeBillingGateway() {
     updates = StreamController<List<BillingPurchase>>.broadcast(
-      onListen: () => listenCount++,
+      onListen: () {
+        listenCount++;
+        callOrder.add('listen');
+      },
     );
   }
 
@@ -188,7 +387,14 @@ class _FakeBillingGateway implements BillingGateway {
   int consumeCount = 0;
   List<BillingPurchase> currentPurchases = [];
   final List<BillingPurchase> acknowledged = [];
+  final List<String> callOrder = [];
   BillingQueryResult<AnnualSubscriptionProduct>? productResult;
+
+  /// When set, [queryCurrentPurchases] returns this instead of the default
+  /// success-with-[currentPurchases] behavior — used to simulate the real
+  /// iOS gateway's deferred-sync marker (see
+  /// [InAppPurchaseBillingGateway.iosEntitlementQueryFailedCode]).
+  BillingQueryResult<List<BillingPurchase>>? queryCurrentPurchasesOverride;
 
   @override
   Stream<List<BillingPurchase>> get purchaseUpdates => updates.stream;
@@ -214,7 +420,11 @@ class _FakeBillingGateway implements BillingGateway {
 
   @override
   Future<BillingQueryResult<List<BillingPurchase>>>
-  queryCurrentPurchases() async => BillingQueryResult.success(currentPurchases);
+  queryCurrentPurchases() async {
+    callOrder.add('queryCurrentPurchases');
+    return queryCurrentPurchasesOverride ??
+        BillingQueryResult.success(currentPurchases);
+  }
 
   @override
   Future<bool> launchPurchase(AnnualSubscriptionProduct product) async {

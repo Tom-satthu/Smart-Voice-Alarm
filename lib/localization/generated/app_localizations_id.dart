@@ -73,6 +73,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get alarmTypeLabel => 'Jenis alarm';
 
   @override
+  String get mathChallengeTitle => 'Selesaikan soal untuk menghentikan';
+
+  @override
+  String get mathChallengeDescription =>
+      'Jika aktif, Anda harus menjawab soal matematika dengan benar untuk menghentikan alarm.';
+
+  @override
   String get createAlarmTitle => 'Alarm Baru';
 
   @override
@@ -254,7 +261,46 @@ class AppLocalizationsId extends AppLocalizations {
   String get ttsSaved => 'Segmen suara disimpan';
 
   @override
+  String ttsCharCounter(int used, int max) {
+    return '$used/$max characters';
+  }
+
+  @override
+  String get ttsCharLimitReached =>
+      'Character limit reached for this language.';
+
+  @override
+  String get ttsPasteTooLongTitle => 'Paste exceeds limit';
+
+  @override
+  String ttsPasteTooLongBody(int max) {
+    return 'The paste is longer than $max characters. Insert only the first $max characters?';
+  }
+
+  @override
+  String get ttsPasteInsertPartial => 'Insert partial';
+
+  @override
+  String get ttsTooLongDuration =>
+      'Spoken audio is longer than 20 seconds. Shorten the text and try again.';
+
+  @override
+  String get ttsDurationChecking => 'Checking spoken length…';
+
+  @override
   String get recordTitle => 'Rekam Suara';
+
+  @override
+  String recordTimerLabel(int used, int max) {
+    return '$used/$max seconds';
+  }
+
+  @override
+  String get recordAutoStopped => 'Recording stopped at 20 seconds.';
+
+  @override
+  String get recordLongClipWarning =>
+      'This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.';
 
   @override
   String get recordStart => 'Rekam';
@@ -1028,6 +1074,10 @@ class AppLocalizationsId extends AppLocalizations {
       'Kelola atau batalkan melalui Google Play.';
 
   @override
+  String get premiumAnnualCancelInAppStore =>
+      'Kelola atau batalkan melalui App Store.';
+
+  @override
   String get premiumAnnualAccess =>
       'Akses penuh berlanjut selama langganan aktif.';
 
@@ -1048,8 +1098,16 @@ class AppLocalizationsId extends AppLocalizations {
       'Langganan tahunan belum tersedia di Google Play.';
 
   @override
+  String get premiumProductUnavailableAppStore =>
+      'Langganan tahunan belum tersedia di App Store.';
+
+  @override
   String get premiumBillingUnavailable =>
       'Google Play Billing sedang tidak tersedia.';
+
+  @override
+  String get premiumBillingUnavailableAppStore =>
+      'Pembayaran App Store sedang tidak tersedia.';
 
   @override
   String get premiumPurchaseActive => 'Premium aktif';

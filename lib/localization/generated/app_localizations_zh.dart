@@ -72,6 +72,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get alarmTypeLabel => '闹钟类型';
 
   @override
+  String get mathChallengeTitle => '解题后关闭闹钟';
+
+  @override
+  String get mathChallengeDescription => '开启后，需正确解答一道数学题才能关闭闹钟。';
+
+  @override
   String get createAlarmTitle => '新建闹钟';
 
   @override
@@ -251,7 +257,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ttsSaved => '语音片段已保存';
 
   @override
+  String ttsCharCounter(int used, int max) {
+    return '$used/$max characters';
+  }
+
+  @override
+  String get ttsCharLimitReached =>
+      'Character limit reached for this language.';
+
+  @override
+  String get ttsPasteTooLongTitle => 'Paste exceeds limit';
+
+  @override
+  String ttsPasteTooLongBody(int max) {
+    return 'The paste is longer than $max characters. Insert only the first $max characters?';
+  }
+
+  @override
+  String get ttsPasteInsertPartial => 'Insert partial';
+
+  @override
+  String get ttsTooLongDuration =>
+      'Spoken audio is longer than 20 seconds. Shorten the text and try again.';
+
+  @override
+  String get ttsDurationChecking => 'Checking spoken length…';
+
+  @override
   String get recordTitle => '录制语音';
+
+  @override
+  String recordTimerLabel(int used, int max) {
+    return '$used/$max seconds';
+  }
+
+  @override
+  String get recordAutoStopped => 'Recording stopped at 20 seconds.';
+
+  @override
+  String get recordLongClipWarning =>
+      'This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.';
 
   @override
   String get recordStart => '录制';
@@ -998,6 +1043,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get premiumAnnualCancelInPlay => '通过 Google Play 管理或取消。';
 
   @override
+  String get premiumAnnualCancelInAppStore => '通过 App Store 管理或取消。';
+
+  @override
   String get premiumAnnualAccess => '订阅有效期间可继续完整使用。';
 
   @override
@@ -1016,7 +1064,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get premiumProductUnavailable => '年度订阅尚未在 Google Play 上提供。';
 
   @override
+  String get premiumProductUnavailableAppStore => '年度订阅尚未在 App Store 上提供。';
+
+  @override
   String get premiumBillingUnavailable => 'Google Play Billing 当前不可用。';
+
+  @override
+  String get premiumBillingUnavailableAppStore => 'App Store 结算当前不可用。';
 
   @override
   String get premiumPurchaseActive => 'Premium 已启用';
@@ -1311,6 +1365,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get alarmTypeLabel => '鬧鐘類型';
 
   @override
+  String get mathChallengeTitle => '解題後關閉鬧鐘';
+
+  @override
+  String get mathChallengeDescription => '開啟後，需正確解答一道數學題才能關閉鬧鐘。';
+
+  @override
   String get createAlarmTitle => '新增鬧鐘';
 
   @override
@@ -1490,7 +1550,46 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get ttsSaved => '語音片段已儲存';
 
   @override
+  String ttsCharCounter(int used, int max) {
+    return '$used/$max characters';
+  }
+
+  @override
+  String get ttsCharLimitReached =>
+      'Character limit reached for this language.';
+
+  @override
+  String get ttsPasteTooLongTitle => 'Paste exceeds limit';
+
+  @override
+  String ttsPasteTooLongBody(int max) {
+    return 'The paste is longer than $max characters. Insert only the first $max characters?';
+  }
+
+  @override
+  String get ttsPasteInsertPartial => 'Insert partial';
+
+  @override
+  String get ttsTooLongDuration =>
+      'Spoken audio is longer than 20 seconds. Shorten the text and try again.';
+
+  @override
+  String get ttsDurationChecking => 'Checking spoken length…';
+
+  @override
   String get recordTitle => '錄製語音';
+
+  @override
+  String recordTimerLabel(int used, int max) {
+    return '$used/$max seconds';
+  }
+
+  @override
+  String get recordAutoStopped => 'Recording stopped at 20 seconds.';
+
+  @override
+  String get recordLongClipWarning =>
+      'This recording is longer than 20 seconds. Alarms will use only the first 20 seconds.';
 
   @override
   String get recordStart => '錄製';
@@ -2237,6 +2336,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get premiumAnnualCancelInPlay => '透過 Google Play 管理或取消。';
 
   @override
+  String get premiumAnnualCancelInAppStore => '透過 App Store 管理或取消。';
+
+  @override
   String get premiumAnnualAccess => '訂閱有效期間可繼續完整使用。';
 
   @override
@@ -2255,7 +2357,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get premiumProductUnavailable => '年度訂閱尚未在 Google Play 提供。';
 
   @override
+  String get premiumProductUnavailableAppStore => '年度訂閱尚未在 App Store 提供。';
+
+  @override
   String get premiumBillingUnavailable => 'Google Play Billing 目前無法使用。';
+
+  @override
+  String get premiumBillingUnavailableAppStore => 'App Store 結帳目前無法使用。';
 
   @override
   String get premiumPurchaseActive => 'Premium 已啟用';
