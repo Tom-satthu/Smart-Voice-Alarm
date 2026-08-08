@@ -1082,6 +1082,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Faça a gestão ou cancele no Google Play.';
 
   @override
+  String get premiumAnnualCancelInAppStore =>
+      'Faça a gestão ou cancele na App Store.';
+
+  @override
   String get premiumAnnualAccess =>
       'O acesso total continua enquanto a subscrição estiver ativa.';
 
@@ -1102,8 +1106,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'A subscrição anual ainda não está disponível no Google Play.';
 
   @override
+  String get premiumProductUnavailableAppStore =>
+      'A subscrição anual ainda não está disponível na App Store.';
+
+  @override
   String get premiumBillingUnavailable =>
       'O Google Play Billing está indisponível.';
+
+  @override
+  String get premiumBillingUnavailableAppStore =>
+      'A faturação da App Store está indisponível.';
 
   @override
   String get premiumPurchaseActive => 'Premium está ativo';

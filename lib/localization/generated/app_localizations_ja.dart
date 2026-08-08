@@ -1047,6 +1047,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get premiumAnnualCancelInPlay => 'Google Playで管理またはキャンセルできます。';
 
   @override
+  String get premiumAnnualCancelInAppStore => 'App Storeで管理またはキャンセルできます。';
+
+  @override
   String get premiumAnnualAccess => 'サブスクリプションが有効な間は全機能を利用できます。';
 
   @override
@@ -1065,7 +1068,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get premiumProductUnavailable => '年間サブスクリプションはまだGoogle Playで利用できません。';
 
   @override
+  String get premiumProductUnavailableAppStore =>
+      '年間サブスクリプションはまだApp Storeで利用できません。';
+
+  @override
   String get premiumBillingUnavailable => 'Google Play Billingを現在利用できません。';
+
+  @override
+  String get premiumBillingUnavailableAppStore => 'App Storeでのお支払いは現在利用できません。';
 
   @override
   String get premiumPurchaseActive => 'Premiumは有効です';

@@ -192,7 +192,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         EntitlementStatus.subscriptionPending => l10n.premiumStatusPending,
         EntitlementStatus.initializing => l10n.premiumStatusLoading,
         EntitlementStatus.trialExpired => l10n.premiumTrialExpiredTitle,
-        EntitlementStatus.billingUnavailable => l10n.premiumBillingUnavailable,
+        EntitlementStatus.billingUnavailable =>
+          defaultTargetPlatform == TargetPlatform.iOS ||
+                  defaultTargetPlatform == TargetPlatform.macOS
+              ? l10n.premiumBillingUnavailableAppStore
+              : l10n.premiumBillingUnavailable,
         EntitlementStatus.entitlementCheckFailed => l10n.premiumUnableToVerify,
       };
       final price = purchase.localizedPrice;

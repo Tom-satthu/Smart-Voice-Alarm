@@ -30,6 +30,10 @@ class PremiumScreen extends ConsumerStatefulWidget {
 }
 
 class _PremiumScreenState extends ConsumerState<PremiumScreen> {
+  static bool get _isAppStorePlatform =>
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS;
+
   @override
   void initState() {
     super.initState();
@@ -47,8 +51,12 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
       PurchaseFlowStatus.cancelled => l10n.premiumStatusCancelled,
       PurchaseFlowStatus.pending => l10n.premiumStatusPending,
       PurchaseFlowStatus.error => l10n.premiumStatusError,
-      PurchaseFlowStatus.unavailable => l10n.premiumBillingUnavailable,
-      PurchaseFlowStatus.productUnavailable => l10n.premiumProductUnavailable,
+      PurchaseFlowStatus.unavailable => _isAppStorePlatform
+          ? l10n.premiumBillingUnavailableAppStore
+          : l10n.premiumBillingUnavailable,
+      PurchaseFlowStatus.productUnavailable => _isAppStorePlatform
+          ? l10n.premiumProductUnavailableAppStore
+          : l10n.premiumProductUnavailable,
       PurchaseFlowStatus.idle => '',
     };
   }
@@ -194,7 +202,9 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                             const SizedBox(height: 10),
                             _DisclosureRow(text: l10n.premiumAnnualAutoRenew),
                             _DisclosureRow(
-                              text: l10n.premiumAnnualCancelInPlay,
+                              text: _isAppStorePlatform
+                                  ? l10n.premiumAnnualCancelInAppStore
+                                  : l10n.premiumAnnualCancelInPlay,
                             ),
                             _DisclosureRow(
                               text: l10n.premiumAnnualAccess,

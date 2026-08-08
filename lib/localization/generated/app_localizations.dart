@@ -2009,6 +2009,12 @@ abstract class AppLocalizations {
   /// **'Manage or cancel through Google Play.'**
   String get premiumAnnualCancelInPlay;
 
+  /// No description provided for @premiumAnnualCancelInAppStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage or cancel through the App Store.'**
+  String get premiumAnnualCancelInAppStore;
+
   /// No description provided for @premiumAnnualAccess.
   ///
   /// In en, this message translates to:
@@ -2045,11 +2051,23 @@ abstract class AppLocalizations {
   /// **'The annual subscription is not available from Google Play yet.'**
   String get premiumProductUnavailable;
 
+  /// No description provided for @premiumProductUnavailableAppStore.
+  ///
+  /// In en, this message translates to:
+  /// **'The annual subscription is not available from the App Store yet.'**
+  String get premiumProductUnavailableAppStore;
+
   /// No description provided for @premiumBillingUnavailable.
   ///
   /// In en, this message translates to:
   /// **'Google Play Billing is currently unavailable.'**
   String get premiumBillingUnavailable;
+
+  /// No description provided for @premiumBillingUnavailableAppStore.
+  ///
+  /// In en, this message translates to:
+  /// **'App Store billing is currently unavailable.'**
+  String get premiumBillingUnavailableAppStore;
 
   /// No description provided for @premiumPurchaseActive.
   ///

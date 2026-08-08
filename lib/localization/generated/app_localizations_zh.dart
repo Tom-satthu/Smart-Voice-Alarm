@@ -1043,6 +1043,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get premiumAnnualCancelInPlay => '通过 Google Play 管理或取消。';
 
   @override
+  String get premiumAnnualCancelInAppStore => '通过 App Store 管理或取消。';
+
+  @override
   String get premiumAnnualAccess => '订阅有效期间可继续完整使用。';
 
   @override
@@ -1061,7 +1064,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get premiumProductUnavailable => '年度订阅尚未在 Google Play 上提供。';
 
   @override
+  String get premiumProductUnavailableAppStore => '年度订阅尚未在 App Store 上提供。';
+
+  @override
   String get premiumBillingUnavailable => 'Google Play Billing 当前不可用。';
+
+  @override
+  String get premiumBillingUnavailableAppStore => 'App Store 结算当前不可用。';
 
   @override
   String get premiumPurchaseActive => 'Premium 已启用';
@@ -2327,6 +2336,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get premiumAnnualCancelInPlay => '透過 Google Play 管理或取消。';
 
   @override
+  String get premiumAnnualCancelInAppStore => '透過 App Store 管理或取消。';
+
+  @override
   String get premiumAnnualAccess => '訂閱有效期間可繼續完整使用。';
 
   @override
@@ -2345,7 +2357,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get premiumProductUnavailable => '年度訂閱尚未在 Google Play 提供。';
 
   @override
+  String get premiumProductUnavailableAppStore => '年度訂閱尚未在 App Store 提供。';
+
+  @override
   String get premiumBillingUnavailable => 'Google Play Billing 目前無法使用。';
+
+  @override
+  String get premiumBillingUnavailableAppStore => 'App Store 結帳目前無法使用。';
 
   @override
   String get premiumPurchaseActive => 'Premium 已啟用';

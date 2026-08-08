@@ -1073,6 +1073,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get premiumAnnualCancelInPlay => 'Quản lý hoặc hủy qua Google Play.';
 
   @override
+  String get premiumAnnualCancelInAppStore => 'Quản lý hoặc hủy qua App Store.';
+
+  @override
   String get premiumAnnualAccess =>
       'Duy trì toàn bộ quyền truy cập khi gói đăng ký còn hiệu lực.';
 
@@ -1093,8 +1096,16 @@ class AppLocalizationsVi extends AppLocalizations {
       'Gói đăng ký năm chưa khả dụng trên Google Play.';
 
   @override
+  String get premiumProductUnavailableAppStore =>
+      'Gói đăng ký năm chưa khả dụng trên App Store.';
+
+  @override
   String get premiumBillingUnavailable =>
       'Google Play Billing hiện không khả dụng.';
+
+  @override
+  String get premiumBillingUnavailableAppStore =>
+      'Thanh toán App Store hiện không khả dụng.';
 
   @override
   String get premiumPurchaseActive => 'Premium đang hoạt động';

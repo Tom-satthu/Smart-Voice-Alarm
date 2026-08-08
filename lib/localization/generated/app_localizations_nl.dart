@@ -1078,6 +1078,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get premiumAnnualCancelInPlay => 'Beheer of annuleer via Google Play.';
 
   @override
+  String get premiumAnnualCancelInAppStore =>
+      'Beheer of annuleer via de App Store.';
+
+  @override
   String get premiumAnnualAccess =>
       'Volledige toegang blijft zolang het abonnement actief is.';
 
@@ -1098,8 +1102,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het jaarabonnement is nog niet beschikbaar in Google Play.';
 
   @override
+  String get premiumProductUnavailableAppStore =>
+      'Het jaarabonnement is nog niet beschikbaar in de App Store.';
+
+  @override
   String get premiumBillingUnavailable =>
       'Google Play Billing is momenteel niet beschikbaar.';
+
+  @override
+  String get premiumBillingUnavailableAppStore =>
+      'App Store-facturering is momenteel niet beschikbaar.';
 
   @override
   String get premiumPurchaseActive => 'Premium is actief';

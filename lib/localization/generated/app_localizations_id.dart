@@ -1074,6 +1074,10 @@ class AppLocalizationsId extends AppLocalizations {
       'Kelola atau batalkan melalui Google Play.';
 
   @override
+  String get premiumAnnualCancelInAppStore =>
+      'Kelola atau batalkan melalui App Store.';
+
+  @override
   String get premiumAnnualAccess =>
       'Akses penuh berlanjut selama langganan aktif.';
 
@@ -1094,8 +1098,16 @@ class AppLocalizationsId extends AppLocalizations {
       'Langganan tahunan belum tersedia di Google Play.';
 
   @override
+  String get premiumProductUnavailableAppStore =>
+      'Langganan tahunan belum tersedia di App Store.';
+
+  @override
   String get premiumBillingUnavailable =>
       'Google Play Billing sedang tidak tersedia.';
+
+  @override
+  String get premiumBillingUnavailableAppStore =>
+      'Pembayaran App Store sedang tidak tersedia.';
 
   @override
   String get premiumPurchaseActive => 'Premium aktif';

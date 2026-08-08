@@ -1050,6 +1050,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get premiumAnnualCancelInPlay => 'Google Play에서 관리하거나 취소할 수 있습니다.';
 
   @override
+  String get premiumAnnualCancelInAppStore => 'App Store에서 관리하거나 취소할 수 있습니다.';
+
+  @override
   String get premiumAnnualAccess => '구독이 활성 상태인 동안 전체 기능을 사용할 수 있습니다.';
 
   @override
@@ -1068,7 +1071,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get premiumProductUnavailable => '연간 구독을 아직 Google Play에서 사용할 수 없습니다.';
 
   @override
+  String get premiumProductUnavailableAppStore =>
+      '연간 구독을 아직 App Store에서 사용할 수 없습니다.';
+
+  @override
   String get premiumBillingUnavailable => '현재 Google Play Billing을 사용할 수 없습니다.';
+
+  @override
+  String get premiumBillingUnavailableAppStore =>
+      '현재 App Store 결제를 사용할 수 없습니다.';
 
   @override
   String get premiumPurchaseActive => 'Premium 활성화됨';
