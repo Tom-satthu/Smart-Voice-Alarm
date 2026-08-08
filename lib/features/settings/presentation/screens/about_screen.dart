@@ -116,16 +116,19 @@ class AboutScreen extends ConsumerWidget {
             if (AppConstants.hasPrivacyPolicyUrl)
               _InfoTile(
                 label: l10n.settingsPrivacy,
+                value: l10n.settingsLegalPlaceholder,
                 onTap: () =>
                     _launchHttps(context, AppConstants.privacyPolicyUrl),
               ),
             if (AppConstants.hasTermsOfUseUrl)
               _InfoTile(
                 label: l10n.settingsTerms,
+                value: l10n.settingsLegalPlaceholder,
                 onTap: () => _launchHttps(context, AppConstants.termsOfUseUrl),
               ),
             _InfoTile(
               label: l10n.openSourceLicenses,
+              value: l10n.settingsLegalPlaceholder,
               onTap: () {
                 showLicensePage(
                   context: context,
@@ -143,10 +146,10 @@ class AboutScreen extends ConsumerWidget {
 }
 
 class _InfoTile extends StatelessWidget {
-  const _InfoTile({required this.label, this.value, this.onTap});
+  const _InfoTile({required this.label, required this.value, this.onTap});
 
   final String label;
-  final String? value;
+  final String value;
   final VoidCallback? onTap;
 
   @override
@@ -167,10 +170,8 @@ class _InfoTile extends StatelessWidget {
                       color: context.colors.onSurfaceVariant,
                     ),
                   ),
-                  if (value != null && value!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(value!, style: context.textTheme.titleSmall),
-                  ],
+                  const SizedBox(height: 4),
+                  Text(value, style: context.textTheme.titleSmall),
                 ],
               ),
             ),

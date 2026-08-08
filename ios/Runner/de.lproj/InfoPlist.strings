@@ -1,3 +1,0 @@
-/* Permission usage descriptions */
-"NSMicrophoneUsageDescription" = "Smart Voice Alarm benötigt das Mikrofon, um Sprachnachrichten für Ihre Alarme aufzunehmen.";
-"NSAlarmKitUsageDescription" = "Smart Voice Alarm verwendet AlarmKit, um Ihre erstellten Alarme zu planen und abzuspielen.";

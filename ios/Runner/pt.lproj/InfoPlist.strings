@@ -1,3 +1,0 @@
-/* Permission usage descriptions */
-"NSMicrophoneUsageDescription" = "O Smart Voice Alarm precisa do microfone para gravar mensagens de voz para os seus alarmes.";
-"NSAlarmKitUsageDescription" = "O Smart Voice Alarm usa o AlarmKit para agendar e tocar os alarmes que você cria.";

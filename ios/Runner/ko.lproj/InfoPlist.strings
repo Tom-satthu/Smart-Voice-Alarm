@@ -1,3 +1,0 @@
-/* Permission usage descriptions */
-"NSMicrophoneUsageDescription" = "Smart Voice Alarm은 알람용 음성 메시지를 녹음하기 위해 마이크가 필요합니다.";
-"NSAlarmKitUsageDescription" = "Smart Voice Alarm은 만든 알람을 예약하고 재생하기 위해 AlarmKit을 사용합니다.";

@@ -1,3 +1,0 @@
-/* Permission usage descriptions */
-"NSMicrophoneUsageDescription" = "Smart Voice Alarm 需要麥克風來錄製鬧鐘語音留言。";
-"NSAlarmKitUsageDescription" = "Smart Voice Alarm 使用 AlarmKit 來排程並播放你建立的鬧鐘。";
