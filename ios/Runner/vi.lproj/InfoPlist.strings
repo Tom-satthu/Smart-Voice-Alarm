@@ -1,0 +1,3 @@
+/* Permission usage descriptions */
+"NSMicrophoneUsageDescription" = "Smart Voice Alarm cần microphone để ghi lại tin nhắn giọng nói cho báo thức của bạn.";
+"NSAlarmKitUsageDescription" = "Smart Voice Alarm dùng AlarmKit để lên lịch và phát các báo thức bạn đã tạo.";

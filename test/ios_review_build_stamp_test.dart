@@ -14,6 +14,13 @@ void main() {
     test('production autoProbe is false without review build', () {
       expect(SvaBuildStamp.autoProbe, isFalse);
     });
+
+    test('autoProbe requires both reviewBuild and SVA_DIAG_AUTO_PROBE', () {
+      // Compile-time defaults in the unit-test VM: neither flag is set.
+      expect(SvaBuildStamp.reviewBuild, isFalse);
+      expect(SvaBuildStamp.autoProbe, isFalse);
+      expect(SvaBuildStamp.hasDartStamp, isFalse);
+    });
   });
 
   group('SvaReviewBuildStampSection', () {

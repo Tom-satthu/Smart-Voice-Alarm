@@ -1,0 +1,3 @@
+/* Permission usage descriptions */
+"NSMicrophoneUsageDescription" = "Smart Voice Alarm necessita del microfono per registrare messaggi vocali per le tue sveglie.";
+"NSAlarmKitUsageDescription" = "Smart Voice Alarm usa AlarmKit per programmare e riprodurre le sveglie che crei.";

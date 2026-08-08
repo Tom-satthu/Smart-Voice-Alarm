@@ -33,6 +33,7 @@
 		A11ARMKITFRM01BUILD /* AlarmKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11ARMKITFRM01FILE /* AlarmKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		A11SILENCE01BUILD /* SvaSilenceAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11SILENCE01FILE /* SvaSilenceAudio.swift */; };
 		A11OCCSTORE01BUILD /* SvaOccurrenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11OCCSTORE01FILE /* SvaOccurrenceStore.swift */; };
+		A11INFPLST01BUILD /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A11INFPLST01GROUP /* InfoPlist.strings */; };
 		A11PARENTLC01BUILD /* SvaParentLifecycleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11PARENTLC01FILE /* SvaParentLifecycleStore.swift */; };
 		A11AKUPDATE01BUILD /* SvaAlarmKitUpdateObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AKUPDATE01FILE /* SvaAlarmKitUpdateObserver.swift */; };
 		A11AKRECOV01BUILD /* SvaAlarmKitRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AKRECOV01FILE /* SvaAlarmKitRecovery.swift */; };
@@ -101,6 +102,19 @@
 		A11ARMKTRUN01FILE /* SvaAlarmKitRuntime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitRuntime.swift; sourceTree = "<group>"; };
 		A11SILENCE01FILE /* SvaSilenceAudio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaSilenceAudio.swift; sourceTree = "<group>"; };
 		A11OCCSTORE01FILE /* SvaOccurrenceStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaOccurrenceStore.swift; sourceTree = "<group>"; };
+		A11INFPLST01FILE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST02FILE /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST03FILE /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST04FILE /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST05FILE /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST06FILE /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST07FILE /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST08FILE /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST09FILE /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST10FILE /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST11FILE /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = pt.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST12FILE /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh-Hans; path = zh-Hans.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A11INFPLST13FILE /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh-Hant; path = zh-Hant.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A11PARENTLC01FILE /* SvaParentLifecycleStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaParentLifecycleStore.swift; sourceTree = "<group>"; };
 		A11AKUPDATE01FILE /* SvaAlarmKitUpdateObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitUpdateObserver.swift; sourceTree = "<group>"; };
 		A11AKRECOV01FILE /* SvaAlarmKitRecovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SvaAlarmKitRecovery.swift; sourceTree = "<group>"; };
@@ -192,6 +206,7 @@
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
 				97C147021CF9000F007C117D /* Info.plist */,
+				A11INFPLST01GROUP /* InfoPlist.strings */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
@@ -307,6 +322,18 @@
 			knownRegions = (
 				en,
 				Base,
+				vi,
+				de,
+				es,
+				fr,
+				id,
+				it,
+				ja,
+				ko,
+				nl,
+				pt,
+				zh-Hans,
+				zh-Hant,
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
@@ -338,6 +365,7 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				A11INFPLST01BUILD /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -484,6 +512,26 @@
 				97C147001CF9000F007C117D /* Base */,
 			);
 			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		A11INFPLST01GROUP /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A11INFPLST01FILE /* en */,
+				A11INFPLST02FILE /* vi */,
+				A11INFPLST03FILE /* de */,
+				A11INFPLST04FILE /* es */,
+				A11INFPLST05FILE /* fr */,
+				A11INFPLST06FILE /* id */,
+				A11INFPLST07FILE /* it */,
+				A11INFPLST08FILE /* ja */,
+				A11INFPLST09FILE /* ko */,
+				A11INFPLST10FILE /* nl */,
+				A11INFPLST11FILE /* pt */,
+				A11INFPLST12FILE /* zh-Hans */,
+				A11INFPLST13FILE /* zh-Hant */,
+			);
+			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

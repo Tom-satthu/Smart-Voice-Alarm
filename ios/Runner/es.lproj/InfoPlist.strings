@@ -1,0 +1,3 @@
+/* Permission usage descriptions */
+"NSMicrophoneUsageDescription" = "Smart Voice Alarm necesita el micrófono para grabar mensajes de voz para tus alarmas.";
+"NSAlarmKitUsageDescription" = "Smart Voice Alarm usa AlarmKit para programar y reproducir las alarmas que creas.";

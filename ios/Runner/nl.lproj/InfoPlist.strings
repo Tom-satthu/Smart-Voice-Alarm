@@ -1,0 +1,3 @@
+/* Permission usage descriptions */
+"NSMicrophoneUsageDescription" = "Smart Voice Alarm heeft de microfoon nodig om spraakberichten voor je wekkers op te nemen.";
+"NSAlarmKitUsageDescription" = "Smart Voice Alarm gebruikt AlarmKit om de wekkers die je maakt te plannen en af te spelen.";

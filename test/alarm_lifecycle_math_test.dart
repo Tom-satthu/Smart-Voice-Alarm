@@ -207,7 +207,9 @@ void main() {
     testWidgets('22. switch is below alarm type', (tester) async {
       final settingsRepo = MemorySettingsRepository();
       final alarmRepo = MemoryAlarmRepository(const []);
-      final sequenceRepo = MemoryVoiceSequenceRepository([TestSeedData.sequence]);
+      final sequenceRepo = MemoryVoiceSequenceRepository([
+        TestSeedData.sequence,
+      ]);
       final notifications = _RecordingNotifications();
       await tester.pumpWidget(
         ProviderScope(
@@ -220,7 +222,8 @@ void main() {
             settingsRepositoryProvider.overrideWithValue(settingsRepo),
             notificationServiceProvider.overrideWithValue(notifications),
             alarmListProvider.overrideWith(
-              (ref) => AlarmListController(alarmRepo, notifications, sequenceRepo),
+              (ref) =>
+                  AlarmListController(alarmRepo, notifications, sequenceRepo),
             ),
             themeModeProvider.overrideWith(
               (ref) => ThemeController(settingsRepo),

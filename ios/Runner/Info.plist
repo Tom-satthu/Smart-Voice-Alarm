@@ -27,9 +27,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAlarmKitUsageDescription</key>
-	<string>Smart Voice Alarm schedules system alarms so your voice segments and ringtones can ring on the Lock Screen.</string>
+	<string>Smart Voice Alarm uses AlarmKit to schedule and play the alarms you create.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Smart Voice Alarm needs the microphone to record voice segments for your alarms.</string>
+	<string>Smart Voice Alarm needs the microphone to record voice messages for your alarms.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
